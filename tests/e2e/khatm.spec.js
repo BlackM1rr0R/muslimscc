@@ -94,7 +94,7 @@ test('qonaq: izləmə rejimi — canlı rəqəmlər, arxiv, Ramazan, giriş keç
   await expect(arch.locator('tbody tr')).toHaveCount(1)
   await expect(arch.locator('tbody tr')).toContainText('№1246')
   await expect(arch.locator('tbody tr')).toContainText('18 saat 30 dəqiqə')
-  await expect(page.getByTestId('khatm-ramadan')).toHaveText('1447 hicri ilinin Ramazanında ümmət 3 dəfə xətm etdi')
+  await expect(page.getByTestId('khatm-ramadan')).toHaveText('1447 hicri ilinin Ramazanında muslims.cc-dəki «Ümmətin Canlı Xətmi»nin oxucuları birlikdə 3 xətm tamamladı')
   // qonaq üçün /me sorğusu getmir
   expect(S.requests).not.toContain('GET /api/khatm/me')
   expect(S.liveHits).toBe(1)
@@ -114,7 +114,7 @@ test('daxil olub: səhifə götür (ithafla) → oxu → «Oxudum» → halqada 
   await expect(take).toBeVisible()
   // "Sevdiklərim üçün dua" siyahısından bir toxunuşla
   await take.getByRole('button', { name: 'Nənəm Səkinə' }).click()
-  await expect(take.getByLabel('İthaf (istəyə bağlı): mərhum yaxınınızın adı')).toHaveValue('Nənəm Səkinə')
+  await expect(take.getByLabel('İthaf (istəyə bağlı): duada yad etmək üçün mərhum yaxınınızın adı')).toHaveValue('Nənəm Səkinə')
   await take.getByTestId('khatm-take-btn').click()
   const reader = page.getByTestId('khatm-reader')
   await expect(reader).toBeVisible()
@@ -200,7 +200,7 @@ test('/en/khatm: azərbaycanca yazı yoxdur; ərəbcə RTL', async ({ page, cons
   await page.goto('/en/khatm')
   await settle(page)
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('The Ummah’s Live Khatm')
-  await expect(page.getByTestId('khatm-ramadan')).toHaveText('In Ramadan 1447 AH the Ummah completed the Quran 3 times')
+  await expect(page.getByTestId('khatm-ramadan')).toHaveText('In Ramadan 1447 AH, readers of the Ummah’s Live Khatm on muslims.cc completed 3 khatms together')
   expect(await page.locator('main').innerText()).not.toMatch(/[əƏ]|Xətm|səhifə/)
   await page.goto('/ar/khatm')
   await settle(page)

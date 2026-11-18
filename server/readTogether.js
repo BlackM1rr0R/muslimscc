@@ -18,8 +18,9 @@
 //   POST ilə qısaömürlü bilet alır, GET …/events?t=<bilet> onu dərhal "yandırır"
 //   (nginx loguna düşsə də təkrar istifadə olunmur).
 // • Həddlər: istifadəçi başına 3 aktiv otaq, otaqda 30 iştirakçı, iştirakçı başına 3 SSE
-//   bağlantısı, cəmi 500 otaq / 3000 bağlantı; IP üzrə qoşulma və yaratma limiti; iştirakçı
-//   başına əməliyyat limiti (dəqiqədə 120).
+//   bağlantısı, otaq SAHİBİNİN (hesabın) bütün otaqlarında cəmi 100 SSE bağlantısı, cəmi 500 otaq /
+//   3000 bağlantı (dolanda ən köhnə bağlantı bağlanır, yenisi qəbul olunur); IP üzrə qoşulma və
+//   yaratma limiti (IPv6 — /64, server/ipKey.js); iştirakçı başına əməliyyat limiti (dəqiqədə 120).
 // • Məxfilik: yalnız iştirakçının yazdığı ləqəb; IP yalnız yaddaşdakı limit sayğacında.
 //
 //   POST /api/read-together/rooms            (girişli)  { title?, page?, anyoneTurns?, name? } → 201 { room, invite, pid, secret, state }
@@ -37,6 +38,7 @@
 const crypto = require('node:crypto')
 const express = require('express')
 const { csrfRejected } = require('./auth')
+const { createIpKeyer } = require('./ipKey')
 
 const MUSHAF_PAGES = 604
 const MAX_ROOMS = 500
@@ -44,6 +46,7 @@ const MAX_ROOMS_PER_USER = 3
 const MAX_PARTICIPANTS = 30
 const MAX_CONN_PER_PARTICIPANT = 3
 const MAX_CONN_TOTAL = 3000
+const MAX_CONN_PER_OWNER = 100   // bir hesabın 3 otağında (3 × 30 iştirakçı, hərəsi bir bağlantı = 90)
 const MAX_TITLE = 60
 const MAX_NAME = 40
 const IDLE_MS = 24 * 3600e3
@@ -86,14 +89,24 @@ function ayahKey(v) {
 }
 const validPage = (p) => Number.isInteger(p) && p >= 1 && p <= MUSHAF_PAGES
 
-function createReadTogetherRouter({ requireUser, allowedOrigins = [], now = () => Date.now(), limits = LIMITS, sweepMs = SWEEP_MS, keepaliveMs = KEEPALIVE_MS } = {}) {
+function createReadTogetherRouter({
+  requireUser, allowedOrigins = [], now = () => Date.now(), limits = LIMITS, sweepMs = SWEEP_MS, keepaliveMs = KEEPALIVE_MS,
+  maxConnTotal = MAX_CONN_TOTAL, maxConnPerOwner = MAX_CONN_PER_OWNER,
+} = {}) {
   const router = express.Router()
   const json = express.json({ limit: '2kb' })
   const auth = requireUser()
   const rooms = new Map()      // id → room
   const invites = new Map()    // sha256(invite) → room id
   const tickets = new Map()    // sha256(ticket) → { room, pid, exp }
+  const allConns = new Map()   // res → cleanup (daxil olma sırası ilə: ilk — ən köhnə)
+  const ipKey = createIpKeyer()
   let connCount = 0
+  const ownerConns = (ownerId) => {
+    let n = 0
+    for (const r of rooms.values()) if (r.ownerId === ownerId) for (const p of r.participants.values()) n += p.conns.size
+    return n
+  }
 
   // ── Limit sayğacları (yalnız yaddaşda) ──
   const buckets = Object.fromEntries(Object.keys(limits).map((k) => [k, new Map()]))
@@ -219,7 +232,7 @@ function createReadTogetherRouter({ requireUser, allowedOrigins = [], now = () =
 
   // ── Qoşulma (hesabsız da) ──
   router.post('/read-together/join', csrf, json, (req, res) => {
-    if (limited('join', req.ip || '')) return err(res, 429, 'rate_limited')
+    if (limited('join', ipKey(req))) return err(res, 429, 'rate_limited')
     const b = body(req)
     const id = typeof b.invite === 'string' && SECRET_RE.test(b.invite) ? invites.get(sha256(b.invite)) : null
     const room = id ? rooms.get(id) : null
@@ -235,7 +248,7 @@ function createReadTogetherRouter({ requireUser, allowedOrigins = [], now = () =
 
   // ── SSE bileti + axın ──
   router.post('/read-together/:id/ticket', csrf, json, (req, res) => {
-    if (limited('ticket', req.ip || '')) return err(res, 429, 'rate_limited')
+    if (limited('ticket', ipKey(req))) return err(res, 429, 'rate_limited')
     const m = member(req, res); if (!m) return
     const t = secret()
     tickets.set(sha256(t), { room: m.room.id, pid: m.p.pid, exp: now() + TICKET_MS })
@@ -250,7 +263,13 @@ function createReadTogetherRouter({ requireUser, allowedOrigins = [], now = () =
     const room = tk && tk.room === req.params.id && tk.exp > now() ? rooms.get(tk.room) : null
     const p = room ? room.participants.get(tk.pid) : null
     if (!p) return err(res, 403, 'forbidden')
-    if (p.conns.size >= MAX_CONN_PER_PARTICIPANT || connCount >= MAX_CONN_TOTAL) return err(res, 429, 'too_many_connections')
+    if (p.conns.size >= MAX_CONN_PER_PARTICIPANT || ownerConns(room.ownerId) >= maxConnPerOwner) return err(res, 429, 'too_many_connections')
+    // Cəmi həddə çatıb — ən köhnə bağlantı bağlanır (klient yeni biletlə yenidən qoşulur), yenisi qəbul olunur
+    while (connCount >= maxConnTotal && allConns.size) {
+      const [oldest, close] = allConns.entries().next().value
+      close()
+      try { oldest.end() } catch { /* */ }
+    }
     res.status(200).set({
       'Content-Type': 'text/event-stream; charset=utf-8', 'Cache-Control': 'no-store', 'X-Accel-Buffering': 'no', Connection: 'keep-alive',
     })
@@ -270,9 +289,11 @@ function createReadTogetherRouter({ requireUser, allowedOrigins = [], now = () =
       done = true
       clearInterval(ka)
       connCount--
+      allConns.delete(res)
       p.conns.delete(res)
       if (!p.conns.size && rooms.get(room.id) === room && room.participants.get(p.pid) === p) broadcast(room)
     }
+    allConns.set(res, cleanup)
     req.on('close', cleanup)
     res.on('close', cleanup)
   })
@@ -379,5 +400,5 @@ function createReadTogetherRouter({ requireUser, allowedOrigins = [], now = () =
 
 module.exports = {
   createReadTogetherRouter, ayahKey, cleanLine,
-  MAX_ROOMS, MAX_ROOMS_PER_USER, MAX_PARTICIPANTS, MAX_CONN_PER_PARTICIPANT, IDLE_MS, TICKET_MS, LIMITS, AYAHS,
+  MAX_ROOMS, MAX_ROOMS_PER_USER, MAX_PARTICIPANTS, MAX_CONN_PER_PARTICIPANT, MAX_CONN_PER_OWNER, MAX_CONN_TOTAL, IDLE_MS, TICKET_MS, LIMITS, AYAHS,
 }

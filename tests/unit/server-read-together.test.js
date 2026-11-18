@@ -215,6 +215,50 @@ describe('read-together HTTP + SSE', () => {
     expect(last).toBe(429)
   })
 
+  it('otaq sahibinin (hesabın) bütün otaqlarında SSE həddi; cəmi dolanda ən köhnə bağlantı bağlanır', async () => {
+    const db2 = openDb(':memory:')
+    const store2 = users.createUsersStore(db2)
+    const app2 = express()
+    app2.set('trust proxy', 1)
+    const ur2 = users.createUsersRouter({
+      db: db2, store: store2, allowedOrigins: [ORIGIN], publicOrigin: ORIGIN, webauthn: {}, googleVerify: async () => null,
+      mailer: createMailer({ apiKey: '', onMessage: () => {} }),
+      limits: { loginEmail: 1000, loginIp: 1000, register: 1000, forgotIp: 1000, forgotEmail: 1000, token: 1000, userAction: 1000 },
+    })
+    app2.use('/api', ur2)
+    const r2 = rt.createReadTogetherRouter({ requireUser: ur2.requireUser, allowedOrigins: [ORIGIN], now: () => clock, sweepMs: 0, keepaliveMs: 50, maxConnPerOwner: 3, maxConnTotal: 4 })
+    app2.use('/api', r2)
+    const s2 = await listen(app2)
+    let ip = 0
+    const c2 = (path, { body, cookie } = {}) => fetch(s2.url + path, {
+      method: 'POST', headers: { ...H, 'x-forwarded-for': `10.7.${ip++ % 250}.1`, ...(cookie ? { cookie } : {}) }, body: JSON.stringify(body || {}),
+    })
+    const su = async (i) => { const r = await c2('/api/auth/register', { body: { email: `cap${i}@example.com`, password: PASS, displayName: 'H', lang: 'az' } }); return cookieOf(r) }
+    const tk = async (room, me) => (await (await c2(`/api/read-together/${room}/ticket`, { body: { pid: me.pid, secret: me.secret } })).json()).ticket
+    const sse = async (room, me) => { const s = openStream(`${s2.url}/api/read-together/${room}/events?t=${await tk(room, me)}`); return { s, status: await s.ready } }
+    const all = []
+    try {
+      const a = await (await c2('/api/read-together/rooms', { cookie: await su(1) })).json()
+      const g1 = await (await c2('/api/read-together/join', { body: { invite: a.invite, name: 'G1' } })).json()
+      const g2 = await (await c2('/api/read-together/join', { body: { invite: a.invite, name: 'G2' } })).json()
+      for (const me of [a, g1, g2]) { const x = await sse(a.room, me); expect(x.status).toBe(200); all.push(x.s) }
+      // A hesabının otaqlarında artıq 3 bağlantı — 4-cü 429 (iştirakçı həddi 3 olsa da)
+      expect((await sse(a.room, g2)).status).toBe(429)
+      // B hesabı: cəmi 4-ə çatır, sonra 5-ci üçün ən köhnə (A aparıcısı) bağlanır
+      const b = await (await c2('/api/read-together/rooms', { cookie: await su(2) })).json()
+      const gb = await (await c2('/api/read-together/join', { body: { invite: b.invite, name: 'GB' } })).json()
+      const x1 = await sse(b.room, b); expect(x1.status).toBe(200); all.push(x1.s)
+      expect(r2.connections()).toBe(4)
+      const x2 = await sse(b.room, gb); expect(x2.status).toBe(200); all.push(x2.s)
+      await waitFor(() => all[0].events.ended)
+      expect(r2.connections()).toBe(4)
+    } finally {
+      all.forEach((s) => s.close())
+      r2.shutdown()
+      await s2.close()
+    }
+  })
+
   it('24 saat fəaliyyətsiz otaq silinir və axınlara "closed" gedir', async () => {
     const a = await signup()
     const host = await (await call('/api/read-together/rooms', { cookie: a.cookie, body: {} })).json()

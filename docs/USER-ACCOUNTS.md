@@ -349,12 +349,23 @@ sessiyası, `admin_roles` ≥ editor; saytın `editor` rolu kifayət deyil): pan
 | `weekly.js` (K5) | `weekly_prefs`, `weekly_stats`, `weekly_sent` | `GET /api/weekly`, `PUT /api/weekly/prefs`, `PUT /api/weekly/stats`, `DELETE /api/weekly`, `GET/POST /api/weekly/unsubscribe?t=` (girişsiz, HMAC) | `/api/weekly` 30 |
 
 - **Açıq profil:** ləqəb `[a-z0-9_]{3,24}`, unikal, ehtiyat sözlər (`RESERVED`); göstərilən sahələr ağ siyahıdır
-  (`displayName, kunya, stamps, khatms, ummahKhatms, bio ≤160, favSurah`) — rəqəmləri klient bu cihazdan hesablayır
-  (`utils/passport`, `utils/worldKhatm`; künyə — J mərhələsinin `muslim_cc_kunya_v1` açarı varsa). İzləyici/reytinq yoxdur.
+  (`displayName, kunya, stamps, bio ≤160, favSurah`). **İbadət sayı göstərilmir** (sahibin qərarı, 2026-11-18: ibadət
+  insanla Allah arasındadır): `khatms`, `ummahKhatms` sahələri və ibadət möhürləri (`khatm, fajr_40, dhikr_1000, kahf_4,
+  ummah_khatm`) yoxdur; möhürlərdən yalnız öyrənmə möhürləri — `names_99, hijra, sahaba, arabic, hifz_surah`
+  (`src/components/account/communityText.js` → `PUBLIC_FIELDS`, `PUBLIC_STAMP_IDS`; server də yazıda və oxuda süzür).
+  Klient köhnə yazıda qalmış sahələri nə formada, nə də `/u/<ləqəb>`-də göstərir. Möhürləri klient bu cihazdan oxuyur
+  (`utils/passport`; künyə — J mərhələsinin `muslim_cc_kunya_v1` açarı varsa). İzləyici/reytinq yoxdur.
+  Moderator gizlədibsə, sahibi profili özü yenidən aça bilməz (409 `moderated` → "Nəzarətçi bu profili gizlədib").
+- **E-poçt təsdiqi:** dua divarına yazmaq/şikayət, açıq profili açmaq/şikayət və ümmət xətmindən səhifə götürmək təsdiqlənmiş
+  e-poçt istəyir (403 `verify_email`). Klient "Bundan istifadə etmək üçün e-poçtunuzu təsdiqləyin" qeydini təsdiq
+  məktubunu yenidən göndərmək düyməsi ilə göstərir (`src/components/account/VerifyEmailNote.jsx`).
+- **Şəxsi kartlar — yalnız yükləmə:** Ramazan hekayəsi (Wrapped), Ramazan albomu, xətm şəhadətnaməsi və sədəqə hesabatında
+  "paylaş" (`navigator.share`) yoxdur — yalnız "Özüm üçün yüklə" və qeyd: "İbadətiniz sizinlə Allah arasındadır — bu şəkil
+  yalnız sizin üçündür."
   `/u/<ləqəb>` klientdə render olunur (prerender yox): nginx bu ünvana `404.html` qabığını **HTTP 404** ilə verir
   (`/group/<id>` kimi), SPA profili göstərir. Ona görə "axtarış sistemlərinə icazə ver" yalnız robots meta-nı dəyişir —
   **həqiqi indeksləmə üçün nginx-də `/u/` üçün 200 lazımdır** (edilməyib). Moderasiya "gizlət" → profil bağlanır, mətn sahələri silinir.
-- **Ailə dua siyahısı:** yalnız dairə üzvləri; "dua etdim" — yalnız say (kim olduğu yox), hər üzv bir dəfə, öz istəyinə yox.
+- **Ailə dua siyahısı:** yalnız dairə üzvləri; "dua etdim" (en: "I made dua" — "prayed" namaz kimi oxunurdu) — yalnız say (kim olduğu yox), hər üzv bir dəfə, öz istəyinə yox.
   Müəllif — "qəbul olundu"/sil; sahib — istənilən istəyi silir və bildiriş sayını görür. Dairədən çıxanın istəkləri
   görünmür və saatlıq təmizlikdə silinir. Ömür: qəbul olunan 30 gün, qalanı 90 gün. Gündə 10, açıq ≤20/müəllif, dairədə ≤100.
 - **Dua divarı:** 10–300 simvol, ad ≤30 (yalnız hərflər; susmaya görə "Anonim"), dil etiketi. Süzgəc: keçid/domen/e-poçt

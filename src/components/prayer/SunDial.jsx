@@ -47,7 +47,7 @@ function SunDial({ times, nowMin, names = {}, nextKey = null, centerTop = '', ce
   const aria = `${label ? `${label}: ` : ''}${ORDER.map(k => `${names[k] || k} ${fmt(t[k])}`).join(', ')}`
 
   return (
-    <figure className={`psd ${className}`} role="img" aria-label={aria}>
+    <figure className={`psd ${className}`} aria-label={aria}>
       <svg viewBox="-70 -24 540 448" className="psd__svg" aria-hidden="true">
         <defs>
           <linearGradient id={`${gid}-day`} x1="0" y1="1" x2="1" y2="0">

@@ -23,6 +23,8 @@ import {
   deleteDedication, decodeBits, withPage, countPages,
 } from '../api/khatm'
 import { KT, khatmError, fmtDuration } from '../components/khatm/khatmText'
+import { apiErrCode } from '../components/account/verifyEmailText'
+import VerifyEmailNote from '../components/account/VerifyEmailNote'
 import { RT } from '../components/readroom/readRoomText'
 import { MushafSheet, useMushafPage } from '../components/quran/MushafSheet'
 import { surahsOnPage, surahInfo, wbwLang } from '../utils/mushaf'
@@ -228,6 +230,7 @@ export default function KhatmPage() {
 function TakeForm({ t, lang, me, thanks, msg, setMsg, onClaim }) {
   const [name, setName] = useState('')
   const [busy, setBusy] = useState(false)
+  const [needVerify, setNeedVerify] = useState(false)   // server 403 verify_email
   const loc = useMemo(() => { try { return getPrayerLocation() } catch { return null } }, [])
   const canCell = Boolean(loc && !loc.isDefault && Number.isFinite(loc.lat) && Number.isFinite(loc.lng))
   const [cellOn, setCellOn] = useState(() => { try { return safeStorage()?.getItem(CELL_PREF) === '1' } catch { return false } })
@@ -238,12 +241,15 @@ function TakeForm({ t, lang, me, thanks, msg, setMsg, onClaim }) {
   }
   const take = async (e) => {
     e.preventDefault()
-    setBusy(true); setMsg('')
+    setBusy(true); setMsg(''); setNeedVerify(false)
     try {
       const cell = canCell && cellOn ? { lat: Math.round(loc.lat), lon: Math.round(loc.lng) } : null
       const r = await khatmClaim({ dedication: name.trim() || undefined, cell })
       onClaim(r.claim)
-    } catch (x) { setMsg(khatmError(x, t)) } finally { setBusy(false) }
+    } catch (x) {
+      if (apiErrCode(x) === 'verify_email') setNeedVerify(true)
+      else setMsg(khatmError(x, t))
+    } finally { setBusy(false) }
   }
   const loved = me?.loved || []
   return (
@@ -271,6 +277,7 @@ function TakeForm({ t, lang, me, thanks, msg, setMsg, onClaim }) {
         </label>
       )}
       {canCell && <p className="kt-note" id="kt-cell-note">{t.shareCellNote(city)}</p>}
+      {needVerify && <VerifyEmailNote lang={lang} testId="khatm-verify" />}
       {msg && <p className="kt-msg" role="alert">{msg}</p>}
       <button type="submit" className="ui-btn ui-btn--primary" disabled={busy} data-testid="khatm-take-btn">
         <Icon name="mushaf" className="ui-btn__icon" /> {busy ? t.taking : thanks ? t.another : t.take}

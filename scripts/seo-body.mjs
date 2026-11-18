@@ -28,7 +28,7 @@ import { brandName } from '../src/config/brand.js'
 import { FULL_T, narratorLine, hasFull } from '../src/utils/hadithFull.js'
 import {
   BODY_UI, SECTION_LABEL, detailMeta, crumbsFor, surahInfo, nameInfo, sahabaInfo, sentencesOf,
-  termInfo, GLOSSARY_CAT_LABEL, hadithInfo, hadithGradeText, HADITH_T } from '../src/seo/detail.js'
+  termInfo, GLOSSARY_CAT_LABEL, hadithInfo, hadithGradeText, HADITH_T } from '../src/seo/detailData.js'
 import { GLOSSARY, GLOSSARY_CATS, GLOSSARY_BY_ID } from '../src/data/glossary.js'
 import { setGlossarySource } from '../src/seo/glossarySource.js'
 import { LESSON_SLUGS } from '../src/seo/detailSlugs.js'

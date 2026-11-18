@@ -816,37 +816,27 @@
   letter-spacing: 0.02em;
 }
 
-/* Alətlər — üç bərabər "kafel": ikon üstdə, ad altda (ən çox 2 sətir).
-   AI səhifəsində AI kafeli yoxdur — qalan ikisi eni bölüşür.
-   Aralıq dar telefonda 6px-ə qədər kiçilir (adlara yer). */
-.qm-sn-tools {
-  display: grid;
-  grid-auto-columns: minmax(0, 1fr);
-  grid-auto-flow: column;
-  gap: clamp(6px, 2vw, 8px);
-  margin-bottom: 10px;
+/* Alətlər, hesab, tema və dil — BİR sətir (48px) ikon düymələri.
+   Adlar aria-label/title-dadır; əvvəlki kafellər + dil seqmenti ~210px tuturdu.
+   AI səhifəsində AI düyməsi yoxdur — qalanlar eni bölüşür. */
+.qm-sn-bar {
+  display: flex;
+  align-items: center;
+  gap: clamp(4px, 1.6vw, 8px);
 }
 
 .qm-sn-tool {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  /* Yuxarıdan düzülür: bir kafelin adı iki sətrə düşsə də ikonlar bir xətdə qalır */
-  justify-content: flex-start;
-  gap: 4px;
+  flex: 1 1 0;
+  display: grid;
+  place-items: center;
+  /* 360px telefonda 5 düymə + dil düyməsi sığsın: en kiçilə bilir, hündürlük 48px qalır */
   min-width: 0;
-  min-height: 60px;
-  padding: 8px 4px;
+  height: 48px;
+  padding: 0;
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
   background: var(--surface-1);
   color: var(--text-secondary);
-  font-family: var(--font-sans);
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 1.2;
-  letter-spacing: 0;
-  text-align: center;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.15s ease;
@@ -861,8 +851,10 @@
 }
 
 .qm-sn-tool:active { transform: scale(0.96); }
-/* Hesab kafeli keçiddir (<a>) — düymələrlə eyni görünsün */
+/* Hesab keçiddir (<a>) — düymələrlə eyni görünsün */
 a.qm-sn-tool { text-decoration: none; }
+.qm-sn-tool[aria-current="page"],
+.qm-sn-tool[aria-pressed="true"] { border-color: var(--brand-line); }
 
 .qm-sn-tool-icon {
   display: grid;
@@ -874,20 +866,35 @@ a.qm-sn-tool { text-decoration: none; }
   color: var(--brand);
 }
 
-/* Ad sözün ortasından qırılmasın ("Доступност|ь"): şrift və yan boşluq
-   dar telefonda bir az kiçilir ki, ən uzun tək söz (ru "Уведомления",
-   en "Notifications", tr "Erişilebilirlik") 360px-də bir sətrə sığsın.
-   3vw: panel <409px-də ekranın 88%-dir → 400px+ 12px, 390px-də 11.7px,
-   360px-də 10.8px, 320px-də 10px. Tire ilə yazılan ad ("ИИ-помощник")
-   yalnız ≤340px-də tiredən bölünür; break-word son çarədir. */
-.qm-sn-tool-label {
-  max-width: 100%;
-  font-size: clamp(10px, 3vw, 12px);
-  overflow-wrap: break-word;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+/* Dil düyməsi: "🌐 AZ ▴" — paneli açıb-bağlayır */
+.qm-sn-langbtn {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  height: 48px;
+  padding: 0 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--qm-sn-field);
+  color: var(--text-strong);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.qm-sn-langbtn svg { flex-shrink: 0; color: var(--text-secondary); }
+.qm-sn-langbtn__chev { transition: transform 0.18s ease; transform: rotate(180deg); }
+.qm-sn-langbtn.is-open .qm-sn-langbtn__chev { transform: none; }
+.qm-sn-langbtn.is-open { border-color: var(--brand-line); }
+
+/* Dil paneli — sətrin üstündə */
+.qm-sn-langpanel {
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px dashed var(--line);
 }
 
 .qm-sn-settings {
@@ -1030,7 +1037,9 @@ a.qm-sn-tool { text-decoration: none; }
 
 .qm-sn-theme:focus-visible,
 .qm-sn-lang:focus-visible,
-.qm-sn-tool:focus-visible {
+.qm-sn-tool:focus-visible,
+.qm-sn-langbtn:focus-visible,
+.qm-sn-morelangs__select:focus-visible {
   outline: 2px solid var(--primary-border);
   outline: 2px solid var(--ring);
   outline-offset: 1px;
@@ -1109,7 +1118,8 @@ html:not(.qm-input-pointer) .qm-sn-close:focus-visible {
   .qm-sn-chevron,
   .qm-sn-items-wrap,
   .qm-sn-group.is-expanded .qm-sn-items-wrap,
-  .qm-sn-tool {
+  .qm-sn-tool,
+  .qm-sn-langbtn__chev {
     transition: none;
   }
   .qm-sn--drawer .qm-sn-lang.is-current {

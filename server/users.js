@@ -9,9 +9,12 @@
 // • CSRF: auth.js-dəki kimi — vəziyyət dəyişən hər sorğuda Origin (varsa)
 //   icazəli olmalı VƏ X-Requested-With başlığı olmalıdır.
 // • Məxfilik: IP saxlanmır (rate-limit yaddaşda, duzlu heşlə); user-agent yox,
-//   yalnız kobud etiket ("Chrome · Android"). Səhv mesajları e-poçtun bazada
-//   olub-olmadığını açmır (forgot həmişə 200, login eyni 401, register mövcud
-//   e-poçtda "poçtu yoxlayın" + sahibinə xəbərdarlıq məktubu).
+//   yalnız kobud etiket ("Chrome · Android"). Giriş və şifrə bərpası e-poçtun bazada
+//   olub-olmadığını açmır (forgot həmişə 200, login eyni 401 + saxta heş). QEYDİYYAT
+//   isə AÇIR — qəbul edilmiş risk (sahibin qərarı D2, 2026-11-18): yeni e-poçt → 201 +
+//   sessiya cookie-si, mövcud e-poçt → 202 { checkEmail } cookie-siz (+ sahibinə
+//   xəbərdarlıq məktubu). Bunu gizlətmək yalnız "əvvəl e-poçt, sonra sessiya" qeydiyyatı
+//   ilə mümkündür; sui-istifadəni register limiti (IP üzrə saatda 10) məhdudlaşdırır.
 // • Rollar: user < mosque_rep < editor < admin < superadmin.
 //   superadmin HTTP ilə HEÇ VAXT verilmir/alınmır — yalnız server skripti
 //   (scripts/admin-user.js). admin-i yalnız superadmin verir/alır. Öz rolunu
@@ -616,7 +619,7 @@ function createUsersRouter(opts) {
       const hash = await auth.hashPassword(b.password, { min: MIN_PASSWORD })   // mövcud e-poçtda da (vaxt eyni olsun)
       const existing = store.findByEmail(email)
       if (existing) {
-        // Hesabın varlığı açılmır: "poçtu yoxlayın" + sahibinə xəbərdarlıq
+        // Mövcud e-poçt: sessiya YOX, "poçtu yoxlayın" + sahibinə xəbərdarlıq (201-dən fərqlənir — qəbul edilmiş risk, başlıq D2)
         if (!existing.disabled) sendMail('exists', b.lang, existing.email, '/account', null)
         return res.status(202).json({ ok: true, checkEmail: true })
       }

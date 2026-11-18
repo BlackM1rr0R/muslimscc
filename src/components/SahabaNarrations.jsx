@@ -12,7 +12,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { hadithIdsBySahaba } from '../utils/hadithFull'
 import { loadHadithData, peekHadithData } from '../utils/hadithData'
 import { localizeSource } from '../utils/sourceNames'
-import { pathFor } from '../seo/routes'
+// Hədis səhifələri yalnız 5 əsas dildə var (/de/hadith/<id> — server 404): əlavə dildə /en/hadith/<id>
+import { pathFor, canonicalLang } from '../seo/routes'
 import { HADITH_IDS } from '../seo/hadithIds'
 import { pickUi } from '../utils/uiText'
 import { isPlainClick } from './PageLink'
@@ -54,7 +55,7 @@ export default function SahabaNarrations({ slug, lang }) {
       <p className="sp-narr__lead">{u.lead}</p>
       <ul className="sp-narr__list">
         {shown.map(h => {
-          const href = PAGE_IDS.has(String(h.id)) ? pathFor('hadith', lang, String(h.id)) : null
+          const href = PAGE_IDS.has(String(h.id)) ? pathFor('hadith', canonicalLang('hadith', lang, String(h.id)), String(h.id)) : null
           const text = (h.text || '').trim()
           return (
             <li key={h.id} className="ui-quote sp-quote sp-narr__item">

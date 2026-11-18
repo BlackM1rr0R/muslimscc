@@ -38,8 +38,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with: { node-version: '${{ env.NODE_VERSION }}', cache: npm }
       - run: npm ci
 
@@ -63,7 +63,7 @@ jobs:
           cp .env.public .env.production.local
           npm run build
           test -f dist/404.html && test -f dist/sitemap.xml
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with: { name: dist, path: dist, retention-days: 3 }
 
   # ── 2) Real brauzerdə e2e (kompüter + telefon) — 6 paralel maşın ──
@@ -87,17 +87,17 @@ jobs:
           - { name: '3/4', invert: 'a11y \((light|dark)\)|a11y\.spec', shard: '3/4' }
           - { name: '4/4', invert: 'a11y \((light|dark)\)|a11y\.spec', shard: '4/4' }
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with: { node-version: '${{ env.NODE_VERSION }}', cache: npm }
       - run: npm ci
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with: { name: dist, path: dist }
       - name: Playwright versiyası
         id: pw
         run: echo "v=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
       - name: Brauzer keşi
-        uses: actions/cache@v4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: ~/.cache/ms-playwright
           key: pw-${{ runner.os }}-${{ steps.pw.outputs.v }}-chromium
@@ -116,7 +116,7 @@ jobs:
           npx playwright test "$@"
       - name: Hesabat (yıxılanda)
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with: { name: 'playwright-report-${{ strategy.job-index }}', path: playwright-report, retention-days: 7 }
 
   # ── 3) Docker image-ləri (hər push-da build olunur ki, Dockerfile sınmasın) ──
@@ -128,13 +128,13 @@ jobs:
     outputs:
       tag: ${{ steps.tag.outputs.tag }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - id: tag
         run: echo "tag=${GITHUB_SHA::12}" >> "$GITHUB_OUTPUT"
-      - uses: docker/setup-buildx-action@v3
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
 
       - name: api image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
         with:
           context: server
           tags: muslimscc-api:${{ steps.tag.outputs.tag }}
@@ -142,7 +142,7 @@ jobs:
           cache-from: type=gha,scope=api
           cache-to: type=gha,mode=max,scope=api
       - name: web image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
         with:
           context: .
           file: infra/web.Dockerfile
@@ -177,7 +177,7 @@ jobs:
       - name: Sıxışdır
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: gzip -6 /tmp/api.tar /tmp/web.tar && ls -l /tmp/*.tar.gz && [ "$(stat -c%s /tmp/web.tar.gz)" -lt 380000000 ] || { echo "web image 380 MB-dan böyükdür (server həddi 400 MB, infra/ci-gate.sh)"; exit 1; }
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         with:
           name: images
@@ -201,7 +201,7 @@ jobs:
     env:
       TAG: ${{ needs.images.outputs.tag }}
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with: { name: images, path: images }
 
       - name: SSH

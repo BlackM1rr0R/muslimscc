@@ -131,9 +131,13 @@ function buildTpl() {
     let re = '^'
     parts.forEach((p, i) => { if (i % 2) { order.push(+p); re += '([\\s\\S]+?)' } else re += escRe(p) })
     const chunks = parts.filter((_, i) => i % 2 === 0).filter(Boolean).sort((a, b) => b.length - a.length)
-    TPL.push({ re: new RegExp(re + '$'), order, v, key: chunks[0] || '' })
+    // lit — şablonun bütün sabit hissələrinin uzunluğu: daha dəqiq şablon əvvəl yoxlanır.
+    // (Əvvəl ən uzun TƏK hissəyə görə idi: "{0} times in the Quran" "Mentioned {0} times in the Quran"-dan
+    // əvvəl tutuşur, "Mentioned 5" {0}-a düşürdü → de "Mentioned 5-mal im Koran".)
+    const lit = chunks.reduce((s, c) => s + c.length, 0)
+    TPL.push({ re: new RegExp(re + '$'), order, v, key: chunks[0] || '', lit })
   }
-  TPL.sort((a, b) => b.key.length - a.key.length)
+  TPL.sort((a, b) => b.lit - a.lit || b.key.length - a.key.length)
 }
 function tplTranslate(s) {
   if (s.length > 600 || !/\p{L}/u.test(s)) return s

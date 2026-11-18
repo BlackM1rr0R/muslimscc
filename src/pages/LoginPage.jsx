@@ -177,7 +177,7 @@ function GoogleButton({ text, onCredential }) {
   useEffect(() => {
     let alive = true
     const el = ref.current
-    renderGoogleButton(el, { onCredential: cb, text, dark: Boolean(dark), locale: siteLang || lang, width: el ? el.clientWidth : 320 })
+    renderGoogleButton(el, { onCredential: cb, text, dark: Boolean(dark), locale: siteLang || lang, width: el ? el.clientWidth - 20 : 320 })
       .catch(() => { if (alive) setFailed(true) })
     return () => { alive = false; releaseGoogleButton(cb) }
   }, [cb, text, dark, siteLang, lang])

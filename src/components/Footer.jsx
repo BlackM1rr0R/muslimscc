@@ -118,21 +118,20 @@ function Footer({ setPage }) {
           {/* Sütunlar görünəndə növbə ilə qalxır (motion.css → data-reveal="stagger") */}
           <nav className="ft-links" aria-label={fl.nav} data-reveal="stagger">
             <div className="ft-col">
-              <h4>{navGroupLabel('main', lang)}</h4>
+              <h2>{navGroupLabel('main', lang)}</h2>
               {MAIN_LINKS.map(key => navLink(key))}
             </div>
             {LINK_COLUMNS.map(col => (
               <div className="ft-col" key={col.title}>
-                <h4>{fl[col.title]}</h4>
+                <h2>{fl[col.title]}</h2>
                 {col.keys.map(key => navLink(key))}
               </div>
             ))}
             <div className="ft-col">
-              <h4>{fl.contact}</h4>
+              <h2>{fl.contact}</h2>
               {filled(BRAND.instagram) && (
                 <a href={`https://instagram.com/${BRAND.instagram}`} target="_blank" rel="noopener noreferrer"><Icon name="instagram" size={16} /><span>Instagram</span></a>
               )}
-              <span className="ft-contact-line"><Icon name="globe" size={16} /> {BRAND.domain}</span>
               {navLink('about')}
             </div>
           </nav>

@@ -255,22 +255,24 @@ const siteIdOf = (h) => idsOf(h).find(x => typeof x === 'number' || /^\d+$/.test
 // Say + isim uzlaşması: ru "1 хадис · 3 хадиса · 5 хадисов",
 // ar "حديث واحد · حديثان · 3 أحاديث · 11 حديثًا", en "1 hadith · 2 hadiths".
 // Əvvəl hər say üçün bir forma idi ("1 хадисов", "3 حديثاً").
-function hadithCount(n, lang) {
-  if (lang === 'ru') {
+// Əlavə dillərdə "en" bütöv ifadəsi lüğətlə tərcümə olunur ("1 hadith" / "{0} hadiths").
+const HADITH_N = {
+  az: (n) => `${n} hədis`,
+  en: (n) => (n === 1 ? '1 hadith' : `${n} hadiths`),
+  ru: (n) => {
     const a = n % 100, b = n % 10
     const w = a > 10 && a < 20 ? 'хадисов' : b === 1 ? 'хадис' : b >= 2 && b <= 4 ? 'хадиса' : 'хадисов'
     return `${n} ${w}`
-  }
-  if (lang === 'ar') {
+  },
+  ar: (n) => {
     if (n === 1) return 'حديث واحد'
     if (n === 2) return 'حديثان'
     const a = n % 100
     return a >= 3 && a <= 10 ? `${n} أحاديث` : `${n} حديثًا`
-  }
-  if (lang === 'az') return `${n} hədis`
-  if (lang === 'tr') return `${n} hadis`
-  return `${n} ${n === 1 ? 'hadith' : 'hadiths'}`
+  },
+  tr: (n) => `${n} hadis`,
 }
+const hadithCount = (n, lang) => pickUi(HADITH_N, lang, 'en')(n)
 
 // Sonsuz sürüşmənin bir partiyası (1445 hədisin hamısı birdən DOM-a qoyulmur)
 const BATCH = 24

@@ -642,6 +642,18 @@ if (!opt.summary) {
   }
   for (const [f, c] of perFile) if (opt.max && c > opt.max) console.log(`  … ${f}: daha ${c - opt.max} pozuntu (--max=0 ilə hamısı)`)
 }
+// Say ifadələri (TEAM.md, i18n): `${n} ${n === 1 ? 'day' : 'days'}` əvəzinə bütöv ifadə —
+// isim ayrıca sözdürsə 44 əlavə dildə ingiliscə qalır (scripts/extract-ui-strings.mjs)
+if (!opt.only.length) {
+  const { findPluralTernaries } = await import('./extract-ui-strings.mjs')
+  const plural = findPluralTernaries()
+  for (const p of plural) console.log(`${p.file}:${p.line}  [en] say-ifadəsi — bütöv ifadə yazın (n === 1 ? '1 day' : \`\${n} days\`): ${p.sample}`)
+  if (plural.length) {
+    console.log(`\n✗ ${plural.length} say ifadəsi isimi ayrıca söz kimi seçir.`)
+    process.exit(1)
+  }
+}
+
 if (all.length) {
   const pad = (s, n) => String(s).padEnd(n)
   const w = Math.max(...[...table.keys()].map(k => k.length), 4)

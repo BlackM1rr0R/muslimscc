@@ -5,6 +5,8 @@ const rateLimit = require('express-rate-limit')
 const app = express()
 // nginx-in arxasındayıq — real IP-ni X-Forwarded-For-dan oxu (rate-limit üçün vacib)
 app.set('trust proxy', 1)
+app.disable('x-powered-by')
+const IS_PROD = process.env.NODE_ENV === 'production'
 
 // ─── Config (env-dən oxunur — heç bir açar kodda yoxdur) ─────────────
 const PORT = process.env.PORT || 3001
@@ -23,7 +25,7 @@ if (!OPENROUTER_KEY) { console.error('FATAL: env dəyişəni yoxdur → OPENROUT
 for (const m of ['./auth', './users', './security', './syncKeys', './mailer', './analytics', './csp', './clientErrors', './ummah', './sightings', './content', './feedback', './groups', './sync', './ics', './push',
   './prompts', './ai-utils', './prayer-utils', './daily-ayah', './checkin', './fasting', './reminders', './prayCalc', './eclipse', './eclipse-lib', './daily-hadith', './daily-hadith-data', './personal', './hijri',
   './readTogether', './family', './hifzTest', './globalKhatm', './challenges', './classes', './familyRamadan', './calFeed',
-  './communityKit', './publicProfile', './familyDua', './duaWall', './mosqueRep', './weekly']) require(m)
+  './communityKit', './publicProfile', './familyDua', './duaWall', './mosqueRep', './weekly', './ipKey']) require(m)
 // Paket asılılıqları da (server/package.json → npm ci) — image-də yoxdursa bazadan ƏVVƏL çöksün
 for (const m of ['@simplewebauthn/server']) require(m)
 
@@ -40,14 +42,14 @@ try {
   process.exit(1)
 }
 
-// ─── CORS: yalnız icazəli origin-lər (localhost daxil) ───────────────
+// ─── CORS: yalnız icazəli origin-lər (localhost — yalnız NODE_ENV=production DEYİLSƏ) ───────────────
 const ALLOWED = (process.env.ALLOWED_ORIGINS || 'https://muslims.cc,https://www.muslims.cc')
   .split(',').map(s => s.trim()).filter(Boolean)
 app.use(cors({
   origin(origin, cb) {
     // origin yoxdur (server-to-server / curl) → icazə ver
     if (!origin) return cb(null, true)
-    const isLocalhost = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)
+    const isLocalhost = !IS_PROD && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)
     if (ALLOWED.includes(origin) || isLocalhost) return cb(null, true)
     return cb(null, false)
   },
@@ -960,6 +962,18 @@ setInterval(() => { personalRouter.scheduler.tick().catch((e) => console.error('
 setInterval(() => { challengesRouter.tick().catch((e) => console.error('challenge tick:', e && e.message)) }, 60000).unref()
 // Həftəlik hesabat (server/weekly.js) — dəqiqədə bir; istifadəçinin seçdiyi gün, öz saat qurşağında 09:00-dan sonra
 setInterval(() => { weeklyRouter.tick().catch((e) => console.error('weekly tick:', e && e.message)) }, 60000).unref()
+
+// ─── Son xəta emalçısı: həmişə JSON, stack/fayl yolu YOX (pis JSON, böyük gövdə, gözlənilməz xəta) ──
+// eslint-disable-next-line no-unused-vars
+app.use((err, req, res, next) => {
+  const status = Number(err && (err.status || err.statusCode)) || 500
+  if (res.headersSent) return res.end()
+  res.set('Cache-Control', 'no-store')
+  if (status === 413) return res.status(413).json({ error: 'too_large', code: 'too_large' })
+  if (status >= 400 && status < 500) return res.status(status).json({ error: 'bad_request', code: 'bad_request' })
+  console.error('unhandled error:', err && err.message)
+  res.status(500).json({ error: 'server_error', code: 'server_error' })
+})
 
 const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`API running on port ${PORT} (DB: ${DB_PATH})`)

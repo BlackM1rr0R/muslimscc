@@ -9,7 +9,8 @@
 // • Həmin həftə üçün heç bir rəqəm gəlməyibsə — SUSMAYA GÖRƏ GÖNDƏRİLMİR ("skipped"; "sizi itirdik"
 //   məktubu yoxdur — istifadəçini narahat etməmək üçün).
 // • Yalnız TƏSDİQLƏNMİŞ e-poçta. Abunəlikdən çıxma — imzalı keçid (HMAC, personal.js sirri; ayrıca
-//   "weekly" sahəsi), RFC 8058 List-Unsubscribe-Post. İkiqat göndəriş yoxdur: göndərişdən ƏVVƏL
+//   "weekly" sahəsi; HMAC-a razılıq vaxtı consent_at da daxildir — yenidən razılıq / yenidən açma tokeni
+//   dəyişir, köhnə məktubdakı keçid işləmir), RFC 8058 List-Unsubscribe-Post. İkiqat göndəriş yoxdur: göndərişdən ƏVVƏL
 //   sətir atomik tutulur ("sending"); 15 dəq. ilişib qalan "sending" çatdırılmış sayılır.
 //   Xəta → 5 cəhdə qədər (5/15/45/135 dəq.), sonra "failed".
 //
@@ -101,17 +102,28 @@ function validStats(b) {
   return any ? out : null
 }
 
-function unsubToken(secret, userId) {
-  const sig = crypto.createHmac('sha256', secret).update(`muslims.cc/weekly-unsub:${userId}`).digest('base64url').slice(0, 32)
+// Bu tarixdən ƏVVƏL razılıq verənlərin artıq göndərilmiş məktublarındakı köhnə (consent_at-sız) keçid
+// razılıq dəyişməyənə qədər işləyir; yeni razılıq (consent_at ≥ bu tarix) köhnə formanı qəbul etmir.
+const LEGACY_UNSUB_BEFORE = Date.UTC(2026, 10, 19)
+
+function unsubToken(secret, userId, consentAt) {
+  const scope = consentAt ? `muslims.cc/weekly-unsub:${userId}:${consentAt}` : `muslims.cc/weekly-unsub:${userId}`
+  const sig = crypto.createHmac('sha256', secret).update(scope).digest('base64url').slice(0, 32)
   return `${userId}.weekly.${sig}`
 }
-function verifyUnsub(secret, token) {
+const sameSig = (x, want) => {
+  const a = Buffer.from(x), b = Buffer.from(want)
+  return a.length === b.length && crypto.timingSafeEqual(a, b)
+}
+/** consentAtOf(userId) → consent_at | null (verilməyibsə — yalnız köhnə forma yoxlanır) */
+function verifyUnsub(secret, token, consentAtOf = null) {
   const m = /^(\d{1,12})\.weekly\.([A-Za-z0-9_-]{32})$/.exec(String(token || ''))
   if (!m) return null
-  const want = unsubToken(secret, Number(m[1])).split('.')[2]
-  const a = Buffer.from(m[2]), b = Buffer.from(want)
-  if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return null
-  return { userId: Number(m[1]) }
+  const userId = Number(m[1])
+  const consentAt = consentAtOf ? consentAtOf(userId) : null
+  if (consentAt && sameSig(m[2], unsubToken(secret, userId, consentAt).split('.')[2])) return { userId }
+  if ((!consentAt || consentAt < LEGACY_UNSUB_BEFORE) && sameSig(m[2], unsubToken(secret, userId).split('.')[2])) return { userId }
+  return null
 }
 
 function createWeeklyRouter({ db, requireUser, mailer = null, secret, publicOrigin = 'https://muslims.cc', now = () => Date.now(), log = console }) {
@@ -122,7 +134,8 @@ function createWeeklyRouter({ db, requireUser, mailer = null, secret, publicOrig
   const st = {
     prefs: p('SELECT * FROM weekly_prefs WHERE user_id = ?'),
     upsertPrefs: p(`INSERT INTO weekly_prefs (user_id, enabled, weekday, tz, lang, consent_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)
-      ON CONFLICT(user_id) DO UPDATE SET enabled = excluded.enabled, weekday = excluded.weekday, tz = excluded.tz, lang = excluded.lang, updated_at = excluded.updated_at`),
+      ON CONFLICT(user_id) DO UPDATE SET enabled = excluded.enabled, weekday = excluded.weekday, tz = excluded.tz, lang = excluded.lang,
+      consent_at = excluded.consent_at, updated_at = excluded.updated_at`),
     disable: p('UPDATE weekly_prefs SET enabled = 0, updated_at = ? WHERE user_id = ?'),
     upsertStats: p(`INSERT INTO weekly_stats (user_id, week_end, prayers, quran_pages, dhikr, fasts, wird_pct, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(user_id, week_end) DO UPDATE SET prayers = excluded.prayers, quran_pages = excluded.quran_pages, dhikr = excluded.dhikr,
@@ -167,7 +180,9 @@ function createWeeklyRouter({ db, requireUser, mailer = null, secret, publicOrig
     if (!tz) return err(res, 400, 'bad_tz', 'Invalid time zone')
     const lang = typeof b.lang === 'string' && /^[a-z]{2,3}$/.test(b.lang) ? b.lang : (cur ? cur.lang : 'en')
     const t = now()
-    st.upsertPrefs.run(uid, b.enabled ? 1 : 0, b.weekday, tz, lang, cur ? cur.consent_at : t, t)
+    // Yenidən razılıq və ya söndürülmüşdən yenidən açma → yeni consent_at (abunəlikdən çıxma tokeni dəyişir)
+    const renew = !cur || b.consent === true || (cur.enabled !== 1 && b.enabled)
+    st.upsertPrefs.run(uid, b.enabled ? 1 : 0, b.weekday, tz, lang, renew ? t : cur.consent_at, t)
     const pr = st.prefs.get(uid)
     res.json({ prefs: prefsOut(pr), nextReport: pr.enabled ? nextReportDate(t, pr.tz, pr.weekday) : null })
   })
@@ -208,9 +223,10 @@ function createWeeklyRouter({ db, requireUser, mailer = null, secret, publicOrig
     'Content-Security-Policy': "default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'",
     'X-Content-Type-Options': 'nosniff',
   }).send(html)
+  const consentAtOf = (uid) => { const r = st.prefs.get(uid); return r ? r.consent_at : null }
   router.get('/weekly/unsubscribe', (req, res) => {
     const t = String(req.query.t || '')
-    if (!verifyUnsub(secretOf(), t)) return sendPage(res, 400, page('This link is invalid.'))
+    if (!verifyUnsub(secretOf(), t, consentAtOf)) return sendPage(res, 400, page('This link is invalid.'))
     const esc = t.replace(/[^A-Za-z0-9._-]/g, '')
     sendPage(res, 200, page('Stop the weekly summary email?',
       `<form method="post" action="/api/weekly/unsubscribe"><input type="hidden" name="t" value="${esc}">` +
@@ -219,7 +235,7 @@ function createWeeklyRouter({ db, requireUser, mailer = null, secret, publicOrig
   const form = express.urlencoded({ extended: false, limit: '2kb' })
   router.post('/weekly/unsubscribe', form, json, (req, res) => {
     const t = (req.body && req.body.t) || req.query.t || ''
-    const v = verifyUnsub(secretOf(), t)
+    const v = verifyUnsub(secretOf(), t, consentAtOf)
     if (!v) return sendPage(res, 400, page('This link is invalid.'))
     st.disable.run(now(), v.userId)
     if (req.body && req.body['List-Unsubscribe'] === 'One-Click') return res.json({ ok: true })
@@ -249,7 +265,7 @@ function createWeeklyRouter({ db, requireUser, mailer = null, secret, publicOrig
       const r = await mailer.sendTemplate('weekly', lang, row.email, {
         date: longDate(weekEnd, lang), url: `${publicOrigin}${langPrefix(row.lang)}/account#weekly`,
         prayers: s.prayers, pages: s.quran_pages, dhikr: s.dhikr, fasts: s.fasts, wird: s.wird_pct,
-        unsubUrl: `${publicOrigin}/api/weekly/unsubscribe?t=${unsubToken(secretOf(), row.user_id)}`,
+        unsubUrl: `${publicOrigin}/api/weekly/unsubscribe?t=${unsubToken(secretOf(), row.user_id, row.consent_at)}`,
       })
       // E-poçt sönülüdür (RESEND_API_KEY yoxdur) — təkrar cəhd mənasızdır
       if (r && r.skipped && !r.ok) { st.mark.run('skipped', 0, null, t, row.user_id, weekEnd); return 'skipped' }

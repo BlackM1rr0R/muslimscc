@@ -273,5 +273,10 @@ test('dil düymələrinin əlçatan adı görünən kodla başlayır', async ({ 
     return
   }
   await page.getByRole('button', { name: 'Menyu', exact: true }).click()
+  // Dil paneli "AZ ▾" düyməsi ilə açılır — onun adı da görünən kodla başlayır
+  const toggle = page.getByRole('button', { name: 'AZ — Dil', exact: true })
+  await expect(toggle).toHaveAttribute('aria-expanded', 'false')
+  await toggle.click()
+  await expect(toggle).toHaveAttribute('aria-expanded', 'true')
   await expect(page.getByRole('button', { name: 'EN — English' })).toBeVisible()
 })

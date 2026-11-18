@@ -97,3 +97,44 @@ test('dua lövhəsi: yarat → istək yaz → dua etdim → əlhəmdulillah', as
   expect(room.requests[0]).toMatchObject({ name: 'Leyla', count: 1, answered: true })
   expectCleanConsole(consoleProblems)
 })
+
+test('birbaşa keçid: mövcud otaq /group/<id> açılır (admin açarı yox → idarəetmə yoxdur), noindex', async ({ page, consoleProblems }) => {
+  const fake = fakeGroupsServer()
+  fake.rooms.set('abcdefghij', {
+    id: 'abcdefghij', type: 'dua', title: 'Qonşuların dua lövhəsi', lang: 'az', closed: false, adminKey: 'admabcdefghij',
+    requests: [{ did: 'd0000001', name: 'Səbinə', text: 'İmtahanım üçün dua edin', count: 2, answered: false, token: 'tokd0000001' }],
+  })
+  await page.route((u) => /^\/api\/groups(\/|$)/.test(u.pathname), fake.handler)
+
+  await page.goto('/group/abcdefghij')
+  await expect(page.getByRole('heading', { level: 1, name: 'Qonşuların dua lövhəsi' })).toBeVisible()
+  const card = page.getByTestId('dua-card').filter({ hasText: 'İmtahanım üçün dua edin' })
+  await expect(card).toContainText('Səbinə')
+  await expect(card).not.toContainText('Sənin istəyin')
+  await expect(card.getByRole('button', { name: /Dua etdim/ })).toHaveText(/Dua etdim \(2\)/)
+  // Bu brauzerdə admin açarı və istəyin tokeni yoxdur — bağlamaq / "yerinə yetdi" təklif olunmur
+  await expect(page.getByRole('button', { name: 'Otağı bağla' })).toHaveCount(0)
+  await expect(card.getByRole('button', { name: 'Əlhəmdulillah, yerinə yetdi' })).toHaveCount(0)
+  // İstifadəçinin otağı indekslənmir
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', /noindex/)
+  expectCleanConsole(consoleProblems)
+})
+
+test('olmayan otaq (düzgün formatlı id) → "Otaq tapılmadı" + yeni otaq düyməsi, noindex', async ({ page }) => {
+  // Fikstürün standart saxtası: serverdə otaq yoxdur → GET 404
+  await page.goto('/group/zzzzzzzzzz')
+  await expect(page.getByText('Otaq tapılmadı.', { exact: false })).toBeVisible()
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', /noindex/)
+  await page.getByRole('button', { name: 'Yeni otaq yarat' }).click()
+  await expect(page).toHaveURL(/\/group$/)
+})
+
+test('yanlış id formatı /group/BAD → 404 səhifəsi (noindex), API çağırılmır', async ({ page }) => {
+  const calls = []
+  await page.route((u) => /^\/api\/groups(\/|$)/.test(u.pathname), (route) => { calls.push(route.request().url()); return route.fulfill({ status: 404, json: { error: 'not found' } }) })
+  await page.goto('/group/BAD')
+  await settle(page)
+  await expect(page.locator('#nf-title')).toBeVisible()
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', /noindex/)
+  expect(calls).toEqual([])
+})

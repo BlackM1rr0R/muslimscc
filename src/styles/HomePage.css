@@ -165,6 +165,10 @@
 }
 
 .hp-badge { margin-bottom: 18px; }
+/* CLS: prerender nişanı (16px) hidrasiyada salamla (HeroGreeting, .hg) əvəzlənir — yeri əvvəlcədən
+   saxlanılır ki, başlıq/şüar/düymələr aşağı sürüşməsin (ölçülüb: .hg ≥768px ~58–60px, telefonda 72px) */
+.hp-hero-content > .hp-badge { min-height: 60px; }
+@media (max-width: 767.98px) { .hp-hero-content > .hp-badge { min-height: 72px; } }
 
 /* Brend adı — iri display şrifti; ".cc" qızılı (AA: --accent-text) */
 .hp-hero-title {
@@ -356,6 +360,22 @@
 [dir="rtl"] .hp-pc-bar > span { transform-origin: right center; }
 
 /* 5 vaxtın siyahısı */
+/* CLS: vaxtlar gələndə siyahının üstünə "növbəti namaz" paneli (.hp-pc-next, ~86px) əlavə olunur —
+   yüklənmə zamanı (aria-busy) onun yeri boz panel kimi saxlanılır, siyahı və düymə yerindən oynamır */
+.hp-pc { --hp-pc-next-h: 86px; }
+@media (min-width: 768px) { .hp-pc { --hp-pc-next-h: 91px; } } /* ölçülüb: telefonda 86px, ≥768px 91px */
+.hp-pc-next { min-height: var(--hp-pc-next-h); }
+.hp-pr-list[aria-busy="true"] { position: relative; margin-block-start: calc(var(--hp-pc-next-h) + 16px); }
+.hp-pr-list[aria-busy="true"]::before {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  top: calc(-1 * (var(--hp-pc-next-h) + 16px));
+  height: var(--hp-pc-next-h);
+  border-radius: var(--radius-lg);
+  background: var(--surface-2, var(--line));
+  opacity: 0.7;
+}
 .hp-pr-list {
   display: flex;
   flex-direction: column;
@@ -1050,7 +1070,18 @@ html[lang="ar"] .hp-twtab-ar { font-size: 17px; }
 }
 
 /* ── Aurora: üç yumşaq ləkə (zümrüd, qızılı, dəniz yaşılı) ── */
-.hp-aur { position: absolute; inset: -20% -10%; overflow: hidden; }
+/* CLS (Lighthouse mobil 0.147, 2026-11-18): əvvəl "inset: -20% -10%" idi — ölçü və ləkələrin
+   top/bottom %-i hero-nun HÜNDÜRLÜYÜNDƏN asılı idi; hero məzmunu yüklənib uzananda hər ləkə
+   yerini dəyişirdi (layout shift). İndi qutu viewport vahidindədir (svh — ünvan zolağı ilə
+   dəyişmir): hero uzansa da ləkələr yerində qalır; contain:paint — kənara rəsm yoxdur. */
+.hp-aur {
+  position: absolute;
+  top: -18vh; top: -18svh;
+  inset-inline: -10%;
+  height: 140vh; height: 140svh;
+  overflow: hidden;
+  contain: paint;
+}
 .hp-aur > i {
   position: absolute;
   display: block;

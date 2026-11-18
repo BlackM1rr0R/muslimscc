@@ -108,6 +108,7 @@ const LABELS = {
     settings: 'Görünüş və dil',
     language: 'Dil',
     moreLangs: 'Digər dillər',
+    chooseLang: 'Dil seçin…',
     dark: 'Qaranlıq rejim',
     notifications: 'Bildirişlər',
     tools: 'Alətlər',
@@ -123,6 +124,7 @@ const LABELS = {
     settings: 'Appearance and language',
     language: 'Language',
     moreLangs: 'More languages',
+    chooseLang: 'Choose a language…',
     dark: 'Dark mode',
     notifications: 'Notifications',
     tools: 'Tools',
@@ -138,6 +140,7 @@ const LABELS = {
     settings: 'Оформление и язык',
     language: 'Язык',
     moreLangs: 'Другие языки',
+    chooseLang: 'Выберите язык…',
     dark: 'Тёмная тема',
     notifications: 'Уведомления',
     tools: 'Инструменты',
@@ -153,6 +156,7 @@ const LABELS = {
     settings: 'المظهر واللغة',
     language: 'اللغة',
     moreLangs: 'لغات أخرى',
+    chooseLang: 'اختر لغة…',
     dark: 'الوضع الداكن',
     notifications: 'الإشعارات',
     tools: 'الأدوات',
@@ -168,6 +172,7 @@ const LABELS = {
     settings: 'Görünüm ve dil',
     language: 'Dil',
     moreLangs: 'Diğer diller',
+    chooseLang: 'Dil seçin…',
     dark: 'Karanlık mod',
     notifications: 'Bildirimler',
     tools: 'Araçlar',
@@ -181,7 +186,7 @@ const IS_MAC = typeof navigator !== 'undefined' &&
   /mac|iphone|ipad/i.test(navigator.userAgentData?.platform || navigator.platform || '')
 
 // Menyu daxilində fokuslana bilən elementlər (bağlı qrupdakılar isVisible ilə süzülür)
-const FOCUSABLE = 'button:not([disabled]), a[href], input:not([disabled]), [tabindex]:not([tabindex="-1"])'
+const FOCUSABLE = 'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
 
 /** Yadda saxlanmış açıq qrupları oxu. Yoxdursa — null (default işlənəcək). */
 function readStoredGroups() {
@@ -443,6 +448,11 @@ export default function SideNav({ mode = 'drawer', id, open = false, onClose, cu
   const triggerRef = useRef(null)        // menyunu açan element (☰) — fokus ora qayıdır
   const skipRestoreRef = useRef(false)   // axtarışa / alətlərə keçəndə fokusu qaytarma
   const wasOpenRef = useRef(false)
+  // Çəkmə menyuda dil paneli (bağlananda yığılır)
+  const [langOpen, setLangOpen] = useState(false)
+  useEffect(() => { if (!open) setLangOpen(false) }, [open])
+  const langPanelId = `${id || 'qm-sn'}-langs`
+  const langCode = String(siteLang || lang).toUpperCase()
 
   // ── Səhifə dəyişəndə onun qrupu açılsın və sətri görünsün ──
   // (istifadəçinin öz seçimi deyil — yaddaşa yazılmır)
@@ -830,23 +840,57 @@ export default function SideNav({ mode = 'drawer', id, open = false, onClose, cu
             {groups}
           </nav>
 
-          {/* ── Alt hissə: alətlər və ayarlar (tema + dil) ── */}
+          {/* ── Alt hissə: bir sətir ikon düymələri (alətlər, hesab, tema, dil) ──
+              Adlar aria-label + title-dadır (əvvəlki kafellər ~210px tuturdu, bölmələrə yer qalmırdı).
+              Dillər "AZ ▾" düyməsinin arxasındadır — açılanda sətrin üstündə panel çıxır. */}
           <div className="qm-sn-foot">
-            {/* Alətlər — dar ekranda üzən düymə yoxdur, onun işini bunlar görür */}
-            <div className="qm-sn-tools" role="group" aria-label={l.tools}>
+            {langOpen && (
+              <div className="qm-sn-langpanel" id={langPanelId} role="group" aria-label={l.language}>
+                <div className="qm-sn-langs">
+                  {LANG_OPTIONS.map(x => {
+                    const current = x.code === siteLang
+                    return (
+                      <button
+                        key={x.code}
+                        type="button"
+                        className={`qm-sn-lang${current ? ' is-current' : ''}`}
+                        onClick={() => pickLang(x.code)}
+                        aria-pressed={current}
+                        aria-label={`${x.label} — ${x.native}`}
+                        lang={x.code}
+                      >
+                        {x.label}
+                      </button>
+                    )
+                  })}
+                </div>
+                {/* Əlavə dillər (yalnız Quran) — telefonda rahat olan doğma seçici */}
+                <label className="qm-sn-morelangs">
+                  <span className="qm-sn-morelangs__label">{l.moreLangs}</span>
+                  <select
+                    className="qm-sn-morelangs__select"
+                    value={EXTRA_LANGS[siteLang] ? siteLang : ''}
+                    onChange={(e) => pickLang(e.target.value)}
+                  >
+                    <option value="" disabled>{l.chooseLang}</option>
+                    {EXTRA_CODES.map(c => (
+                      <option key={c} value={c} lang={c}>{EXTRA_LANGS[c].name}</option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+            )}
+            <div className="qm-sn-bar" role="group" aria-label={l.tools}>
               {currentPage !== 'aichat' && (
-                <button type="button" className="qm-sn-tool" onClick={() => openTool('ai')} aria-haspopup="dialog">
+                <button type="button" className="qm-sn-tool" onClick={() => openTool('ai')} aria-haspopup="dialog" aria-label={l.ai} title={l.ai}>
                   <span className="qm-sn-tool-icon"><SparkleIcon /></span>
-                  <span className="qm-sn-tool-label">{l.ai}</span>
                 </button>
               )}
-              <button type="button" className="qm-sn-tool" onClick={() => openTool('a11y')} aria-haspopup="dialog">
+              <button type="button" className="qm-sn-tool" onClick={() => openTool('a11y')} aria-haspopup="dialog" aria-label={l.a11y} title={l.a11y}>
                 <span className="qm-sn-tool-icon"><A11yIcon /></span>
-                <span className="qm-sn-tool-label">{l.a11y}</span>
               </button>
-              <button type="button" className="qm-sn-tool" onClick={() => openTool('notif')} aria-haspopup="dialog">
+              <button type="button" className="qm-sn-tool" onClick={() => openTool('notif')} aria-haspopup="dialog" aria-label={l.notifications} title={l.notifications}>
                 <span className="qm-sn-tool-icon"><BellIcon /></span>
-                <span className="qm-sn-tool-label">{l.notifications}</span>
               </button>
               {/* Hesab: anonim — /login, daxil olub (və ya ipucu var) — /account */}
               <a
@@ -854,63 +898,48 @@ export default function SideNav({ mode = 'drawer', id, open = false, onClose, cu
                 href={pathFor(accountKey, siteLang)}
                 onClick={(e) => onItemClick(e, accountKey)}
                 aria-current={currentPage === accountKey ? 'page' : undefined}
+                aria-label={accountKey === 'login' ? al.signIn : al.account}
+                title={accountKey === 'login' ? al.signIn : al.account}
               >
                 <span className="qm-sn-tool-icon"><Icon name="user" size={18} /></span>
-                <span className="qm-sn-tool-label">{accountKey === 'login' ? al.signIn : al.account}</span>
               </a>
-            </div>
-            <div className="qm-sn-settings" role="group" aria-label={l.settings}>
               <button
                 type="button"
-                className="qm-sn-theme"
+                className="qm-sn-tool"
                 onClick={(e) => toggleDark?.(e)}
                 aria-pressed={Boolean(dark)}
                 aria-label={l.dark}
+                title={l.dark}
               >
-                {dark ? (
-                  <svg {...SVG}>
-                    <circle cx="12" cy="12" r="4" />
-                    <path d="M12 2.5v2M12 19.5v2M4.6 4.6l1.4 1.4M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4L6 18M18 6l1.4-1.4" />
-                  </svg>
-                ) : (
-                  <svg {...SVG}>
-                    <path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" />
-                  </svg>
-                )}
+                <span className="qm-sn-tool-icon">
+                  {dark ? (
+                    <svg {...SVG}>
+                      <circle cx="12" cy="12" r="4" />
+                      <path d="M12 2.5v2M12 19.5v2M4.6 4.6l1.4 1.4M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4L6 18M18 6l1.4-1.4" />
+                    </svg>
+                  ) : (
+                    <svg {...SVG}>
+                      <path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" />
+                    </svg>
+                  )}
+                </span>
               </button>
-              <div className="qm-sn-langs" role="group" aria-label={l.language}>
-                {LANG_OPTIONS.map(x => {
-                  const current = x.code === siteLang
-                  return (
-                    <button
-                      key={x.code}
-                      type="button"
-                      className={`qm-sn-lang${current ? ' is-current' : ''}`}
-                      onClick={() => pickLang(x.code)}
-                      aria-pressed={current}
-                      aria-label={`${x.label} — ${x.native}`}
-                      lang={x.code}
-                    >
-                      {x.label}
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
-            {/* Əlavə dillər (yalnız Quran) — telefonda rahat olan doğma seçici */}
-            <label className="qm-sn-morelangs">
-              <span className="qm-sn-morelangs__label">{l.moreLangs}</span>
-              <select
-                className="qm-sn-morelangs__select"
-                value={EXTRA_LANGS[siteLang] ? siteLang : ''}
-                onChange={(e) => pickLang(e.target.value)}
+              {/* Görünən kod ("AZ") adın əvvəlindədir (WCAG 2.5.3) */}
+              <button
+                type="button"
+                className={`qm-sn-langbtn${langOpen ? ' is-open' : ''}`}
+                onClick={() => setLangOpen(v => !v)}
+                aria-expanded={langOpen}
+                aria-controls={langOpen ? langPanelId : undefined}
+                aria-label={`${langCode} — ${l.language}`}
               >
-                <option value="" disabled>—</option>
-                {EXTRA_CODES.map(c => (
-                  <option key={c} value={c} lang={c}>{EXTRA_LANGS[c].name}</option>
-                ))}
-              </select>
-            </label>
+                <Icon name="globe" size={16} />
+                <span className="qm-sn-langbtn__code">{langCode}</span>
+                <svg className="qm-sn-langbtn__chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <polyline points="6 15 12 9 18 15" />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
       </div>

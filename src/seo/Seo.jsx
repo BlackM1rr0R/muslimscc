@@ -1,9 +1,11 @@
 import { useEffect } from 'react'
-import { SITE, LOCALES, DEFAULT_LANG, DETAILS, NOINDEX_KEYS, urlFor, pathFor, langsFor, seoLangsFor, canonicalLang, uiLang } from './routes'
+import { SITE, LANGS, LOCALES, DEFAULT_LANG, DETAILS, NOINDEX_KEYS, urlFor, pathFor, seoLangsFor, canonicalLang, uiLang } from './routes'
 import { titleFor, descFor, fitDesc, ogImageFor, OG_ALT } from './meta'
-import { brandName, siteJsonLd } from '../config/brand'
+import { brandName } from '../config/brand'
+import { siteSchema } from './siteSchema'
 import { useLang } from '../contexts/LangContext'
 import { ROBOTS_NOINDEX } from './profileSeo'
+import { loadDetail } from './detailLoaders'
 
 // ═══════════════════════════════════════════════════════
 // <head>-i cari səhifəyə uyğun yeniləyir.
@@ -27,6 +29,37 @@ import { ROBOTS_NOINDEX } from './profileSeo'
 // loqosunu kök URL-dən götürür, hər səhifədə təkrar lazım deyil.
 const SITE_JSONLD_PAGES = ['home']
 
+// ── Serverin verdiyi HTML (modul yüklənəndə, React <head>-ə toxunmamış oxunur) ──
+// • Prerender olunmuş səhifə: <head> artıq bu URL üçün düzgündür (title, canonical, hreflang,
+//   sxem, hətta surənin öz og:image-i). İlk açılışda yenidən yazılmır — detail.js və onun
+//   məlumatı (hədis, alim…) yalnız SPA naviqasiyasında yüklənir (mobil TBT, 2026-11-18 auditi).
+// • 404 qabığı (dist/404.html: canonical yox + noindex): server bu URL-ə 404 verib — SPA səhifəni
+//   göstərsə də (məs. /de/hadith/1) robotlara "index" deməsin (ziddiyyətli siqnal olmasın).
+const BOOT = typeof document === 'undefined' ? null : (() => {
+  const canonical = document.head.querySelector('link[data-seo="canonical"]')?.getAttribute('href') || null
+  const robots = document.head.querySelector('meta[name="robots"]')?.getAttribute('content') || ''
+  return {
+    path: window.location.pathname,
+    lang: document.documentElement.getAttribute('lang'),
+    canonical,
+    notFound: !canonical && /noindex/i.test(robots),
+  }
+})()
+let bootLeft = false
+/** Hələ server HTML-inin URL-indəyikmi? Bir dəfə başqa ünvana keçəndən sonra (Geri ilə qayıtsa da) — yox. */
+function atBootUrl() {
+  if (!BOOT || bootLeft) return false
+  if (window.location.pathname !== BOOT.path) bootLeft = true
+  return !bootLeft
+}
+/** Server bu URL üçün hazır <head> veribmi (prerender) — onda yenidən yazmağa ehtiyac yoxdur. */
+function prerenderedHead(page, lang, param) {
+  if (page === 'notfound' || !atBootUrl() || !BOOT.canonical || BOOT.lang !== lang) return false
+  // Ünvan bu səhifənin öz yoludur (SPA fallback-ın ana səhifə qabığı naməlum ünvanda "uyğun" görünməsin)
+  if (pathFor(page, lang, param ?? undefined) !== BOOT.path) return false
+  return BOOT.canonical === urlFor(page, canonicalLang(page, lang, param), DETAILS[page]?.noindex ? undefined : (param ?? undefined))
+}
+
 /** name/property atributuna görə <meta> tap və ya yarat, sonra content yaz. */
 function setMeta(attr, key, content) {
   if (!content) return
@@ -39,12 +72,12 @@ function setMeta(attr, key, content) {
   el.setAttribute('content', content)
 }
 
-/** og:locale:alternate — səhifənin cari dildən başqa dilləri (bütün köhnələri əvəz edir). */
-function setLocaleAlternates(lang, page) {
+/** og:locale:alternate — cari dildən başqa 5 əsas dil (bütün köhnələri əvəz edir; prerender.mjs ilə eyni). */
+function setLocaleAlternates(lang) {
   document.head
     .querySelectorAll('meta[property="og:locale:alternate"]')
     .forEach(el => el.remove())
-  for (const l of langsFor(page)) {
+  for (const l of LANGS) {
     if (l === lang) continue
     const el = document.createElement('meta')
     el.setAttribute('property', 'og:locale:alternate')
@@ -104,7 +137,7 @@ function applySelfSeo(page, lang, param) {
   setMeta('property', 'og:url', s?.canonical || window.location.href)
   setMeta('property', 'og:locale', LOCALES[lang] || LOCALES.az)
   setMeta('property', 'og:site_name', brandName(lang))
-  setLocaleAlternates(lang, page)
+  setLocaleAlternates(lang)
   const ogAlt = OG_ALT[uiLang(lang)] || OG_ALT.az
   setMeta('property', 'og:image', ogImageFor(lang))
   setMeta('property', 'og:image:alt', ogAlt)
@@ -123,16 +156,13 @@ export default function Seo({ page, lang, param = null }) {
   // Əlavə dilin lüğəti dil dəyişəndən sonra yüklənir — başlıq onda yenilənsin
   const { dictLang } = useLang() || {}
   useEffect(() => {
+    if (DETAILS[page]?.selfSeo && param != null) { applySelfSeo(page, lang, param); return undefined }
+    // Prerender olunmuş səhifənin ilk açılışı — <head> serverdən düzgün gəlib
+    if (prerenderedHead(page, lang, param)) return undefined
     if (param == null) { applySeo(page, lang, null, null); return undefined }
-    if (DETAILS[page]?.selfSeo) { applySelfSeo(page, lang, param); return undefined }
     let cancelled = false
-    // Lüğət termini: detail.js məlumatı glossarySource.js-dən oxuyur — lüğət
-    // chunk-ı yalnız burada yüklənir (GlossaryPage onu onsuz da yükləyib)
-    const load = page === 'glossary'
-      ? Promise.all([import('./detail.js'), import('../data/glossary.js'), import('./glossarySource.js')])
-        .then(([detail, g, src]) => { src.setGlossarySource(g.GLOSSARY_BY_ID); return detail })
-      : import('./detail.js')
-    load
+    // detail.js + yalnız bu növün məlumatı (hədis səhifəsində hədislər və s.) — detailLoaders.js
+    loadDetail(page)
       .then((detail) => { if (!cancelled) applySeo(page, lang, param, detail) })
       // Chunk yüklənmədi — heç olmasa canonical/hreflang düzgün olsun
       .catch(() => { if (!cancelled) applySeo(page, lang, param, null) })
@@ -150,7 +180,9 @@ function applySeo(page, lang, param, detail) {
   const canonical = urlFor(page, canonicalLang(page, lang, param), DETAILS[page]?.noindex ? undefined : (param ?? undefined))
   // Tanınmayan ünvan (404): indekslənmir, canonical/hreflang/sxem yazılmır —
   // əks halda Google onu ana səhifənin dublikatı ("soft-404") sayardı
-  const isNotFound = page === 'notfound'
+  // Server bu URL-ə 404 qabığı verib (məs. /de/hadith/1 — hədis yalnız 5 dildə prerender olunur):
+  // SPA məzmunu göstərsə də head 404 kimi qalır (noindex, canonical/hreflang/sxem yox)
+  const isNotFound = page === 'notfound' || (atBootUrl() && BOOT.notFound)
   // İstifadəçi məzmunu (qrup otağı və s.) — indekslənmir, kanonik siyahı səhifəsidir
   const isPrivateDetail = param != null && DETAILS[page]?.noindex
 
@@ -168,7 +200,7 @@ function applySeo(page, lang, param, detail) {
   setMeta('property', 'og:url', isNotFound ? window.location.href : canonical)
   setMeta('property', 'og:locale', LOCALES[lang] || LOCALES.az)
   setMeta('property', 'og:site_name', brandName(lang))
-  setLocaleAlternates(lang, page)
+  setLocaleAlternates(lang)
   // Paylaşım kartının şəkli və alt mətni də cari dildə (əlavə dildə — ingiliscə kart)
   const ogAlt = OG_ALT[uiLang(lang)] || OG_ALT.az
   setMeta('property', 'og:image', ogImageFor(lang))
@@ -212,8 +244,7 @@ function applySeo(page, lang, param, detail) {
     },
   })
 
-  // Sayt sxemi (WebSite + Organization) — yalnız ana səhifədə, cari dildə;
-  // digərlərində silinir. index.html-dəki statik WebSite bloku eyni @id
-  // (https://muslims.cc/#website) daşıyır, Google ikisini bir obyekt sayır.
-  setJsonLd(SITE_JSONLD_PAGES.includes(page) ? siteJsonLd(lang) : null, 'site-jsonld')
+  // Sayt sxemi (WebSite + Organization + WebApplication; src/seo/siteSchema.js) — yalnız
+  // ana səhifədə, cari dildə; digərlərində silinir. Saytın yeganə #website node-udur.
+  setJsonLd(SITE_JSONLD_PAGES.includes(page) ? siteSchema(lang) : null, 'site-jsonld')
 }

@@ -113,7 +113,8 @@ function sessionCookie(token, maxAgeSec) {
 
 // ─── CSRF ─────────────────────────────────────────────────────────────
 const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS'])
-const isLocalOrigin = (o) => /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(o)
+// Yerli inkişaf (vite dev / preview) — NODE_ENV=production-da (Docker image) localhost origin icazəli DEYİL
+const isLocalOrigin = (o) => process.env.NODE_ENV !== 'production' && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(o)
 
 /** Vəziyyət dəyişən cookie-li sorğu başqa saytdan gələ bilərmi? true → rədd et. */
 function csrfRejected(req, allowedOrigins) {

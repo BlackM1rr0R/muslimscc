@@ -14,32 +14,30 @@
 // Tətbiqdə bu modul Seo.jsx tərəfindən TƏNBƏL yüklənir (yalnız detal
 // səhifəsində) — əsas paketə düşmür. Prerender onu adi Node ilə import
 // edir, ona görə importlarda .js uzantısı vacibdir.
+// Böyük məlumat (hədis, səhabə, alim, dərs, lüğət) statik import OLUNMUR —
+// detailSources.js-dən oxunur: brauzerdə detailLoaders.js yalnız həmin növün
+// məlumatını yükləyir, Node (prerender, testlər) detailData.js-i import edir.
 //
 // DİL QAYDASI (meta.js ilə eyni): hər mətn tamamilə öz dilində — az-da
 // türkcə söz yox, tr-də "ə" yox; scripts/check-lang.mjs bu faylı yoxlayır.
 // ═══════════════════════════════════════════════════════
 
-import { SITE, pathFor, EXTRA_PAGES, isExtraLang } from './routes.js'
+import { SITE, pathFor, canonicalLang, EXTRA_PAGES, isExtraLang } from './routes.js'
 import { txt } from '../utils/uiText.js'
 import { SURAH_META } from './surahMeta.js'
 import { getSurahLocal } from '../data/surahNamesAz.js'
 import { NAMES_99 } from '../data/names99.js'
-import { SAHABA, slugOf } from '../data/sahaba.js'
-import { scholarBySlug, lifeSpan } from '../data/scholars.js'
-import { lessonBySlug, CAT_BY_KEY } from '../data/lessons/index.js'
+// Böyük məlumat (hədis, səhabə, alim, dərs) statik import OLUNMUR — hər növ yalnız öz
+// səhifəsində yüklənir: detailSources.js (brauzer: detailLoaders.js, Node: detailData.js)
+import { detailSource } from './detailSources.js'
 // Lüğət məlumatı statik import OLUNMUR (hər detal səhifəsinə ~160 KB) — glossarySource.js
 import { glossaryItem } from './glossarySource.js'
-import { glossaryName, glossaryGloss } from '../data/glossaryNames.js'
 import { brandName } from '../config/brand.js'
 import { withBrand } from './title.js'
 import { EXTRA_LANGS, EXTRA_CODES } from './langs.js'
 import { INTL_QURAN, INTL_BODY_UI } from './intl.js'
 import { INTL_QURAN_SECTION } from './intlMeta.js'
 import { prayerCity, cityName, countryName, isAzCity, PRAYER_CITY_T } from './prayerCity.js'
-import { HADITHS } from '../data/hadiths.js'
-import { SUNAN_GRADES } from '../data/hadithGrades.js'
-import { gradeOf } from '../utils/hadithGrade.js'
-import { localizeSource } from '../utils/sourceNames.js'
 import { HADITH_IDS } from './hadithIds.js'
 
 // Title-ın səhifə hissəsi üçün hədd (brend şəkilçisi bundan sonra gəlir)
@@ -198,7 +196,8 @@ const isWoman = (s) => /\bbint\b/i.test(s.name.en)
 
 /** Səhabənin profili (slug ilə). */
 export function sahabaInfo(slug) {
-  return SAHABA.find(s => slugOf(s) === slug) || null
+  const src = detailSource('sahaba')
+  return (src && src.SAHABA.find(s => src.slugOf(s) === slug)) || null
 }
 
 /** Bioqrafiyanın ilk cümlələri — description üçün (≤ 160 simvol). */
@@ -233,7 +232,7 @@ const SAHABA_T = {
 // ═══ Sələf alimi ════════════════════════════════════
 
 /** Alimin profili (slug ilə). */
-export const scholarInfo = (slug) => scholarBySlug(slug)
+export const scholarInfo = (slug) => detailSource('scholars')?.scholarBySlug(slug) || null
 
 const SCHOLAR_T = {
   az: { t: (n, ti) => fit(`${n} — ${ti}: həyatı və əsərləri`, `${n} — həyatı və əsərləri`) },
@@ -245,14 +244,16 @@ const SCHOLAR_T = {
 
 /** Description: ömür aralığı + bir cümləlik xülasə (yalnız məlumatdan). */
 function scholarDesc(x, lang) {
-  const span = lifeSpan(x, lang)
+  const span = detailSource('scholars').lifeSpan(x, lang)
   return clamp(`${pick(x.name, lang)}${span ? ` (${span})` : ''} — ${pick(x.summary, lang)}`)
 }
 
 // ═══ Dərs ═══════════════════════════════════════════
 
 /** Dərsin meta məlumatı (slug ilə). */
-export const lessonInfo = (slug) => lessonBySlug(slug)
+export const lessonInfo = (slug) => detailSource('learn')?.lessonBySlug(slug) || null
+
+const CAT_BY_KEY = () => detailSource('learn')?.CAT_BY_KEY || {}
 
 const LESSON_T = {
   az: { t: (n) => fit(`${n} — dərs`, n) },
@@ -281,8 +282,9 @@ export const GLOSSARY_CAT_LABEL = {
 /** Termin (id ilə) və onun cari dildəki adı, ingiliscə qarşılığı, tərifi. */
 export function termInfo(id, lang) {
   const x = glossaryItem(id)
-  if (!x) return null
-  return { ...x, name: glossaryName(x, lang), gloss: glossaryGloss(x), definition: x.def[lang] || x.def.en }
+  const gn = detailSource('glossaryNames')
+  if (!x || !gn) return null
+  return { ...x, name: gn.glossaryName(x, lang), gloss: gn.glossaryGloss(x), definition: x.def[lang] || x.def.en }
 }
 
 const TERM_MORE = {
@@ -321,6 +323,9 @@ const TERM_T = {
 // ── Hədis (/hadith/<id>, v6.8) — mətn, mənbə, dərəcə yalnız saytın yoxlanmış datasından ──
 const HADITH_MAP = {}
 export function hadithInfo(id, lang) {
+  const src = detailSource('hadith')
+  if (!src) return null
+  const { HADITHS, SUNAN_GRADES, gradeOf, localizeSource } = src
   const l = HADITHS[lang] ? lang : 'en'
   HADITH_MAP[l] ||= new Map(HADITHS[l].map(h => [String(h.id), h]))
   const h = HADITH_MAP[l].get(String(id))
@@ -499,7 +504,8 @@ const NAMES_SET = { az: 'Allahın 99 gözəl adı (Əsmaül Hüsna)', en: 'The 9
 export function detailJsonLd(key, lang, param) {
   const m = detailMeta(key, lang, param)
   if (!m) return null
-  const url = SITE + pathFor(key, lang, param)
+  // WebPage.url = canonical (əlavə dildəki əsas-məzmunlu detal → /en/…, routes.js → canonicalLang)
+  const url = SITE + pathFor(key, canonicalLang(key, lang, param), param)
   const brand = brandName(lang)
   let main = null
   if (key === 'quran') {
@@ -541,7 +547,7 @@ export function detailJsonLd(key, lang, param) {
       description: m.d,
       inLanguage: lang,
       learningResourceType: 'lesson',
-      ...(CAT_BY_KEY[x.cat] ? { about: pick(CAT_BY_KEY[x.cat].label, lang) } : {}),
+      ...(CAT_BY_KEY()[x.cat] ? { about: pick(CAT_BY_KEY()[x.cat].label, lang) } : {}),
       ...(x.minutes ? { timeRequired: `PT${x.minutes}M` } : {}),
       url,
     }

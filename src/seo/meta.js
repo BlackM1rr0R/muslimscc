@@ -53,7 +53,7 @@ export const META = {
     tr: { t: 'Kuran, Namaz Vakitleri, Hadis ve Dua — İslami Platform',
           d: '50 dilde 30’dan fazla bölümlü ücretsiz İslami platform: Kuran oku ve dinle, namaz vakitleri, 1100+ hadis, dua, zikir, zekât ve kıble. Reklamsız.' },
     ar: { t: 'القرآن ومواقيت الصلاة والحديث والدعاء — منصة إسلامية',
-          d: 'منصة إسلامية مجانية بأكثر من ٣٠ قسماً بخمس لغات: اقرأ القرآن واستمع إليه، ومواقيت الصلاة، وأكثر من ١١٠٠ حديثاً، والأدعية والأذكار والزكاة والقبلة. بلا إعلانات.' },
+          d: 'منصة إسلامية مجانية بأكثر من ٣٠ قسماً بخمسين لغة: اقرأ القرآن واستمع إليه، ومواقيت الصلاة، وأكثر من ١١٠٠ حديثاً، والأدعية والأذكار والزكاة والقبلة. بلا إعلانات.' },
   },
 
   // ── Camaat, elanlar, ianə ──
@@ -108,7 +108,7 @@ export const META = {
     tr: { t: 'Kuran Oku — 114 Sure, Meal, Dinle ve Tefsir',
           d: 'Kuran-ı Kerim’in 114 suresini online oku: Arapça metin, meal, sesli dinleme, tefsir, ayet arama ve yer imleri. Ücretsiz ve reklamsız.' },
     ar: { t: 'اقرأ القرآن الكريم — ١١٤ سورة مع الترجمة والصوت',
-          d: 'اقرأ سور القرآن الكريم كاملة مع النص العربي والترجمة بخمس لغات والتلاوة الصوتية والتفسير والبحث في الآيات والإشارات المرجعية. مجاناً وبدون إعلانات.' },
+          d: 'اقرأ سور القرآن الكريم كاملة مع النص العربي والترجمة إلى خمسين لغة والتلاوة الصوتية والتفسير والبحث في الآيات والإشارات المرجعية. مجاناً وبدون إعلانات.' },
   },
 
   prayer: {

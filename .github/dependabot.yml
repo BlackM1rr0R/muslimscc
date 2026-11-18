@@ -1,0 +1,9 @@
+# CI action-ları tam commit SHA ilə bağlanıb (.github/workflows/ci.yml, "# v4" şərhi ilə).
+# Dependabot yalnız onları yeniləmək üçün PR açır (birləşdirmə — əl ilə, CI yaşıl olandan sonra).
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5

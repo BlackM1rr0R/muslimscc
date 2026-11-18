@@ -251,3 +251,74 @@ test('dil dəyişəndə detal səhifəsi qalır', async ({ page, consoleProblems
   await expect(canonical(page)).toHaveAttribute('href', 'https://muslims.cc/en/sahaba/anas-ibn-malik')
   expectCleanConsole(consoleProblems)
 })
+
+// ── B4 (2026-11-18): nginx kimi sləşsiz ünvana prerender HTML-i (və ya 404 qabığını) vermək ──
+// vite preview sləşsiz ünvana ana səhifəni verir — sənəd sorğusu sləşli fayl ilə əvəzlənir
+async function serveLikeNginx(page, url, { notFound = false } = {}) {
+  await page.route((u) => u.pathname === url, async (route) => {
+    if (route.request().resourceType() !== 'document') return route.fallback()
+    const res = await page.request.get(notFound ? '/404.html' : url.replace(/\/?$/, '/'))
+    await route.fulfill({ status: notFound ? 404 : 200, contentType: 'text/html; charset=utf-8', body: await res.text() })
+  })
+}
+
+test('prerender səhifəsinin ilk açılışı: head yenidən yazılmır, detail.js və hədis/alim/səhabə chunk-ları yüklənmir', async ({ page, consoleProblems }) => {
+  const js = []
+  page.on('request', (r) => { if (r.resourceType() === 'script') js.push(new URL(r.url()).pathname) })
+  await serveLikeNginx(page, '/quran/1-al-faatiha')
+  await page.goto('/quran/1-al-faatiha')
+  await settle(page)
+  await expect(page.locator('h1')).toHaveCount(1)
+  await expect(canonical(page)).toHaveAttribute('href', 'https://muslims.cc/quran/1-al-faatiha')
+  await expect(page.locator('link[data-seo="alt"]')).toHaveCount(5 + EXTRA_CODES.length + 1)
+  // Surənin öz paylaşım kartı (prerender) — generik og-image ilə əvəzlənmir
+  await expect(page.locator('meta[property="og:image"]')).toHaveAttribute('content', /\/og\/quran-1\.png$/)
+  const heavy = js.filter(p => /\/assets\/(detail|hadiths|scholars|sahaba)-[\w-]{8}\.js$/.test(p))
+  expect(heavy, js.join('\n')).toEqual([])
+  expectCleanConsole(consoleProblems)
+})
+
+test('SPA naviqasiyası: prerender siyahıdan alimə keçəndə head yenilənir (detail.js yalnız indi yüklənir)', async ({ page }) => {
+  await serveLikeNginx(page, '/scholars')
+  await page.goto('/scholars')
+  await settle(page)
+  await expect(canonical(page)).toHaveAttribute('href', 'https://muslims.cc/scholars')
+  await page.locator('a.sc-card[href="/scholars/ahmad-ibn-hanbal"]').click()
+  await expect(page).toHaveURL(/\/scholars\/ahmad-ibn-hanbal$/)
+  await expect(canonical(page)).toHaveAttribute('href', 'https://muslims.cc/scholars/ahmad-ibn-hanbal')
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', /^index/)
+  await expect(page.locator('link[data-seo="alt"][hreflang="ru"]')).toHaveAttribute('href', 'https://muslims.cc/ru/scholars/ahmad-ibn-hanbal')
+  const ld = JSON.parse(await page.locator('script[data-seo="page-jsonld"]').textContent())
+  expect(ld.mainEntity['@type']).toBe('Person')
+})
+
+test('server 404 qabığı verən ünvan (/de/hadith/1): SPA göstərsə də noindex qalır, canonical/hreflang yazılmır', async ({ page }) => {
+  await serveLikeNginx(page, '/de/hadith/1', { notFound: true })
+  const res = await page.goto('/de/hadith/1')
+  expect(res.status()).toBe(404)
+  await settle(page)
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', /noindex/)
+  await expect(canonical(page)).toHaveCount(0)
+  await expect(page.locator('link[data-seo="alt"]')).toHaveCount(0)
+})
+
+test('JSON-LD: ana səhifədə bir WebSite (#website), SearchAction yox; WebPage.url = canonical (/de/prayer/london)', async ({ request }) => {
+  const blocks = (html) => [...html.matchAll(/<script type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/g)].map(m => JSON.parse(m[1]))
+  const nodes = (b) => b.flatMap(x => x['@graph'] || [x])
+  const home = await raw(request, '/')
+  const hn = nodes(blocks(home))
+  expect(hn.filter(n => n['@type'] === 'WebSite')).toHaveLength(1)
+  expect(hn.find(n => n['@type'] === 'WebSite').inLanguage).toHaveLength(50)
+  expect(home).not.toContain('SearchAction')
+  expect(home).not.toContain('name="keywords"')
+  expect(home).not.toMatch(/<!--/)
+  expect(home.match(/property="og:locale:alternate"/g)).toHaveLength(4)
+  const de = await raw(request, '/de/prayer/london')
+  const canon = /<link rel="canonical" href="([^"]+)"/.exec(de)[1]
+  expect(canon).toBe('https://muslims.cc/en/prayer/london')
+  const page = nodes(blocks(de)).find(n => n['@type'] === 'WebPage')
+  expect(page.url).toBe(canon)
+  expect(nodes(blocks(de)).filter(n => n['@type'] === 'WebSite')).toHaveLength(0)
+  const idx = await raw(request, '/sitemap.xml')
+  expect(idx).not.toContain('<lastmod>')
+})

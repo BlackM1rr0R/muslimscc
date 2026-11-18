@@ -61,7 +61,8 @@ export default function PinDialog({ t, onClose, onUnlocked, action = disableWith
               pattern="[0-9]{4,6}" minLength={4} maxLength={6} required value={pin} disabled={Boolean(waitS)}
               onChange={(e) => setPin(e.target.value.replace(/\D/g, '').slice(0, 6))} aria-describedby="kid-pin-err" data-testid="kid-pin-input" />
           </label>
-          <p id="kid-pin-err" className="kid-pin__err" role="alert" aria-live="assertive" data-testid="kid-pin-error">{waitS ? t.wait(waitS) : err}</p>
+          {/* aria-describedby üçün element həmişə var; role="alert" yalnız mətn olanda (boş alert a11y xətasıdır) */}
+          <p id="kid-pin-err" className="kid-pin__err" role={waitS || err ? 'alert' : undefined} aria-live="assertive" data-testid="kid-pin-error">{waitS ? t.wait(waitS) : err}</p>
         </div>
         <div className="ui-dialog__foot">
           <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm" onClick={onClose}>{t.cancel}</button>

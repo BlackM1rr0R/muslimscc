@@ -17,6 +17,8 @@ import { pickUi } from '../../utils/uiText'
 import { localizeSource } from '../../utils/sourceNames'
 import { asrDay, shadowVec, tipPath, localDayStart } from '../../utils/asrShadow'
 import { asrOfLoc } from '../../utils/madhab'
+// Hədis mətni UI obyektindən kənarda — əlavə dillərdə lüğətlə tərcümə olunmur (src/data/asrHadith.js)
+import { ASR_HADITH, ASR_HADITH_AR } from '../../data/asrHadith'
 import '../../styles/AsrShadow.css'
 
 const T = {
@@ -27,7 +29,7 @@ const T = {
     before: 'Kölgə hələ birinci dairəyə çatmayıb — zöhr vaxtı.', between: 'Kölgə birinci dairəni keçib — əsr vaxtı (1×).', after: 'Kölgə ikinci dairəni də keçib (2×).',
     morning: 'Səhər: kölgə qısalır, günortaya doğru ən qısa olacaq.', night: 'Günəş üfüqdən aşağıdadır — kölgə yoxdur.', polar: 'Bu gün şəhərinizdə Günəş doğmur — kölgə yoxdur.',
     dirs: ['Şm', 'Şq', 'C', 'Q'], dirN: 'Şimal', ring1: '1×', ring2: '2×',
-    hadith: 'Cəbrail (ə) Peyğəmbərə (ﷺ) iki gün namaz qıldırdı: birinci gün əsri hər şeyin kölgəsi özü qədər olanda, ikinci gün iki misli olanda. Kölgəyə günortadakı kölgə üstəgəl əlavə olunur.',
+    noonNote: 'Hər iki halda bu uzunluğa günorta kölgəsi əlavə olunur.',
     method: 'Saytın namaz cədvəli 1× qaydası ilə hesablanır (Şafii, Maliki, Hənbəli məzhəbləri). Hənəfi məzhəbində (Əbu Hənifənin görüşü) əsr 2× ilə hesablanır.',
     methodH: 'Namaz cədvəliniz 2× qaydası ilə hesablanır — namaz ayarlarında Hənəfi məzhəbini seçmisiniz (Əbu Hənifənin görüşü). Şafii, Maliki və Hənbəli məzhəblərində əsr 1× ilə hesablanır.', mine: 'sizin ayarınız',
     grade: 'əl-Albani: həsən səhih', aria: (len, t) => `Kölgə ${len} boy, saat ${t}`,
@@ -39,7 +41,7 @@ const T = {
     before: 'The shadow has not reached the first circle yet: it is still Dhuhr.', between: 'The shadow has passed the first circle: it is Asr (1×).', after: 'The shadow has passed the second circle too (2×).',
     morning: 'Morning: the shadow is shrinking and will be shortest at midday.', night: 'The sun is below the horizon: there is no shadow.', polar: 'The sun does not rise in your city today: there is no shadow.',
     dirs: ['N', 'E', 'S', 'W'], dirN: 'North', ring1: '1×', ring2: '2×',
-    hadith: 'Jibril (peace be upon him) led the Prophet (ﷺ) in prayer on two days: on the first day he prayed Asr when the shadow of everything was equal to it, on the second day when it was twice as long. The midday shadow is added to this length.',
+    noonNote: 'In both cases the midday shadow is added to this length.',
     method: 'The site’s timetable uses the 1× rule (Shafi‘i, Maliki and Hanbali schools). In the Hanafi school (the view of Abu Hanifah) Asr is calculated with 2×.',
     methodH: 'Your timetable uses the 2× rule — you chose the Hanafi school in the prayer settings (the view of Abu Hanifah). The Shafi‘i, Maliki and Hanbali schools calculate Asr with 1×.', mine: 'your setting',
     grade: 'al-Albani: hasan sahih', aria: (len, t) => `Shadow ${len} heights at ${t}`,
@@ -51,7 +53,7 @@ const T = {
     before: 'Тень ещё не дошла до первого круга — время зухр.', between: 'Тень прошла первый круг — время аср (1×).', after: 'Тень прошла и второй круг (2×).',
     morning: 'Утро: тень укорачивается и к полудню станет самой короткой.', night: 'Солнце под горизонтом — тени нет.', polar: 'Сегодня в вашем городе Солнце не восходит — тени нет.',
     dirs: ['С', 'В', 'Ю', 'З'], dirN: 'Север', ring1: '1×', ring2: '2×',
-    hadith: 'Джибриль (мир ему) два дня руководил молитвой Пророка (ﷺ): в первый день аср — когда тень каждой вещи стала равна ей, во второй — когда вдвое длиннее. К этой длине прибавляется полуденная тень.',
+    noonNote: 'В обоих случаях к этой длине прибавляется полуденная тень.',
     method: 'Расписание сайта рассчитано по правилу 1× (шафиитский, маликитский и ханбалитский мазхабы). В ханафитском мазхабе (мнение Абу Ханифы) аср считается по 2×.',
     methodH: 'Ваше расписание рассчитано по правилу 2× — в настройках намаза выбран ханафитский мазхаб (мнение Абу Ханифы). В шафиитском, маликитском и ханбалитском мазхабах аср считается по 1×.', mine: 'ваша настройка',
     grade: 'аль-Альбани: хасан сахих', aria: (len, t) => `Тень ${len} высоты, ${t}`,
@@ -63,7 +65,7 @@ const T = {
     before: 'لم يبلغ الظل الدائرة الأولى بعد: وقت الظهر.', between: 'جاوز الظل الدائرة الأولى: وقت العصر (المثل).', after: 'جاوز الظل الدائرة الثانية أيضًا (المثلان).',
     morning: 'الصباح: الظل يتقلص ويكون أقصر ما يكون عند الزوال.', night: 'الشمس تحت الأفق: لا ظل.', polar: 'لا تطلع الشمس في مدينتك اليوم: لا ظل.',
     dirs: ['ش', 'ق', 'ج', 'غ'], dirN: 'الشمال', ring1: '1×', ring2: '2×',
-    hadith: 'أمَّ جبريلُ عليه السلام النبيَّ ﷺ يومين: صلى العصر في اليوم الأول حين كان ظل كل شيء مثله، وفي الثاني حين كان مثليه. ويُضاف إلى ذلك فيء الزوال.',
+    noonNote: 'وفي الحالين يُضاف إلى ذلك فيء الزوال.',
     method: 'جدول الموقع محسوب على المثل (الشافعية والمالكية والحنابلة). وعند الحنفية (قول أبي حنيفة) يُحسب العصر على المثلين.',
     methodH: 'جدولك محسوب على المثلين — اخترت المذهب الحنفي في إعدادات الصلاة (قول أبي حنيفة). وعند الشافعية والمالكية والحنابلة يُحسب العصر على المثل.', mine: 'إعدادك',
     grade: 'الألباني: حسن صحيح', aria: (len, t) => `الظل ${len} من طوله، الساعة ${t}`,
@@ -75,14 +77,12 @@ const T = {
     before: 'Gölge henüz ilk daireye ulaşmadı — öğle vakti.', between: 'Gölge ilk daireyi geçti — ikindi vakti (1×).', after: 'Gölge ikinci daireyi de geçti (2×).',
     morning: 'Sabah: gölge kısalıyor, öğlende en kısa olacak.', night: 'Güneş ufkun altında — gölge yok.', polar: 'Bugün şehrinizde Güneş doğmuyor — gölge yok.',
     dirs: ['K', 'D', 'G', 'B'], dirN: 'Kuzey', ring1: '1×', ring2: '2×',
-    hadith: 'Cebrail (a.s.) Peygamber’e (ﷺ) iki gün namaz kıldırdı: ilk gün ikindiyi her şeyin gölgesi kendisi kadar olunca, ikinci gün iki katı olunca. Bu uzunluğa öğlen gölgesi eklenir.',
+    noonNote: 'Her iki durumda bu uzunluğa öğlen gölgesi eklenir.',
     method: 'Sitenin namaz takvimi 1× kuralıyla hesaplanır (Şâfiî, Mâlikî ve Hanbelî mezhepleri). Hanefî mezhebinde (Ebû Hanîfe’nin görüşü) ikindi 2× ile hesaplanır.',
     methodH: 'Namaz takviminiz 2× kuralıyla hesaplanır — namaz ayarlarında Hanefî mezhebini seçtiniz (Ebû Hanîfe’nin görüşü). Şâfiî, Mâlikî ve Hanbelî mezheplerinde ikindi 1× ile hesaplanır.', mine: 'sizin ayarınız',
     grade: 'el-Elbânî: hasen sahih', aria: (len, t) => `Gölge ${len} boy, saat ${t}`,
   },
 }
-// lang-ok: hədisin ərəb mətni (Əbu Davud 393, hadith-api ilə söz-söz eyni) — tərcümə edilmir
-const AR_TEXT = 'وَصَلَّى بِيَ الْعَصْرَ حِينَ كَانَ ظِلُّهُ مِثْلَهُ … فَلَمَّا كَانَ الْغَدُ … وَصَلَّى بِيَ الْعَصْرَ حِينَ كَانَ ظِلُّهُ مِثْلَيْهِ'
 const SIZE = 400, C = SIZE / 2, EDGE = 186
 const reduced = () => typeof window !== 'undefined' && (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches || document.documentElement.classList.contains('a11y-reduce-motion'))
 
@@ -206,13 +206,14 @@ export default function AsrShadow({ loc, lang = 'az', city = '', siteAsr }) {
         </div>
       </div>
       <figure className="ash__hadith">
-        <blockquote className="ui-arabic" lang="ar" dir="rtl">{AR_TEXT}</blockquote>
-        {lang !== 'ar' && <p>{t.hadith}</p>}
+        <blockquote className="ui-arabic" lang="ar" dir="rtl">{ASR_HADITH_AR}</blockquote>
+        {lang !== 'ar' && <p data-testid="ash-hadith">{ASR_HADITH[lang] || ASR_HADITH.en}</p>}
         <figcaption>
           <a href="https://sunnah.com/abudawud:393" target="_blank" rel="noopener noreferrer">{localizeSource('Əbu Davud 393', lang)}</a> · {t.grade} ·{' '}
           <a href="https://sunnah.com/tirmidhi:149" target="_blank" rel="noopener noreferrer">{localizeSource('Tirmizi 149', lang)}</a>
         </figcaption>
       </figure>
+      <p className="ash__note" data-testid="ash-noon">{t.noonNote}</p>
       <p className="ash__note" data-testid="ash-method" data-asr={mine}><Icon name="info" size={14} /> {mine === 2 ? t.methodH : t.method}</p>
     </div>
   )

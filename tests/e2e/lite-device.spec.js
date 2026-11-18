@@ -21,7 +21,10 @@ test('4 nüvəli cihaz: yüngül rejim, ağır dekor gizli', async ({ page }) =>
   await expect(html).toHaveClass(/\bwow-lite\b/)
   await expect(html).toHaveClass(/\ba11y-reduce-motion\b/)
   const aurora = page.locator('.wow-aurora').first()
-  if (await aurora.count()) await expect(aurora).toBeHidden()
+  // Aurora qatı hər .ui-page-hero-ya əlavə olunur (utils/wow.js initHero) — mövcuddur, amma gizlidir.
+  // (Əvvəlki `if (await aurora.count())` render-dən əvvəl 0 oxuyub yoxlamanı səssizcə ötürə bilərdi.)
+  await expect(aurora).toBeAttached()
+  await expect(aurora).toBeHidden()
 })
 
 test('istifadəçi "full" seçibsə — zəif cihazda da tam rejim', async ({ page }) => {

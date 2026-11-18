@@ -81,7 +81,7 @@ const LABELS = {
     people: 'Teachers and students', teachers: 'Teachers', students: 'Students', works: 'Major works',
     praise: 'What scholars said about him', note: 'Note', sources: 'Sources',
     sourcesNote: 'Books and websites from which the information on this page is taken.', prev: 'Previous scholar', next: 'Next scholar',
-    sameEra: 'From the same era', count: (n) => `${n} ${n === 1 ? 'scholar' : 'scholars'}`, noPhoto: 'No pictures of the scholars are shown — only their names in Arabic script.',
+    sameEra: 'From the same era', count: (n) => (n === 1 ? '1 scholar' : `${n} scholars`), noPhoto: 'No pictures of the scholars are shown — only their names in Arabic script.',
   },
   ru: {
     how: 'Выберите карточку — откроются жизнь учёного, его учителя, труды и источники. Поиск работает по имени, прозвищу и городу.',

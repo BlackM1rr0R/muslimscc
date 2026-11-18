@@ -69,9 +69,10 @@ test('ayəyə keçid: 90 yazıb Enter → həmin ayə görünür, ünvanda a=90'
   await expect(page).toHaveURL(/\/quran\/2-al-baqara\?a=90$/)
   // Vurğu (qızılı halqa) yalnız hədəf ayədədir
   await expect(page.locator('#ayah-90.is-target')).toHaveCount(1)
-  // Yer yadda qaldı
-  const bm = await page.evaluate(() => JSON.parse(localStorage.getItem('quran_bookmark')))
-  expect(bm).toMatchObject({ surah: 2, ayah: 90 })
+  // Yer yadda qaldı. Scroll-spy əvvəlcə yuxarıdakı ayəni (89) yaza bilər, sonra 90-a düzəldir — bir dəfə oxumaq yox, gözlə
+  await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem('quran_bookmark'))), {
+    message: 'quran_bookmark hədəf ayəyə (2:90) düşməlidir',
+  }).toMatchObject({ surah: 2, ayah: 90 })
   expectCleanConsole(consoleProblems)
 })
 

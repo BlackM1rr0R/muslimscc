@@ -122,7 +122,7 @@ const LABELS = {
 }
 
 const NAMES_OF_ALLAH = [
-  { ar:'ٱللَّهُ', emoji:'🌟', az:'Allah — Yeganə Tanrı', en:'Allah — The One God', ru:'Аллах — Единый Бог', ar_desc:'الله — الإله الواحد', tr:'Allah — Tek İlah' },
+  { ar:'ٱللَّهُ', emoji:'🌟', az:'Allah — Yeganə İlah', en:'Allah — the only God worthy of worship', ru:'Аллах — единственный Бог, достойный поклонения', ar_desc:'الله — الإله الواحد المستحق للعبادة', tr:'Allah — ibadete layık tek İlah' },
   { ar:'ٱلرَّحۡمَٰنُ', emoji:'💝', az:'Rəhman — Çox Mərhəmətli', en:'Ar-Rahman — The Most Merciful', ru:'Ар-Рахман — Всемилостивый', ar_desc:'الرحمن — كثير الرحمة', tr:'Rahman — Çok Merhametli' },
   { ar:'ٱلرَّحِيمُ', emoji:'🤲', az:'Rəhim — Çox Rəhimli', en:'Ar-Rahim — The Most Compassionate', ru:'Ар-Рахим — Милосердный', ar_desc:'الرحيم — الرؤوف بعباده', tr:'Rahim — Çok Şefkatli' },
   { ar:'ٱلۡمَلِكُ', emoji:'👑', az:'Malik — Hökmdar', en:'Al-Malik — The King', ru:'Аль-Малик — Царь', ar_desc:'الملك — صاحب الملك', tr:'Melik — Hükümdar' },

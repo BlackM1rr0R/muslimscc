@@ -72,6 +72,8 @@ test('dil dəyişəndə eyni səhifə başqa dildə açılır', async ({ page, i
   await settle(page)
   const scope = await openSettings(page, isMobile)
   if (!isMobile) await page.getByRole('button', { name: /Dili dəyiş/ }).first().click()
+  // Menyuda dillər bir "AZ ▾" düyməsinin arxasındadır
+  else await scope.getByRole('button', { name: 'AZ — Dil', exact: true }).click()
   await scope.getByRole('option', { name: /English/ })
     .or(scope.getByRole('menuitem', { name: /English/ }))
     .or(scope.getByRole('button', { name: /English/ })).first().click()

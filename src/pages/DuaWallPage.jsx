@@ -4,6 +4,8 @@
 //   təsdiqləyəndən sonra divarda 30 gün görünür. Hesab adı / e-poçt heç vaxt göstərilmir.
 // • "Dua etdim" — say (girişsiz də; server təkrarı saymır, bu cihaz da yadda saxlayır — mcc_dua_wall_prayed).
 // • Şikayət (girişli) — istək yenidən moderasiya növbəsinə düşür.
+// • E-poçtu təsdiqlənməmiş hesab (server 403 verify_email) — göndərmə/şikayət əvəzinə "e-poçtu təsdiqləyin" qeydi.
+// • Boş divar — mərkəzdə kart: ikon, isti bir cümlə və düymə (giriş və ya formaya keçid).
 // ═══════════════════════════════════════════════════════
 import { useCallback, useEffect, useId, useMemo, useState } from 'react'
 import { useLang } from '../contexts/LangContext'
@@ -11,7 +13,8 @@ import { pickUi } from '../utils/uiText'
 import { pathFor, LANGS } from '../seo/routes'
 import Icon from '../components/Icon'
 import { useAuthUser, refreshMe } from '../api/userSession'
-import { DW } from '../components/account/communityText'
+import { DW, apiErrCode } from '../components/account/communityText'
+import VerifyEmailNote from '../components/account/VerifyEmailNote'
 import { Msg, fmtMs } from '../components/community/CommunityUi'
 import {
   getDuaWall, getMyDuaRequests, submitDuaRequest, deleteDuaRequest, prayDuaRequest, reportDuaRequest, readPrayed, markPrayed,
@@ -55,6 +58,9 @@ export default function DuaWallPage() {
     } catch { /* limit və ya şəbəkə — sakit */ }
   }
 
+  // Boş divardakı düymə: formanın mətn sahəsinə fokus (brauzer onu görünən yerə gətirir)
+  const focusForm = () => { try { document.querySelector('[data-testid="dw-body"]')?.focus() } catch { /* */ } }
+
   const loginHref = `${pathFor('login', siteLang)}?next=${encodeURIComponent(pathFor('duawall', siteLang))}`
   return (
     <div className="acc-account dw-page">
@@ -62,7 +68,7 @@ export default function DuaWallPage() {
         <div className="ui-container">
           <p className="ui-eyebrow">{t.eyebrow}</p>
           <h1 className="ui-title">{t.title}</h1>
-          <p className="ui-lead">{t.lead}</p>
+          <p className="ui-lead ui-lead--full">{t.lead}</p>
         </div>
       </section>
       <div className="ui-container dw-layout">
@@ -108,7 +114,17 @@ export default function DuaWallPage() {
               <button type="button" className="ui-chip" aria-pressed={filter === siteLang} onClick={() => setFilter(siteLang)}>{t.onlyLang}</button>
             </div>
           </div>
-          {items && items.length === 0 && <p className="rt-note">{t.empty}</p>}
+          {items && items.length === 0 && (
+            <div className="ui-card dw-empty" data-testid="dw-empty">
+              <span className="dw-empty__icon" aria-hidden="true"><Icon name="duas" size={28} /></span>
+              <p className="dw-empty__text">{t.empty}</p>
+              {signedIn ? (
+                <button type="button" className="ui-btn ui-btn--primary ui-btn--sm" onClick={focusForm} data-testid="dw-empty-cta"><Icon name="send" className="ui-btn__icon ui-flip-rtl" /> {t.emptyWrite}</button>
+              ) : (
+                <a className="ui-btn ui-btn--primary ui-btn--sm" href={loginHref} data-testid="dw-empty-cta"><Icon name="enter" className="ui-btn__icon ui-flip-rtl" /> {t.loginBtn}</a>
+              )}
+            </div>
+          )}
           {items && items.length > 0 && (
             <ul className="dw-grid">
               {items.map((it) => (
@@ -130,17 +146,20 @@ function SubmitForm({ t, lang, siteLang, onSent }) {
   const [tag, setTag] = useState(siteLang)
   const [msg, setMsg] = useState(null)
   const [busy, setBusy] = useState(false)
+  const [needVerify, setNeedVerify] = useState(false)
   const langs = useMemo(() => [...new Set([siteLang, ...LANGS])], [siteLang])
   const onSubmit = async (e) => {
     e.preventDefault()
-    setBusy(true); setMsg(null)
+    setBusy(true); setMsg(null); setNeedVerify(false)
     try {
       await submitDuaRequest({ body, name: name.trim(), lang: tag })
       setBody(''); setName('')
       setMsg({ tone: 'ok', text: t.sent })
       onSent()
     } catch (err) {
-      setMsg({ tone: 'bad', text: t.err[err && err.code] || t.err.generic })
+      const c = apiErrCode(err)
+      if (c === 'verify_email') setNeedVerify(true)
+      else setMsg({ tone: 'bad', text: t.err[c] || t.err.generic })
     } finally { setBusy(false) }
   }
   return (
@@ -164,6 +183,7 @@ function SubmitForm({ t, lang, siteLang, onSent }) {
       <div className="rt-row">
         <button type="submit" className="ui-btn ui-btn--primary ui-btn--sm" disabled={busy || [...body.trim()].length < 10} data-testid="dw-submit"><Icon name="send" className="ui-btn__icon ui-flip-rtl" /> {t.submit}</button>
       </div>
+      {needVerify && <VerifyEmailNote lang={lang} testId="dw-verify" />}
       <Msg msg={msg} testId="dw-msg" />
     </form>
   )
@@ -173,9 +193,13 @@ function WallCard({ it, t, lang, prayed, onPray, signedIn, loginHref }) {
   const [reporting, setReporting] = useState(false)
   const [reason, setReason] = useState('inappropriate')
   const [done, setDone] = useState(false)
+  const [needVerify, setNeedVerify] = useState(false)
   const uid = useId()
   const send = async () => {
-    try { await reportDuaRequest(it.id, reason); setDone(true); setReporting(false) } catch { setReporting(false) }
+    try { await reportDuaRequest(it.id, reason); setDone(true); setReporting(false) } catch (err) {
+      setReporting(false)
+      if (apiErrCode(err) === 'verify_email') setNeedVerify(true)
+    }
   }
   return (
     <li className="ui-card dw-card" data-testid="dw-card">
@@ -187,7 +211,7 @@ function WallCard({ it, t, lang, prayed, onPray, signedIn, loginHref }) {
         </button>
         <span className="dw-count ui-num" data-testid="dw-count">{t.count(it.prayed)}</span>
       </div>
-      {done ? <p className="rt-note" role="status">{t.reported}</p> : reporting ? (
+      {needVerify ? <VerifyEmailNote lang={lang} testId="dw-report-verify" /> : done ? <p className="rt-note" role="status">{t.reported}</p> : reporting ? (
         <div className="rt-row">
           <label className="ui-sr-only" htmlFor={`${uid}-r`}>{t.report}</label>
           <select id={`${uid}-r`} className="ui-select" value={reason} onChange={(e) => setReason(e.target.value)}>

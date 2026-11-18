@@ -12,14 +12,19 @@ const CARDS = 'article.hadith-card'
 async function scrollToLoad(page, times = 3) {
   for (let i = 0; i < times; i++) {
     const before = await page.locator(CARDS).count()
-    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight))
-    await expect.poll(() => page.locator(CARDS).count()).toBeGreaterThan(before)
+    // Hər yoxlamada yenidən sona sürüşdür: bir dəfəlik scrollTo telefonda bəzən sentinel-i işə salmır
+    // (və ya partiya hələ yüklənir) — poll yalnız gözləyirdisə, 7 san boşuna keçirdi
+    await expect.poll(async () => {
+      await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight))
+      return page.locator(CARDS).count()
+    }).toBeGreaterThan(before)
   }
 }
 
 test('aşağı sürüşdükcə yeni hədislər özü yüklənir', async ({ page, consoleProblems }) => {
   await page.goto('/hadith')
   await settle(page)
+  await expect(page.locator(CARDS).first()).toBeVisible()
   const first = await page.locator(CARDS).count()
   expect(first).toBeGreaterThan(0)
   expect(first).toBeLessThanOrEqual(30)
@@ -52,6 +57,7 @@ test('aşağı sürüşdükcə yeni hədislər özü yüklənir', async ({ page,
 test('filtr dəyişəndə siyahı sıfırlanır və yuxarı qalxır', async ({ page, consoleProblems }) => {
   await page.goto('/hadith')
   await settle(page)
+  await expect(page.locator(CARDS).first()).toBeVisible()
   await scrollToLoad(page, 3)
   expect(await page.locator(CARDS).count()).toBeGreaterThan(48)
 
@@ -69,7 +75,7 @@ test('filtr dəyişəndə siyahı sıfırlanır və yuxarı qalxır', async ({ p
   await page.evaluate(() => window.scrollTo(0, 0))
   await page.getByRole('searchbox').fill('namaz')
   await expect(page.locator(CARDS).first()).toBeVisible()
-  expect(await page.locator(CARDS).count()).toBeLessThanOrEqual(30)
+  await expect.poll(() => page.locator(CARDS).count()).toBeLessThanOrEqual(30)
   expectCleanConsole(consoleProblems)
 })
 
@@ -93,6 +99,7 @@ test('sevimlilər filtri sonsuz siyahıda işləyir', async ({ page, consoleProb
 test('başqa səhifəyə keçib geri qayıdanda mövqe bərpa olunur', async ({ page, consoleProblems }) => {
   await page.goto('/hadith')
   await settle(page)
+  await expect(page.locator(CARDS).first()).toBeVisible()
   await scrollToLoad(page, 3)
   // Siyahının ortasına (yüklənmiş sahənin içinə) qal və yaddaşa yazılsın
   await page.evaluate(() => window.scrollTo(0, Math.round(document.documentElement.scrollHeight * 0.6)))
@@ -117,6 +124,7 @@ test('başqa səhifəyə keçib geri qayıdanda mövqe bərpa olunur', async ({ 
 test('menyudan yenidən açılan siyahı yuxarıdan başlayır', async ({ page }) => {
   await page.goto('/hadith')
   await settle(page)
+  await expect(page.locator(CARDS).first()).toBeVisible()
   await scrollToLoad(page, 2)
   await page.evaluate(() => document.querySelector('a.nav-link[href="/about"]').click())
   await expect(page).toHaveURL(/\/about$/)

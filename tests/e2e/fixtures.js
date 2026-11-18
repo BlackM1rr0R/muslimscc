@@ -57,18 +57,41 @@ const IGNORED = [
   /Failed to load resource.*(fonts\.g|aladhan|alquran|everyayah|islamic\.network|hadeethenc|quranenc|jsdelivr|githubusercontent)/i,
   /service ?worker/i,
   /\[vite\]/i,
-  // İstifadəçi hesabı API-sinin GÖZLƏNİLƏN 4xx cavabları (girişsiz /me → 401, yanlış şifrə → 401, admin 403 kodları):
-  // brauzer onları "Failed to load resource" kimi yazır — saytın xətası deyil (UI onları özü göstərir)
-  // (+ admin 2FA: yanlış kod → 401 /api/admin/2fa — server/security.js)
-  /Failed to load resource.*\/api\/(auth\/|personal\/|admin\/(users|role-audit|2fa))/i,
-  // D mərhələsi (otaq, ailə, hifz yoxlaması) — gözlənilən 4xx (yanlış/köhnə keçid, giriş yoxdur): UI özü göstərir
-  /Failed to load resource.*\/api\/(read-together|family|hifz-tests)(\/|\?|$)/i,
-  // I mərhələsi (çağırışlar, siniflər, təqvim axını) — gözlənilən 4xx (yanlış keçid, giriş yoxdur): UI özü göstərir
-  /Failed to load resource.*\/api\/(challenges|classes|cal-feed)(\/|\?|$)/i,
-  // K mərhələsi (açıq profil, dua divarı, məscid nümayəndəsi, həftəlik hesabat) — gözlənilən 4xx (naməlum ləqəb → 404,
-  // nümayəndə olmayan → 403, girişsiz → 401): UI özü göstərir
-  /Failed to load resource.*\/api\/(profile|u|dua-wall|mosque-rep|mosques|weekly)(\/|\?|$)/i,
+  // Öz API-mizin GÖZLƏNİLƏN 4xx cavabları — brauzer onları "Failed to load resource" kimi yazır, UI özü göstərir:
+  //   401 girişsiz /me, yanlış şifrə, admin 2FA kodu · 403 rol / nümayəndə deyil · 404 naməlum ləqəb, köhnə keçid,
+  //   olmayan otaq · 406/409 toqquşma. Hesab marşrutlarında (auth, personal, admin users/2fa) həm də 400:
+  //   yanlış şifrə / kod (server/users.js, security.js → wrong_password, invalid_code) — UI özü göstərir.
+  // Qalanı gizlədilmir: 429, 5xx və tutulmamış sorğunun 599-u konsol xətası olaraq qalır.
+  //   hesab (server/users.js, security.js) · D (read-together, family, hifz-tests) · I (challenges, classes, cal-feed)
+  //   · K (profile, u, dua-wall, mosque-rep, mosques, weekly) · qrup otaqları (groups)
+  /Failed to load resource: the server responded with a status of 40[0-9]\b.*\/api\/(auth\/|personal\/|admin\/(users|role-audit|2fa))/i,
+  /Failed to load resource: the server responded with a status of 40[13469]\b.*\/api\/(read-together|family|hifz-tests|challenges|classes|cal-feed|profile|u|dua-wall|mosque-rep|mosques|weekly|groups)(\/|\?|$)/i,
 ]
+
+// Öz API-miz: yerli preview (127.0.0.1 / localhost) və ya VITE_API_URL (https://muslims.cc — AI çatı) üzərində /api/…
+// Xarici hostların /api/ yolları (hadeethenc.com/api, api.quran.com/api/v4) bura AİD DEYİL.
+const isOwnApi = (u) => u.pathname.startsWith('/api/') &&
+  (u.hostname === '127.0.0.1' || u.hostname === 'localhost' || u.hostname === 'muslims.cc' || u.hostname.endsWith('.muslims.cc'))
+
+/**
+ * Tutulmamış öz API sorğusunu 599 ilə cavablandır və siyahıya yaz. Səhifənin İLK route-u olmalıdır
+ * (ən aşağı prioritet). `page` fikstürü bunu özü edir; spec-in özü açdığı ikinci səhifə
+ * (browser.newContext → newPage) üçün də çağırın — yoxsa onun sorğuları vite preview proksisi ilə canlı sayta gedir.
+ * problems — massiv və ya onu qaytaran funksiya (konsol problemlərinə də yazılır).
+ * Qaytarır: sorğuların siyahısı (testin sonunda boş olmalıdır).
+ */
+export async function blockUnmockedApi(p, problems = null) {
+  const unmocked = []
+  await p.route(isOwnApi, (route) => {
+    const req = route.request()
+    const msg = `unmocked API: ${req.method()} ${new URL(req.url()).pathname}`
+    unmocked.push(msg)
+    const sink = typeof problems === 'function' ? problems() : problems
+    if (sink) sink.push(msg)
+    return route.fulfill({ status: 599, json: { error: 'unmocked in e2e', code: 'unmocked' } })
+  })
+  return unmocked
+}
 
 // Saxta Google Identity Services (src/utils/googleSignIn.js-in işlətdiyi hissə)
 const GIS_STUB = `(() => {
@@ -88,9 +111,13 @@ const GIS_STUB = `(() => {
   } } }
 })()`
 
+// page → həmin testin consoleProblems siyahısı (fikstürlər arasında dövr olmadan)
+const problemsOf = new WeakMap()
+
 export const test = base.extend({
   consoleProblems: async ({ page }, use) => {
     const problems = []
+    problemsOf.set(page, problems)
     page.on('console', (msg) => {
       const t = msg.text()
       // "Failed to load resource" mesajında URL olmur — mənbəni location-dan götür
@@ -103,6 +130,11 @@ export const test = base.extend({
   },
 
   page: async ({ page }, use) => {
+    // Tutulmamış öz API sorğusu — İLK qeyd olunur (Playwright-da ən aşağı prioritet: aşağıdakı bütün
+    // saxtalar və spec-lərin öz route-ları ondan əvvəl işləyir). Əvvəllər belə sorğu vite preview-un
+    // proksisi ilə CANLI sayta gedirdi. İndi 599 alır, test sonunda uğursuz olur (yeni endpoint → saxta əlavə et).
+    // consoleProblems "page"-dən asılıdır (dövr olmasın deyə) — siyahı sorğu anında götürülür
+    const unmocked = await blockUnmockedApi(page, () => problemsOf.get(page))
     // Zəif cihaz rejimi (utils/liteDevice) nüvə sayından asılıdır: GitHub runner-də 4 vCPU
     // → "lite", lokalda isə yox. Testlər hər yerdə EYNİ rejimdə işləsin deyə sabitlənir.
     await page.addInitScript(() => { try { localStorage.setItem('muslim_cc_motion', 'full') } catch { /* */ } })
@@ -260,7 +292,28 @@ export const test = base.extend({
     // v3.2: yeni xarici mənbələr (HadeethEnc, QuranEnc, hadith-api) — CI-da canlı şəbəkəyə getməsin.
     // Spec-lər öz page.route-ları ilə bunların üstünə yazır (sonra qeydə alınan qalib gəlir).
     await page.route(/hadeethenc\.com\/api\/|quranenc\.com\/api\/|cdn\.jsdelivr\.net\/gh\/fawazahmed0|raw\.githubusercontent\.com\/fawazahmed0/, route => route.abort())
+    // Qrup otaqları (server/groups.js) — susmaya görə serverdə otaq yoxdur (GET → 404, UI "Otaq tapılmadı");
+    // yaratma və dəyişiklik 503 (preview-da server yoxdur). group-dua.spec.js və s. öz saxtasını qoyur.
+    await page.route((u) => /^\/api\/groups(\/|$)/.test(u.pathname), (route) => (route.request().method() === 'GET'
+      ? route.fulfill({ status: 404, json: { error: 'not found' } })
+      : route.fulfill({ status: 503, json: { error: 'unavailable' } })))
+    // "Səhv bildir" / AI qiymətləndirməsi (server/feedback.js → POST /api/feedback)
+    await page.route((u) => u.pathname === '/api/feedback', (route) => route.fulfill({ status: 201, json: { ok: true } }))
+    // Namaz vaxtları abunəliyi və vidjet (server/ics.js) — brauzer adətən yalnız linki göstərir; açılsa — boş cavab
+    await page.route((u) => u.pathname === '/api/prayer.ics', (route) => route.fulfill({ contentType: 'text/calendar', body: 'BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//muslims.cc//e2e//EN\r\nEND:VCALENDAR\r\n' }))
+    await page.route((u) => u.pathname === '/api/prayer.json', (route) => route.fulfill({ json: { days: [] } }))
+    // Analitika mayakı və brauzer xəta hesabatı — klient navigator.webdriver-də göndərmir; yenə də canlıya getməsin
+    await page.route((u) => u.pathname === '/api/a' || u.pathname === '/api/client-error', (route) => route.fulfill({ status: 204 }))
     await use(page)
+    // Test sonu: tutulmamış öz API sorğusu olmamalıdır (hər spec üçün — expectCleanConsole çağırılmasa da)
+    expect(unmocked, 'tutulmamış /api sorğusu — tests/e2e/fixtures.js-ə saxta əlavə edin').toEqual([])
+    // TEAM.md: boş role="alert" heç vaxt render olunmur (ekran oxuyucusu boş xəbərdarlıq elan edir; strict-mode toqquşması)
+    // (vaxt həddi ilə: səhifənin əsas axını məşğuldursa — məs. saxta saat — count() bitməyə bilər; teardown asılmasın)
+    const emptyAlerts = await Promise.race([
+      page.locator('[role="alert"]:empty').count().catch(() => 0),
+      new Promise((resolve) => setTimeout(() => resolve(0), 2000)),
+    ])
+    expect(emptyAlerts, 'boş [role=alert] elementi render olunub').toBe(0)
   },
 })
 

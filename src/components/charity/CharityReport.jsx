@@ -7,6 +7,7 @@
 //   (components/viz — saytın qrafik nümunələri), Ramazan payı (utils/ramadanRange — Ümmül-Qura).
 // • "Məbləğləri gizlət" — yalnız say (ekranda, PNG kartda və CSV-də; alıcılar da gizlənir).
 // • İxrac: PNG kart (utils/statCard — yalnız həndəsə) və CSV xülasə (Excel üçün BOM).
+//   Yalnız YÜKLƏMƏ — "paylaş" yoxdur (sahibin qərarı, 2026-11-18: sədəqəni gizlətmək sünnədir).
 // • Valyuta saxlanmır — məbləğ qeyd olunduğu kimi cəmlənir.
 // ═══════════════════════════════════════════════════════
 import { useEffect, useId, useMemo, useState } from 'react'
@@ -17,7 +18,7 @@ import { pickUi } from '../../utils/uiText'
 import { G_MONTHS, G_MONTHS_SHORT } from '../../utils/hijri'
 import { cleanEntries, reportYears, yearlyReport, reportCsv } from '../../utils/charityReport'
 import { ramadanRangesInYear } from '../../utils/ramadanRange'
-import { canShareFile, preopenWindow, saveBlob } from '../../utils/quoteCard'
+import { preopenWindow, saveBlob } from '../../utils/quoteCard'
 import '../../styles/CharityReport.css'
 
 const T = {
@@ -27,7 +28,7 @@ const T = {
     kDeeds: 'Əməllər', kAmount: 'Məbləğ', kDays: 'Xeyirli günlər', kRamadan: 'Ramazan payı', ramSub: (n) => `${n} əməl Ramazanda`, hidden: 'gizlədilib',
     months: 'Aylar üzrə', monthsCount: 'hər ayda qeyd olunan əməllər', monthsAmount: 'hər ayın məbləği', metric: 'Göstərici', mCount: 'Say', mAmount: 'Məbləğ',
     byType: 'Növlər üzrə', typesSub: 'ilin əməlləri növlərə görə', to: 'Kimə / hara', toSub: 'ən çox qeyd olunan ünvanlar', best: (m) => `Ən fəal ay: ${m}`, bestM: 'Ən fəal ay',
-    png: 'PNG kart', csv: 'CSV yüklə', saved: 'Fayl hazırdır.',
+    png: 'PNG kart', csv: 'CSV yüklə', saved: 'Fayl hazırdır.', privateNote: 'İbadətiniz sizinlə Allah arasındadır — bu şəkil yalnız sizin üçündür.',
     empty: 'Hələ qeyd yoxdur — ilk xeyir əməlinizi əlavə edin, hesabat burada görünəcək.',
     noCur: 'Məbləğlər valyutasızdır — qeyd etdiyiniz kimi cəmlənir.', ramNote: 'Ramazan günləri Ümmül-Qura təqviminə görədir; yerli elan bir gün fərqlənə bilər.',
     cardTitle: (y) => `${y} — sədəqə hesabatım`, cardSub: 'xeyir əməllərim', more: 'Sədəqə gündəliyinə keç',
@@ -40,7 +41,7 @@ const T = {
     kDeeds: 'Deeds', kAmount: 'Amount', kDays: 'Days with a deed', kRamadan: 'Ramadan share', ramSub: (n) => `${n} deeds in Ramadan`, hidden: 'hidden',
     months: 'By month', monthsCount: 'deeds logged in each month', monthsAmount: 'amount in each month', metric: 'Metric', mCount: 'Count', mAmount: 'Amount',
     byType: 'By type', typesSub: 'the year’s deeds by type', to: 'To whom / where', toSub: 'the most frequent recipients', best: (m) => `Most active month: ${m}`, bestM: 'Most active month',
-    png: 'PNG card', csv: 'Download CSV', saved: 'Your file is ready.',
+    png: 'PNG card', csv: 'Download CSV', saved: 'Your file is ready.', privateNote: 'Your worship is between you and Allah — this image is for you.',
     empty: 'Nothing logged yet — add your first good deed and the report will appear here.',
     noCur: 'Amounts have no currency — they are added up as you logged them.', ramNote: 'Ramadan days follow the Umm al-Qura calendar; the local announcement may differ by a day.',
     cardTitle: (y) => `${y} — my charity report`, cardSub: 'my good deeds', more: 'Open the charity log',
@@ -53,7 +54,7 @@ const T = {
     kDeeds: 'Дела', kAmount: 'Сумма', kDays: 'Дни с делами', kRamadan: 'Доля Рамадана', ramSub: (n) => `дел в Рамадан: ${n}`, hidden: 'скрыто',
     months: 'По месяцам', monthsCount: 'дела, записанные в каждом месяце', monthsAmount: 'сумма за каждый месяц', metric: 'Показатель', mCount: 'Количество', mAmount: 'Сумма',
     byType: 'По видам', typesSub: 'дела года по видам', to: 'Кому / куда', toSub: 'самые частые получатели', best: (m) => `Самый активный месяц: ${m}`, bestM: 'Самый активный месяц',
-    png: 'Карточка PNG', csv: 'Скачать CSV', saved: 'Файл готов.',
+    png: 'Карточка PNG', csv: 'Скачать CSV', saved: 'Файл готов.', privateNote: 'Ваше поклонение — между вами и Аллахом. Это изображение только для вас.',
     empty: 'Записей пока нет — добавьте первое доброе дело, и здесь появится отчёт.',
     noCur: 'Суммы без валюты — складываются так, как вы их записали.', ramNote: 'Дни Рамадана — по календарю Умм аль-Кура; местное объявление может отличаться на день.',
     cardTitle: (y) => `${y} — мой отчёт о садаке`, cardSub: 'мои добрые дела', more: 'Открыть дневник садаки',
@@ -66,7 +67,7 @@ const T = {
     kDeeds: 'الأعمال', kAmount: 'المبلغ', kDays: 'أيام فيها عمل', kRamadan: 'نصيب رمضان', ramSub: (n) => `${n} أعمال في رمضان`, hidden: 'مخفي',
     months: 'حسب الشهر', monthsCount: 'الأعمال المسجلة في كل شهر', monthsAmount: 'مبلغ كل شهر', metric: 'المؤشر', mCount: 'العدد', mAmount: 'المبلغ',
     byType: 'حسب النوع', typesSub: 'أعمال السنة حسب النوع', to: 'لمن / إلى أين', toSub: 'أكثر الجهات تكرارًا', best: (m) => `أنشط شهر: ${m}`, bestM: 'أنشط شهر',
-    png: 'بطاقة PNG', csv: 'نزّل CSV', saved: 'الملف جاهز.',
+    png: 'بطاقة PNG', csv: 'نزّل CSV', saved: 'الملف جاهز.', privateNote: 'عبادتك بينك وبين الله — هذه الصورة لك وحدك.',
     empty: 'لا سجلات بعد — أضف أول عمل خير وسيظهر التقرير هنا.',
     noCur: 'المبالغ بلا عملة — تُجمع كما سجّلتها.', ramNote: 'أيام رمضان بحسب تقويم أم القرى، وقد يختلف الإعلان المحلي بيوم.',
     cardTitle: (y) => `${y} — تقرير صدقتي`, cardSub: 'أعمالي في الخير', more: 'افتح سجل الصدقة',
@@ -79,7 +80,7 @@ const T = {
     kDeeds: 'Hayır işleri', kAmount: 'Tutar', kDays: 'Hayırlı günler', kRamadan: 'Ramazan payı', ramSub: (n) => `Ramazan’da ${n} hayır işi`, hidden: 'gizli',
     months: 'Aylara göre', monthsCount: 'her ay kaydedilen hayır işleri', monthsAmount: 'her ayın tutarı', metric: 'Gösterge', mCount: 'Sayı', mAmount: 'Tutar',
     byType: 'Türlere göre', typesSub: 'yılın hayır işleri türlerine göre', to: 'Kime / nereye', toSub: 'en sık kaydedilen alıcılar', best: (m) => `En hareketli ay: ${m}`, bestM: 'En hareketli ay',
-    png: 'PNG kart', csv: 'CSV indir', saved: 'Dosyanız hazır.',
+    png: 'PNG kart', csv: 'CSV indir', saved: 'Dosyanız hazır.', privateNote: 'İbadetiniz sizinle Allah arasındadır — bu görsel yalnızca sizin için.',
     empty: 'Henüz kayıt yok — ilk hayır işinizi ekleyin, rapor burada görünecek.',
     noCur: 'Tutarlar para birimsizdir — kaydettiğiniz gibi toplanır.', ramNote: 'Ramazan günleri Ümmü’l-Kurâ takvimine göredir; yerel ilan bir gün farklı olabilir.',
     cardTitle: (y) => `${y} — sadaka raporum`, cardSub: 'hayır işlerim', more: 'Sadaka günlüğünü aç',
@@ -133,12 +134,7 @@ export default function CharityReport({ lang = 'az', entries = null, compact = f
       ]
       const blob = await statCardBlob({ eyebrow: t.title, title: t.cardTitle(rep.year), sub: t.cardSub, stats, rtl: lang === 'ar', tone: 'emerald', foot: hide ? '' : t.noCur })
       if (!blob) return
-      const name = `charity-report-${rep.year}.png`
-      const file = typeof File === 'function' ? new File([blob], name, { type: 'image/png' }) : null
-      if (file && canShareFile(file)) {
-        try { await navigator.share({ files: [file], title: t.cardTitle(rep.year) }) } catch { /* imtina */ }
-        win?.close?.()
-      } else saveBlob(blob, name, win)
+      saveBlob(blob, `charity-report-${rep.year}.png`, win)
       setStatus(t.saved)
     } finally { setBusy(false) }
   }
@@ -218,6 +214,7 @@ export default function CharityReport({ lang = 'az', entries = null, compact = f
             </button>
             <span className="cr__status" role="status">{status}</span>
           </div>
+          <p className="cr__note" data-testid="cr-private-note"><Icon name="lock" size={14} /> {t.privateNote}</p>
           {!compact && <p className="cr__note">{hide ? t.ramNote : `${t.noCur} ${t.ramNote}`}</p>}
         </>
       )}

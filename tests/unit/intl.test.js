@@ -8,7 +8,7 @@ import {
 } from '../../src/seo/routes.js'
 import { INTL_QURAN, INTL_BODY_UI, localDigits } from '../../src/seo/intl.js'
 import { INTL_QURAN_LIST, INTL_QURAN_SECTION } from '../../src/seo/intlMeta.js'
-import { detailMeta, titleForDetail, detailJsonLd, crumbsFor, surahInfo, BODY_UI } from '../../src/seo/detail.js'
+import { detailMeta, titleForDetail, detailJsonLd, crumbsFor, surahInfo, BODY_UI } from '../../src/seo/detailData.js'
 import { titleFor, descFor, ogImageFor } from '../../src/seo/meta.js'
 import { brandName } from '../../src/config/brand.js'
 import { stripTranslationNotes } from '../../src/utils/quranText.js'

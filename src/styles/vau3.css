@@ -289,6 +289,8 @@ html.a11y-reduce-motion .vx-marquee__row[aria-hidden="true"] { display: none; }
   text-wrap: pretty;
 }
 .vx-cta__btns { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
+/* Telefonda iki düymə eyni endə, yan-yana (biri digərindən dar görünmürdü) */
+@media (max-width: 480px) { .vx-cta__btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; } .vx-cta__btns > .ui-btn { min-width: 0; justify-content: center; padding-inline: 12px; } }
 .vx-cta__trust {
   display: flex;
   flex-wrap: wrap;
@@ -394,12 +396,15 @@ body:has(.hp-root) .vx-ft-band-wrap { display: none; }
   line-height: .78;
   user-select: none;
   pointer-events: none;
+  /* Şrift ölçüsü konteynerə görə (cqi) — vw yan paneli də sayırdı, söz sağdan kəsilirdi */
+  container-type: inline-size;
 }
 .vx-wordmark__fill {
   display: block;
   font-family: var(--font-heading);
   font-weight: 700;
   font-size: clamp(56px, 15.5vw, 210px);
+  font-size: clamp(56px, 15.5cqi, 210px);
   letter-spacing: -.055em;
   text-align: center;
   white-space: nowrap;
@@ -679,7 +684,9 @@ html.a11y-reduce-motion .ui-icon-tile { transition: none; }
 .hdr-ring__ic { position: absolute; inset-inline-start: 2px; top: 50%; width: 32px; display: grid; place-items: center; translate: 0 -50%; }
 .hdr-ring__txt { display: none; font-size: var(--step--1); color: var(--text-secondary); white-space: nowrap; font-variant-numeric: tabular-nums; padding-inline-end: 8px; }
 .hdr-ring__txt b { color: var(--text-strong); font-weight: 600; margin-inline-end: 4px; }
-@media (min-width: 1280px) { .hdr-ring__txt { display: inline; } }
+/* Mətn yalnız ≥1440px: 1024–1439px aralığında "?" düyməsi ilə birlikdə orta menyuya dəyirdi —
+   orada yalnız halqa qalır (ad və qalan vaxt title/aria-label-dadır) */
+@media (min-width: 1440px) { .hdr-ring__txt { display: inline; } }
 /* Azana az qalıb: qızılı halqa + yumşaq nəfəs alan işıq (transform/opacity) */
 .hdr-ring.is-soon .hdr-ring__bar { stroke: var(--accent); }
 .hdr-ring.is-soon { color: var(--accent-text); }

@@ -113,7 +113,9 @@ function createMosqueRepRouter({ db, requireUser, requireEditor = null, now = ()
       updated_by = excluded.updated_by, version = mosque_info.version + 1, updated_at = excluded.updated_at`),
     touch: p(`INSERT INTO mosque_info (mosque_id, updated_by, version, updated_at) VALUES (?, ?, 1, ?)
       ON CONFLICT(mosque_id) DO UPDATE SET version = mosque_info.version + 1, updated_at = excluded.updated_at`),
-    active: p('SELECT id, body, expires_on, created_at FROM mosque_announcements WHERE mosque_id = ? AND expires_on >= ? ORDER BY created_at DESC LIMIT ?'),
+    // İctimai: yalnız bloklanmamış (disabled = 0) müəlliflərin elanları
+    active: p(`SELECT id, body, expires_on, created_at FROM mosque_announcements WHERE mosque_id = ? AND expires_on >= ?
+      AND author_id IN (SELECT id FROM users WHERE disabled = 0) ORDER BY created_at DESC LIMIT ?`),
     all: p('SELECT id, body, expires_on, created_at FROM mosque_announcements WHERE mosque_id = ? ORDER BY created_at DESC LIMIT 50'),
     activeCount: p('SELECT COUNT(*) AS n FROM mosque_announcements WHERE mosque_id = ? AND expires_on >= ?'),
     todayBy: p('SELECT COUNT(*) AS n FROM mosque_announcements WHERE author_id = ? AND created_at > ?'),
@@ -212,7 +214,8 @@ function createMosqueRepRouter({ db, requireUser, requireEditor = null, now = ()
   router.get('/mosques/:id/live', (req, res) => {
     const l = live(req.params.id)
     if (!l) { res.set('Cache-Control', 'public, max-age=60'); return err(res, 404, 'not_found', 'Not found') }
-    const etag = `W/"m${l.r.version}-${today()}"`
+    // Elan siyahısı da daxildir: müəllif bloklananda versiya dəyişmir, amma elanlar yox olur
+    const etag = `W/"m${l.r.version}-${today()}-${l.anns.map((a) => a.id).join('.')}"`
     res.set({ ETag: etag, 'Cache-Control': 'no-cache' })
     if (String(req.headers['if-none-match'] || '').split(/\s*,\s*/).includes(etag)) return res.status(304).end()
     res.json({ mosqueId: req.params.id, verified: true, ...infoOut(l.r), announcements: l.anns.map(annOut) })

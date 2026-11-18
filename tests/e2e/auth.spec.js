@@ -88,7 +88,7 @@ test.describe('qeydiyyat', () => {
     await page.getByLabel('Şifrə', { exact: true }).fill('qisa')
     await expect(page.getByText(/Şifrənin gücü: Çox qısa/)).toBeVisible()
     await page.getByRole('button', { name: 'Hesab yarat' }).click()
-    await expect(page.getByRole('alert')).toContainText('Şifrə zəifdir')
+    await expect(page.getByRole('alert').filter({ hasText: 'Şifrə zəifdir' })).toBeVisible()
     expect(state.requests).not.toContain('POST /api/auth/register')
 
     await page.getByLabel('Şifrə', { exact: true }).fill('Bakı-Şəki 2026 yol!')
@@ -129,7 +129,7 @@ test.describe('giriş', () => {
     await page.getByLabel('E-poçt').fill(USER_EMAIL)
     await page.getByLabel('Şifrə', { exact: true }).fill('yanlış-şifrə')
     await page.getByRole('button', { name: 'Daxil ol', exact: true }).click()
-    await expect(page.getByRole('alert')).toContainText('E-poçt və ya şifrə yanlışdır')
+    await expect(page.getByRole('alert').filter({ hasText: 'E-poçt və ya şifrə yanlışdır' })).toBeVisible()
     await expect(page.getByLabel('Şifrə', { exact: true })).toHaveAttribute('aria-invalid', 'true')
     await expect(page).toHaveURL(/\/login\?next=/)
 
@@ -157,7 +157,7 @@ test.describe('giriş', () => {
     const state = await fakeUserSession(page, { google: 'conflict' })
     await page.goto('/login')
     await page.locator('[data-gis-stub="signin_with"]').click()
-    await expect(page.getByRole('alert')).toContainText('e-poçt hələ təsdiqlənməyib')
+    await expect(page.getByRole('alert').filter({ hasText: 'e-poçt hələ təsdiqlənməyib' })).toBeVisible()
     expect(state.bodies['POST /api/auth/google']).toEqual({ credential: 'test-google-credential', lang: 'az' })
     await expect(page).toHaveURL(/\/login$/)
     expectCleanConsole(consoleProblems)
@@ -219,7 +219,7 @@ test.describe('hesab səhifəsi', () => {
     await page.getByRole('button', { name: 'Hesabı sil' }).click()
     await page.getByLabel('Təsdiq üçün şifrənizi yazın').fill('yanlış')
     await page.getByRole('button', { name: 'Birdəfəlik sil' }).click()
-    await expect(page.getByRole('alert')).toContainText('Cari şifrə yanlışdır')
+    await expect(page.getByRole('alert').filter({ hasText: 'Cari şifrə yanlışdır' })).toBeVisible()
     await page.getByLabel('Təsdiq üçün şifrənizi yazın').fill(USER_PASSWORD)
     await page.getByRole('button', { name: 'Birdəfəlik sil' }).click()
     await expect(page).toHaveURL(/\/$/)
@@ -248,7 +248,7 @@ test.describe('e-poçt keçidləri', () => {
     await page.goto(`/account/reset#token=${'X'.repeat(43)}`)
     await page.getByLabel('Yeni şifrə', { exact: true }).fill('Yeni-uzun-şifrə 77')
     await page.getByRole('button', { name: 'Şifrəni yadda saxla' }).click()
-    await expect(page.getByRole('alert')).toContainText('Keçid etibarsızdır')
+    await expect(page.getByRole('alert').filter({ hasText: 'Keçid etibarsızdır' })).toBeVisible()
     await page.getByRole('link', { name: 'Yeni keçid istə' }).click()
     await expect(page.getByRole('heading', { level: 1, name: 'Şifrəni bərpa edin' })).toBeVisible()
   })
@@ -361,6 +361,8 @@ async function fakeAdminUsers(page, role) {
 }
 
 async function openUsersTab(page) {
+  // Panel çəkilənə qədər gözlə — yoxsa mobildə menyu düyməsi hələ yoxdur, isVisible() false qaytarır və menyu açılmır
+  await expect(page.getByRole('heading', { level: 1, name: 'İdarə paneli' })).toBeVisible()
   const toggle = page.locator('.admin-menu-toggle')
   if (await toggle.isVisible()) await toggle.click()
   await page.getByRole('button', { name: 'İstifadəçilər' }).click()
@@ -386,7 +388,7 @@ test.describe('admin paneli: istifadəçilər', () => {
     await select.selectOption('mosque_rep')
     await row.getByLabel('Məscidin ID-si').fill('Bakı məscidi')
     await row.getByRole('button', { name: 'Rolu saxla' }).click()
-    await expect(page.getByRole('alert')).toContainText('Məscidin ID-si')
+    await expect(page.getByRole('alert').filter({ hasText: 'Məscidin ID-si' })).toBeVisible()
     expect(state.bodies).toEqual([])
     await row.getByLabel('Məscidin ID-si').fill('baku-taza-pir')
     await row.getByRole('button', { name: 'Rolu saxla' }).click()
@@ -414,7 +416,33 @@ test.describe('admin paneli: istifadəçilər', () => {
     const race = page.locator('[data-testid="admin-user"][data-email="race@example.com"]')
     await race.getByTestId('role-select').selectOption('user')
     await race.getByRole('button', { name: 'Rolu saxla' }).click()
-    await expect(page.getByRole('alert')).toContainText('yalnız baş admin edə bilər')
+    await expect(page.getByRole('alert').filter({ hasText: 'yalnız baş admin edə bilər' })).toBeVisible()
+  })
+
+  test('blokla / bloku aç: POST /disable gövdəsi, nişan; superadmin sətrində düymə yoxdur', async ({ page, consoleProblems }) => {
+    const state = await fakeAdminUsers(page, 'superadmin')
+    await page.goto('/admin')
+    await adminSignIn(page)
+    await openUsersTab(page)
+    const row = page.locator('[data-testid="admin-user"][data-email="zeyneb@example.com"]')
+    await expect(row).not.toContainText('Bloklanıb')
+    await row.getByRole('button', { name: 'Blokla' }).click()
+    await expect(row).toContainText('Bloklanıb')
+    expect(state.bodies).toEqual([{ path: '/api/admin/users/1/disable', body: { disabled: true } }])
+    expect(state.users.find(u => u.id === 1).disabled).toBe(true)
+
+    await row.getByRole('button', { name: 'Bloku aç' }).click()
+    await expect(row).not.toContainText('Bloklanıb')
+    await expect(row.getByRole('button', { name: 'Blokla' })).toBeVisible()
+    expect(state.bodies[1]).toEqual({ path: '/api/admin/users/1/disable', body: { disabled: false } })
+
+    // Superadmin hesabı yalnız CLI ilə dəyişir — nə rol, nə blok düyməsi
+    const boss = page.locator('[data-testid="admin-user"][data-email="boss@example.com"]')
+    await expect(boss).toContainText('dəyişmək olmaz')
+    await expect(boss.getByRole('button', { name: /Blokla|Bloku aç/ })).toHaveCount(0)
+    expect(state.bodies).toHaveLength(2)
+    // Panelin digər bölmələri (statistika, bildirişlər) testdə saxtalaşdırılmayıb — onların 401/404-ü bu testə aid deyil
+    expect(consoleProblems.filter(x => !/Failed to load resource/.test(x))).toEqual([])
   })
 
   test('editor: "İstifadəçilər" bölməsi görünmür', async ({ page }) => {

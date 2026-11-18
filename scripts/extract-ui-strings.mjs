@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 // ═══════════════════════════════════════════════════════
 // Əlavə dillərin lüğəti üçün ingiliscə interfeys yazılarını topla
 //   node scripts/extract-ui-strings.mjs            → src/i18n/_source.json
@@ -12,6 +11,15 @@
 //
 // Atılanlar: identifikatora oxşayan dəyərlər ('fajr', 'ltr', URL, rəng),
 // ${} ifadəli şablonlar (onlar lüğətlə tərcümə olunmur), boş sətirlər.
+// txt('…') çağırışlarının arqumenti də toplanır (5 dilli obyektdən kənar en budaqları).
+//
+// SAY İFADƏLƏRİ (TEAM.md): `${n} ${n === 1 ? 'day' : 'days'}` QADAĞANDIR — isim ayrıca söz
+// kimi heç vaxt tərcümə olunmur (isUiText kiçik hərfli tək sözü atır), 44 dildə ingiliscə qalır.
+// Düzgünü — bütöv ifadə: n === 1 ? '1 day' : `${n} days` ("1 day" və "{0} days" açarları).
+// findPluralTernaries() bu nümunəni tapır; check-lang.mjs (npm run check) onu xəta sayır.
+//
+// --missing <dil>: KEEP_ENGLISH (scripts/i18n-keep-english.json — qəsdən ingiliscə qalan
+// ayə/hədis mətnləri, sahibin qərarı D4) çıxılır; hamısı lazımdırsa — --with-baseline.
 // ═══════════════════════════════════════════════════════
 import fs from 'node:fs'
 import path from 'node:path'
@@ -27,7 +35,9 @@ const FILES = ['src/App.jsx', 'src/data/navigation.js', 'src/seo/meta.js', 'src/
   // v6.5: yalnız heyvan adları (dini mətn yoxdur — ayələr public/data/quran-animals-dəndir)
   'src/data/quranAnimals.js',
   // v6.6: elm adamlarının adları, sahələri və ensiklopedik faktları (dini mətn deyil)
-  'src/data/islamicScientists.js']
+  'src/data/islamicScientists.js',
+  // B2: "1 verse" / "{0} verses" — ayahCountText-in en ifadəsi (txt() ilə tərcümə olunur)
+  'src/utils/quranText.js']
 const CORE = new Set(['az', 'en', 'ru', 'ar', 'tr'])
 
 function walkDir(d, out) {
@@ -74,6 +84,10 @@ function collectStrings(node, out) {
 
 function visit(node, out) {
   if (!node || typeof node !== 'object') return
+  // txt('1 fact') / txt(n === 1 ? '1 fact' : `${n} facts`) — 5 dilli obyektdən kənar en ifadəsi
+  if (node.type === 'CallExpression' && node.callee.type === 'Identifier' && node.callee.name === 'txt' && node.arguments[0]) {
+    collectStrings(node.arguments[0], out)
+  }
   if (node.type === 'ObjectExpression') {
     const props = node.properties.filter(p => p.type === 'Property')
     const names = props.map(keyName)
@@ -92,9 +106,70 @@ function visit(node, out) {
   }
 }
 
-export function extractUiStrings() {
+// ── Say ifadəsi yoxlaması: `${n} ${n === 1 ? 'day' : 'days'}` ──
+// 5 dilli obyektin en dəyərində (və txt(...) arqumentində) şablonun içində saya görə
+// isim seçən ternar: test "x === 1" / "x !== 1" / "x > 1" …, hər iki budaq hərfli sətir.
+const isCountTest = (t) => t && t.type === 'BinaryExpression' && ['===', '==', '!==', '!=', '>', '<', '>=', '<='].includes(t.operator) &&
+  [t.left, t.right].some(x => x.type === 'Literal' && typeof x.value === 'number' && x.value <= 2)
+const wordLit = (n) => n && n.type === 'Literal' && typeof n.value === 'string' && /\p{L}/u.test(n.value)
+
+function walkAst(node, fn) {
+  if (!node || typeof node !== 'object') return
+  fn(node)
+  for (const k of Object.keys(node)) {
+    if (k === 'parent' || k === 'loc' || k === 'range') continue
+    const v = node[k]
+    if (Array.isArray(v)) v.forEach(x => walkAst(x, fn))
+    else if (v && typeof v.type === 'string') walkAst(v, fn)
+  }
+}
+
+/** Mənbə kodunda qadağan say nümunələri → [{ line, sample }] */
+export function pluralTernariesIn(src) {
+  const ast = espree.parse(src, { ecmaVersion: 'latest', sourceType: 'module', ecmaFeatures: { jsx: true }, loc: true })
+  const hits = []
+  const lines = src.split('\n')
+  const scan = (root) => walkAst(root, (n) => {
+    if (n.type !== 'TemplateLiteral') return
+    for (const x of n.expressions) {
+      if (x.type === 'ConditionalExpression' && isCountTest(x.test) && wordLit(x.consequent) && wordLit(x.alternate)) {
+        hits.push({ line: x.loc.start.line, sample: lines[x.loc.start.line - 1].trim().slice(0, 140) })
+      }
+    }
+  })
+  walkAst(ast, (n) => {
+    if (n.type === 'CallExpression' && n.callee.type === 'Identifier' && n.callee.name === 'txt' && n.arguments[0]) scan(n.arguments[0])
+    if (n.type !== 'ObjectExpression') return
+    const props = n.properties.filter(p => p.type === 'Property')
+    const names = props.map(keyName)
+    if (names.includes('en') && names.filter(k => CORE.has(k)).length >= 2) scan(props.find(p => keyName(p) === 'en').value)
+  })
+  return hits
+}
+
+/** Bütün interfeys fayllarında → [{ file, line, sample }] */
+export function findPluralTernaries() {
+  const out = new Map()
+  for (const f of uiFiles()) {
+    for (const h of pluralTernariesIn(fs.readFileSync(path.join(ROOT, f), 'utf8'))) out.set(`${f}:${h.line}`, { file: f, ...h })
+  }
+  return [...out.values()]
+}
+
+/** Qəsdən tərcümə olunmayan (ayə/hədis/dua) ingiliscə yazılar — sahibin qərarı (D4) */
+export function keepEnglish() {
+  const f = path.join(ROOT, 'scripts', 'i18n-keep-english.json')
+  return fs.existsSync(f) ? JSON.parse(fs.readFileSync(f, 'utf8')) : []
+}
+
+function uiFiles() {
   const files = [...FILES]
   for (const d of DIRS) walkDir(d, files)
+  return files
+}
+
+export function extractUiStrings() {
+  const files = uiFiles()
   const all = new Set()
   for (const f of files) {
     const src = fs.readFileSync(path.join(ROOT, f), 'utf8')
@@ -122,9 +197,12 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.a
     const lang = process.argv[mi + 1]
     const file = path.join(ROOT, 'src', 'i18n', `${lang}.json`)
     const have = fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8')) : {}
-    const miss = list.filter(s => !(s in have))
+    const keep = process.argv.includes('--with-baseline') ? new Set() : new Set(keepEnglish())
+    const missAll = list.filter(s => !(s in have))
+    const miss = missAll.filter(s => !keep.has(s))
     process.stdout.write(JSON.stringify(miss, null, 1) + '\n')
-    console.error(`${lang}: ${list.length - miss.length}/${list.length} var, ${miss.length} əskik`)
+    console.error(`${lang}: ${list.length - missAll.length}/${list.length} var, ${miss.length} əskik` +
+      (missAll.length > miss.length ? ` (+${missAll.length - miss.length} qəsdən ingiliscə — i18n-keep-english.json)` : ''))
   } else {
     fs.writeFileSync(path.join(ROOT, 'src', 'i18n', '_source.json'), JSON.stringify(list, null, 1) + '\n')
     let chars = 0

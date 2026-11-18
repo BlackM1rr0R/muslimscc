@@ -113,7 +113,8 @@
   display: flex; flex-direction: column; gap: 2px;
   min-width: 0;
 }
-.ft-col h4 {
+/* h2 (əvvəl h4 idi — h3-süz h4: Lighthouse heading-order, bütün səhifələrdə) */
+.ft-col h2 {
   position: relative;
   /* v3.1: kiçik adi hərfli Inter etiketi (böyük hərf/geniş tracking yoxdur) */
   font-family: var(--font-label);
@@ -123,7 +124,7 @@
   margin-bottom: 8px;
 }
 /* Ərəb yazısında böyük hərf və hərf aralığı yoxdur */
-[dir="rtl"] .ft-col h4 { font-size: 13.5px; }
+[dir="rtl"] .ft-col h2 { font-size: 13.5px; }
 
 .ft-col a,
 .ft-col .ft-contact-line {

@@ -224,6 +224,13 @@ describe('saf köməkçilər', () => {
     expect(safeNext('https://evil.com', '/x')).toBe('/x')
     expect(safeNext('javascript:alert(1)', '/x')).toBe('/x')
     expect(safeNext(null, '/x')).toBe('/x')
+    // idarə simvolları və tərs xətt HARADA olursa olsun (brauzer tab-ı atır: "/\t/evil.com" → "//evil.com")
+    expect(safeNext('/\t/evil.com', '/x')).toBe('/x')
+    expect(safeNext(decodeURIComponent('/%09/evil.com'), '/x')).toBe('/x')
+    expect(safeNext('/a\\evil', '/x')).toBe('/x')
+    expect(safeNext('/ok\u0000', '/x')).toBe('/x')
+    expect(safeNext('/x\ny', '/x')).toBe('/x')
+    expect(safeNext('/ar/account#security', '/x')).toBe('/ar/account#security')
   })
 
   it('təklif olunan rollar: superadmin heç vaxt, admin yalnız superadmin-ə', () => {

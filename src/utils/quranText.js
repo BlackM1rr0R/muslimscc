@@ -3,6 +3,7 @@
 // SEO səhifələri (scripts/prerender.mjs → /quran/<n>-<slug>) eyni qaydanı
 // işlətsin. Mətnin özü dəyişdirilmir.
 // ═══════════════════════════════════════════════════════
+import { txt } from './uiText.js'
 
 // ── Bəsmələnin təkrarlanmaması ──
 // API (ar.alafasy / quran-uthmani) Fatihə və Tövbədən başqa 112 surədə 1-ci
@@ -42,12 +43,13 @@ export function displayAyah(text, surah, index) {
 // Formalar Intl.PluralRules kateqoriyalarına görədir (ar few = 3–10).
 export const AYAH_WORDS = {
   az: 'ayə',
-  en: { one: 'verse', few: 'verses', many: 'verses', other: 'verses' },
+  // en — say ilə bütöv ifadə: əlavə dillərdə lüğətlə tərcümə olunur ("1 verse" / "{0} verses")
+  en: (n) => (n === 1 ? '1 verse' : `${n} verses`),
   ru: { one: 'аят', few: 'аята', many: 'аятов', other: 'аята' },
   ar: { one: 'آية', few: 'آيات', many: 'آية', other: 'آية' },
   tr: 'ayet',
 }
-/** Rəqəmə uyğun söz: forms[lang] sətirdirsə həmişə odur, obyektdirsə — cəm kateqoriyası. */
+/** Rəqəmə uyğun söz: forms[lang] sətirdirsə həmişə odur, obyektdirsə — cəm kateqoriyası (funksiya — countText). */
 export function pluralWord(n, lang, forms = AYAH_WORDS) {
   const f = forms[lang] ?? forms.en
   if (typeof f === 'string') return f
@@ -55,8 +57,17 @@ export function pluralWord(n, lang, forms = AYAH_WORDS) {
   try { cat = new Intl.PluralRules(lang).select(Number(n) || 0) } catch { /* köhnə brauzer */ }
   return f[cat] ?? f.other
 }
-/** "286 ayə", "123 аята", "7 آيات" */
-export const ayahCountText = (n, lang, forms = AYAH_WORDS) => `${n} ${pluralWord(n, lang, forms)}`
+/**
+ * Say + söz: "286 ayə", "123 аята", "7 آيات". forms[lang] funksiyadırsa (en) — bütöv ifadə
+ * txt() ilə: əlavə dildə isim ingiliscə qalmır (açarlar "1 verse" / "{0} verses";
+ * scripts/extract-ui-strings.mjs bu faylı da oxuyur).
+ */
+export function countText(n, lang, forms = AYAH_WORDS) {
+  const f = forms[lang] ?? forms.en
+  if (typeof f === 'function') return txt(f(n))
+  return `${n} ${pluralWord(n, lang, forms)}`
+}
+export const ayahCountText = (n, lang, forms = AYAH_WORDS) => countText(n, lang, forms)
 
 /**
  * Tərcümə nəşrinin ayə mətnindəki [[…]] lüğət qeydlərini ayır (fars —

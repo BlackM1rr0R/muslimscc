@@ -15,7 +15,7 @@ import { setGlossarySource } from '../../src/seo/glossarySource.js'
 import { SURAH_META } from '../../src/seo/surahMeta.js'
 import { NAMES_99 } from '../../src/data/names99.js'
 import { SAHABA, slugOf } from '../../src/data/sahaba.js'
-import { detailMeta, titleForDetail, detailJsonLd, TITLE_MAX } from '../../src/seo/detail.js'
+import { detailMeta, titleForDetail, detailJsonLd, TITLE_MAX } from '../../src/seo/detailData.js'
 import { displayAyah, hasSeparateBasmala } from '../../src/utils/quranText.js'
 
 // detail.js lüğəti glossarySource.js-dən oxuyur (prerender kimi)

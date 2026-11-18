@@ -8,8 +8,14 @@
 //   sistemlərinə icazə ver" seçə bilər (allowIndex).
 // • Ləqəb (handle): [a-z0-9_]{3,24}, unikal, ehtiyat sözlər bağlıdır. Profil silinəndə ləqəb boşalır.
 // • Mətnlər (ad, künyə, bio ≤160) düz mətndir; keçidlər SİLİNİR (communityKit.stripLinks).
-// • Şikayət (girişli): profil moderasiya növbəsinə düşür (admin paneli, editor+): "rədd et" / "gizlət"
-//   (gizlədəndə profil bağlanır və mətn sahələri silinir; istifadəçi moderatedAt görür).
+// • Şikayət (girişli, TƏSDİQLİ e-poçt): profil moderasiya növbəsinə düşür (admin paneli, editor+): "rədd et" /
+//   "gizlət" (gizlədəndə profil bağlanır və mətn sahələri silinir; istifadəçi moderatedAt görür). Gizlədilmiş
+//   profili sahib YENİDƏN AÇA BİLMİR (409 moderated) — profili silib təzədən yaratsa belə (public_profile_blocks:
+//   yalnız "moderasiya olunub" vaxtı, mətn yox). Yalnız editor "unhide" ilə qaldırır.
+// • Açıq profili açmaq (enabled:true) və şikayət — təsdiqlənmiş e-poçt (403 verify_email).
+// • İbadət sayları göstərilmir (sahibin qərarı, 2026-11-18): xətm sayları və ibadət möhürləri (Fəcr 40,
+//   zikr 1000, Kəhf …) nə yazılır, nə də köhnə sətirlərdən oxunur — yalnız ad, künyə, bio, sevimli surə və
+//   ÖYRƏNMƏ möhürləri. Köhnə klientin göndərdiyi bu sahələr səssizcə atılır (400 yox).
 //
 // Cədvəllər MİQRASİYASIZ (CREATE TABLE IF NOT EXISTS, user_version artmır); users(id) ON DELETE CASCADE.
 //
@@ -21,7 +27,8 @@
 //   GET    /api/u/:handle                   (girişsiz) → { handle, fields, data, allowIndex } | 404
 //   POST   /api/u/:handle/report            (girişli) { reason } → 202
 //   GET    /api/admin/moderation/profiles   (panel, editor+) → { items }
-//   POST   /api/admin/moderation/profiles/:handle { action: 'dismiss'|'hide' } → { ok }
+//   GET    /api/admin/moderation/profiles?status=hidden — gizlədilmiş profillər (unhide üçün)
+//   POST   /api/admin/moderation/profiles/:handle { action: 'dismiss'|'hide'|'unhide' } → { ok }
 // ═══════════════════════════════════════════════════════════════════════
 'use strict'
 
@@ -38,9 +45,13 @@ const RESERVED = new Set([
   'muslims_cc', 'muslim', 'islam', 'allah', 'rasulullah', 'prophet', 'quran', 'hadith', 'imam', 'mosque', 'masjid',
   'dua', 'dua_wall', 'duawall', 'family', 'together', 'khatm', 'ummah', 'news', 'blog', 'static', 'assets', 'cdn',
 ])
-const FIELDS = ['displayName', 'kunya', 'stamps', 'khatms', 'ummahKhatms', 'bio', 'favSurah']
-// src/utils/passport.js → STAMP_IDS ilə eyni siyahı
-const STAMP_IDS = ['khatm', 'fajr_40', 'names_99', 'hijra', 'sahaba', 'arabic', 'hifz_surah', 'dhikr_1000', 'kahf_4', 'ummah_khatm']
+const FIELDS = ['displayName', 'kunya', 'stamps', 'bio', 'favSurah']
+// Köhnə klientlər (keşlənmiş bundle) bunları göndərə bilər — qəbul olunur, amma SAXLANMIR
+const LEGACY_FIELDS = ['khatms', 'ummahKhatms']
+// Yalnız ÖYRƏNMƏ möhürləri (src/utils/passport.js → STAMP_IDS-in alt çoxluğu)
+const STAMP_IDS = ['names_99', 'hijra', 'sahaba', 'arabic', 'hifz_surah']
+// İbadət möhürləri — göstərilmir (riya olmasın); köhnə klientdən gəlsə atılır
+const LEGACY_STAMPS = ['khatm', 'fajr_40', 'dhikr_1000', 'kahf_4', 'ummah_khatm']
 const REPORT_REASONS = ['spam', 'offensive', 'impersonation', 'personal_info', 'other']
 const MAX_BIO = 160
 const MAX_NAME = 60
@@ -69,6 +80,10 @@ CREATE TABLE IF NOT EXISTS public_profile_reports (
   PRIMARY KEY (profile_user_id, reporter_id)
 );
 CREATE INDEX IF NOT EXISTS public_profile_reports_by_reporter ON public_profile_reports(reporter_id, created_at);
+CREATE TABLE IF NOT EXISTS public_profile_blocks (
+  user_id      INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+  moderated_at INTEGER NOT NULL
+);
 `
 
 const parse = (s, fb) => { try { return JSON.parse(s) } catch { return fb } }
@@ -82,9 +97,10 @@ function handleProblem(h) {
 
 /** Gövdə → { fields, data } | { error }. Yalnız seçilmiş sahələr saxlanır; mətnlərdən keçidlər silinir. */
 function validProfile(b) {
-  if (!b || !Array.isArray(b.fields) || b.fields.length > FIELDS.length) return { error: 'bad_request' }
-  const fields = [...new Set(b.fields)]
-  if (fields.some((f) => !FIELDS.includes(f))) return { error: 'bad_request' }
+  if (!b || !Array.isArray(b.fields) || b.fields.length > FIELDS.length + LEGACY_FIELDS.length) return { error: 'bad_request' }
+  const all = [...new Set(b.fields)]
+  if (all.some((f) => !FIELDS.includes(f) && !LEGACY_FIELDS.includes(f))) return { error: 'bad_request' }
+  const fields = all.filter((f) => FIELDS.includes(f))
   const src = b.data && typeof b.data === 'object' && !Array.isArray(b.data) ? b.data : {}
   const data = {}
   const text = (v, max, line = true) => {
@@ -101,17 +117,29 @@ function validProfile(b) {
       if (!t) continue
       data[f] = t
     } else if (f === 'stamps') {
-      if (!Array.isArray(v) || v.length > STAMP_IDS.length || v.some((x) => !STAMP_IDS.includes(x))) return { error: 'bad_request' }
+      const ok = (x) => STAMP_IDS.includes(x) || LEGACY_STAMPS.includes(x)
+      if (!Array.isArray(v) || v.length > STAMP_IDS.length + LEGACY_STAMPS.length || !v.every(ok)) return { error: 'bad_request' }
       data.stamps = STAMP_IDS.filter((x) => v.includes(x))
-    } else if (f === 'khatms' || f === 'ummahKhatms') {
-      if (!Number.isInteger(v) || v < 0 || v > 100000) return { error: 'bad_request' }
-      data[f] = v
     } else if (f === 'favSurah') {
       if (!Number.isInteger(v) || v < 1 || v > 114) return { error: 'bad_request' }
       data.favSurah = v
     }
   }
   return { fields: fields.filter((f) => f in data), data }
+}
+
+/** Saxlanmış sətir → yalnız icazəli sahələr (köhnə sətirlərdəki xətm sayları / ibadət möhürləri OXUNMUR) */
+function cleanStored(fieldsJson, dataJson) {
+  const f0 = parse(fieldsJson, [])
+  const d0 = parse(dataJson, {})
+  const src = d0 && typeof d0 === 'object' && !Array.isArray(d0) ? d0 : {}
+  const data = {}
+  for (const k of ['displayName', 'kunya', 'bio']) if (typeof src[k] === 'string' && src[k]) data[k] = src[k]
+  if (Array.isArray(src.stamps)) data.stamps = STAMP_IDS.filter((x) => src.stamps.includes(x))
+  if (Number.isInteger(src.favSurah) && src.favSurah >= 1 && src.favSurah <= 114) data.favSurah = src.favSurah
+  const fields = (Array.isArray(f0) ? f0 : []).filter((f, i, a) => FIELDS.includes(f) && f in data && a.indexOf(f) === i)
+  for (const k of Object.keys(data)) if (!fields.includes(k)) delete data[k]
+  return { fields, data }
 }
 
 function createPublicProfileStore(db) {
@@ -136,15 +164,24 @@ function createPublicProfileStore(db) {
     clearReports: p('DELETE FROM public_profile_reports WHERE profile_user_id = ?'),
     hide: p("UPDATE public_profiles SET enabled = 0, allow_index = 0, fields = ?, data = ?, moderated_at = ?, updated_at = ? WHERE user_id = ?"),
     purgeReports: p('DELETE FROM public_profile_reports WHERE created_at <= ?'),
+    // Gizlədilmiş: sətirdə moderated_at və ya (silinib təzədən yaradılıbsa) public_profile_blocks
+    hidden: p(`SELECT p.*, COALESCE(p.moderated_at, b.moderated_at) AS mod_at FROM public_profiles p
+      LEFT JOIN public_profile_blocks b ON b.user_id = p.user_id WHERE p.moderated_at IS NOT NULL OR b.user_id IS NOT NULL
+      ORDER BY mod_at DESC LIMIT 100`),
+    unhide: p('UPDATE public_profiles SET moderated_at = NULL, updated_at = ? WHERE user_id = ?'),
+    block: p(`INSERT INTO public_profile_blocks (user_id, moderated_at) VALUES (?, ?)
+      ON CONFLICT(user_id) DO UPDATE SET moderated_at = excluded.moderated_at`),
+    blockOf: p('SELECT moderated_at FROM public_profile_blocks WHERE user_id = ?'),
+    unblock: p('DELETE FROM public_profile_blocks WHERE user_id = ?'),
   }
   return { st, tx }
 }
 
-const profileOut = (r) => (r ? {
-  handle: r.handle, enabled: r.enabled === 1, allowIndex: r.allow_index === 1, fields: parse(r.fields, []), data: parse(r.data, {}),
-  consentAt: r.consent_at, moderatedAt: r.moderated_at || null, updatedAt: r.updated_at,
+const profileOut = (r, blockedAt = null) => (r ? {
+  handle: r.handle, enabled: r.enabled === 1, allowIndex: r.allow_index === 1, ...cleanStored(r.fields, r.data),
+  consentAt: r.consent_at, moderatedAt: r.moderated_at || blockedAt || null, updatedAt: r.updated_at,
 } : null)
-const publicOut = (r) => ({ handle: r.handle, fields: parse(r.fields, []), data: parse(r.data, {}), allowIndex: r.allow_index === 1 })
+const publicOut = (r) => ({ handle: r.handle, ...cleanStored(r.fields, r.data), allowIndex: r.allow_index === 1 })
 
 /**
  * opts: { db, requireUser, requireEditor?, now? }
@@ -160,7 +197,11 @@ function createPublicProfileRouter({ db, store: givenStore, requireUser, require
 
   router.use(['/profile', '/u'], (req, res, next) => { res.set('Cache-Control', 'no-store'); next() })
 
-  router.get('/profile/public', auth, (req, res) => res.json({ profile: profileOut(st.get.get(req.user.id)), limits }))
+  /** Moderator gizlədibsə — vaxtı (profil silinib təzədən yaradılsa da qalır) */
+  const moderatedAt = (uid, cur) => (cur && cur.moderated_at) || (st.blockOf.get(uid) || {}).moderated_at || null
+  const mineOut = (uid) => profileOut(st.get.get(uid), moderatedAt(uid, null))
+
+  router.get('/profile/public', auth, (req, res) => res.json({ profile: mineOut(req.user.id), limits }))
 
   router.get('/profile/handle', auth, (req, res) => {
     const h = normHandle(String(req.query.h || ''))
@@ -179,6 +220,9 @@ function createPublicProfileRouter({ db, store: givenStore, requireUser, require
     const why = handleProblem(handle)
     if (why) return err(res, 400, why, 'Invalid handle')
     if (typeof b.enabled !== 'boolean' || (b.allowIndex != null && typeof b.allowIndex !== 'boolean')) return err(res, 400, 'bad_request', 'Bad request')
+    // Moderator gizlədib: sahib yenidən aça / indeksə verə bilməz (yalnız editor "unhide")
+    if ((b.enabled || b.allowIndex === true) && moderatedAt(uid, cur)) return err(res, 409, 'moderated', 'Hidden by a moderator')
+    if (b.enabled && !kit.isVerified(req.user)) return err(res, 403, 'verify_email', 'Email not verified')
     const v = validProfile(b)
     if (v.error) return err(res, 400, v.error, 'Invalid profile')
     const t = now()
@@ -191,7 +235,7 @@ function createPublicProfileRouter({ db, store: givenStore, requireUser, require
       return 'ok'
     })
     if (r === 'taken') return err(res, 409, 'handle_taken', 'Handle is taken')
-    res.json({ profile: profileOut(st.get.get(uid)) })
+    res.json({ profile: mineOut(uid) })
   })
 
   router.delete('/profile/public', auth, (req, res) => {
@@ -215,7 +259,7 @@ function createPublicProfileRouter({ db, store: givenStore, requireUser, require
     res.json(publicOut(row))
   })
 
-  router.post('/u/:handle/report', auth, json, (req, res) => {
+  router.post('/u/:handle/report', auth, kit.requireVerified, json, (req, res) => {
     const row = visible(req.params.handle)
     if (!row) return err(res, 404, 'not_found', 'Not found')
     if (row.user_id === req.user.id) return err(res, 400, 'own', 'Cannot report yourself')
@@ -230,8 +274,13 @@ function createPublicProfileRouter({ db, store: givenStore, requireUser, require
   // ── Moderasiya (admin paneli, editor+): yalnız profilin ictimai məzmunu — e-poçt / hesab id-si YOX ──
   if (requireEditor) {
     router.get('/admin/moderation/profiles', ...requireEditor, (req, res) => {
+      if (req.query.status === 'hidden') {
+        return res.json({ status: 'hidden', items: st.hidden.all().map((r) => ({
+          handle: r.handle, enabled: r.enabled === 1, ...cleanStored(r.fields, r.data), moderatedAt: r.mod_at, reports: [], count: 0,
+        })) })
+      }
       res.json({ items: st.queue.all().map((r) => ({
-        handle: r.handle, enabled: r.enabled === 1, fields: parse(r.fields, []), data: parse(r.data, {}),
+        handle: r.handle, enabled: r.enabled === 1, ...cleanStored(r.fields, r.data), moderatedAt: r.moderated_at || null,
         reports: st.reportsOf.all(r.user_id).map((x) => ({ reason: x.reason, at: x.created_at })), count: r.n, lastAt: r.last_at,
       })) })
     })
@@ -239,15 +288,20 @@ function createPublicProfileRouter({ db, store: givenStore, requireUser, require
       const row = st.byHandle.get(normHandle(req.params.handle))
       if (!row) return err(res, 404, 'not_found', 'Not found')
       const action = (req.body || {}).action
-      if (action !== 'dismiss' && action !== 'hide') return err(res, 400, 'bad_request', 'Unknown action')
+      if (action !== 'dismiss' && action !== 'hide' && action !== 'unhide') return err(res, 400, 'bad_request', 'Unknown action')
       const t = now()
       tx(() => {
         if (action === 'hide') {
-          // Mətn sahələri silinir (zərərli mətn qalmasın), rəqəmlər/möhürlər qalır; profil bağlanır
-          const data = parse(row.data, {})
-          for (const k of ['displayName', 'kunya', 'bio']) delete data[k]
-          const fields = parse(row.fields, []).filter((f) => f in data)
-          st.hide.run(JSON.stringify(fields), JSON.stringify(data), t, t, row.user_id)
+          // Mətn sahələri silinir (zərərli mətn qalmasın), möhürlər / surə qalır; profil bağlanır
+          const kept = cleanStored(row.fields, row.data)
+          for (const k of ['displayName', 'kunya', 'bio']) delete kept.data[k]
+          const fields = kept.fields.filter((f) => f in kept.data)
+          st.hide.run(JSON.stringify(fields), JSON.stringify(kept.data), t, t, row.user_id)
+          st.block.run(row.user_id, t)
+        } else if (action === 'unhide') {
+          // Moderasiya qaldırılır — profil AÇILMIR, sahib özü yenidən aça bilər
+          st.unhide.run(t, row.user_id)
+          st.unblock.run(row.user_id)
         }
         st.clearReports.run(row.user_id)
       })
@@ -268,7 +322,8 @@ function createPublicProfileRouter({ db, store: givenStore, requireUser, require
   router.purge = () => st.purgeReports.run(now() - 180 * DAY).changes
   /** "Mənim məlumatlarım": öz profiliniz + etdiyiniz şikayətlər (kimin şikayət etdiyi heç kimə göstərilmir) */
   router.exportUser = (uid) => ({
-    profile: profileOut(st.get.get(uid)),
+    profile: mineOut(uid),
+    moderatedAt: moderatedAt(uid, null),
     reportsMade: st.reportsBy.all(uid).map((r) => ({ handle: r.handle || null, reason: r.reason, at: r.created_at })),
   })
   router.summaryUser = (uid) => {
@@ -281,5 +336,5 @@ function createPublicProfileRouter({ db, store: givenStore, requireUser, require
 
 module.exports = {
   createPublicProfileRouter, createPublicProfileStore, validProfile, handleProblem, normHandle,
-  FIELDS, STAMP_IDS, RESERVED, REPORT_REASONS, HANDLE_RE, MAX_BIO,
+  cleanStored, FIELDS, STAMP_IDS, LEGACY_FIELDS, LEGACY_STAMPS, RESERVED, REPORT_REASONS, HANDLE_RE, MAX_BIO,
 }

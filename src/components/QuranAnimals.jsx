@@ -20,7 +20,7 @@ const T = {
   az: { times: n => `Quranda ${n} dəfə keçir`, surah: 'Bu adda surə var', open: 'Ayəni oxu', trl: 'Tərcümə', loading: 'Yüklənir…',
     learn: 'Kartlar', game: 'Hansı heyvandır?', ask: 'Bu ərəbcə söz hansı heyvanın adıdır?', right: 'Afərin, düzdür!', wrong: 'Bir də yoxla', next: 'Növbəti', score: 'Xal',
     note: 'Yalnız Quranın adını açıq çəkdiyi heyvanlar. Saylar — Quranic Arabic Corpus. Ayə mətni və tərcüməsi saytdakı Quranla eynidir.' },
-  en: { times: n => `Mentioned ${n} ${n === 1 ? 'time' : 'times'} in the Quran`, surah: 'A surah has this name', open: 'Read the verse', trl: 'Translation', loading: 'Loading…',
+  en: { times: n => (n === 1 ? 'Mentioned 1 time in the Quran' : `Mentioned ${n} times in the Quran`), surah: 'A surah has this name', open: 'Read the verse', trl: 'Translation', loading: 'Loading…',
     learn: 'Cards', game: 'Which animal?', ask: 'Which animal is this Arabic word?', right: 'Well done, that’s right!', wrong: 'Try again', next: 'Next', score: 'Score',
     note: 'Only animals the Quran names directly. Counts: Quranic Arabic Corpus. The verse text and translation are the same as in the site’s Quran.' },
   ru: { times: n => `Упоминается в Коране: ${n}`, surah: 'Есть сура с этим названием', open: 'Читать аят', trl: 'Перевод', loading: 'Загрузка…',

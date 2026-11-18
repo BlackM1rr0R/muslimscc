@@ -20,7 +20,7 @@ const T = {
     surahs: 'surə', letters: 'hərf', combos: 'müxtəlif birləşmə', half: '28 hərfli əlifbanın düz yarısı', opens: n => `${n} surəni açır`, read: 'Oxunuşu', open: 'Surəni aç', all: 'Hamısı',
     note: 'Bu hərflərin mənası barədə alimlərin müxtəlif görüşləri var; burada yalnız harada gəldikləri göstərilir. Mətn — saytdakı Osmani mushafı.' },
   en: { ey: 'The disconnected letters', title: '29 surahs open with letters', lead: 'Some surahs open with letters read one by one: الم, حم, يس … Tap a letter to see the surahs it opens; tap a surah to see its letters.',
-    surahs: 'surahs', letters: 'letters', combos: 'different combinations', half: 'exactly half of the 28-letter alphabet', opens: n => `opens ${n} ${n === 1 ? 'surah' : 'surahs'}`, read: 'Read as', open: 'Open the surah', all: 'All',
+    surahs: 'surahs', letters: 'letters', combos: 'different combinations', half: 'exactly half of the 28-letter alphabet', opens: n => (n === 1 ? 'opens 1 surah' : `opens ${n} surahs`), read: 'Read as', open: 'Open the surah', all: 'All',
     note: 'Scholars hold different views on the meaning of these letters; this only shows where they occur. Text: the site’s Uthmani mushaf.' },
   ru: { ey: 'Отдельные буквы', title: '29 сур начинаются с букв', lead: 'Некоторые суры открываются буквами, которые читаются по отдельности: الم, حم, يس … Коснитесь буквы — увидите суры, которые она открывает; коснитесь суры — увидите её буквы.',
     surahs: 'сур', letters: 'букв', combos: 'разных сочетаний', half: 'ровно половина 28-буквенного алфавита', opens: n => `открывает сур: ${n}`, read: 'Чтение', open: 'Открыть суру', all: 'Все',

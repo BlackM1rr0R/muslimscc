@@ -10,7 +10,7 @@ export const GOAL_TXT = {
   en: {
     ey: 'My learning path', title: 'My goal', setGoal: 'Make it my goal', isGoal: 'My goal', clear: 'Clear goal',
     pick: 'Choose one of the learning paths as your goal — progress and your next step will show up here.', toLearn: 'See the learning paths',
-    week: (n) => `This week: ${n} ${n === 1 ? 'lesson' : 'lessons'}`, prev: (n) => `last week: ${n}`, pathWeek: (n) => `from the path: ${n}`, days: (n) => `active days: ${n} of 7`,
+    week: (n) => (n === 1 ? 'This week: 1 lesson' : `This week: ${n} lessons`), prev: (n) => `last week: ${n}`, pathWeek: (n) => `from the path: ${n}`, days: (n) => `active days: ${n} of 7`,
     next: 'Next step', nextLesson: 'Lesson', nextQuiz: 'Path complete — test your knowledge with a quiz', nextArabic: 'Next stage — the Arabic course',
     since: (d) => `Started: ${d}`, of: (r, t) => `${r} of ${t} lessons`, weekLabel: 'Last 7 days',
   },

@@ -660,7 +660,10 @@ function createSecurityRouter(opts) {
     if (!codes) { pwFails.fail(k); return err(res, 400, 'invalid_code', 'Invalid code') }
     pwFails.reset(k)
     security.userEvent(req, u, 'twofa_enabled', { lang: langOf(req) })
-    res.json({ ok: true, backupCodes: codes })
+    // İstəyə bağlı (D3): { revokeOthers: true } — bu cihazdan başqa bütün sessiyalar bağlanır
+    // (2FA-dan əvvəl açılmış, ikinci addımı keçməmiş sessiyalar qalmasın). Susmaya görə — toxunulmur.
+    const revoked = req.body && req.body.revokeOthers === true ? usersStore.revokeOtherSessions(u.id, req.userSessionHash) : 0
+    res.json({ ok: true, backupCodes: codes, revoked })
   })
   // Bağlamaq / kodları yeniləmək: cari şifrə VƏ YA TOTP/ehtiyat kodu
   async function reauth(req, res) {

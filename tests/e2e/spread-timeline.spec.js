@@ -12,8 +12,8 @@ test('yayılma xəritəsi: sahil xətti, sürgü, oynat', async ({ page }) => {
   const map = page.getByTestId('spread-timeline')
   await map.scrollIntoViewIfNeeded()
   await expect(map.locator('.st__land')).toHaveCount(1)
-  const total = await map.locator('.st__city').count()
-  expect(total).toBe(16)
+  await expect(map.locator('.st__city')).toHaveCount(16)
+  const total = 16
   await expect(map.locator('.st__city.is-on')).toHaveCount(total)
   await expect(page.getByTestId('spread-now')).toContainText('1453')
 

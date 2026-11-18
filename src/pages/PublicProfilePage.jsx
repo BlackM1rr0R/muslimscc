@@ -4,6 +4,8 @@
 // moderasiya ilə gizlədilmiş profil → 404 səhifəsi (noindex). <head>-i bu səhifə yazır (seo/profileSeo.js →
 // Seo.jsx setSelfSeo): yalnız istifadəçi "axtarış sistemlərinə icazə ver" seçibsə "index", canonical /u/<ləqəb>.
 // İzləyici sayı, müqayisə, reytinq yoxdur. Şikayət — girişli.
+// İbadət sayı (xətm, ümmət xətmi) və ibadət möhürləri göstərilmir (sahibin qərarı, 2026-11-18) —
+// server köhnə yazıda qalmış olsa belə klient yalnız PUBLIC_FIELDS / PUBLIC_STAMP_IDS göstərir.
 // ═══════════════════════════════════════════════════════
 import { lazy, Suspense, useEffect, useId, useState } from 'react'
 import { useLocation } from 'react-router-dom'
@@ -13,8 +15,7 @@ import { parsePath, pathFor } from '../seo/routes'
 import { SURAH_SLUGS } from '../seo/surahSlugs'
 import Icon from '../components/Icon'
 import { useAuthUser, refreshMe } from '../api/userSession'
-import { PUB } from '../components/account/communityText'
-import { nf } from '../components/community/CommunityUi'
+import { PUB, PUBLIC_FIELDS, PUBLIC_STAMP_IDS } from '../components/account/communityText'
 import { getPublicProfile, reportProfile, HANDLE_RE } from '../api/community'
 import { stampName } from '../components/SpiritualPassport'
 import { setSelfSeo } from '../seo/Seo'
@@ -60,7 +61,8 @@ export default function PublicProfilePage({ setPage }) {
   }
   const p = state.profile
   const d = p.data || {}
-  const shown = (f) => p.fields.includes(f) && d[f] != null
+  const shown = (f) => PUBLIC_FIELDS.includes(f) && Array.isArray(p.fields) && p.fields.includes(f) && d[f] != null
+  const stamps = shown('stamps') && Array.isArray(d.stamps) ? d.stamps.filter((s) => PUBLIC_STAMP_IDS.includes(s)) : []
   const title = shown('displayName') ? d.displayName : `@${p.handle}`
   return (
     <div className="acc-account">
@@ -80,19 +82,15 @@ export default function PublicProfilePage({ setPage }) {
             </div>
           </header>
           {shown('bio') && <p className="pub-bio" dir="auto" data-testid="public-bio">{d.bio}</p>}
-          {(shown('khatms') || shown('ummahKhatms') || shown('favSurah')) && (
+          {shown('favSurah') && (
             <dl className="pub-stats">
-              {shown('khatms') && <div><dt>{t.khatms}</dt><dd className="ui-num">{nf(d.khatms, lang)}</dd></div>}
-              {shown('ummahKhatms') && <div><dt>{t.ummah}</dt><dd className="ui-num">{nf(d.ummahKhatms, lang)}</dd></div>}
-              {shown('favSurah') && (
-                <div><dt>{t.fav}</dt><dd><a href={pathFor('quran', siteLang, d.favSurah)}>{t.surah(d.favSurah)} · <bdi dir="ltr">{surahTitle(d.favSurah)}</bdi></a></dd></div>
-              )}
+              <div><dt>{t.fav}</dt><dd><a href={pathFor('quran', siteLang, d.favSurah)}>{t.surah(d.favSurah)} · <bdi dir="ltr">{surahTitle(d.favSurah)}</bdi></a></dd></div>
             </dl>
           )}
-          {shown('stamps') && d.stamps.length > 0 && (
+          {stamps.length > 0 && (
             <section aria-labelledby="pub-stamps">
               <h2 className="rt-card__title" id="pub-stamps"><Icon name="star" size={18} /> {t.stamps}</h2>
-              <ul className="pub-stamps">{d.stamps.map((s) => <li key={s} className="ui-badge ui-badge--brand">{stampName(s, lang)}</li>)}</ul>
+              <ul className="pub-stamps">{stamps.map((s) => <li key={s} className="ui-badge ui-badge--brand">{stampName(s, lang)}</li>)}</ul>
             </section>
           )}
           <p className="rt-note">{t.note}</p>

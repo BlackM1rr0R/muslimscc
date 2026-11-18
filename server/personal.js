@@ -22,7 +22,10 @@
 //   GET/PUT/DELETE /api/personal/zakat
 //   GET/PATCH /api/personal/prefs · POST /api/personal/push-link · POST /api/personal/push-link/status
 //   DELETE /api/personal            — bu modulun bütün məlumatı
-//   GET/POST /api/personal/unsubscribe?t=…  — GİRİŞSİZ, imzalı token (məktubdakı keçid)
+//   GET/POST /api/personal/unsubscribe?t=…  — GİRİŞSİZ, imzalı token (məktubdakı keçid). HMAC-a həmin
+//            xüsusiyyətin razılıq vaxtı (consent_loved / consent_zakat) daxildir: e-poçt xatırlatmasını yenidən
+//            açmaq (lovedEmail false → true) və ya silinmiş zəkat xatırlatmasını təzədən qurmaq vaxtı yeniləyir —
+//            köhnə məktubdakı keçid işləmir. (Razılığı olmayan izləyicinin tokeni dəyişmir.)
 //
 // Planlayıcı (tick): dəqiqədə bir; "vaxtı çatanları" tapır, göndərir, qeyd edir. İkiqat göndəriş
 // yoxdur: göndərişdən ƏVVƏL sətir "sending" kimi tutulur (atomik UPDATE/INSERT OR IGNORE);
@@ -273,6 +276,9 @@ function createPersonalStore(db, { secret: envSecret = '' } = {}) {
     prefsUpsert: p(`INSERT INTO personal_prefs (user_id, tz, lang, updated_at) VALUES (?, ?, ?, ?)
       ON CONFLICT(user_id) DO UPDATE SET tz = excluded.tz, lang = excluded.lang, updated_at = excluded.updated_at`),
     setLovedEmail: p('UPDATE personal_prefs SET loved_email = ?, updated_at = ? WHERE user_id = ?'),
+    // Abunəlikdən çıxma tokenini yeniləmək üçün: razılıq artıq varsa vaxtı təzələnir (yoxdursa — razılıq YARADILMIR)
+    renewConsentLoved: p('UPDATE personal_prefs SET consent_loved = ? WHERE user_id = ? AND consent_loved IS NOT NULL'),
+    renewConsentZakat: p('UPDATE personal_prefs SET consent_zakat = ? WHERE user_id = ? AND consent_zakat IS NOT NULL'),
 
     letters: p('SELECT * FROM personal_letters WHERE user_id = ? ORDER BY CASE WHEN status IN (\'pending\',\'sending\') THEN 0 ELSE 1 END, deliver_on ASC, id ASC'),
     letter: p('SELECT * FROM personal_letters WHERE id = ? AND user_id = ?'),
@@ -372,7 +378,17 @@ function createPersonalStore(db, { secret: envSecret = '' } = {}) {
       st.prefsUpsert.run(userId, tz || (cur && cur.tz) || 'UTC', lang || (cur && cur.lang) || 'en', now)
       if (consent) setConsent[consent].run(now, now, userId)
     },
-    setLovedEmail: (userId, on, now = Date.now()) => st.setLovedEmail.run(on ? 1 : 0, now, userId).changes > 0,
+    setLovedEmail: (userId, on, now = Date.now()) => {
+      const cur = st.prefs.get(userId)
+      const ok = st.setLovedEmail.run(on ? 1 : 0, now, userId).changes > 0
+      if (ok && on && cur && cur.loved_email !== 1) st.renewConsentLoved.run(now, userId)   // yenidən açıldı → yeni token
+      return ok
+    },
+    /** Abunəlikdən çıxma tokeninə daxil olan razılıq vaxtı */
+    unsubConsentAt: (userId, scope) => {
+      const r = st.prefs.get(userId)
+      return r ? (scope === 'zakat' ? r.consent_zakat : r.consent_loved) || null : null
+    },
 
     secret: () => secret,
     wipeUser(userId) { tx(() => { for (const s of st.wipe) s.run(userId) }) },
@@ -404,17 +420,27 @@ function createPersonalStore(db, { secret: envSecret = '' } = {}) {
 
 // ─── Abunəlikdən çıxma tokeni (imzalı, girişsiz) ──────────────────────
 const UNSUB_SCOPES = ['loved', 'zakat']
-function unsubToken(secret, userId, scope) {
-  const sig = crypto.createHmac('sha256', secret).update(`muslims.cc/unsub:${userId}:${scope}`).digest('base64url').slice(0, 32)
+// Bu tarixdən ƏVVƏLki razılıqla göndərilmiş məktubların köhnə (razılıq vaxtı olmayan) keçidi razılıq
+// dəyişməyənə qədər işləyir; razılıq vaxtı bu tarixdən sonradırsa köhnə forma qəbul olunmur.
+const LEGACY_UNSUB_BEFORE = Date.UTC(2026, 10, 19)
+function unsubToken(secret, userId, scope, consentAt = null) {
+  const base = `muslims.cc/unsub:${userId}:${scope}`
+  const sig = crypto.createHmac('sha256', secret).update(consentAt ? `${base}:${consentAt}` : base).digest('base64url').slice(0, 32)
   return `${userId}.${scope}.${sig}`
 }
-function verifyUnsub(secret, token) {
+const sameSig = (x, want) => {
+  const a = Buffer.from(x), b = Buffer.from(want)
+  return a.length === b.length && crypto.timingSafeEqual(a, b)
+}
+/** consentAtOf(userId, scope) → razılıq vaxtı | null (verilməyibsə — yalnız köhnə forma yoxlanır) */
+function verifyUnsub(secret, token, consentAtOf = null) {
   const m = /^(\d{1,12})\.([a-z]{1,16})\.([A-Za-z0-9_-]{32})$/.exec(String(token || ''))
   if (!m || !UNSUB_SCOPES.includes(m[2])) return null
-  const want = unsubToken(secret, Number(m[1]), m[2]).split('.')[2]
-  const a = Buffer.from(m[3]), b = Buffer.from(want)
-  if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return null
-  return { userId: Number(m[1]), scope: m[2] }
+  const userId = Number(m[1]), scope = m[2]
+  const consentAt = consentAtOf ? consentAtOf(userId, scope) : null
+  const ok = (consentAt && sameSig(m[3], unsubToken(secret, userId, scope, consentAt).split('.')[2])) ||
+    ((!consentAt || consentAt < LEGACY_UNSUB_BEFORE) && sameSig(m[3], unsubToken(secret, userId, scope).split('.')[2]))
+  return ok ? { userId, scope } : null
 }
 
 // ─── Push mətnləri (5 dil, qalanları en) ──────────────────────────────
@@ -559,7 +585,7 @@ function createScheduler({ store, mailer = null, pushSend = null, publicOrigin =
           allowEmail: prefs.loved_email === 1,
           mail: { kind: 'anniversary', lang, vars: {
             url: `${publicOrigin}${pre}/learn/janazah#ls-prayer`, name: row.name, n: ann.n,
-            unsubUrl: `${publicOrigin}/api/personal/unsubscribe?t=${unsubToken(store.secret(), uid, 'loved')}`,
+            unsubUrl: `${publicOrigin}/api/personal/unsubscribe?t=${unsubToken(store.secret(), uid, 'loved', prefs.consent_loved)}`,
           } },
           push: pushMsg(T.anniv(row.name, ann.n), T.annivBody, `${pre}/learn/janazah#ls-prayer`, `loved-${row.id}`),
         }))
@@ -588,7 +614,7 @@ function createScheduler({ store, mailer = null, pushSend = null, publicOrigin =
         allowEmail: prefs.loved_email === 1,
         mail: { kind: 'friday', lang, vars: {
           url: `${publicOrigin}${pre}/learn/janazah#ls-prayer`, names: names.join(', '),
-          unsubUrl: `${publicOrigin}/api/personal/unsubscribe?t=${unsubToken(store.secret(), uid, 'loved')}`,
+          unsubUrl: `${publicOrigin}/api/personal/unsubscribe?t=${unsubToken(store.secret(), uid, 'loved', prefs.consent_loved)}`,
         } },
         push: pushMsg(T.friday, T.fridayBody(names.join(', ')), `${pre}/account#loved`, 'loved-friday'),
       }))
@@ -616,7 +642,7 @@ function createScheduler({ store, mailer = null, pushSend = null, publicOrigin =
       await sendOnce(z.user_id, `z:${which === 'zakatSoon' ? 'pre' : 'due'}:${z.due_on}`, now, () => deliver(user, {
         mail: { kind: which, lang, vars: {
           url: `${publicOrigin}${pre}/zakat`, date: longDate(z.due_on, mailLang(lang)), amount,
-          unsubUrl: `${publicOrigin}/api/personal/unsubscribe?t=${unsubToken(store.secret(), z.user_id, 'zakat')}`,
+          unsubUrl: `${publicOrigin}/api/personal/unsubscribe?t=${unsubToken(store.secret(), z.user_id, 'zakat', prefs.consent_zakat)}`,
         } },
         push: pushMsg(T[which], T.zakatBody, `${pre}/zakat`, 'zakat-hawl'),
       }))
@@ -866,6 +892,8 @@ function createPersonalRouter(opts) {
     const due = hawlDue(b.hawlStart, today)
     if (!due) return err(res, 400, 'bad_date', 'Invalid date')
     const t = now()
+    // Silinmiş (məs. məktubdakı keçidlə) xatırlatma təzədən qurulur → yeni abunəlikdən çıxma tokeni
+    if (!st.zakat.get(req.user.id)) st.renewConsentZakat.run(t, req.user.id)
     st.zakatUpsert.run(req.user.id, b.hawlStart, due, amount, currency, t, t)
     res.json({ reminder: zakatOut(st.zakat.get(req.user.id)) })
   })
@@ -942,7 +970,7 @@ function createPersonalRouter(opts) {
   }
   router.get('/personal/unsubscribe', (req, res) => {
     const t = String(req.query.t || '')
-    const v = verifyUnsub(store.secret(), t)
+    const v = verifyUnsub(store.secret(), t, store.unsubConsentAt)
     if (!v) return sendPage(res, 400, page('Muslims.cc', TXT.bad))
     const esc = t.replace(/[^A-Za-z0-9._-]/g, '')
     sendPage(res, 200, page('Muslims.cc', TXT[v.scope],
@@ -952,7 +980,7 @@ function createPersonalRouter(opts) {
   const form = express.urlencoded({ extended: false, limit: '2kb' })
   router.post('/personal/unsubscribe', form, json, (req, res) => {
     const t = (req.body && req.body.t) || req.query.t || ''
-    const v = verifyUnsub(store.secret(), t)
+    const v = verifyUnsub(store.secret(), t, store.unsubConsentAt)
     if (!v) return sendPage(res, 400, page('Muslims.cc', TXT.bad))
     if (v.scope === 'loved') store.setLovedEmail(v.userId, false, now())
     else if (v.scope === 'zakat') st.zakatDelete.run(v.userId)

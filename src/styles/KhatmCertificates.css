@@ -4,6 +4,7 @@
 .kcx__head { display: flex; gap: 12px; align-items: flex-start; }
 .kcx__title { margin: 2px 0 4px; font-size: 1.2rem; }
 .kcx__lead, .kcx__none { margin: 0; color: var(--text-secondary); font-size: .92rem; }
+.kcx__note { margin: -4px 0 0; color: var(--text-secondary); font-size: .85rem; line-height: 1.5; }
 .kcx__pending, .kcx__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
 .kcx__pend { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; padding: 12px 14px; border-radius: 14px;
   border: 1px solid color-mix(in srgb, #b8861d 45%, transparent);

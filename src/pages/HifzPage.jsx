@@ -7,7 +7,7 @@ import { getSurahLocal } from '../data/surahNamesAz'
 import QuranMap from '../components/QuranMap'
 import { navGroupLabel } from '../data/navigation'
 import Icon from '../components/Icon'
-import { AYAH_WORDS, ayahCountText, pluralWord } from '../utils/quranText'
+import { AYAH_WORDS, ayahCountText, countText, pluralWord } from '../utils/quranText'
 import { ayahSources, readAudioPrefs, reciterName } from '../utils/quranAudio'
 import { recordHifzDates } from '../utils/hifzDates'
 import {
@@ -79,7 +79,8 @@ const LABELS = {
 
 // status: 0 = not started, 1 = in progress, 2 = memorized
 // Ayə sayı rəqəmə uyğun formada ("123 аята", "7 آيات"); ingiliscədə bu səhifə "ayahs" deyir
-const HIFZ_AYAH_WORDS = { ...AYAH_WORDS, en: { one: 'ayah', few: 'ayahs', many: 'ayahs', other: 'ayahs' } }
+// en — bütöv ifadə (utils/quranText → countText): əlavə dillərdə "1 ayah" / "{0} ayahs" lüğətlə tərcümə olunur
+const HIFZ_AYAH_WORDS = { az: AYAH_WORDS.az, en: (n) => (n === 1 ? '1 ayah' : `${n} ayahs`), ru: AYAH_WORDS.ru, ar: AYAH_WORDS.ar, tr: AYAH_WORDS.tr }
 
 const STATUS_LABELS = {
   az: ['Başlanmayıb','Davam edir','Əzbərləmişəm'],
@@ -219,7 +220,7 @@ const AMMA = SURAHS.filter(s => s.num >= 78)
 const SMART = {
   az: {
     smartEyebrow:'Ağıllı hifz', smartTitle:'Bu günün planı', smartLead:'Hər ayəni oxuduqdan sonra özünüzə qiymət verin — növbəti təkrarın vaxtını sayt özü planlaşdıracaq.',
-    due:'Bu gün təkrar', learned:'Bu gün yeni', streak:'Ardıcıllıq', total:'Siyahıda',
+    due:'Bu gün təkrar', learned:'Bu gün yeni', streak:'Ardıcıllıq', streakOf: () => 'Ardıcıllıq · gün', total:'Siyahıda',
     goal:'Gündəlik hədəf', goalDec:'Hədəfi azalt', goalInc:'Hədəfi artır', goalUnit:'yeni ayə',
     startReview:'Təkrara başla', noDue:'Bu gün təkrar ediləcək ayə yoxdur',
     learnTitle:'Yeni ayə əzbərlə', surah:'Surə', fromAyah:'Başlanğıc ayə', learnBtn:'Əzbərləməyə başla', surahAllIn:'Bu surənin bütün ayələri artıq siyahıdadır',
@@ -237,7 +238,7 @@ const SMART = {
   },
   en: {
     smartEyebrow:'Smart hifz', smartTitle:'Today’s plan', smartLead:'Grade yourself after reciting each ayah — the site schedules the next review for you.',
-    due:'Today’s reviews', learned:'New today', streak:'Streak', total:'In your list',
+    due:'Today’s reviews', learned:'New today', streak:'Streak', streakOf: (n) => (n === 1 ? 'Streak · day' : 'Streak · days'), total:'In your list',
     goal:'Daily goal', goalDec:'Decrease goal', goalInc:'Increase goal', goalUnit:'new ayahs',
     startReview:'Start review', noDue:'No ayahs to review today',
     learnTitle:'Memorize new ayahs', surah:'Surah', fromAyah:'Starting ayah', learnBtn:'Start memorizing', surahAllIn:'All ayahs of this surah are already in your list',
@@ -255,7 +256,7 @@ const SMART = {
   },
   ru: {
     smartEyebrow:'Умный хифз', smartTitle:'План на сегодня', smartLead:'После чтения каждого аята оцените себя — сайт сам запланирует следующее повторение.',
-    due:'Повторить сегодня', learned:'Новых сегодня', streak:'Серия', total:'В списке',
+    due:'Повторить сегодня', learned:'Новых сегодня', streak:'Серия', streakOf: (n) => `Серия · ${pluralWord(n, 'ru', DAY_WORDS)}`, total:'В списке',
     goal:'Дневная цель', goalDec:'Уменьшить цель', goalInc:'Увеличить цель', goalUnit:'новых аятов',
     startReview:'Начать повторение', noDue:'Сегодня нет аятов для повторения',
     learnTitle:'Выучить новые аяты', surah:'Сура', fromAyah:'С аята', learnBtn:'Начать заучивание', surahAllIn:'Все аяты этой суры уже в списке',
@@ -273,7 +274,7 @@ const SMART = {
   },
   ar: {
     smartEyebrow:'الحفظ الذكي', smartTitle:'خطة اليوم', smartLead:'بعد تلاوة كل آية قيّم قراءتك، وسيجدول الموقع موعد المراجعة التالية.',
-    due:'مراجعة اليوم', learned:'جديد اليوم', streak:'أيام متتالية', total:'في القائمة',
+    due:'مراجعة اليوم', learned:'جديد اليوم', streak:'أيام متتالية', streakOf: (n) => `أيام متتالية · ${pluralWord(n, 'ar', DAY_WORDS)}`, total:'في القائمة',
     goal:'الهدف اليومي', goalDec:'إنقاص الهدف', goalInc:'زيادة الهدف', goalUnit:'آيات جديدة',
     startReview:'ابدأ المراجعة', noDue:'لا توجد آيات للمراجعة اليوم',
     learnTitle:'حفظ آيات جديدة', surah:'السورة', fromAyah:'من الآية', learnBtn:'ابدأ الحفظ', surahAllIn:'جميع آيات هذه السورة في القائمة بالفعل',
@@ -291,7 +292,7 @@ const SMART = {
   },
   tr: {
     smartEyebrow:'Akıllı hıfz', smartTitle:'Bugünün planı', smartLead:'Her ayeti okuduktan sonra kendinize not verin; bir sonraki tekrarın zamanını site kendisi planlar.',
-    due:'Bugün tekrar', learned:'Bugün yeni', streak:'Seri', total:'Listede',
+    due:'Bugün tekrar', learned:'Bugün yeni', streak:'Seri', streakOf: () => 'Seri · gün', total:'Listede',
     goal:'Günlük hedef', goalDec:'Hedefi azalt', goalInc:'Hedefi artır', goalUnit:'yeni ayet',
     startReview:'Tekrara başla', noDue:'Bugün tekrar edilecek ayet yok',
     learnTitle:'Yeni ayet ezberle', surah:'Sure', fromAyah:'Başlangıç ayeti', learnBtn:'Ezberlemeye başla', surahAllIn:'Bu surenin tüm ayetleri zaten listede',
@@ -312,7 +313,8 @@ const SMART = {
 // Gün sözü rəqəmə uyğun (Intl.PluralRules kateqoriyaları)
 const DAY_WORDS = {
   az: 'gün', // lang-ok: az və tr-də söz eynidir
-  en: { zero: 'days', one: 'day', two: 'days', few: 'days', many: 'days', other: 'days' },
+  // en — bütöv ifadə (countText): "1 day" / "{0} days"
+  en: (n) => (n === 1 ? '1 day' : `${n} days`),
   ru: { zero: 'дней', one: 'день', two: 'дня', few: 'дня', many: 'дней', other: 'дня' },
   ar: { zero: 'يوم', one: 'يوم', two: 'يومان', few: 'أيام', many: 'يومًا', other: 'يوم' },
   tr: 'gün', // lang-ok: az və tr-də söz eynidir
@@ -407,7 +409,7 @@ function PracticeCard({ item, srsItem, kind, pos, total, view, setView, lang, on
   }, [])
 
   const preview = previewIntervals(srsItem || newItem(item.s, item.a, today))
-  const dayText = n => (n === 0 ? sm.now : `${n} ${pluralWord(n, lang, DAY_WORDS)}`)
+  const dayText = n => (n === 0 ? sm.now : countText(n, lang, DAY_WORDS))
   const surahName = lang === 'ar' ? SURAHS[item.s - 1].name : (getSurahLocal(item.s, lang)?.name || SURAHS[item.s - 1].en)
 
   return (
@@ -661,7 +663,7 @@ function SmartHifz({ lang, progress, setProgress, srs, setSrs }) {
         </div>
         <div className="hifz-today__cell">
           <span className="hifz-today__num ui-num">{days}</span>
-          <span className="hifz-today__label">{sm.streak} · {pluralWord(days, lang, DAY_WORDS)}</span>
+          <span className="hifz-today__label">{sm.streakOf(days)}</span>
         </div>
         <div className="hifz-today__cell">
           <span className="hifz-today__num ui-num">{stats.total}</span>

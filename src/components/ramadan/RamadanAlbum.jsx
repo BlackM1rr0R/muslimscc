@@ -5,7 +5,8 @@
 //
 // • Məlumat: utils/ramadanAlbum (ramadan_album_v1) — açılanda snapshot yenilənir (idempotent).
 // • Rəf: hər il bir kitab cildi (düymə); seçilən fəsil iki səhifəli kitab kimi açılır.
-// • Əvvəlki fəsillə müqayisə (cədvəl), PNG kart (utils/statCard — yalnız həndəsə).
+// • Əvvəlki fəsillə müqayisə (cədvəl), PNG kart (utils/statCard — yalnız həndəsə) — yalnız YÜKLƏMƏ,
+//   "paylaş" yoxdur (sahibin qərarı, 2026-11-18: ibadət insanla Allah arasındadır).
 // • Rəqəmlər yalnız istifadəçinin öz qeydlərindəndir; ölçülməyən göstərici "ölçülməyib" yazılır.
 // ═══════════════════════════════════════════════════════
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
@@ -16,7 +17,7 @@ import { formatGregorian, parseGKey } from '../../utils/hijri'
 import {
   snapshotAlbum, readAlbum, chapters, compareChapters, metricOf, ALBUM_EVENT, ALBUM_KEY, METRICS, localDay,
 } from '../../utils/ramadanAlbum'
-import { canShareFile, preopenWindow, saveBlob } from '../../utils/quoteCard'
+import { preopenWindow, saveBlob } from '../../utils/quoteCard'
 import { wrappedCards } from '../../utils/ramadanWrapped'
 import { readTaraweeh } from '../../utils/taraweeh'
 import { readKhatm } from '../../utils/worldKhatm'
@@ -36,7 +37,7 @@ export const RA_TXT = {
     during: 'davam edir', fin: 'başa çatdı',
     compare: (y) => `Ramazan ${y} ilə müqayisə`, noPrev: 'Müqayisə üçün əvvəlki fəsil hələ yoxdur.',
     colNow: 'Bu fəsil', colPrev: 'Əvvəlki', colDelta: 'Fərq', same: 'eyni',
-    share: 'Kartı paylaş', saved: 'Kart hazırdır.', cardSub: 'mənim Ramazan fəslim',
+    dl: 'Özüm üçün yüklə', privateNote: 'İbadətiniz sizinlə Allah arasındadır — bu şəkil yalnız sizin üçündür.', saved: 'Kart hazırdır.', cardSub: 'mənim Ramazan fəslim',
     note: 'Rəqəmlər yalnız saytda etdiyiniz qeydlərdəndir. Oxunan ayələr Ramazanda sayta girdiyiniz günlərdən ölçülür; zikr gündəliyi son 60 günü saxlayır.',
     privacy: 'Albom bu cihazda və hesabınızın uçdan-uca şifrəli nüsxəsindədir.',
   },
@@ -49,7 +50,7 @@ export const RA_TXT = {
     during: 'in progress', fin: 'complete',
     compare: (y) => `Compared with Ramadan ${y}`, noPrev: 'There is no earlier chapter to compare with yet.',
     colNow: 'This chapter', colPrev: 'Previous', colDelta: 'Change', same: 'same',
-    share: 'Share card', saved: 'Your card is ready.', cardSub: 'my Ramadan chapter',
+    dl: 'Download for myself', privateNote: 'Your worship is between you and Allah — this image is for you.', saved: 'Your card is ready.', cardSub: 'my Ramadan chapter',
     note: 'The numbers come only from what you log on the site. Verses read are measured from the days you visited during Ramadan; the dhikr log keeps the last 60 days.',
     privacy: 'The album stays on this device and in your account’s end-to-end encrypted copy.',
   },
@@ -62,7 +63,7 @@ export const RA_TXT = {
     during: 'идёт', fin: 'завершён',
     compare: (y) => `Сравнение с Рамаданом ${y}`, noPrev: 'Пока нет предыдущей главы для сравнения.',
     colNow: 'Эта глава', colPrev: 'Прошлая', colDelta: 'Разница', same: 'так же',
-    share: 'Поделиться карточкой', saved: 'Карточка готова.', cardSub: 'моя глава Рамадана',
+    dl: 'Скачать для себя', privateNote: 'Ваше поклонение — между вами и Аллахом. Это изображение только для вас.', saved: 'Карточка готова.', cardSub: 'моя глава Рамадана',
     note: 'Цифры — только из ваших записей на сайте. Прочитанные аяты считаются с дней, когда вы заходили в Рамадан; дневник зикра хранит последние 60 дней.',
     privacy: 'Альбом хранится на этом устройстве и в сквозно зашифрованной копии вашего аккаунта.',
   },
@@ -75,7 +76,7 @@ export const RA_TXT = {
     during: 'جارٍ', fin: 'مكتمل',
     compare: (y) => `مقارنة برمضان ${y}`, noPrev: 'لا يوجد فصل سابق للمقارنة بعد.',
     colNow: 'هذا الفصل', colPrev: 'السابق', colDelta: 'الفرق', same: 'كما هو',
-    share: 'شارك البطاقة', saved: 'بطاقتك جاهزة.', cardSub: 'فصلي من رمضان',
+    dl: 'نزّلها لنفسي', privateNote: 'عبادتك بينك وبين الله — هذه الصورة لك وحدك.', saved: 'بطاقتك جاهزة.', cardSub: 'فصلي من رمضان',
     note: 'الأرقام من سجلاتك في الموقع فقط. تُقاس الآيات المقروءة من الأيام التي زرت فيها الموقع في رمضان، ويحفظ سجل الذكر آخر 60 يومًا.',
     privacy: 'يبقى الألبوم على هذا الجهاز وفي نسخة حسابك المشفّرة من طرف إلى طرف.',
   },
@@ -88,7 +89,7 @@ export const RA_TXT = {
     during: 'devam ediyor', fin: 'tamamlandı',
     compare: (y) => `Ramazan ${y} ile karşılaştırma`, noPrev: 'Karşılaştırma için önceki bölüm henüz yok.',
     colNow: 'Bu bölüm', colPrev: 'Önceki', colDelta: 'Fark', same: 'aynı',
-    share: 'Kartı paylaşın', saved: 'Kartınız hazır.', cardSub: 'benim Ramazan bölümüm',
+    dl: 'Kendim için indir', privateNote: 'İbadetiniz sizinle Allah arasındadır — bu görsel yalnızca sizin için.', saved: 'Kartınız hazır.', cardSub: 'benim Ramazan bölümüm',
     note: 'Rakamlar yalnızca sitede tuttuğunuz kayıtlardan gelir. Okunan ayetler Ramazan’da siteye girdiğiniz günlerden ölçülür; zikir günlüğü son 60 günü saklar.',
     privacy: 'Albüm bu cihazda ve hesabınızın uçtan uca şifreli kopyasında durur.',
   },
@@ -144,12 +145,7 @@ export default function RamadanAlbum({ lang = 'az', compact = false }) {
         stats, foot: t.cardSub, rtl: lang === 'ar', tone: 'night',
       })
       if (!blob) return
-      const name = `ramadan-${cur.y}.png`
-      const file = typeof File === 'function' ? new File([blob], name, { type: 'image/png' }) : null
-      if (file && canShareFile(file)) {
-        try { await navigator.share({ files: [file], title: t.chapter(cur.y) }) } catch { /* imtina */ }
-        win?.close?.()
-      } else saveBlob(blob, name, win)
+      saveBlob(blob, `ramadan-${cur.y}.png`, win)
       setStatus(t.saved)
     } finally { setBusy(false) }
   }
@@ -225,7 +221,7 @@ export default function RamadanAlbum({ lang = 'az', compact = false }) {
 
           <div className="ra__actions">
             <button type="button" className="ui-btn ui-btn--primary ui-btn--sm" onClick={card} disabled={busy} data-testid="ra-card">
-              <Icon name="image" className="ui-btn__icon" /> {t.share}
+              <Icon name="download" className="ui-btn__icon" /> {t.dl}
             </button>
             {canWrap && (
               <button type="button" ref={wrapBtn} className="ui-btn ui-btn--secondary ui-btn--sm" onClick={() => setWrap(true)} data-testid="ra-wrapped">
@@ -234,6 +230,7 @@ export default function RamadanAlbum({ lang = 'az', compact = false }) {
             )}
             <span className="ra__status" role="status">{status}</span>
           </div>
+          <p className="ra__muted ra__private" data-testid="ra-private-note">{t.privateNote}</p>
           {!compact && <p className="ra__note">{t.note}</p>}
         </>
       )}

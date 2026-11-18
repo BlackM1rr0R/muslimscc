@@ -7,7 +7,7 @@ import fs from 'node:fs'
 import { HADITHS } from '../src/data/hadiths.js'
 import { uniqueHadithsFor } from '../src/utils/uniqueHadiths.js'
 import { isNotHadith } from '../src/utils/search.js'
-import { detailMeta } from '../src/seo/detail.js'
+import { detailMeta } from '../src/seo/detailData.js'
 
 const L = uniqueHadithsFor(HADITHS, 'az')
 // Eyni hədis iki qeyddə (eyni mənbə nömrəsi, bir az fərqli tərcümə) — başlıq eyni olur: ilki saxlanılır

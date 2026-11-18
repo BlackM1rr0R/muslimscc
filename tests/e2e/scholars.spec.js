@@ -17,8 +17,9 @@ test('siyahı: dövr qrupları, axtarış və filtr', async ({ page, consoleProb
   await expect(page.locator('h1')).toHaveCount(1)
   // 4 dövr başlığı
   await expect(page.locator('.sc-group__title')).toHaveCount(4)
+  // Siyahı tam çəkilənə qədər gözlə (bir dəfəlik count() render-dən əvvəl oxuya bilər)
+  await expect.poll(() => page.locator('a.sc-card').count()).toBeGreaterThanOrEqual(30)
   const total = await page.locator('a.sc-card').count()
-  expect(total).toBeGreaterThanOrEqual(30)
   // Şəkil yoxdur — yalnız xəttatlıq kartı
   await expect(page.locator('.sc-list img')).toHaveCount(0)
   await expect(page.locator('a.sc-card .sc-callig__name').first()).toHaveAttribute('lang', 'ar')

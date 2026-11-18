@@ -13,7 +13,7 @@ export const SHELF_TXT = {
     shelf: 'Shelf', page: 'Page I’m on', pageHint: 'Books open as a PDF on an external site — enter the page yourself.',
     note: 'Private note', noteHint: (n, max) => `${n} / ${max}`, save: 'Save', saved: 'Saved', remove: 'Remove from shelf',
     private: 'Only you can see it; synced with your account, end-to-end encrypted.', emptyShelf: 'This shelf is empty — open a book’s card and pick a shelf.',
-    onShelf: (s) => `Shelf: ${s}`, pageN: (n) => `Page ${n}`, toBooks: 'Go to the library', count: (n) => `${n} ${n === 1 ? 'book' : 'books'}`,
+    onShelf: (s) => `Shelf: ${s}`, pageN: (n) => `Page ${n}`, toBooks: 'Go to the library', count: (n) => (n === 1 ? '1 book' : `${n} books`),
     lead: 'The books you are reading, want to read and have finished.', book: 'Book', open: 'Open the book',
   },
   ru: {

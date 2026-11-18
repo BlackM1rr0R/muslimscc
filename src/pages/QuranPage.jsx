@@ -126,7 +126,7 @@ const V32_LABELS = {
     savedEmpty:'You have not saved any verses yet. In the reader, press the bookmark button next to a verse and it will appear here.',
     savedNote:'Stored on this device only.',
     votd:'Verse of the day', votdOpen:'Open in surah', votdNote:'A different verse every day',
-    juzFrom:'Starts', juzTo:'Ends', surahsN: n => `${n} ${n === 1 ? 'surah' : 'surahs'}`, ayahsN: n => `${n} verses`, pageN: n => `from page ${n}`,
+    juzFrom:'Starts', juzTo:'Ends', surahsN: n => (n === 1 ? '1 surah' : `${n} surahs`), ayahsN: n => `${n} verses`, pageN: n => `from page ${n}`,
     openJuz:'Read this juz',
   },
   ru: {

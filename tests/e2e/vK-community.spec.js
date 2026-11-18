@@ -6,6 +6,8 @@
 //   • məscid nümayəndəsi: iqamə qaydası saxla → /mosque-tv?m=<id> qoşulu rejim: ad, iqamə, elan
 //   • həftəlik hesabat: razılıqla aç → prefs + həftənin rəqəmləri göndərilir
 //   • /en: azərbaycanca yazı yoxdur; axe (işıqlı/qaranlıq), admin bölməsi daxil
+//   • açıq profildə ibadət sayı / ibadət möhürü yoxdur (sahibin qərarı); 403 verify_email və 409 moderated qeydləri
+//   • boş divar — mərkəzdə kart + düymə; iki sütunun yuxarısı eyni xətdə
 // ═══════════════════════════════════════════════════════
 import AxeBuilder from '@axe-core/playwright'
 import { test, expect, expectCleanConsole, settle } from './fixtures.js'
@@ -55,6 +57,7 @@ async function attachK(page, S, { owner = true } = {}) {
     // ── Açıq profil ──
     if (p === '/api/profile/public' && m === 'GET') return json(route, { profile: S.profile, limits: {} })
     if (p === '/api/profile/public' && m === 'PUT') {
+      if (S.profileError) return json(route, { error: S.profileError.code, code: S.profileError.code }, S.profileError.status)
       if (!S.profile && b.consent !== true) return json(route, { error: 'Consent required', code: 'consent_required' }, 400)
       S.profile = { handle: b.handle, enabled: b.enabled, allowIndex: Boolean(b.allowIndex), fields: b.fields, data: b.data, consentAt: 1, moderatedAt: null, updatedAt: 2 }
       return json(route, { profile: S.profile })
@@ -69,11 +72,13 @@ async function attachK(page, S, { owner = true } = {}) {
     // ── Dua divarı ──
     if (p === '/api/dua-wall' && m === 'GET') return json(route, { items: S.wall.filter((x) => x.status === 'approved').map(({ id, body, name, lang, prayed, at }) => ({ id, body, name, lang, prayed, at })), next: null })
     if (p === '/api/dua-wall' && m === 'POST') {
+      if (S.unverified) return json(route, { error: 'verify_email', code: 'verify_email' }, 403)
       const it = { id: S.nextId++, body: b.body, name: b.name || '', lang: b.lang, status: 'pending', reason: null, prayed: 0, createdAt: Date.now(), at: Date.now(), reported: 0, reports: [] }
       S.wall.push(it)
       return json(route, { item: it }, 201)
     }
     if (p === '/api/dua-wall/mine') return json(route, { items: S.wall.map((x) => ({ ...x })), today: S.wall.length, limits: { perDay: 3 } })
+    if (/^\/api\/dua-wall\/\d+\/report$/.test(p)) return S.unverified ? json(route, { error: 'verify_email', code: 'verify_email' }, 403) : json(route, { ok: true })
     mm = /^\/api\/dua-wall\/(\d+)\/pray$/.exec(p)
     if (mm) { const it = S.wall.find((x) => x.id === Number(mm[1])); it.prayed++; return json(route, { prayed: it.prayed, already: false }) }
     if (p === '/api/admin/dua-wall' && m === 'GET') {
@@ -223,7 +228,11 @@ test('dua divarı: göndər → baxılır → admin təsdiqləyir → divarda �
   await attachK(page, S)
   await page.goto('/dua-wall')
   await expect(page.getByRole('heading', { level: 1, name: 'Dua divarı' })).toBeVisible()
-  await expect(page.getByTestId('dw-wall')).toContainText('Divarda hələ istək yoxdur')
+  const empty = page.getByTestId('dw-empty')
+  await expect(empty).toContainText('Divar hələ boşdur')
+  await expect(empty.getByTestId('dw-empty-cta')).toHaveText(/İstək yaz/)
+  await empty.getByTestId('dw-empty-cta').click()
+  await expect(page.getByTestId('dw-body')).toBeFocused()
   await page.getByTestId('dw-body').fill('Anam üçün şəfa duası edin, xahiş edirəm')
   await page.getByTestId('dw-name').fill('Aynur')
   await page.getByTestId('dw-submit').click()
@@ -283,7 +292,8 @@ test('məscid nümayəndəsi: iqamə + elan saxla → məscid ekranı qoşulu re
 
 test('həftəlik hesabat: razılıqla aç → seçimlər və həftənin rəqəmləri göndərilir', async ({ page, consoleProblems }) => {
   const S = createK()
-  await page.addInitScript(() => { try { localStorage.setItem('dhikr_daily_v1', JSON.stringify({ [new Date().toISOString().slice(0, 10)]: 33 })) } catch { /* */ } })
+  // Bakı günü (UTC deyil): 20:00 UTC-dən sonra UTC tarixi bir gün geri qalırdı
+  await page.addInitScript(() => { try { localStorage.setItem('dhikr_daily_v1', JSON.stringify({ [new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Baku' }).format(new Date())]: 33 })) } catch { /* */ } })
   await signedIn(page)
   await attachK(page, S)
   await page.goto('/account')
@@ -318,12 +328,21 @@ test('/en: K bölmələrində azərbaycanca yazı yoxdur', async ({ page, consol
   for (const id of ['public-profile-section', 'weekly-section', 'mosque-rep-section', 'family-duas']) {
     expect(await page.getByTestId(id).innerText(), id).not.toMatch(/[əƏ]|Açıq profil|Həftəlik|Məscid|Ailə/)
   }
+  // İbadət sayı formada təklif olunmur; yazılar "made dua" (namaz kimi oxunmasın)
+  await expect(page.getByTestId('pp-field-khatms')).toHaveCount(0)
+  await expect(page.getByTestId('pp-field-ummahKhatms')).toHaveCount(0)
+  await expect(page.getByTestId('pp-worship-note')).toHaveText('Worship stays between you and Allah, so it is not shown.')
   await page.goto('/en/dua-wall')
   await expect(page.getByRole('heading', { level: 1, name: 'Dua wall' })).toBeVisible()
   await expect(page.getByTestId('dw-card')).toContainText('Anonymous')
+  await expect(page.getByTestId('dw-pray')).toHaveText('I made dua')
+  await expect(page.getByTestId('dw-count')).toHaveText('3 people made dua')
+  expect(await page.locator('main').innerText()).not.toMatch(/\bprayed\b/i)
   expect(await page.locator('main').innerText()).not.toMatch(/[əƏ]/)
   await page.goto('/en/u/ali_k')
-  await expect(page.getByTestId('public-profile')).toContainText('Khatms')
+  // Köhnə yazıda khatms qalıb — səhifə onu göstərmir
+  await expect(page.getByTestId('public-profile').getByRole('heading', { level: 1, name: 'Ali' })).toBeVisible()
+  await expect(page.getByTestId('public-profile')).not.toContainText(/Khatm/)
   expect(await page.locator('main').innerText()).not.toMatch(/[əƏ]/)
   expectCleanConsole(consoleProblems)
 })
@@ -362,3 +381,190 @@ for (const theme of ['light', 'dark']) {
     expect(await axe(['[data-testid="admin-moderation"]'])).toEqual([])
   })
 }
+
+test('açıq profil: ibadət möhürləri təklif olunmur; köhnə ibadət sahələri göstərilmir; 409 moderated', async ({ page, consoleProblems }) => {
+  const S = createK()
+  // Bu cihazda bir öyrənmə (names_99) və iki ibadət möhürü (fajr_40, kahf_4)
+  await page.addInitScript(() => { try { localStorage.setItem('muslim_cc_passport_v1', JSON.stringify({ names_99: '2026-10-01', fajr_40: '2026-10-02', kahf_4: '2026-10-03' })) } catch { /* */ } })
+  S.profile = { handle: 'ali_k', enabled: true, allowIndex: false, fields: ['displayName', 'stamps', 'khatms', 'ummahKhatms'], data: { displayName: 'Əli', stamps: ['names_99', 'fajr_40'], khatms: 3, ummahKhatms: 2 }, consentAt: 1, moderatedAt: null, updatedAt: 2 }
+  await signedIn(page)
+  await attachK(page, S)
+
+  await page.goto('/u/ali_k')
+  const card = page.getByTestId('public-profile')
+  await expect(card.getByRole('heading', { level: 1, name: 'Əli' })).toBeVisible()
+  await expect(card.locator('.pub-stamps li')).toHaveCount(1)
+  await expect(card).not.toContainText(/Xətm|Ümmət xətmi/)
+
+  await page.goto('/account')
+  const sec = page.getByTestId('public-profile-section')
+  await expect(sec.getByTestId('pp-field-stamps')).toBeChecked()
+  await expect(sec.getByTestId('pp-field-khatms')).toHaveCount(0)
+  await expect(sec.locator('.cm-chips input[type="checkbox"]')).toHaveCount(1)   // yalnız names_99
+  await expect(sec.getByTestId('pp-worship-note')).toBeVisible()
+  await sec.getByTestId('pp-save').click()
+  await expect(sec.getByTestId('pp-msg')).toContainText('Yadda saxlanıldı')
+  // Göndərilən yazıda ibadət sahəsi və ibadət möhürü yoxdur
+  expect(S.profile.fields).toEqual(['displayName', 'stamps'])
+  expect(S.profile.data).toEqual({ displayName: 'Əli', stamps: ['names_99'] })
+
+  // Nəzarətçi gizlədib — server yenidən açmağa icazə vermir (409 moderated)
+  S.profileError = { status: 409, code: 'moderated' }
+  await sec.getByTestId('pp-save').click()
+  await expect(sec.getByTestId('pp-msg')).toHaveText('Nəzarətçi bu profili gizlədib.')
+  expectCleanConsole(consoleProblems)
+})
+
+test('e-poçt təsdiqlənməyib (403 verify_email): dua divarı və açıq profil qeydi + məktubu yenidən göndər', async ({ page, consoleProblems }) => {
+  const S = createK()
+  S.unverified = true
+  S.profileError = { status: 403, code: 'verify_email' }
+  S.wall.push({ id: 5, body: 'Anam üçün dua edin', name: 'Aynur', lang: 'az', status: 'approved', prayed: 0, at: Date.now() })
+  await signedIn(page, { emailVerified: false })
+  await attachK(page, S)
+  await page.goto('/dua-wall')
+  await page.getByTestId('dw-body').fill('Anam üçün şəfa duası edin, xahiş edirəm')
+  await page.getByTestId('dw-submit').click()
+  const note = page.getByTestId('dw-verify')
+  await expect(note).toContainText('e-poçtunuzu təsdiqləyin')
+  await expect(page.getByTestId('dw-msg')).toHaveCount(0)
+  await note.getByTestId('dw-verify-resend').click()
+  await expect(note).toContainText('Təsdiq məktubu göndərildi')
+  // Şikayət də eyni qeydi göstərir
+  const card = page.getByTestId('dw-card').first()
+  await card.getByRole('button', { name: 'Şikayət et' }).click()
+  await card.getByRole('button', { name: 'Göndər' }).click()
+  await expect(card.getByTestId('dw-report-verify')).toBeVisible()
+  // Boş role="alert" yoxdur
+  for (const el of await page.locator('[role="alert"]').all()) expect((await el.innerText()).trim()).not.toBe('')
+
+  await page.goto('/account')
+  const sec = page.getByTestId('public-profile-section')
+  await sec.getByTestId('pp-enabled').check()
+  await sec.getByTestId('pp-handle').fill('ali_k')
+  await sec.getByTestId('pp-consent').check()
+  await sec.getByTestId('pp-save').click()
+  await expect(sec.getByTestId('pp-verify')).toContainText('e-poçtunuzu təsdiqləyin')
+  await expect(sec.getByTestId('pp-msg')).toHaveCount(0)
+  expectCleanConsole(consoleProblems)
+})
+
+test('ümmət xətmi: təsdiqlənməmiş e-poçt (403 verify_email) — səhifə götürmə əvəzinə qeyd', async ({ page, consoleProblems }) => {
+  await signedIn(page, { emailVerified: false })
+  await page.route((u) => u.pathname === '/api/khatm/claim', (route) => route.fulfill({ status: 403, json: { error: 'verify_email', code: 'verify_email' } }))
+  await page.goto('/khatm')
+  await settle(page)
+  const take = page.getByTestId('khatm-take')
+  await take.getByTestId('khatm-take-btn').click()
+  await expect(take.getByTestId('khatm-verify')).toContainText('e-poçtunuzu təsdiqləyin')
+  await expect(take.locator('.kt-msg')).toHaveCount(0)
+  // Gözlənilən 403 — brauzer onu "Failed to load resource" kimi yazır
+  expectCleanConsole(consoleProblems.filter((x) => !/status of 403.*\/api\/khatm\/claim/.test(x)))
+})
+
+test('dua divarı (1280): boş divar kartı, iki sütunun yuxarısı eyni xətdə', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'iki sütun yalnız geniş ekranda')
+  await page.setViewportSize({ width: 1280, height: 900 })
+  const S = createK()
+  await attachK(page, S)
+  await page.goto('/dua-wall')
+  const empty = page.getByTestId('dw-empty')
+  await expect(empty).toBeVisible()
+  await expect(empty.getByTestId('dw-empty-cta')).toHaveAttribute('href', /\/login\?next=/)
+  const left = await page.locator('.dw-layout > .acc-sections').boundingBox()
+  const right = await page.getByTestId('dw-wall').boundingBox()
+  expect(Math.abs(left.y - right.y)).toBeLessThanOrEqual(2)
+})
+
+test('admin moderasiyası: şikayət olunan dualar (saxla / rədd et) və gizlədilmiş profillər (gizlətməni qaldır)', async ({ page, consoleProblems }) => {
+  const S = createK()
+  await fakeAdminSession(page, 'admin')
+  await attachK(page, S)
+  // Bu testin saxtaları: ?status=reported (divarda qalan, şikayət olunmuş) və ?status=hidden (gizlədilmiş profillər).
+  // E-poçt / id cavabda olsa da, panel onları göstərməməlidir.
+  const at = Date.UTC(2026, 10, 17, 9)
+  const flagged = [
+    { id: 7, body: 'Qardaşım üçün iş tapmağa dua edin', name: 'Kamal', lang: 'az', status: 'approved', reported: 2, prayed: 4, createdAt: at, decidedAt: at, expired: false,
+      reports: [{ reason: 'commercial', at }, { reason: 'other', at }], flagged: true, reportsSinceApproval: 2, email: 'author@example.com', userId: 4242 },
+    { id: 8, body: 'Burada reklam mətni var', name: null, lang: 'az', status: 'approved', reported: 1, prayed: 0, createdAt: at, decidedAt: at, expired: false,
+      reports: [{ reason: 'commercial', at }], flagged: true, reportsSinceApproval: 1 },
+  ]
+  const hidden = [{ handle: 'gizli_biri', enabled: false, fields: [], data: {}, moderatedAt: at, reports: [], count: 0, email: 'owner@example.com', userId: 99 }]
+  const posts = []
+  await page.route((u) => /^\/api\/admin\/(dua-wall(\/\d+)?|moderation\/profiles(\/[a-z0-9_]+)?)$/.test(u.pathname), async (route) => {
+    const req = route.request()
+    const url = new URL(req.url())
+    const p = url.pathname
+    const m = req.method()
+    if (m !== 'GET' && !req.headers()['x-requested-with']) return route.fulfill({ status: 403, json: { error: 'Forbidden', code: 'forbidden' } })
+    if (p === '/api/admin/dua-wall' && m === 'GET' && url.searchParams.get('status') === 'reported') {
+      return route.fulfill({ json: { items: flagged, counts: { pending: 0, approved: 2, rejected: 0, reported: 0, flagged: flagged.length }, page: 1,
+        reasons: ['personal_info', 'not_dua', 'inappropriate', 'duplicate', 'commercial', 'other'] } })
+    }
+    let mm = /^\/api\/admin\/dua-wall\/(\d+)$/.exec(p)
+    if (mm && m === 'POST') {
+      const b = req.postDataJSON() || {}
+      posts.push(`${mm[1]} ${b.action}${b.reason ? ` ${b.reason}` : ''}`)
+      const i = flagged.findIndex((x) => x.id === Number(mm[1]))
+      if (i >= 0) flagged.splice(i, 1)
+      return route.fulfill({ json: { ok: true, counts: {} } })
+    }
+    if (p === '/api/admin/moderation/profiles' && m === 'GET' && url.searchParams.get('status') === 'hidden') return route.fulfill({ json: { status: 'hidden', items: hidden } })
+    mm = /^\/api\/admin\/moderation\/profiles\/([a-z0-9_]+)$/.exec(p)
+    if (mm && m === 'POST') {
+      posts.push(`@${mm[1]} ${(req.postDataJSON() || {}).action}`)
+      const i = hidden.findIndex((x) => x.handle === mm[1])
+      if (i >= 0) hidden.splice(i, 1)
+      return route.fulfill({ json: { ok: true } })
+    }
+    return route.fallback()
+  })
+
+  await page.goto('/admin')
+  await adminSignIn(page)
+  await openModeration(page)
+  const mod = page.getByTestId('admin-moderation')
+
+  // ── Şikayət olunan dualar ──
+  await expect(mod.getByTestId('mod-status-pending')).toHaveAttribute('aria-pressed', 'true')
+  await mod.getByTestId('mod-status-reported').click()
+  await expect(mod.getByTestId('mod-status-reported')).toHaveAttribute('aria-pressed', 'true')
+  await expect(mod.getByTestId('mod-status-reported')).toHaveText('Şikayət olunan (2)')
+  await expect(mod.getByTestId('mod-reported-lead')).toContainText('3 şikayətə qədər divarda qalır')
+  const items = mod.getByTestId('mod-wall-item')
+  await expect(items).toHaveCount(2)
+  const first = items.filter({ hasText: 'Qardaşım üçün iş' })
+  await expect(first.getByTestId('mod-flag-reports')).toContainText('Təsdiqdən sonra şikayət: 2')
+  await expect(first.getByTestId('mod-flag-reports')).toContainText('Reklam')
+  await expect(first.getByTestId('mod-flag-reports')).toContainText('Başqa')
+  await expect(first.getByTestId('mod-approve')).toHaveCount(0)
+  await expect(mod).not.toContainText('author@example.com')
+  await expect(mod).not.toContainText('4242')
+  await first.getByTestId('mod-keep').click()
+  await expect(items).toHaveCount(1)
+  await expect(page.locator('.admin-toast').filter({ hasText: 'Yadda saxlanıldı' })).toBeVisible()
+  const second = items.filter({ hasText: 'Burada reklam' })
+  await second.getByRole('combobox', { name: 'Səbəb' }).selectOption('commercial')
+  await second.getByTestId('mod-reject').click()
+  await expect(items).toHaveCount(0)
+  await expect(mod.getByText('Burada heç nə yoxdur')).toBeVisible()
+  expect(posts).toEqual(['7 approve', '8 reject commercial'])
+
+  // ── Gizlədilmiş profillər ──
+  await mod.getByTestId('mod-tab-profiles').click()
+  await expect(mod.getByTestId('mod-profiles-view-reports')).toHaveAttribute('aria-pressed', 'true')
+  await mod.getByTestId('mod-profiles-view-hidden').click()
+  const hiddenItem = mod.getByTestId('mod-hidden-item')
+  await expect(hiddenItem).toHaveCount(1)
+  await expect(hiddenItem).toContainText('@gizli_biri')
+  await expect(hiddenItem).toContainText('Gizlədilib:')
+  await expect(mod).toContainText('profili açmır')
+  await expect(mod).not.toContainText('owner@example.com')
+  await hiddenItem.getByRole('button', { name: 'Gizlətməni qaldır: @gizli_biri' }).click()
+  await expect(hiddenItem).toHaveCount(0)
+  await expect(page.locator('.admin-toast').filter({ hasText: 'Gizlətmə qaldırıldı' })).toBeVisible()
+  expect(posts.at(-1)).toBe('@gizli_biri unhide')
+  // Boş role="alert" qalmır
+  await expect(page.locator('[role="alert"]:empty')).toHaveCount(0)
+  expectCleanConsole(notAdminNoise(consoleProblems))
+})

@@ -105,7 +105,7 @@ const LABELS = {
     ululTitle: 'The five great prophets', ululText: 'Nuh, Ibrahim, Musa, Isa and Muhammad ﷺ are named together in the Quran (al-Ahzab 33:7, ash-Shura 42:13); the scholars call them “ulul-‘azm” (those of resolve, al-Ahqaf 46:35). They carry a gold badge on the cards.',
     ulul: 'Ulul-‘azm',
     eventsTitle: 'Events by era', eventsLead: 'Pick an era to show only it on the timeline. “All eras” lists every event in order of year.',
-    allEras: 'All eras', eraFilter: 'Era', nEvents: (n) => `${n} ${n === 1 ? 'event' : 'events'}`, now: 'today',
+    allEras: 'All eras', eraFilter: 'Era', nEvents: (n) => (n === 1 ? '1 event' : `${n} events`), now: 'today',
     relEyebrow: 'Continue', relTitle: 'Related sections',
     read: 'Details', close: 'Close', prev: 'Previous', next: 'Next', search: 'Search prophets...', onlyUlul: 'Only ulul-‘azm', noResults: 'No results found',
   },

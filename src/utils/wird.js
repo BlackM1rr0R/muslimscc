@@ -9,7 +9,9 @@
 //            AdhkarFocus bitirəndə (adhkar_done_v1) özü işarələnir
 //   sleep   — yatmazdan əvvəl zikrlər (Hisnul-Müslim, fəsil 29) → /hisn#hs-29
 //   mulk / sajdah — Mülk (67) və Səcdə (32) surələri yatmazdan əvvəl (Hisnul-Müslim, fəsil 29,
-//            həmin fəslin 12-ci bəndi) → /quran/67, /quran/32
+//            həmin fəslin 12-ci bəndi, Tirmizi 2892) → /quran/67, /quran/32.
+//            Dərəcə YAZILMIR: hadith-api-də 2892-nin hökmü "Al-Albani: Daif Maqtu"-dur, qeyddə isə
+//            sonda Tavusun məqtu sözü də var — Cabir hədisinin öz hökmü oradan təsdiqlənmir, təxmin edilmir.
 // Hər element bir vaxta bağlıdır (namaz və ya "yatmazdan əvvəl") — bugünkü siyahı istifadəçinin
 // şəhərinin namaz vaxtlarına görə sıralanır (hooks/usePrayerTimes).
 //

@@ -828,6 +828,31 @@ select.ui-select:not([multiple]):not([size]) {
 @media (max-width: 899.98px) {
   .ui-page-hero__aside { margin-top: 8px; }
 }
+/* Telefon (≤480px): hero alətin özünü ekranın altına itələməsin — giriş mətni 2 sətir,
+   rəqəmlər bir sıra kiçik "çip" (rəqəm + ad yan-yana). Mətn DOM-da qalır (ekran oxuyucu tam oxuyur). */
+@media (max-width: 480px) {
+  .ui-page-hero { padding-block: 18px 16px; }
+  .ui-page-hero .ui-container { gap: 8px; }
+  /* .ui-lead--full — giriş mətni vacib qeyd daşıyırsa (məs. məxfilik), kəsilmir */
+  .ui-page-hero .ui-lead:not(.ui-lead--full) {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+  }
+  .ui-page-hero__stats { gap: 6px; margin-top: 2px; }
+  .ui-page-hero__stats > * {
+    flex-direction: row;
+    align-items: baseline;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: var(--surface-2);
+  }
+  .ui-page-hero__stats b,
+  .ui-page-hero__stats strong { font-size: var(--step-0); }
+}
 
 /* ══ 10. KÖMƏKÇİLƏR ════════════════════════════════════════════════ */
 .ui-sr-only {

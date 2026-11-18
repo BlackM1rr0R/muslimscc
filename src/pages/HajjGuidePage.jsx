@@ -57,20 +57,19 @@ const LABELS = {
   tr: { title:'Hac / Umre Rehberi', subtitle:'Adım adım Hac ve Umre rehberi', heroArabic:'الْحَجّ', hajj:'Hac', umrah:'Umre', step:'Adım', recite:'Oku', prev:'Önceki', next:'Sonraki', of:'/', notes:'Notlar', complete:'Tamamlandı!', restart:'Yeniden başla', backToSteps:'Adımlara dön', steps:'Adımlar' },
 }
 
-// Rəqəmdən sonra "addım" sözünün düzgün forması (ru: 4 шага / 10 шагов,
-// ar: 3–10 arası cəm "خطوات", qalanı tək "خطوة"; az/tr-də rəqəmdən sonra tək)
-function stepsWord(n, lang) {
-  if (lang === 'ru') {
+// "N addım" — say ilə bütöv ifadə (ru: 4 шага / 10 шагов, ar: 3–10 arası cəm "خطوات",
+// qalanı tək "خطوة"; az/tr-də rəqəmdən sonra tək). Əlavə dillərdə "en" ifadəsi lüğətlə tərcümə olunur.
+const STEPS_N = {
+  az: (n) => `${n} addım`,
+  en: (n) => (n === 1 ? '1 step' : `${n} steps`),
+  ru: (n) => {
     const d = n % 10, h = n % 100
-    if (d === 1 && h !== 11) return 'шаг'
-    if (d >= 2 && d <= 4 && (h < 12 || h > 14)) return 'шага'
-    return 'шагов'
-  }
-  if (lang === 'ar') return n >= 3 && n <= 10 ? 'خطوات' : 'خطوة'
-  if (lang === 'en') return n === 1 ? 'step' : 'steps'
-  if (lang === 'tr') return 'adım'
-  return 'addım'
+    return `${n} ${d === 1 && h !== 11 ? 'шаг' : d >= 2 && d <= 4 && (h < 12 || h > 14) ? 'шага' : 'шагов'}`
+  },
+  ar: (n) => `${n} ${n >= 3 && n <= 10 ? 'خطوات' : 'خطوة'}`,
+  tr: (n) => `${n} adım`,
 }
+const stepsText = (n, lang) => pickUi(STEPS_N, lang, 'en')(n)
 
 const HAJJ_STEPS = [
   {
@@ -731,7 +730,7 @@ export default function HajjGuidePage({ setPage }) {
                       <span className="ui-icon-tile"><Icon name={o.icon} /></span>
                       <span className="hg-select-titles">
                         <span className="hg-select-name">{o.name}</span>
-                        <span className="hg-select-count"><span className="ui-num">{o.list.length}</span> {stepsWord(o.list.length, lang)}</span>
+                        <span className="hg-select-count">{stepsText(o.list.length, lang)}</span>
                       </span>
                       {lang !== 'ar' && <span className="hg-select-arabic ui-arabic" lang="ar" dir="rtl">{o.ar}</span>}
                     </span>

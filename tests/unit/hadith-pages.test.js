@@ -3,7 +3,7 @@ import { HADITH_IDS } from '../../src/seo/hadithIds.js'
 import { HADITHS } from '../../src/data/hadiths.js'
 import { uniqueHadithsFor } from '../../src/utils/uniqueHadiths.js'
 import { isNotHadith } from '../../src/utils/search.js'
-import { detailMeta, hadithInfo, hadithGradeText } from '../../src/seo/detail.js'
+import { detailMeta, hadithInfo, hadithGradeText } from '../../src/seo/detailData.js'
 import { pathFor, parsePath, DETAILS } from '../../src/seo/routes.js'
 
 describe('/hadith/<id> səhifələri', () => {

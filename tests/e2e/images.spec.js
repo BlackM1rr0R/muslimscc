@@ -19,7 +19,8 @@ for (const prefix of LANGS) {
       await page.goto(`${prefix}${p}`)
       await settle(page)
       const imgs = page.locator('img.ph__img')
-      expect(await imgs.count(), `${p}: foto var`).toBeGreaterThan(0)
+      // settle() lazy marşrut chunk-ının render olunmasını gözləmir — əvvəlcə ilk foto görünsün
+      await expect(imgs.first(), `${p}: foto var`).toBeAttached()
       const bad = await imgs.evaluateAll(list => list
         .filter(i => !i.alt.trim() || !i.getAttribute('width') || !i.getAttribute('height') || !i.srcset.includes('1600'))
         .map(i => i.src))

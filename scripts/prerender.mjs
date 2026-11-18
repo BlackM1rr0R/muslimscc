@@ -36,11 +36,13 @@ import zlib from 'node:zlib'
 
 import { SITE, LANGS, LOCALES, DEFAULT_LANG, PAGES, INDEXABLE, DETAILS, pathFor, detailParams, langsFor, seoLangsFor, canonicalLang, uiLang, dirOf } from '../src/seo/routes.js'
 import { titleFor, descFor, fitDesc, shortName, UI, ogImageFor, OG_ALT } from '../src/seo/meta.js'
-import { brandName, siteJsonLd } from '../src/config/brand.js'
-import { detailMeta, titleForDetail, detailJsonLd } from '../src/seo/detail.js'
+import { brandName } from '../src/config/brand.js'
+import { siteSchema } from '../src/seo/siteSchema.js'
+import { detailMeta, titleForDetail, detailJsonLd } from '../src/seo/detailData.js'
 import { staticBodyFor, staticPreloadFor, hasQuranData } from './seo-body.mjs'
 import { setUiDict } from '../src/utils/uiText.js'
 import { buildLlmsTxt } from './llms-txt.mjs'
+import { stripComments } from './shell-min.mjs'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 // Çıxış qovluğu: susmaya görə dist/. `--out <qovluq>` (və ya PRERENDER_DIST
@@ -53,8 +55,8 @@ const DIST = path.resolve(ROOT,
 
 // Sayt sxemi (schema.org WebSite + Organization) hansı səhifələrdə yazılır —
 // src/seo/Seo.jsx-dəki SITE_JSONLD_PAGES ilə EYNİ olmalıdır. Yalnız ana
-// səhifədə: Google sayt adını və loqosunu kök URL-dən götürür. index.html-dəki
-// statik WebSite bloku eyni @id-ni (…/#website) daşıyır — bir obyekt sayılır.
+// səhifədə: Google sayt adını və loqosunu kök URL-dən götürür. Sxem src/seo/siteSchema.js-dədir
+// (WebSite + Organization + WebApplication) — saytın yeganə #website node-u.
 const SITE_JSONLD_PAGES = ['home']
 
 // Tanınmayan ünvan (404) — App.jsx parsePath(...).known === false olanda
@@ -138,9 +140,9 @@ function headFor(key, lang, param = null) {
     `    <link rel="canonical" href="${canonical}" data-seo="canonical" />`,
     alts,
     `    <script type="application/ld+json" data-seo="page-jsonld">${JSON.stringify(jsonld)}</script>`,
-    // Sayt sxemi (WebSite + Organization) — yalnız ana səhifədə, həmin dildə
+    // Sayt sxemi (WebSite + Organization + WebApplication) — yalnız ana səhifədə, həmin dildə
     ...(SITE_JSONLD_PAGES.includes(key)
-      ? [`    <script type="application/ld+json" data-seo="site-jsonld">${JSON.stringify(siteJsonLd(lang))}</script>`]
+      ? [`    <script type="application/ld+json" data-seo="site-jsonld">${JSON.stringify(siteSchema(lang))}</script>`]
       : []),
   ].join('\n')
 }
@@ -247,11 +249,13 @@ function renderPage(template, key, lang, noindex = false, param = null) {
   html = replaceMeta(html, 'property', 'og:locale', LOCALES[lang] || LOCALES.az)
   // Sayt adı da səhifənin dilində (BRAND.name hər dil üçün ayrıca verilir)
   html = replaceMeta(html, 'property', 'og:site_name', brandName(lang))
-  // og:locale:alternate — cari dildən BAŞQA dörd dil (şablondakı sabit siyahı
-  // /en/ səhifəsində en_US-u özünə alternativ göstərir, az_AZ-ı buraxırdı)
+  // og:locale:alternate — cari dildən BAŞQA 5 əsas dil (şablondakı sabit siyahı
+  // /en/ səhifəsində en_US-u özünə alternativ göstərir, az_AZ-ı buraxırdı).
+  // 50 dilin hamısı YAZILMIR (2026-11-18): 45k səhifədə ~2.5 KB; dil variantlarını
+  // Google hreflang-dan götürür, og:locale:alternate yalnız paylaşım kartı üçündür.
   html = html.replace(
     /(\s*<meta\s+property="og:locale:alternate"[^>]*>)+/i,
-    (notFound ? LANGS : langsFor(key)).filter(l => l !== lang)
+    LANGS.filter(l => l !== lang)
       .map(l => `\n    <meta property="og:locale:alternate" content="${LOCALES[l]}" />`)
       .join(''),
   )
@@ -468,7 +472,6 @@ function writeUrlsetChunks(file, urls) {
  * bölmənin indekslənməsi Search Console-da ayrıca görünür.
  */
 function buildSitemap() {
-  const today = new Date().toISOString().slice(0, 10)
   const files = []
   let total = 0
 
@@ -496,7 +499,9 @@ function buildSitemap() {
     `<?xml version="1.0" encoding="UTF-8"?>\n` +
     `<!-- Avtomatik yaradılır: scripts/prerender.mjs. Əl ilə redaktə etmə. -->\n` +
     `<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n` +
-    files.map(f => `  <sitemap>\n    <loc>${SITE}/${f}</loc>\n    <lastmod>${today}</lastmod>\n  </sitemap>`).join('\n') +
+    // lastmod YOXDUR (2026-11-18): hər deploy-da bu günün tarixi idi — Google belə lastmod-u
+    // etibarsız sayıb nəzərə almır; həqiqi məzmun tarixi olmadan yazmamaq daha düzgündür
+    files.map(f => `  <sitemap>\n    <loc>${SITE}/${f}</loc>\n  </sitemap>`).join('\n') +
     `\n</sitemapindex>\n`
   fs.writeFileSync(path.join(DIST, 'sitemap.xml'), index, 'utf8')
   return { total, files }
@@ -510,7 +515,7 @@ if (!fs.existsSync(templatePath)) {
   process.exit(1)
 }
 
-const template = fs.readFileSync(templatePath, 'utf8')
+const template = stripComments(fs.readFileSync(templatePath, 'utf8'))
 if (!template.includes('<!--SEO:HEAD-->')) {
   console.error('✗ index.html-də <!--SEO:HEAD--> yer tutucusu yoxdur (vite build-i yenidən işlət).')
   process.exit(1)

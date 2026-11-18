@@ -9,19 +9,20 @@ import { pickUi } from '../../utils/uiText'
 import { pathFor } from '../../seo/routes'
 import CopyLink from '../readroom/CopyLink'
 import { Card, Confirm, Msg, fmtDay, nf } from '../community/CommunityUi'
-import { PP, WK, MR } from './communityText'
+import { PP, WK, MR, PUBLIC_FIELDS, PUBLIC_STAMP_IDS, apiErrCode } from './communityText'
+import VerifyEmailNote from './VerifyEmailNote'
 import {
   getPublicProfileSettings, savePublicProfile, deletePublicProfile, checkHandle, HANDLE_RE,
   getWeekly, saveWeeklyPrefs, deleteWeekly, getMosqueRep, saveMosqueRep, addMosqueAnnouncement, deleteMosqueAnnouncement,
 } from '../../api/community'
-import { readPassport, passportStats } from '../../utils/passport'
-import { readKhatm, doneRounds } from '../../utils/worldKhatm'
+import { readPassport } from '../../utils/passport'
 import { stampName } from '../SpiritualPassport'
 import { computeWeekly, nextReportDate, writeLocalWeekly, maybeUpload, dayKey } from '../../utils/weeklyReport'
 import '../../styles/ReadTogether.css'
 import '../../styles/Community.css'
 
-const PP_FIELDS = ['displayName', 'kunya', 'stamps', 'khatms', 'ummahKhatms', 'bio', 'favSurah']
+// Sahibin qərarı (2026-11-18): açıq profildə ibadət sayı yoxdur — yalnız ad, künyə, bio, sevimli surə, öyrənmə möhürləri
+const PP_FIELDS = PUBLIC_FIELDS
 const PRAYERS = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha']
 const KUNYA_KEY = 'muslim_cc_kunya_v1'   // J mərhələsi (utils/journeyStore) — { p: 'abu'|'umm', n: ad }
 const ls = () => { try { return globalThis.localStorage } catch { return null } }
@@ -37,7 +38,7 @@ function localKunya(lang) {
     return `${pre} ${v.n.trim()}`.slice(0, 40)
   } catch { return '' }
 }
-const errCode = (e) => (e && e.code) || ''
+const errCode = apiErrCode
 
 export default function AccountKSections({ lang, siteLang, user }) {
   return (
@@ -67,24 +68,26 @@ function PublicProfileSection({ lang, siteLang, user }) {
   const [consent, setConsent] = useState(false)
   const [msg, setMsg] = useState(null)
   const [busy, setBusy] = useState(false)
+  const [needVerify, setNeedVerify] = useState(false)
 
-  // Bu cihazdan hesablanan rəqəmlər (server şifrəli məlumatı oxumur)
+  // Bu cihazdakı öyrənmə möhürləri və künyə (server şifrəli məlumatı oxumur; ibadət möhürləri təklif olunmur)
   const local = useMemo(() => {
-    let khatms = 0, ummah = 0
-    try { khatms = passportStats().khatms || 0 } catch { /* */ }
-    try { ummah = doneRounds(readKhatm()) } catch { /* */ }
-    return { earned: Object.keys(readPassport()), khatms, ummah, kunya: localKunya(lang) }
+    let earned = []
+    try { earned = Object.keys(readPassport()).filter((s) => PUBLIC_STAMP_IDS.includes(s)) } catch { /* */ }
+    return { earned, kunya: localKunya(lang) }
   }, [lang])
 
   const apply = useCallback((p) => {
     setSaved(p)
     if (!p) return
     setOn(p.enabled); setHandle(p.handle); setAllowIndex(p.allowIndex)
-    setFields(p.fields.length ? p.fields : ['displayName'])
+    // Köhnə profildə qalmış ibadət sahələri (xətm sayı …) formaya düşmür
+    const keep = (p.fields || []).filter((f) => PP_FIELDS.includes(f))
+    setFields(keep.length ? keep : ['displayName'])
     if (p.data.displayName) setName(p.data.displayName)
     if (p.data.bio) setBio(p.data.bio)
     if (p.data.favSurah) setSurah(String(p.data.favSurah))
-    if (p.data.stamps) setStamps(p.data.stamps)
+    if (p.data.stamps) setStamps(p.data.stamps.filter((s) => PUBLIC_STAMP_IDS.includes(s)))
   }, [])
   useEffect(() => {
     getPublicProfileSettings().then((r) => apply(r.profile)).catch(() => {}).finally(() => setLoaded(true))
@@ -114,19 +117,18 @@ function PublicProfileSection({ lang, siteLang, user }) {
       if (f === 'kunya' && local.kunya) { data.kunya = local.kunya; use.push(f) }
       if (f === 'bio' && bio.trim()) { data.bio = bio.trim(); use.push(f) }
       if (f === 'stamps') { data.stamps = stamps.filter((s) => local.earned.includes(s)); use.push(f) }
-      if (f === 'khatms') { data.khatms = local.khatms; use.push(f) }
-      if (f === 'ummahKhatms') { data.ummahKhatms = local.ummah; use.push(f) }
       if (f === 'favSurah') { const n = Number(surah); if (Number.isInteger(n) && n >= 1 && n <= 114) { data.favSurah = n; use.push(f) } }
     }
-    setBusy(true); setMsg(null)
+    setBusy(true); setMsg(null); setNeedVerify(false)
     try {
       const r = await savePublicProfile({ handle: h, enabled: on, allowIndex, fields: use, data }, !saved)
       apply(r.profile)
       setMsg({ tone: 'ok', text: t.saved })
     } catch (err) {
       const c = errCode(err)
+      if (c === 'verify_email') { setNeedVerify(true); return }
       if (['handle_taken', 'reserved', 'bad_handle'].includes(c)) setHState({ tone: 'bad', text: handleText(c) })
-      setMsg({ tone: 'bad', text: c === 'consent_required' ? t.consentNeed : ['handle_taken', 'reserved', 'bad_handle'].includes(c) ? handleText(c) : t.failed })
+      setMsg({ tone: 'bad', text: c === 'consent_required' ? t.consentNeed : c === 'moderated' ? t.moderated : ['handle_taken', 'reserved', 'bad_handle'].includes(c) ? handleText(c) : t.failed })
     } finally { setBusy(false) }
   }
 
@@ -140,7 +142,7 @@ function PublicProfileSection({ lang, siteLang, user }) {
   return (
     <Card id="public-profile" icon="user" title={t.title} lead={t.lead} testId="public-profile-section">
       <form className="prf-form" onSubmit={onSave} noValidate>
-        {saved?.moderatedAt && !saved.enabled && <p className="rt-msg" role="status">{t.moderated}</p>}
+        {saved?.moderatedAt && !saved.enabled && <p className="rt-msg" role="status" data-testid="pp-moderated">{t.moderated}</p>}
         <label className="rt-switch">
           <input type="checkbox" checked={on} onChange={(e) => setOn(e.target.checked)} data-testid="pp-enabled" />
           <span><strong>{t.enable}</strong></span>
@@ -169,13 +171,12 @@ function PublicProfileSection({ lang, siteLang, user }) {
                     <input type="checkbox" checked={fields.includes(f) && !disabled} disabled={disabled} onChange={() => toggle(f)} data-testid={`pp-field-${f}`} />
                     <span>
                       {t.fields[f]}
-                      {f === 'khatms' && <>: <strong className="ui-num">{nf(local.khatms, lang)}</strong></>}
-                      {f === 'ummahKhatms' && <>: <strong className="ui-num">{nf(local.ummah, lang)}</strong></>}
                       {f === 'kunya' && <>: <bdi>{local.kunya || t.noKunya}</bdi></>}
                     </span>
                   </label>
                 )
               })}
+              <p className="rt-note" data-testid="pp-worship-note"><Icon name="info" size={14} /> {t.worshipNote}</p>
             </fieldset>
 
             {fields.includes('displayName') && (
@@ -228,6 +229,7 @@ function PublicProfileSection({ lang, siteLang, user }) {
             </div>
           </>
         )}
+        {needVerify && <VerifyEmailNote lang={lang} testId="pp-verify" />}
         <Msg msg={msg} testId="pp-msg" />
       </form>
     </Card>

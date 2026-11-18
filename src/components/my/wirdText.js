@@ -22,7 +22,7 @@ export const WIRD_TXT = {
   },
   en: {
     ey: 'Wird', title: 'My wird', lead: 'Your daily litany — ordered by your prayer times. Only you can see it.',
-    today: 'Today’s wird', streak: (n) => `Streak: ${n} ${n === 1 ? 'day' : 'days'}`, of: (d, n) => `${d} of ${n} done`, allDone: 'Today’s wird is complete — may Allah accept it!',
+    today: 'Today’s wird', streak: (n) => (n === 1 ? 'Streak: 1 day' : `Streak: ${n} days`), of: (d, n) => `${d} of ${n} done`, allDone: 'Today’s wird is complete — may Allah accept it!',
     empty: 'Your wird is empty. Add items below or start with a simple wird.', starter: 'Start with a simple wird',
     build: 'Build your wird', add: 'Add', remove: 'Remove', type: 'What', count: 'Count', when: 'When', open: 'Open',
     pages: 'pages', times: 'times', full: 'A wird can have up to 12 items.',
@@ -31,7 +31,7 @@ export const WIRD_TXT = {
     calcNote: 'Times follow the calculated prayer times of the city you chose.',
     toPage: 'Open the wird in the daily tracker', homeLead: 'Today’s list',
     done: (name) => `${name} — done`, undone: (name) => `${name} — undone`,
-    tq: (n) => `Quran — ${n} ${n === 1 ? 'page' : 'pages'}`, tsalawat: (n) => `Salawat — ${n} ${n === 1 ? 'time' : 'times'}`, ttasbih: 'Tasbih after the prayer (33 + 33 + 33 + 1)',
+    tq: (n) => (n === 1 ? 'Quran — 1 page' : `Quran — ${n} pages`), tsalawat: (n) => (n === 1 ? 'Salawat — 1 time' : `Salawat — ${n} times`), ttasbih: 'Tasbih after the prayer (33 + 33 + 33 + 1)',
     tmorning: 'Morning adhkar', tevening: 'Evening adhkar', tsleep: 'Adhkar before sleep', tmulk: 'Surah al-Mulk (67)', tsajdah: 'Surah as-Sajdah (32)',
     oq: 'Quran pages', osalawat: 'Salawat', otasbih: 'Tasbih after the prayer', omorning: 'Morning adhkar', oevening: 'Evening adhkar', osleep: 'Adhkar before sleep', omulk: 'Surah al-Mulk', osajdah: 'Surah as-Sajdah',
     after: (p) => `After ${p}`, sleep: 'Before sleep',

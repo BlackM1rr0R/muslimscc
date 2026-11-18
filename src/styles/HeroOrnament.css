@@ -16,19 +16,22 @@
 @keyframes hero-orn-draw { to { stroke-dashoffset: 0; } }
 
 /* Başlığın üstündən bir dəfə işıq keçir (konsept A): animasiya müddətində mətnin dolğusu qradiyentdən gəlir,
-   sonda adi rənginə qayıdır (text-fill-color — son kadr). Testlərdə hərəkət azaldılıb — təsir etmir. */
+   sonda adi rənginə qayıdır (text-fill-color — son kadr). Testlərdə hərəkət azaldılıb — təsir etmir.
+   Mövqe 100% → 0% aralığında qalır (260% ölçüdə qradiyent mətni həmişə örtür); background-color isə
+   ehtiyat: örtülməyən hərf olsa belə text-clip rəngi saxlayır, hərf yox olmur. */
 @media (prefers-reduced-motion: no-preference) {
   html:not(.a11y-reduce-motion) .ui-page-hero .ui-display,
   html:not(.a11y-reduce-motion) .hp-shine {
+    background-color: var(--text-strong, #13201b);
     background-image: linear-gradient(100deg, var(--text-strong, #13201b) 42%, color-mix(in srgb, var(--accent, #a57a22) 80%, #fff) 50%, var(--text-strong, #13201b) 58%);
     background-size: 260% 100%; background-repeat: no-repeat; -webkit-background-clip: text; background-clip: text;
     animation: hero-shine 2.6s ease-out .9s 1 both;
   }
 }
 @keyframes hero-shine {
-  0% { background-position: 110% 0; -webkit-text-fill-color: transparent; }
-  99.9% { background-position: -10% 0; -webkit-text-fill-color: transparent; }
-  100% { background-position: -10% 0; -webkit-text-fill-color: currentColor; }
+  0% { background-position: 100% 0; -webkit-text-fill-color: transparent; }
+  99.9% { background-position: 0% 0; -webkit-text-fill-color: transparent; }
+  100% { background-position: 0% 0; -webkit-text-fill-color: currentColor; }
 }
 
 /* Məzmun naxışın üstündə qalsın */

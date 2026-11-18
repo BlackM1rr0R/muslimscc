@@ -38,7 +38,7 @@ const T = {
     note: 'Yolun xətti təxminidir (saytın hicrət xəritəsi ilə eyni). Dayanacaq mətnləri — Buxari 3905, 3906 rəvayətlərinin və Tövbə 40-ın qısa xülasəsi.' },
   en: { u: 'km', ey: 'The Hijrah route', title: 'Walk the Hijrah route', lead: 'Log how many kilometres you walk each day and advance along the Hijrah route from Mecca to Medina. Each stop’s story unlocks as you pass it.',
     len: 'Route length', lenNote: 'along the approximate line on the map', km: 'Kilometres', steps: 'Steps', stride: 'Stride length (m)', date: 'Date', add: 'Add', undo: 'Undo last entry',
-    total: 'Walked', pct: 'Complete', streak: 'Day streak', eta: 'Estimated finish', pace: 'Average pace', perDay: 'km/day', days: (n) => `${n} ${n === 1 ? 'day' : 'days'}`, left: (k) => `${k} km to go`,
+    total: 'Walked', pct: 'Complete', streak: 'Day streak', eta: 'Estimated finish', pace: 'Average pace', perDay: 'km/day', days: (n) => (n === 1 ? '1 day' : `${n} days`), left: (k) => `${k} km to go`,
     done: 'You reached Medina! You have completed the Hijrah route.', family: 'Family mode', me: 'Me', name: 'Name', addW: 'Add walker', remove: 'Remove', local: 'Names are stored only on this device.',
     walker: 'Walker', stops: 'Stops', locked: 'Not reached yet', map: 'Map of the Hijrah route and your position', bad: 'Enter a valid number (0–200 km).', eq: (k) => `≈ ${k} km`,
     note: 'The line of the route is approximate (the same as the site’s Hijrah map). Stop texts are short summaries of al-Bukhari 3905, 3906 and at-Tawbah 40.' },

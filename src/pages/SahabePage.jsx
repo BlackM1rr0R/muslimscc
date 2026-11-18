@@ -4,6 +4,7 @@ import SahabaNarrations from '../components/SahabaNarrations'
 import HeroOrnament from '../components/HeroOrnament'
 import { useLang } from '../contexts/LangContext'
 import { localizeSource } from '../utils/sourceNames'
+import { txt } from '../utils/uiText'
 import Icon from '../components/Icon'
 import { isPlainClick } from '../components/PageLink'
 import { parsePath, pathFor } from '../seo/routes'
@@ -71,7 +72,7 @@ const LABELS = {
     sources:'Sources', sourcesNote:'Works from which the hadiths and narrations on this page are taken.', contents:'Contents',
     prev:'Previous companion', next:'Next companion', share:'Share', copied:'Link copied', copyFail:'Could not copy the link',
     filter:'Filter', fAll:'All', fCaliphs:'Rightly guided caliphs', fWomen:'Women companions', fNarrators:'Hadith narrators', read:'Read biography',
-    years:(n) => `${n} ${n === 1 ? 'year' : 'years'}`, age:(n) => `${n} years`, hadithN:(n) => `${n} ${n === 1 ? 'hadith' : 'hadiths'}`,
+    years:(n) => (n === 1 ? '1 year' : `${n} years`), age:(n) => `${n} years`, hadithN:(n) => (n === 1 ? '1 hadith' : `${n} hadiths`),
   },
   ru: {
     how:'Выберите карточку — откроются жизнь сподвижника, ключевые факты и хадисы о нём с источниками.',
@@ -144,7 +145,8 @@ function heroMeta(lang, f, h, src, L) {
     ].join(' · ')
   }
   if (lang === 'en') {
-    return [`${f} ${f === 1 ? 'fact' : 'facts'}`, `${h} ${h === 1 ? 'hadith' : 'hadiths'}`, `${src} ${src === 1 ? 'source' : 'sources'}`].join(' · ')
+    // txt — əlavə dillərdə bütöv ifadə lüğətlə tərcümə olunur (extract-ui-strings txt(...) arqumentini də toplayır)
+    return [txt(f === 1 ? '1 fact' : `${f} facts`), txt(h === 1 ? '1 hadith' : `${h} hadiths`), txt(src === 1 ? '1 source' : `${src} sources`)].join(' · ')
   }
   if (lang === 'ar') {
     // 1 → مفرد، 2 → مثنى، 3–10 → جمع، 11+ → مفرد منصوب

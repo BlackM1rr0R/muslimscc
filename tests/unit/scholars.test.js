@@ -4,7 +4,7 @@ import { describe, it, expect } from 'vitest'
 import { SCHOLARS, ERAS, ERA_LABEL, ERA_SHORT, ERA_SPAN, scholarBySlug, lifeSpan, dateText } from '../../src/data/scholars.js'
 import { SCHOLAR_SLUGS } from '../../src/seo/detailSlugs.js'
 import { LANGS, parsePath, pathFor } from '../../src/seo/routes.js'
-import { detailMeta, detailJsonLd, titleForDetail } from '../../src/seo/detail.js'
+import { detailMeta, detailJsonLd, titleForDetail } from '../../src/seo/detailData.js'
 import { staticBodyFor } from '../../scripts/seo-body.mjs'
 
 const filled = (v) => typeof v === 'string' && v.trim().length > 0

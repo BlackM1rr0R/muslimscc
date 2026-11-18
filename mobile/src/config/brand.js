@@ -62,7 +62,7 @@ export const BRAND = {
     en: 'A free Islamic platform in 50 languages: read and listen to the Quran, prayer times, hadith, duas, a dhikr counter, a zakat calculator, qibla direction, a hifz tracker and Islamic knowledge.',
     ru: 'Бесплатная исламская платформа на 50 языках: чтение и прослушивание Корана, время намаза, хадисы, дуа, счётчик зикра, калькулятор закята, направление киблы, трекер хифза и исламские знания.',
     tr: '50 dilde ücretsiz İslami platform: Kur’an okuma ve dinleme, namaz vakitleri, hadisler, dualar, zikir sayacı, zekât hesaplayıcı, kıble yönü, hıfz takipçisi ve İslami bilgi.',
-    ar: 'منصة إسلامية مجانية بخمس لغات: قراءة القرآن والاستماع إليه، ومواقيت الصلاة، والأحاديث، والأدعية، وعدّاد الأذكار، وحاسبة الزكاة، واتجاه القبلة، ومتابعة الحفظ، والمعرفة الإسلامية.',
+    ar: 'منصة إسلامية مجانية بخمسين لغة: قراءة القرآن والاستماع إليه، ومواقيت الصلاة، والأحاديث، والأدعية، وعدّاد الأذكار، وحاسبة الزكاة، واتجاه القبلة، ومتابعة الحفظ، والمعرفة الإسلامية.',
   },
 
   domain: 'muslims.cc',

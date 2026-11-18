@@ -1,9 +1,10 @@
 // ═══════════════════════════════════════════════════════════════════════
 // "Ümmətin Canlı Xətmi" — bitməyən, ümumdünya xətmi (Mushafın 604 səhifəsi = bir dövr)
 //
-// • Daxil olmuş istifadəçi "Bir səhifə götür" → cari dövrün HƏLƏ GÖTÜRÜLMƏMİŞ ən kiçik nömrəli
-//   səhifəsi ona verilir. İstifadəçinin eyni anda bir aktiv səhifəsi olur; 30 dəq ərzində
-//   "Oxudum" demirsə səhifə hovuza qayıdır. Götürmə ATOMİKDİR: BEGIN IMMEDIATE + (round, page)
+// • Daxil olmuş, e-poçtu TƏSDİQLƏNMİŞ istifadəçi (403 verify_email) "Bir səhifə götür" → cari dövrün HƏLƏ
+//   GÖTÜRÜLMƏMİŞ ən kiçik nömrəli səhifəsi ona verilir. İstifadəçinin eyni anda bir aktiv səhifəsi olur; 30 dəq
+//   ərzində (səhifələrin 80 %-dən çoxu götürülübsə — 10 dəq; yığıb saxlamağın qarşısı) "Oxudum" demirsə səhifə
+//   hovuza qayıdır. Götürmə ATOMİKDİR: BEGIN IMMEDIATE + (round, page)
 //   üzrə PRIMARY KEY — iki nəfər heç vaxt eyni səhifəni almır.
 // • "Oxudum": server sahibliyi, götürmədən ən azı 40 san keçdiyini və istifadəçi üzrə saatda
 //   60 səhifə həddini yoxlayır. Oxunmanın özü YOXLANMIR — niyyət sahibinindir (UI bunu açıq deyir).
@@ -17,7 +18,8 @@
 //   ömrü boyu saxlanır və "Oxudum" anında canlı axına bir dəfə çıxır (Kəbəyə işıq), sonra silinir.
 //   Ölkə: Cloudflare CF-IPCountry — dövr üzrə ÇOXLUQ (kimin hansı ölkədən olduğu saxlanmır).
 // • Canlı: GET /api/khatm/live — İCTİMAİ SSE (sirr yoxdur, yalnız toplu məlumat). Bağlantı həddi:
-//   cəmi 2000, IP başına 4; 25 san keepalive; X-Accel-Buffering: no (nginx: location = /api/khatm/live).
+//   cəmi 2000, IP başına 4 (IPv6 — /64 üzrə, server/ipKey.js; IP saxlanmır); cəmi dolanda ən köhnə bağlantı
+//   bağlanır (yenisi qəbul olunur); 25 san keepalive; X-Accel-Buffering: no (nginx: location = /api/khatm/live).
 // • Reytinq / şəxsi ictimai statistika YOXDUR (riya olmasın) — yalnız ümumi rəqəmlər.
 //
 // Cədvəllər MİQRASİYASIZ (CREATE TABLE IF NOT EXISTS, user_version artmır). Hesab silinəndə:
@@ -39,10 +41,14 @@
 const express = require('express')
 const hijri = require('./hijri')
 const { cleanLine } = require('./readTogether')
+const { requireVerified } = require('./communityKit')
+const { createIpKeyer } = require('./ipKey')
 
 const PAGES = 604
 const BYTES = Math.ceil(PAGES / 8)
 const CLAIM_MS = 30 * 60e3
+const CLAIM_MS_CROWDED = 10 * 60e3   // səhifələrin > 80 %-i götürülübsə
+const CROWDED_SHARE = 0.8
 const MIN_READ_MS = 40e3
 const MAX_DEDICATION = 40
 const DEDICATION_KEEP_MS = 30 * 86400e3
@@ -163,7 +169,8 @@ function ramadanRange(ms) {
 function createGlobalKhatmRouter(opts) {
   const {
     db, requireUser, now = () => Date.now(), limits = LIMITS, sweepMs = SWEEP_MS, keepaliveMs = KEEPALIVE_MS,
-    statsTtlMs = STATS_TTL_MS, minReadMs = MIN_READ_MS, claimMs = CLAIM_MS, activeThrottleMs = ACTIVE_THROTTLE_MS,
+    statsTtlMs = STATS_TTL_MS, minReadMs = MIN_READ_MS, claimMs = CLAIM_MS, claimMsCrowded = CLAIM_MS_CROWDED, activeThrottleMs = ACTIVE_THROTTLE_MS,
+    maxConnTotal = MAX_CONN_TOTAL, maxConnPerIp = MAX_CONN_PER_IP,
     lovedNames = () => [], pushSubsOf = () => [], langOf = () => 'en', pushSend = null,
     publicOrigin = 'https://muslims.cc', log = console,
   } = opts
@@ -267,8 +274,10 @@ function createGlobalKhatmRouter(opts) {
   } : null)
 
   // ── SSE ──
-  const conns = new Set()
-  const perIp = new Map()
+  const conns = new Set()       // daxil olma sırası ilə (ilk — ən köhnə)
+  const closers = new Map()     // res → bağlamaq funksiyası
+  const perIp = new Map()       // ipKey (/64) → bağlantı sayı
+  const ipKey = createIpKeyer()
   function send(res, event, data) {
     try { res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`) } catch { /* bağlantı qırılıb */ }
   }
@@ -334,7 +343,7 @@ function createGlobalKhatmRouter(opts) {
   router.use('/khatm', (req, res, next) => { if (req.method !== 'GET' || !/^\/khatm\/(state|stats|rounds)$/.test(req.path)) res.set('Cache-Control', 'no-store'); next() })
 
   // ── Səhifə götür ──
-  router.post('/khatm/claim', auth, json, (req, res) => {
+  router.post('/khatm/claim', auth, requireVerified, json, (req, res) => {
     const uid = req.user.id
     const b = body(req)
     let dedication = null
@@ -356,8 +365,10 @@ function createGlobalKhatmRouter(opts) {
       let page = 0
       for (let i = 1; i <= PAGES; i++) if (!taken.has(i)) { page = i; break }
       if (!page) return { full: true }
-      st.insertClaim.run(r.id, page, uid, t, t + claimMs, cell, dedication)
-      return { claim: claimOut({ page, claimed_at: t, expires_at: t + claimMs, dedication, cell }, r.no), existing: false }
+      // Hovuz az qalıb — iddia qısa ömürlüdür (sock-puppet hesablarla bütün səhifələri tutub saxlamaq çətinləşir)
+      const ttl = taken.size + 1 > PAGES * CROWDED_SHARE ? Math.min(claimMs, claimMsCrowded) : claimMs
+      st.insertClaim.run(r.id, page, uid, t, t + ttl, cell, dedication)
+      return { claim: claimOut({ page, claimed_at: t, expires_at: t + ttl, dedication, cell }, r.no), existing: false }
     })
     if (out.rate) return err(res, 429, 'rate_limited')
     if (out.full) return err(res, 409, 'all_taken')
@@ -457,9 +468,16 @@ function createGlobalKhatmRouter(opts) {
   })
 
   router.get('/khatm/live', (req, res) => {
-    const ip = req.ip || ''
+    const ip = ipKey(req)
     const mine = perIp.get(ip) || 0
-    if (conns.size >= MAX_CONN_TOTAL || mine >= MAX_CONN_PER_IP) return err(res, 429, 'too_many_connections')
+    if (mine >= maxConnPerIp) return err(res, 429, 'too_many_connections')
+    // Cəmi həddə çatıb — ən köhnə bağlantı bağlanır (EventSource özü yenidən qoşulur), yenisi qəbul olunur
+    while (conns.size >= maxConnTotal) {
+      const oldest = conns.values().next().value
+      const close = closers.get(oldest)
+      if (close) close(); else conns.delete(oldest)
+      try { oldest.end() } catch { /* */ }
+    }
     res.status(200).set({
       'Content-Type': 'text/event-stream; charset=utf-8', 'Cache-Control': 'no-store', 'X-Accel-Buffering': 'no', Connection: 'keep-alive',
     })
@@ -476,9 +494,11 @@ function createGlobalKhatmRouter(opts) {
       done = true
       clearInterval(ka)
       conns.delete(res)
+      closers.delete(res)
       const n = (perIp.get(ip) || 1) - 1
       if (n > 0) perIp.set(ip, n); else perIp.delete(ip)
     }
+    closers.set(res, cleanup)
     req.on('close', cleanup)
     res.on('close', cleanup)
   })
@@ -533,5 +553,5 @@ function createGlobalKhatmRouter(opts) {
 
 module.exports = {
   createGlobalKhatmRouter, cellOf, encodeBits, ramadanRange,
-  PAGES, CLAIM_MS, MIN_READ_MS, MAX_DEDICATION, DEDICATION_KEEP_MS, LIMITS, MAX_CONN_PER_IP, MAX_CONN_TOTAL,
+  PAGES, CLAIM_MS, CLAIM_MS_CROWDED, MIN_READ_MS, MAX_DEDICATION, DEDICATION_KEEP_MS, LIMITS, MAX_CONN_PER_IP, MAX_CONN_TOTAL,
 }

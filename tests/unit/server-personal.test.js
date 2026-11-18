@@ -215,6 +215,63 @@ describe('personal HTTP', () => {
     expect((await fetch(`${srv.url}/api/personal/unsubscribe?t=1.loved.xxx`)).status).toBe(400)
   })
 
+  it('abunəlikdən çıxma tokeni razılıq vaxtına bağlıdır: e-poçtu yenidən açmaq / zəkatı təzədən qurmaq köhnə keçidi ləğv edir', async () => {
+    const t0 = clock
+    clock = Date.UTC(2026, 11, 1, 6, 0)   // LEGACY tarixindən sonra: köhnə forma qəbul olunmur
+    try {
+      const { cookie, id } = await signup('rotate@example.com')
+      await call('/api/personal/loved', { cookie, body: { name: 'Ata', passedOn: '2010-01-01', tz: 'UTC', lang: 'en', consent: true } })
+      await call('/api/personal/zakat', { method: 'PUT', cookie, body: { hawlStart: '2026-11-25', tz: 'UTC', consent: true } })
+      const secret = router.store.secret()
+      const pr = () => router.store.prefs(id)
+      const post = (t) => fetch(`${srv.url}/api/personal/unsubscribe?t=${t}`, { method: 'POST' })
+      const loved1 = personal.unsubToken(secret, id, 'loved', pr().consent_loved)
+      expect((await post(personal.unsubToken(secret, id, 'loved'))).status).toBe(400)   // köhnə forma, yeni razılıq
+      expect((await post(loved1)).status).toBe(200)
+      expect(pr().loved_email).toBe(0)
+      // e-poçtu yenidən açır → razılıq vaxtı yenilənir, köhnə keçid işləmir
+      clock += 60e3
+      expect((await call('/api/personal/prefs', { method: 'PATCH', cookie, body: { lovedEmail: true } })).status).toBe(200)
+      expect(pr().consent_loved).toBe(clock)
+      expect((await post(loved1)).status).toBe(400)
+      expect(pr().loved_email).toBe(1)
+      // eyni vəziyyəti təkrar göndərmək (true → true) tokeni dəyişmir
+      const loved2 = personal.unsubToken(secret, id, 'loved', pr().consent_loved)
+      clock += 60e3
+      await call('/api/personal/prefs', { method: 'PATCH', cookie, body: { lovedEmail: true } })
+      expect((await fetch(`${srv.url}/api/personal/unsubscribe?t=${loved2}`)).status).toBe(200)
+      // zəkat: keçidlə silinir, təzədən qurulanda köhnə keçid işləmir
+      const z1 = personal.unsubToken(secret, id, 'zakat', pr().consent_zakat)
+      expect((await post(z1)).status).toBe(200)
+      expect(db.raw.prepare('SELECT COUNT(*) AS n FROM personal_zakat WHERE user_id = ?').get(id).n).toBe(0)
+      clock += 60e3
+      await call('/api/personal/zakat', { method: 'PUT', cookie, body: { hawlStart: '2026-11-25', tz: 'UTC' } })
+      expect(pr().consent_zakat).toBe(clock)
+      expect((await post(z1)).status).toBe(400)
+      expect(db.raw.prepare('SELECT COUNT(*) AS n FROM personal_zakat WHERE user_id = ?').get(id).n).toBe(1)
+    } finally { clock = t0 }
+  })
+
+  it('izləyəni yalnız sahib çıxarır (IDOR): başqası → 404, sətir qalır; sahib → 200', async () => {
+    const owner = await signup('idor-owner@example.com')
+    const fam = await signup('idor-fam@example.com')
+    const other = await signup('idor-other@example.com')
+    await call('/api/personal/loved', { cookie: owner.cookie, body: { name: 'Nənə', passedOn: '2015-06-01', tz: 'UTC', consent: true } })
+    await call('/api/personal/loved', { cookie: other.cookie, body: { name: 'Baba', passedOn: '2016-06-01', tz: 'UTC', consent: true } })
+    const { token } = await (await call('/api/personal/loved/share', { cookie: owner.cookie })).json()
+    expect((await call('/api/personal/follow', { cookie: fam.cookie, body: { token, consent: true, tz: 'UTC' } })).status).toBe(201)
+    const ov = await (await call('/api/personal/loved', { method: 'GET', cookie: owner.cookie, headers: {} })).json()
+    const fid = ov.share.followers[0].id
+    expect(fid).toBe(fam.id)
+    const rows = () => db.raw.prepare('SELECT COUNT(*) AS n FROM personal_loved_followers WHERE owner_id = ? AND follower_id = ?').get(owner.id, fam.id).n
+    expect((await call(`/api/personal/loved/followers/${fid}`, { method: 'DELETE', cookie: other.cookie })).status).toBe(404)
+    expect((await call(`/api/personal/loved/followers/${fid}`, { method: 'DELETE', cookie: fam.cookie })).status).toBe(404)
+    expect(rows()).toBe(1)
+    expect((await call('/api/personal/loved/followers/abc', { method: 'DELETE', cookie: owner.cookie })).status).toBe(404)
+    expect((await call(`/api/personal/loved/followers/${fid}`, { method: 'DELETE', cookie: owner.cookie })).status).toBe(200)
+    expect(rows()).toBe(0)
+  })
+
   it('hesab silinəndə hər şey silinir (CASCADE); DELETE /api/personal — hamısı', async () => {
     const a = await signup('cascade@example.com')
     const b = await signup('cascade2@example.com')

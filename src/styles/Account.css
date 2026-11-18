@@ -72,7 +72,7 @@
 .acc-methods { display: grid; gap: 10px; }
 /* GIS iframe-i yüklənənə qədər yer tutsun (CLS yox); düymə mərkəzdə */
 .acc-google { display: flex; justify-content: center; min-height: 44px; color-scheme: normal; }
-.acc-google iframe { max-width: 100%; }
+/* GSI iframe pill-dən ~20px enlidir — max-width qoymuruq (sağ kənarı kəsilirdi); eni JS-də kiçildirik */
 .acc-passkey { justify-content: center; }
 .acc-or {
   display: flex;
@@ -284,3 +284,9 @@ html[data-theme="dark"] .acc-btn-danger { color: #240806; }
 
 /* vE: bölmənin altındakı keçid (components/account/AccountESections) */
 .acc-e-more { display: inline-flex; align-items: center; gap: 4px; margin-top: 10px; font-size: .9rem; }
+
+/* "E-poçtu təsdiqləyin" qeydi (components/account/VerifyEmailNote.jsx) */
+.acc-verify-note { margin-block: 10px; }
+.acc-verify-note__text { margin: 0 0 8px; font-weight: 600; color: var(--text-strong); }
+.acc-verify-note .rt-note { margin: 6px 0 0; }
+.acc-verify-note .rt-note:empty { margin: 0; }   /* aria-live sahəsi gizlədilmir — yalnız boşluq yoxdur */

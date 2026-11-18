@@ -17,10 +17,11 @@ const PASS = 'yaxşı-uzun-şifrə-2026'
 const ORIGIN = 'https://muslims.cc'
 const H = { 'content-type': 'application/json', 'x-requested-with': 'fetch' }
 
-function openStream(url) {
+function openStream(url, ip) {
   const ctrl = new AbortController()
   const events = []
-  const ready = fetch(url, { signal: ctrl.signal }).then(async (r) => {
+  const out = { events, ended: false, close: () => ctrl.abort() }
+  out.ready = fetch(url, { signal: ctrl.signal, headers: ip ? { 'x-forwarded-for': ip } : {} }).then(async (r) => {
     if (r.status !== 200) return r.status
     const reader = r.body.getReader()
     const dec = new TextDecoder()
@@ -29,7 +30,7 @@ function openStream(url) {
       try {
         for (;;) {
           const { value, done } = await reader.read()
-          if (done) break
+          if (done) { out.ended = true; break }
           buf += dec.decode(value, { stream: true })
           let i
           while ((i = buf.indexOf('\n\n')) >= 0) {
@@ -39,11 +40,11 @@ function openStream(url) {
             if (ev) events.push({ event: ev[1], data: data ? JSON.parse(data[1]) : null })
           }
         }
-      } catch { /* abort */ }
+      } catch { out.ended = true /* abort */ }
     })()
     return 200
   })
-  return { events, ready, close: () => ctrl.abort() }
+  return out
 }
 const waitFor = async (fn, ms = 3000) => {
   const t0 = Date.now()
@@ -81,7 +82,7 @@ async function setup({ realAuth = false, ...opts } = {}) {
   } else {
     requireUser = () => (req, res, next) => {
       const m = /(?:^|;\s*)uid=(\d+)/.exec(req.headers.cookie || '')
-      const u = m && db.raw.prepare('SELECT id, display_name FROM users WHERE id = ?').get(Number(m[1]))
+      const u = m && db.raw.prepare('SELECT id, display_name, email_verified, created_at FROM users WHERE id = ?').get(Number(m[1]))
       if (!u) return res.status(401).json({ error: 'Unauthorized', code: 'unauthenticated' })
       if (auth.csrfRejected(req, [ORIGIN])) return res.status(403).json({ error: 'Forbidden', code: 'forbidden' })
       req.user = u
@@ -103,15 +104,17 @@ async function setup({ realAuth = false, ...opts } = {}) {
   })
   const cookieOf = (r) => (r.headers.getSetCookie() || []).map((c) => c.split(';')[0]).find((c) => c.startsWith(users.USER_COOKIE + '=')) || ''
   let n = 0
-  const ins = db.raw.prepare("INSERT INTO users (email, display_name, created_at, updated_at) VALUES (?, 'Oxucu', 1, 1)")
-  const signup = async () => {
+  const ins = db.raw.prepare("INSERT INTO users (email, email_verified, display_name, created_at, updated_at) VALUES (?, ?, 'Oxucu', 1, 1)")
+  // verified: false — e-poçtu təsdiqlənməmiş hesab (götürmə → 403 verify_email)
+  const signup = async ({ verified = true } = {}) => {
     if (!realAuth) {
-      const id = Number(ins.run(`k${++n}@example.com`).lastInsertRowid)
+      const id = Number(ins.run(`k${++n}@example.com`, verified ? 1 : 0).lastInsertRowid)
       return { cookie: `uid=${id}`, id }
     }
     const r = await call('/api/auth/register', { body: { email: `k${++n}@example.com`, password: PASS, displayName: 'Oxucu', lang: 'az' } })
     const j = await r.json()
     if (!j.user) throw new Error(JSON.stringify(j))
+    if (verified) store.markVerified(j.user.id)
     return { cookie: cookieOf(r), id: j.user.id }
   }
   const get = (path, cookie) => call(path, { method: 'GET', cookie, body: undefined }).then((r) => r.json())
@@ -148,6 +151,28 @@ describe('ümmətin xətmi — götürmə', () => {
     const again = await k.claim(u)
     expect(again.status).toBe(200)
     expect((await again.json()).claim.page).toBe(1)
+    // e-poçtu təsdiqlənməmiş hesab səhifə götürə bilmir (sock-puppet hesablarla yığıb saxlamaq olmasın)
+    const un = await k.signup({ verified: false })
+    const denied = await k.claim(un)
+    expect([denied.status, (await denied.json()).code]).toEqual([403, 'verify_email'])
+  })
+
+  it('səhifələrin 80 %-dən çoxu götürülübsə iddia 10 dəqiqəlikdir', async () => {
+    const k = await setup()
+    const rid = k.db.raw.prepare('SELECT id FROM khatm_rounds WHERE completed_at IS NULL').get().id
+    const done = k.db.raw.prepare('INSERT INTO khatm_claims (round_id, page, user_id, claimed_at, expires_at, completed_at) VALUES (?, ?, NULL, 1, 1, 1)')
+    const fill = (from, to) => { for (let p = from; p <= to; p++) done.run(rid, p) }
+    fill(1, 482)   // götürüləcək 483-cü səhifə: 483 ≤ 604 × 0.8 → adi müddət
+    const a = await k.signup(), b = await k.signup()
+    const ja = (await (await k.claim(a)).json()).claim
+    expect(ja.page).toBe(483)
+    expect(ja.expiresAt - ja.claimedAt).toBe(gk.CLAIM_MS)
+    fill(484, 489)   // indi 489 götürülüb (81 %) → növbəti iddia qısadır
+    const jb = (await (await k.claim(b)).json()).claim
+    expect(jb.page).toBe(490)
+    expect(jb.expiresAt - jb.claimedAt).toBe(gk.CLAIM_MS_CROWDED)
+    k.ctx.clock += gk.CLAIM_MS_CROWDED + 1000
+    expect(k.router.sweep()).toBe(1)   // yalnız b-nin qısa iddiası düşdü
   })
 
   it('eyni anda 40 istifadəçi — hamısı FƏRQLİ səhifə alır (1…40)', async () => {
@@ -212,6 +237,22 @@ describe('ümmətin xətmi — "Oxudum"', () => {
     expect(Buffer.from(st.bits, 'base64')[0] & 1).toBe(1)
   })
 
+  it('ithafı yalnız sahibi silir (IDOR): başqası → 404, sətir qalır; sahib → 200; pis id → 404', async () => {
+    const k = await setup()
+    const a = await k.signup(), b = await k.signup()
+    const c = await (await k.claim(a, { dedication: 'Atam' })).json()
+    k.ctx.clock += 41e3
+    await k.complete(a, c.claim.page)
+    const [ded] = (await k.get('/api/khatm/me', a.cookie)).dedications
+    expect(ded).toMatchObject({ name: 'Atam' })
+    const del = (u, id) => k.call(`/api/khatm/dedications/${id}`, { method: 'DELETE', cookie: u.cookie })
+    expect((await del(b, ded.id)).status).toBe(404)
+    expect(k.db.raw.prepare('SELECT COUNT(*) AS n FROM khatm_dedications WHERE id = ?').get(ded.id).n).toBe(1)
+    expect((await del(a, 'abc')).status).toBe(404)
+    expect((await del(a, ded.id)).status).toBe(200)
+    expect((await k.get('/api/khatm/me', a.cookie)).dedications).toEqual([])
+  })
+
   it('istifadəçi üzrə saatda N səhifə həddi', async () => {
     const k = await setup({ limits: { complete: { max: 2, windowMs: 3600e3 }, claim: { max: 1000, windowMs: 3600e3 } } })
     const u = await k.signup()
@@ -249,7 +290,7 @@ describe('ümmətin xətmi — dövrün tamamlanması', () => {
     await k.complete(a, c.claim.page, { 'cf-ipcountry': 'AZ' })
     const pageEv = await waitFor(() => s2.events.find((e) => e.event === 'page'))
     expect(pageEv.data).toMatchObject({ page: 1, cell: { lat: 40, lon: 50 }, roundNo: 1, readCount: 1 })
-    expect(s1.events.some((e) => e.event === 'page')).toBe(true)
+    await waitFor(() => s1.events.find((e) => e.event === 'page'))
     // xana yalnız iddianın ömründə — tamamlanandan sonra bazada yoxdur
     expect(k.db.raw.prepare('SELECT COUNT(*) AS n FROM khatm_claims WHERE cell IS NOT NULL OR dedication IS NOT NULL').get().n).toBe(0)
 
@@ -332,6 +373,34 @@ describe('ümmətin xətmi — canlı axın, statistika, məxfilik', () => {
     const ev = await waitFor(() => streams[0].events.find((e) => e.event === 'active'))
     expect(ev.data).toMatchObject({ roundNo: 1, active: 1, readCount: 0 })
     for (const s of streams) s.close()
+    await waitFor(() => k.router.connections() === 0)
+  })
+
+  it('SSE: eyni IPv6 /64-dən 5-ci axın 429; cəmi dolanda ən köhnə bağlanır, yenisi qəbul olunur', async () => {
+    const k = await setup({ maxConnTotal: 6 })
+    const live = (ip) => openStream(`${k.srv.url}/api/khatm/live`, ip)
+    const same = []
+    for (let i = 1; i <= gk.MAX_CONN_PER_IP; i++) {
+      const s = live(`2001:db8:aa:bb::${i}`)
+      expect(await s.ready).toBe(200)
+      same.push(s)
+    }
+    const fifth = await fetch(`${k.srv.url}/api/khatm/live`, { headers: { 'x-forwarded-for': '2001:db8:aa:bb:ffff::9' } })
+    expect(fifth.status).toBe(429)
+    await fifth.body?.cancel()
+    // başqa /64 — ayrıca sayılır; cəmi 6-ya çatır
+    const o1 = live('2001:db8:aa:cc::1'), o2 = live('2001:db8:aa:cc::2')
+    expect([await o1.ready, await o2.ready]).toEqual([200, 200])
+    expect(k.router.connections()).toBe(6)
+    // dolub: yeni bağlantı qəbul olunur, ən köhnəsi (same[0]) bağlanır
+    const late = live('198.51.100.7')
+    expect(await late.ready).toBe(200)
+    await waitFor(() => same[0].ended)
+    expect(k.router.connections()).toBe(6)
+    // bağlanan axının /64-ü bir yer boşaltdı
+    const again = live('2001:db8:aa:bb::77')
+    expect(await again.ready).toBe(200)
+    for (const s of [...same, o1, o2, late, again]) s.close()
     await waitFor(() => k.router.connections() === 0)
   })
 

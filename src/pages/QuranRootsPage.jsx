@@ -88,7 +88,7 @@ const LABELS = {
     keyboard: 'Arabic letters', backspace: 'Delete the last letter', examples: 'Examples',
     loadingIndex: 'Loading the list of roots…', indexError: 'The list of roots could not be loaded. Please check your connection.', retry: 'Try again',
     notFound: 'This root was not found in the Quran.', similar: 'Similar roots', choose: 'Which root do you mean?',
-    occurrences: 'occurrences', inAyahs: n => `in ${n} ${n === 1 ? 'verse' : 'verses'}`, forms: 'Derived forms', allForms: 'All forms', formsCount: n => `${n} ${n === 1 ? 'form' : 'forms'}`,
+    occurrences: 'occurrences', inAyahs: n => (n === 1 ? 'in 1 verse' : `in ${n} verses`), forms: 'Derived forms', allForms: 'All forms', formsCount: n => (n === 1 ? '1 form' : `${n} forms`),
     ayahs: 'Verses', showing: (a, b, n) => `${a}–${b} of ${n} verses`, more: 'Show more',
     ayahError: 'The verse could not be loaded.', openAyah: 'Read the verse', count: n => `${n}×`,
     note: 'Counts follow the morphological analysis of the Quranic Arabic Corpus; other dictionaries and sources may differ slightly.',

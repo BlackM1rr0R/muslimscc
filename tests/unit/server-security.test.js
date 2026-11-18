@@ -310,6 +310,28 @@ describe('HTTP', () => {
     const me = await (await call('/api/auth/me', { method: 'GET', cookie, headers: {} })).json()
     expect(me.twoFactor).toEqual({ enabled: true, backupCodesLeft: 10 })
   })
+  it('2FA açılanda { revokeOthers: true } — digər sessiyalar bağlanır, cari qalır; bayraqsız — toxunulmur', async () => {
+    const reg = await call('/api/auth/register', { body: { email: 'revoke@example.com', password: PASS, lang: 'en' } })
+    const c1 = cookieOf(reg)
+    const c2 = cookieOf(await call('/api/auth/login', { body: { email: 'revoke@example.com', password: PASS } }))
+    const c3 = cookieOf(await call('/api/auth/login', { body: { email: 'revoke@example.com', password: PASS } }))
+    const me = (c) => call('/api/auth/me', { method: 'GET', cookie: c, headers: {} }).then((r) => r.status)
+    expect([await me(c1), await me(c2), await me(c3)]).toEqual([200, 200, 200])
+    const s = await (await call('/api/auth/2fa/setup', { body: { password: PASS }, cookie: c1 })).json()
+    const e = await call('/api/auth/2fa/enable', { body: { code: codeNow(s.secret), revokeOthers: true }, cookie: c1 })
+    expect(e.status).toBe(200)
+    expect((await e.json()).revoked).toBe(2)
+    expect([await me(c1), await me(c2), await me(c3)]).toEqual([200, 401, 401])
+    // bayraq olmadan (köhnə klient) — sessiyalar qalır, cavabda revoked: 0
+    const reg2 = await call('/api/auth/register', { body: { email: 'keep@example.com', password: PASS, lang: 'en' } })
+    const k1 = cookieOf(reg2)
+    const k2 = cookieOf(await call('/api/auth/login', { body: { email: 'keep@example.com', password: PASS } }))
+    const s2 = await (await call('/api/auth/2fa/setup', { body: { password: PASS }, cookie: k1 })).json()
+    const e2 = await (await call('/api/auth/2fa/enable', { body: { code: codeNow(s2.secret) }, cookie: k1 })).json()
+    expect(e2.revoked).toBe(0)
+    expect([await me(k1), await me(k2)]).toEqual([200, 200])
+  })
+
   it('şifrə ilə giriş → { twoFactor, ticket } (sessiya YOX) → kod → sessiya; təkrar kod rədd', async () => {
     const r = await call('/api/auth/login', { body: { email: 'sec@example.com', password: PASS + '-yeni' }, cookie: dev })
     const j = await r.json()

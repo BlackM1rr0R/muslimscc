@@ -32,6 +32,14 @@ const noShare = (page) => page.addInitScript(() => {
   try { Object.defineProperty(Navigator.prototype, 'canShare', { value: undefined, configurable: true }) } catch { /* */ }
 })
 
+// Web Share VAR və hər şeyi qəbul edir — amma şəxsi kartlar (sahibin qərarı) onu çağırmamalıdır:
+// window.__shareCalls sayılır, PNG yenə yüklənməlidir
+const spyShare = (page) => page.addInitScript(() => {
+  window.__shareCalls = 0
+  try { Object.defineProperty(Navigator.prototype, 'share', { value: async () => { window.__shareCalls++ }, configurable: true }) } catch { /* */ }
+  try { Object.defineProperty(Navigator.prototype, 'canShare', { value: () => true, configurable: true }) } catch { /* */ }
+})
+
 /** Bakı vaxtı ilə bu gün: { y, m, d } */
 function bakuToday(at = new Date()) {
   const p = {}
@@ -154,9 +162,9 @@ test('ad günü: ümumi dua mənbəsi ilə və "ad gününə xas dua yoxdur" qey
   expectCleanConsole(consoleProblems)
 })
 
-test('Ramazan Wrapped: klaviatura ilə kartlar, Esc, PNG; təravih gündəliyi', async ({ page, consoleProblems }) => {
+test('Ramazan Wrapped: klaviatura ilə kartlar, Esc, PNG (yalnız yükləmə); təravih gündəliyi', async ({ page, consoleProblems }) => {
   test.setTimeout(90_000)
-  await noShare(page)
+  await spyShare(page)
   await seed(page, RAMADAN_DATA)
   await page.goto('/ramadan')
   await settle(page)
@@ -164,11 +172,17 @@ test('Ramazan Wrapped: klaviatura ilə kartlar, Esc, PNG; təravih gündəliyi',
   await expect(tw).toBeVisible()
   const ra = await reach(page, 'ramadan-album')
   await expect(ra.getByTestId('ra-chapter')).toHaveAttribute('data-year', '1447')
+  // Albomun kartı da yalnız yüklənir (Web Share olsa belə)
+  await expect(ra.getByTestId('ra-card')).toHaveText('Özüm üçün yüklə')
+  await expect(ra.getByTestId('ra-private-note')).toBeVisible()
+  const albumDl = page.waitForEvent('download')
+  await ra.getByTestId('ra-card').click()
+  expect((await albumDl).suggestedFilename()).toBe('ramadan-1447.png')
   const open = ra.getByTestId('ra-wrapped')
   await open.click()
   const dlg = page.getByTestId('ramadan-wrapped')
   await expect(dlg).toBeVisible()
-  // giriş + oruc (20) + təravih (3) + dua (2) + paylaşma = 5
+  // giriş + oruc (20) + təravih (3) + dua (2) + yükləmə = 5
   await expect(dlg).toHaveAttribute('data-total', '5')
   await expect(dlg).toHaveAttribute('data-card', '0')
   await page.keyboard.press('ArrowRight')
@@ -182,9 +196,12 @@ test('Ramazan Wrapped: klaviatura ilə kartlar, Esc, PNG; təravih gündəliyi',
   await expect(dlg.getByTestId('wrapped-live')).toContainText('2 / 5')
   await page.keyboard.press('End')
   await expect(dlg).toHaveAttribute('data-card', '4')
+  await expect(dlg.getByTestId('wrapped-png')).toHaveText('Özüm üçün yüklə')
+  await expect(dlg.getByTestId('wrapped-private-note')).toContainText('sizinlə Allah arasındadır')
   const dl = page.waitForEvent('download')
   await dlg.getByTestId('wrapped-png').click()
   expect((await dl).suggestedFilename()).toBe('ramadan-1447-story.png')
+  expect(await page.evaluate(() => window.__shareCalls)).toBe(0)
   await page.keyboard.press('Escape')
   await expect(dlg).toHaveCount(0)
   await expect(open).toBeFocused()
@@ -330,3 +347,18 @@ for (const theme of ['light', 'dark']) {
     }
   })
 }
+
+test('sədəqə hesabatı: PNG yalnız yüklənir (Web Share çağırılmır) + şəxsi qeyd', async ({ page, consoleProblems }) => {
+  test.setTimeout(60_000)
+  await spyShare(page)
+  await seed(page, { charity_log: JSON.stringify([{ id: 1, date: '2026-03-01', type: 'money', amount: 10, description: '', to: '' }]) })
+  await page.goto('/charity')
+  await settle(page)
+  const cr = await reach(page, 'charity-report')
+  await expect(cr.getByTestId('cr-private-note')).toContainText('sizinlə Allah arasındadır')
+  const png = page.waitForEvent('download')
+  await cr.getByTestId('cr-png').click()
+  expect((await png).suggestedFilename()).toBe('charity-report-2026.png')
+  expect(await page.evaluate(() => window.__shareCalls)).toBe(0)
+  expectCleanConsole(consoleProblems)
+})

@@ -33,9 +33,10 @@ const T = {
     none: 'Hələ xətm yoxdur. Xətm planını bitirdikdə və ya ömürlük mozaikada bütün ayələr yandıqda şəhadətnamə burada təklif olunacaq.',
     pending: 'Şəhadətnaməsi hazırlanmamış xətm', src: { plan: 'Xətm planı', life: 'Ömürlük mozaika' },
     create: 'Şəhadətnamə hazırla', name: 'Ad', namePh: 'Şəhadətnamədə yazılacaq ad', start: 'Başlanğıc', end: 'Xətm günü',
-    ded: 'İthaf (istəyə bağlı)', dedPh: 'Məs.: Ailəm üçün', make: 'Şəhadətnaməni yarat', cancel: 'Bağla',
+    ded: 'İthaf (istəyə bağlı)', dedPh: 'Məs.: Ailəm üçün',
+    dedNote: 'Mərhum yaxınınıza ithaf edirsinizsə, onu duada yad edin. Mərhum üçün dua etməkdə ittifaq var; Quran oxumağın savabını bağışlamaq barədə alimlər ixtilaf ediblər.', make: 'Şəhadətnaməni yarat', cancel: 'Bağla',
     errName: 'Adı yazın.', errDates: 'Tarixləri yoxlayın: başlanğıc xətm günündən əvvəl olmalı, gələcək tarix olmaz.',
-    download: 'PNG yüklə', print: 'Çap et', del: 'Sil', delAsk: 'Bu şəhadətnamə kolleksiyadan silinsin?', made: 'Şəhadətnamə hazırdır.',
+    download: 'PNG yüklə', print: 'Çap et', del: 'Sil', delAsk: 'Bu şəhadətnamə kolleksiyadan silinsin?', made: 'Şəhadətnamə hazırdır.', privateNote: 'İbadətiniz sizinlə Allah arasındadır — bu şəkil yalnız sizin üçündür.',
     coll: 'Kolleksiyam', days: (n) => `${n} gün`, alt: (n) => `${n} üçün xətm şəhadətnaməsi`,
     privacy: 'Ad və şəkil heç yerə göndərilmir — şəhadətnamə bu cihazda çəkilir; kolleksiya hesabınızla sinxronlanır.',
     c: { title: 'Xətm şəhadətnaməsi', intro: 'Bu şəhadətnamə təsdiq edir ki,', deed: 'Qurani-Kərimi əvvəldən sona qədər oxuyub xətm etmişdir' },
@@ -46,9 +47,10 @@ const T = {
     none: 'No khatm yet. When you finish the khatm plan, or when every verse lights up in the lifetime mosaic, a certificate will be offered here.',
     pending: 'Khatm without a certificate yet', src: { plan: 'Khatm plan', life: 'Lifetime mosaic' },
     create: 'Make a certificate', name: 'Name', namePh: 'The name to appear on the certificate', start: 'Start', end: 'Khatm date',
-    ded: 'Dedication (optional)', dedPh: 'E.g. For my family', make: 'Create the certificate', cancel: 'Close',
+    ded: 'Dedication (optional)', dedPh: 'E.g. For my family',
+    dedNote: 'If you dedicate it to a loved one who has passed away, remember them in dua. Dua for the deceased is agreed upon; scholars differ on gifting the reward of recitation.', make: 'Create the certificate', cancel: 'Close',
     errName: 'Please enter a name.', errDates: 'Check the dates: the start must be before the khatm date, and future dates are not allowed.',
-    download: 'Download PNG', print: 'Print', del: 'Delete', delAsk: 'Remove this certificate from the collection?', made: 'Your certificate is ready.',
+    download: 'Download PNG', print: 'Print', del: 'Delete', delAsk: 'Remove this certificate from the collection?', made: 'Your certificate is ready.', privateNote: 'Your worship is between you and Allah — this image is for you.',
     coll: 'My collection', days: (n) => (n === 1 ? '1 day' : `${n} days`), alt: (n) => `Khatm certificate for ${n}`,
     privacy: 'The name and image are not sent anywhere: the certificate is drawn on this device, and the collection syncs with your account.',
     c: { title: 'Certificate of Khatm', intro: 'This is to certify that', deed: 'has completed the reading of the Holy Quran from beginning to end' },
@@ -59,9 +61,10 @@ const T = {
     none: 'Хатма пока нет. Когда вы закончите план хатма или в мозаике засветятся все аяты, здесь появится предложение сертификата.',
     pending: 'Хатм без сертификата', src: { plan: 'План хатма', life: 'Мозаика на всю жизнь' },
     create: 'Создать сертификат', name: 'Имя', namePh: 'Имя для сертификата', start: 'Начало', end: 'Дата хатма',
-    ded: 'Посвящение (необязательно)', dedPh: 'Напр.: Для моей семьи', make: 'Создать сертификат', cancel: 'Закрыть',
+    ded: 'Посвящение (необязательно)', dedPh: 'Напр.: Для моей семьи',
+    dedNote: 'Если вы посвящаете его ушедшему близкому, помяните его в дуа. О дуа за умершего учёные единодушны; о дарении награды за чтение Корана их мнения расходятся.', make: 'Создать сертификат', cancel: 'Закрыть',
     errName: 'Введите имя.', errDates: 'Проверьте даты: начало должно быть раньше даты хатма, будущие даты недопустимы.',
-    download: 'Скачать PNG', print: 'Печать', del: 'Удалить', delAsk: 'Удалить этот сертификат из коллекции?', made: 'Сертификат готов.',
+    download: 'Скачать PNG', print: 'Печать', del: 'Удалить', delAsk: 'Удалить этот сертификат из коллекции?', made: 'Сертификат готов.', privateNote: 'Ваше поклонение — между вами и Аллахом. Это изображение только для вас.',
     coll: 'Моя коллекция', days: (n) => `${n} дн.`, alt: (n) => `Сертификат хатма: ${n}`,
     privacy: 'Имя и изображение никуда не отправляются: сертификат рисуется на этом устройстве, а коллекция синхронизируется с аккаунтом.',
     c: { title: 'Сертификат хатма', intro: 'Настоящим подтверждается, что', deed: 'прочитал(а) Священный Коран от начала до конца' },
@@ -72,9 +75,10 @@ const T = {
     none: 'لا ختمة بعد. عندما تُتمّ خطة الختمة، أو تضيء كل الآيات في فسيفساء العمر، تُقترح الشهادة هنا.',
     pending: 'ختمة بلا شهادة بعد', src: { plan: 'خطة الختمة', life: 'فسيفساء العمر' },
     create: 'أنشئ شهادة', name: 'الاسم', namePh: 'الاسم الذي يُكتب على الشهادة', start: 'البداية', end: 'يوم الختم',
-    ded: 'إهداء (اختياري)', dedPh: 'مثال: لعائلتي', make: 'أنشئ الشهادة', cancel: 'إغلاق',
+    ded: 'إهداء (اختياري)', dedPh: 'مثال: لعائلتي',
+    dedNote: 'إن أهديتها لقريب متوفى فاذكره في دعائك. الدعاء للميت متفق عليه، واختلف العلماء في إهداء ثواب القراءة.', make: 'أنشئ الشهادة', cancel: 'إغلاق',
     errName: 'اكتب الاسم.', errDates: 'تحقّق من التاريخين: يجب أن تسبق البداية يوم الختم، ولا يُقبل تاريخ في المستقبل.',
-    download: 'نزّل PNG', print: 'اطبع', del: 'احذف', delAsk: 'هل تحذف هذه الشهادة من المجموعة؟', made: 'شهادتك جاهزة.',
+    download: 'نزّل PNG', print: 'اطبع', del: 'احذف', delAsk: 'هل تحذف هذه الشهادة من المجموعة؟', made: 'شهادتك جاهزة.', privateNote: 'عبادتك بينك وبين الله — هذه الصورة لك وحدك.',
     coll: 'مجموعتي', days: (n) => `${n} يومًا`, alt: (n) => `شهادة ختم لـ${n}`,
     privacy: 'لا يُرسل الاسم ولا الصورة إلى أي مكان: تُرسم الشهادة على هذا الجهاز، وتُزامَن المجموعة مع حسابك.',
     c: { title: 'شهادة ختم القرآن الكريم', intro: 'تشهد هذه الوثيقة بأنّ', deed: 'قد أتمّ قراءة القرآن الكريم من أوله إلى آخره' },
@@ -85,9 +89,10 @@ const T = {
     none: 'Henüz hatim yok. Hatim planını bitirdiğinizde ya da ömür boyu mozaikte tüm ayetler parladığında belge burada önerilecek.',
     pending: 'Belgesi hazırlanmamış hatim', src: { plan: 'Hatim planı', life: 'Ömür boyu mozaik' },
     create: 'Belge hazırla', name: 'Ad', namePh: 'Belgede yazılacak ad', start: 'Başlangıç', end: 'Hatim günü',
-    ded: 'İthaf (isteğe bağlı)', dedPh: 'Örn.: Ailem için', make: 'Belgeyi oluştur', cancel: 'Kapat',
+    ded: 'İthaf (isteğe bağlı)', dedPh: 'Örn.: Ailem için',
+    dedNote: 'Vefat etmiş bir yakınınıza ithaf ediyorsanız onu duada anın. Ölüye dua edilmesinde ittifak vardır; okunan Kur’an’ın sevabının bağışlanması konusunda âlimler ihtilaf etmiştir.', make: 'Belgeyi oluştur', cancel: 'Kapat',
     errName: 'Adı yazın.', errDates: 'Tarihleri kontrol edin: başlangıç hatim gününden önce olmalı, gelecek tarih olamaz.',
-    download: 'PNG indir', print: 'Yazdır', del: 'Sil', delAsk: 'Bu belge koleksiyondan silinsin mi?', made: 'Belgeniz hazır.',
+    download: 'PNG indir', print: 'Yazdır', del: 'Sil', delAsk: 'Bu belge koleksiyondan silinsin mi?', made: 'Belgeniz hazır.', privateNote: 'İbadetiniz sizinle Allah arasındadır — bu görsel yalnızca sizin için.',
     coll: 'Koleksiyonum', days: (n) => `${n} gün`, alt: (n) => `${n} için hatim belgesi`,
     privacy: 'Ad ve görsel hiçbir yere gönderilmez: belge bu cihazda çizilir, koleksiyon hesabınızla eşitlenir.',
     c: { title: 'Hatim belgesi', intro: 'Bu belge onaylar ki', deed: 'Kur’an-ı Kerim’i baştan sona okuyarak hatmetmiştir' },
@@ -235,8 +240,9 @@ export default function KhatmCertificates({ lang = 'az', bare = false }) {
           </label>
           <label className="ui-field kcx__wide" htmlFor="kcx-ded">
             <span className="ui-field__label">{t.ded}</span>
-            <input id="kcx-ded" className="ui-input" value={form.ded} maxLength={DED_MAX} placeholder={t.dedPh} onChange={e => setForm(f => ({ ...f, ded: e.target.value }))} />
+            <input id="kcx-ded" className="ui-input" value={form.ded} maxLength={DED_MAX} placeholder={t.dedPh} aria-describedby="kcx-ded-note" onChange={e => setForm(f => ({ ...f, ded: e.target.value }))} />
           </label>
+          <p className="kcx__note kcx__wide" id="kcx-ded-note" data-testid="kcx-ded-note">{t.dedNote}</p>
           {err && <p className="kcx__err kcx__wide" role="alert">{err}</p>}
           <div className="kcx__actions kcx__wide">
             <button type="submit" className="ui-btn ui-btn--primary" disabled={busy} data-testid="kcx-make"><Icon name="check" className="ui-btn__icon" /> {t.make}</button>
@@ -255,6 +261,8 @@ export default function KhatmCertificates({ lang = 'az', bare = false }) {
             </button>
             <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm" onClick={() => print(img.cert)}><Icon name="list" className="ui-btn__icon" /> {t.print}</button>
           </div>
+          {/* "Paylaş" yoxdur (sahibin qərarı, 2026-11-18) — şəhadətnamə yalnız özü üçün */}
+          <p className="kcx__note" data-testid="kcx-private-note">{t.privateNote}</p>
         </div>
       )}
 

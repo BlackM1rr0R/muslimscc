@@ -114,10 +114,14 @@ export function readHashToken(hash) {
   return m ? m[1] : ''
 }
 
-/** Girişdən sonra hara: yalnız saytın öz nisbi yolu ("/account", "/en/quran?x"), "//evil" yox. */
+/**
+ * Girişdən sonra hara: yalnız saytın öz nisbi yolu ("/account", "/en/quran?x"), "//evil" yox.
+ * İdarə simvolu (tab, sətir sonu …) və tərs xətt HARADA olursa olsun rədd: brauzer URL-dən tab/sətir
+ * sonunu atır ("/<tab>/evil.com" → "//evil.com"), tərs xətt isə "/" kimi oxuna bilər.
+ */
 export function safeNext(next, fallback) {
   const s = String(next || '')
-  if (!s.startsWith('/') || s.startsWith('//') || s.startsWith('/\\') || /[\r\n]/.test(s)) return fallback
+  if (!s.startsWith('/') || s.startsWith('//') || /[\u0000-\u001f\u007f\\]/.test(s)) return fallback
   return s
 }
 

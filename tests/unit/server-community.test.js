@@ -26,6 +26,17 @@ const DAY = 86400000
 let clock = Date.UTC(2026, 10, 18, 8, 0)
 
 describe('communityKit: süzgəclər', () => {
+  it('yayınma: nöqtədən əvvəl boşluq, 。．｡, tam enli və kiril oxşar hərflər; adi mətn yox', () => {
+    for (const s of ['example .com', 'example。com', 'example．com', 'example｡com', 'ｅｘａｍｐｌｅ.ｃｏｍ', 'cаsino.com', 'visit ехаmрlе.com']) expect(kit.hasLink(s), s).toBe(true)
+    for (const s of ['Quran 2:255', 'a. b', 'help me. In sha Allah', 'Привет. Как дела? Это хорошо.', 'Я рад. Сом', 'Səhər. Axşam']) expect(kit.hasLink(s), s).toBe(false)
+    expect(kit.bannedHit('Win at cаsino', ['casino'])).toBe(true)     // kiril "а"
+    expect(kit.bannedHit('ｃａｓｉｎｏ night', ['casino'])).toBe(true)  // tam enli
+    expect(kit.bannedHit('Казино', ['casino'])).toBe(false)           // adi kiril söz Latına çevrilmir
+    expect(kit.stripLinks('salam example .com dua')).toBe('salam dua')
+    expect(kit.stripLinks('bio cаsino.com ok')).toBe('bio ok')
+    expect(kit.stripLinks('x example。com y')).toBe('x y')
+  })
+
   it('keçid, e-poçt, telefon tanınır; adi mətn və ayə istinadı yox', () => {
     for (const s of ['visit example.com', 'http://x.y', 'www.site', 't.me/abc', 'a@b.co', 'example dot com', 'spam [.] ru']) expect(kit.hasLink(s), s).toBe(true)
     for (const s of ['Allahım, anama şəfa ver', 'help me. In sha Allah', 'Surah 2:255', 'e.g. sabr']) expect(kit.hasLink(s), s).toBe(false)
@@ -93,12 +104,23 @@ describe('K mərhələsi HTTP', () => {
   const get = (path, cookie, headers = {}) => call(path, { method: 'GET', cookie, headers })
   const cookieOf = (r) => (r.headers.getSetCookie() || []).map((c) => c.split(';')[0]).find((c) => c.startsWith(users.USER_COOKIE + '=')) || ''
   let n = 0
-  const signup = async (displayName = '') => {
+  // Susmaya görə e-poçtu TƏSDİQLİ hesab (ictimai xüsusiyyətlər bunu tələb edir); { verified: false } — təsdiqsiz
+  const signup = async (displayName = '', { verified = true } = {}) => {
     const email = `k${++n}@example.com`
     const r = await call('/api/auth/register', { body: { email, password: PASS, displayName, lang: 'az' } })
     const j = await r.json()
+    if (verified) store.markVerified(j.user.id)
     return { cookie: cookieOf(r), id: j.user.id, email }
   }
+  // Hesabı "köhnə" et (şikayətin sayılması üçün ≥ 24 saat)
+  const age = (u, ms = 2 * DAY) => db.raw.prepare('UPDATE users SET created_at = ? WHERE id = ?').run(clock - ms, u.id)
+  const oldSignup = async (name = '') => { const u = await signup(name); age(u); return u }
+  const approved = async (u, body) => {
+    const { item } = await (await call('/api/dua-wall', { cookie: u.cookie, body: { body, lang: 'az' } })).json()
+    await call(`/api/admin/dua-wall/${item.id}`, { cookie: adminCookie(), body: { action: 'approve' } })
+    return item
+  }
+  const onWall = async (id) => (await (await get('/api/dua-wall')).json()).items.some((i) => i.id === id)
   const adminCookie = () => `${auth.COOKIE_NAME}=${authStore.createSession(admins.editor)}`
   const del = (cookie) => call('/api/auth/delete', { cookie, body: { password: PASS } })
 
@@ -130,25 +152,31 @@ describe('K mərhələsi HTTP', () => {
       expect((await put({ fields: ['favSurah'], data: { favSurah: 115 } })).status).toBe(400)
       expect((await put({ fields: ['stamps'], data: { stamps: ['khatm', 'nope'] } })).status).toBe(400)
       expect((await put({ fields: ['secret'], data: {} })).status).toBe(400)
+      // köhnə klient: xətm sayları və ibadət möhürləri qəbul olunur (400 yox), amma SAXLANMIR
       const r = await put({
-        fields: ['bio', 'khatms', 'stamps', 'favSurah'],
-        data: { bio: 'Quran tələbəsi — bax example.com', khatms: 3, stamps: ['kahf_4', 'khatm'], favSurah: 18, displayName: 'gizli qalmalı' },
+        fields: ['bio', 'khatms', 'ummahKhatms', 'stamps', 'favSurah'],
+        data: { bio: 'Quran tələbəsi — bax example.com', khatms: 3, ummahKhatms: 2, stamps: ['kahf_4', 'hijra', 'khatm', 'fajr_40'], favSurah: 18, displayName: 'gizli qalmalı' },
       })
+      expect(r.status).toBe(200)
       const p = (await r.json()).profile
-      expect(p.data).toEqual({ bio: 'Quran tələbəsi — bax', khatms: 3, stamps: ['khatm', 'kahf_4'], favSurah: 18 })
+      expect(p.fields).toEqual(['bio', 'stamps', 'favSurah'])
+      expect(p.data).toEqual({ bio: 'Quran tələbəsi — bax', stamps: ['hijra'], favSurah: 18 })
+      const stored = db.raw.prepare("SELECT fields, data FROM public_profiles WHERE handle = 'hasan'").get()
+      expect(stored.data + stored.fields).not.toMatch(/khatm|kahf|fajr/)
       const pub = await get('/api/u/hasan')
       expect(pub.status).toBe(200)
       expect(pub.headers.get('x-robots-tag')).toBe('noindex')
       const pj = await pub.json()
-      expect(pj).toEqual({ handle: 'hasan', fields: ['bio', 'khatms', 'stamps', 'favSurah'], data: p.data, allowIndex: false })
+      expect(pj).toEqual({ handle: 'hasan', fields: ['bio', 'stamps', 'favSurah'], data: p.data, allowIndex: false })
       expect(JSON.stringify(pj)).not.toMatch(/example\.com|@|userId|email/)
+      expect((await get('/api/profile/public', a.cookie).then((x) => x.json())).limits.stamps).toEqual(profile.STAMP_IDS)
       // axtarış sistemlərinə icazə
-      await put({ fields: ['khatms'], data: { khatms: 1 }, allowIndex: true })
+      await put({ fields: ['favSurah'], data: { favSurah: 1 }, allowIndex: true })
       const idx = await get('/api/u/hasan')
       expect(idx.headers.get('x-robots-tag')).toBe(null)
       expect((await idx.json()).allowIndex).toBe(true)
       // bağlanır → 404 (naməlum ilə eyni)
-      await put({ enabled: false, fields: ['khatms'], data: { khatms: 1 } })
+      await put({ enabled: false, fields: ['favSurah'], data: { favSurah: 1 } })
       expect((await get('/api/u/hasan')).status).toBe(404)
       expect((await get('/api/u/yoxdur_bele')).status).toBe(404)
       expect((await get('/api/u/BAD!')).status).toBe(404)
@@ -158,9 +186,32 @@ describe('K mərhələsi HTTP', () => {
       expect((await call('/api/profile/public', { method: 'PUT', cookie: c.cookie, body: { consent: true, handle: 'hasan', enabled: true, fields: [], data: {} } })).status).toBe(200)
     })
 
+    it('köhnə sətirlərdəki xətm sayları / ibadət möhürləri OXUNARKƏN də atılır', async () => {
+      const a = await signup()
+      db.raw.prepare(`INSERT INTO public_profiles (user_id, handle, enabled, allow_index, fields, data, consent_at, created_at, updated_at)
+        VALUES (?, 'legacy_one', 1, 0, ?, ?, 1, 1, 1)`).run(a.id, JSON.stringify(['displayName', 'khatms', 'ummahKhatms', 'stamps']),
+        JSON.stringify({ displayName: 'Köhnə', khatms: 3, ummahKhatms: 7, stamps: ['khatm', 'hijra', 'dhikr_1000'] }))
+      const pj = await (await get('/api/u/legacy_one')).json()
+      expect(pj).toEqual({ handle: 'legacy_one', fields: ['displayName', 'stamps'], data: { displayName: 'Köhnə', stamps: ['hijra'] }, allowIndex: false })
+      const mine = (await (await get('/api/profile/public', a.cookie)).json()).profile
+      expect(mine.data).toEqual({ displayName: 'Köhnə', stamps: ['hijra'] })
+      expect(JSON.stringify((await (await get('/api/auth/export', a.cookie)).json()).publicProfile || {})).not.toMatch(/khatms|dhikr_1000/)
+    })
+
+    it('təsdiqsiz e-poçt: profili açmaq və şikayət → 403 verify_email; bağlı profil saxlamaq olar', async () => {
+      const u = await signup('', { verified: false }), owner = await signup()
+      const body = { consent: true, handle: 'not_verified', enabled: true, fields: ['bio'], data: { bio: 'Salam' } }
+      const r = await call('/api/profile/public', { method: 'PUT', cookie: u.cookie, body })
+      expect([r.status, (await r.json()).code]).toEqual([403, 'verify_email'])
+      expect((await call('/api/profile/public', { method: 'PUT', cookie: u.cookie, body: { ...body, enabled: false } })).status).toBe(200)
+      await call('/api/profile/public', { method: 'PUT', cookie: owner.cookie, body: { ...body, handle: 'verified_one' } })
+      const rep = await call('/api/u/verified_one/report', { cookie: u.cookie, body: { reason: 'spam' } })
+      expect([rep.status, (await rep.json()).code]).toEqual([403, 'verify_email'])
+    })
+
     it('şikayət → moderasiya (yalnız panel editor+); gizlət → mətn silinir, profil bağlanır', async () => {
       const owner = await signup(), rep = await signup()
-      await call('/api/profile/public', { method: 'PUT', cookie: owner.cookie, body: { consent: true, handle: 'reported_one', enabled: true, fields: ['bio', 'khatms'], data: { bio: 'pis söz', khatms: 2 } } })
+      await call('/api/profile/public', { method: 'PUT', cookie: owner.cookie, body: { consent: true, handle: 'reported_one', enabled: true, fields: ['bio', 'stamps'], data: { bio: 'pis söz', stamps: ['arabic'] } } })
       expect((await call('/api/u/reported_one/report', { body: { reason: 'spam' }, headers: H })).status).toBe(401)
       expect((await call('/api/u/reported_one/report', { cookie: owner.cookie, body: { reason: 'spam' } })).status).toBe(400)
       expect((await call('/api/u/reported_one/report', { cookie: rep.cookie, body: { reason: 'bilmirəm' } })).status).toBe(400)
@@ -177,8 +228,28 @@ describe('K mərhələsi HTTP', () => {
       expect((await call('/api/admin/moderation/profiles/reported_one', { cookie: ac, body: { action: 'hide' } })).status).toBe(200)
       expect((await get('/api/u/reported_one')).status).toBe(404)
       const mine = (await (await get('/api/profile/public', owner.cookie)).json()).profile
-      expect(mine).toMatchObject({ enabled: false, fields: ['khatms'], data: { khatms: 2 } })
+      expect(mine).toMatchObject({ enabled: false, fields: ['stamps'], data: { stamps: ['arabic'] } })
       expect(mine.moderatedAt).toBe(clock)
+
+      // Sahib gizlətməni geri qaytara bilmir: açmaq / indeksə vermək → 409 moderated; profil 404 qalır
+      const put = (b) => call('/api/profile/public', { method: 'PUT', cookie: owner.cookie, body: { handle: 'reported_one', fields: ['bio'], data: { bio: 'pis söz' }, ...b } })
+      const again = await put({ enabled: true, allowIndex: true })
+      expect([again.status, (await again.json()).code]).toEqual([409, 'moderated'])
+      expect((await get('/api/u/reported_one')).status).toBe(404)
+      expect((await put({ enabled: false })).status).toBe(200)   // bağlı halda redaktə olar
+      // silib təzədən yaratmaq da kömək etmir
+      expect((await call('/api/profile/public', { method: 'DELETE', cookie: owner.cookie })).status).toBe(200)
+      const fresh = await put({ consent: true, enabled: true })
+      expect([fresh.status, (await fresh.json()).code]).toEqual([409, 'moderated'])
+      expect((await put({ consent: true, enabled: false })).status).toBe(200)
+      expect((await (await get('/api/profile/public', owner.cookie)).json()).profile.moderatedAt).toBe(clock)
+      // editor: gizlədilmişlər siyahısı → unhide; sonra sahib yenidən aça bilər
+      const hidden = await (await get('/api/admin/moderation/profiles?status=hidden', ac)).json()
+      expect(hidden.items.find((i) => i.handle === 'reported_one')).toMatchObject({ moderatedAt: clock })
+      expect((await call('/api/admin/moderation/profiles/reported_one', { cookie: ac, body: { action: 'unhide' } })).status).toBe(200)
+      expect((await (await get('/api/profile/public', owner.cookie)).json()).profile).toMatchObject({ enabled: false, moderatedAt: null })
+      expect((await put({ enabled: true })).status).toBe(200)
+      expect((await get('/api/u/reported_one')).status).toBe(200)
     })
   })
 
@@ -248,6 +319,12 @@ describe('K mərhələsi HTTP', () => {
       expect((await (await post({ body: 'Anam üçün şəfa duası edin', name: 'Ali123' })).json()).code).toBe('bad_name')
       expect((await post({ body: 'Anam üçün şəfa duası edin', lang: 'AZE!' })).status).toBe(400)
       expect((await call('/api/dua-wall', { body: { body: 'Anam üçün şəfa duası edin', lang: 'az' } })).status).toBe(401)
+      const unv = await signup('', { verified: false })
+      const nv = await call('/api/dua-wall', { cookie: unv.cookie, body: { body: 'Anam üçün şəfa duası edin', lang: 'az' } })
+      expect([nv.status, (await nv.json()).code]).toEqual([403, 'verify_email'])
+      expect((await (await post({ body: 'Dua edin, saytım example .com' })).json()).code).toBe('links_not_allowed')
+      expect((await (await post({ body: 'Dua edin, saytım example。com' })).json()).code).toBe('links_not_allowed')
+      expect((await (await post({ body: 'Cаsino ilə qazanmaq üçün dua' })).json()).code).toBe('not_allowed')
       for (let i = 0; i < 3; i++) {
         const r = await post({ body: `Anam üçün şəfa duası edin ${i}`, name: i ? '' : 'Aynur' })
         expect(r.status).toBe(201)
@@ -288,21 +365,36 @@ describe('K mərhələsi HTTP', () => {
       expect((await call(`/api/dua-wall/${item.id}/pray`)).status).toBe(429)
       expect(JSON.stringify(db.raw.prepare('SELECT * FROM dua_wall_prayers').all())).not.toMatch(/127\.0\.0\.1/)
 
-      // Şikayət: öz istəyinə yox; ilk şikayət → növbə; yenidən təsdiq → 3 şikayət lazımdır
+      // Şikayət: öz istəyinə yox; təsdiqsiz → 403; istək divarda QALIR və editorun "şikayət olunanlar"ında görünür;
+      // növbəyə yalnız 3 fərqli, ≥ 24 saatlıq, təsdiqli hesabın şikayəti qaytarır (yeni hesabınkı sayılmır)
       expect((await call(`/api/dua-wall/${item.id}/report`, { cookie: u.cookie, body: { reason: 'spam' } })).status).toBe(400)
+      const unv = await signup('', { verified: false })
+      const nv = await call(`/api/dua-wall/${item.id}/report`, { cookie: unv.cookie, body: { reason: 'spam' } })
+      expect([nv.status, (await nv.json()).code]).toEqual([403, 'verify_email'])
+      age(other)
       expect((await call(`/api/dua-wall/${item.id}/report`, { cookie: other.cookie, body: { reason: 'spam' } })).status).toBe(202)
-      expect((await (await get('/api/dua-wall')).json()).items.some((i) => i.id === item.id)).toBe(false)
-      const q2 = await (await get('/api/admin/dua-wall?status=pending', ac)).json()
-      expect(q2.items[0]).toMatchObject({ id: item.id, reported: 1, reports: [{ reason: 'spam' }] })
-      await call(`/api/admin/dua-wall/${item.id}`, { cookie: ac, body: { action: 'approve' } })
-      const r2 = await signup(), r3 = await signup()
+      expect(await onWall(item.id)).toBe(true)   // 1 < 3
+      const flagged = await (await get('/api/admin/dua-wall?status=reported', ac)).json()
+      expect(flagged.items.find((i) => i.id === item.id)).toMatchObject({ flagged: true, reported: 1, reports: [{ reason: 'spam' }] })
+      expect(flagged.counts.flagged).toBeGreaterThanOrEqual(1)
+      const newbie = await signup()   // təsdiqli, amma hesab təzədir → qeyd olunur, sayılmır
+      expect((await call(`/api/dua-wall/${item.id}/report`, { cookie: newbie.cookie, body: { reason: 'other' } })).status).toBe(202)
+      const r2 = await oldSignup()
       await call(`/api/dua-wall/${item.id}/report`, { cookie: r2.cookie, body: { reason: 'spam' } })
-      expect((await (await get('/api/dua-wall')).json()).items.some((i) => i.id === item.id)).toBe(true)   // 1 < 3
+      expect(await onWall(item.id)).toBe(true)   // sayılan: 2 < 3 (newbie sayılmır)
+      const r3 = await oldSignup()
       await call(`/api/dua-wall/${item.id}/report`, { cookie: r3.cookie, body: { reason: 'other' } })
-      const r4 = await signup()
-      await call(`/api/dua-wall/${item.id}/report`, { cookie: r4.cookie, body: { reason: 'other' } })
-      expect((await (await get('/api/dua-wall')).json()).items.some((i) => i.id === item.id)).toBe(false)
+      expect(await onWall(item.id)).toBe(false)  // 3 → növbəyə qayıtdı
+      const q2 = await (await get('/api/admin/dua-wall?status=pending', ac)).json()
+      expect(q2.items[0]).toMatchObject({ id: item.id, reported: 3 })
+      expect(q2.items[0].reports).toHaveLength(4)
+      clock += 1000   // yenidən təsdiq şikayətlərdən SONRA
       await call(`/api/admin/dua-wall/${item.id}`, { cookie: ac, body: { action: 'approve' } })
+      expect(await onWall(item.id)).toBe(true)
+      // yenidən təsdiqdən sonra köhnə şikayətlər "şikayət olunanlar"da görünmür; yenə 3 yeni sayılan lazımdır
+      expect((await (await get('/api/admin/dua-wall?status=reported', ac)).json()).items.some((i) => i.id === item.id)).toBe(false)
+      for (let i = 0; i < 2; i++) await call(`/api/dua-wall/${item.id}/report`, { cookie: (await oldSignup()).cookie, body: { reason: 'other' } })
+      expect(await onWall(item.id)).toBe(true)
 
       // 30 gün sonra gizlənir (ilk təsdiqdən), 7 gün sonra silinir
       const t0 = clock
@@ -313,6 +405,51 @@ describe('K mərhələsi HTTP', () => {
       srv.routers.dw.purge()
       expect(db.raw.prepare('SELECT COUNT(*) AS n FROM dua_wall WHERE id = ?').get(item.id).n).toBe(0)
       clock = t0
+    })
+
+    it('şikayət həddi: istifadəçinin gündə yalnız ilk 5 şikayəti növbə üçün sayılır', async () => {
+      const authors = [await signup(), await signup()]
+      const items = []
+      for (let i = 0; i < 6; i++) items.push(await approved(authors[i % 2], `Hədd yoxlaması üçün dua istəyi ${i}`))
+      const rep = await oldSignup()
+      for (const it of items) expect((await call(`/api/dua-wall/${it.id}/report`, { cookie: rep.cookie, body: { reason: 'spam' } })).status).toBe(202)
+      const reported = items.map((it) => db.raw.prepare('SELECT reported FROM dua_wall WHERE id = ?').get(it.id).reported)
+      expect(reported).toEqual([1, 1, 1, 1, 1, 0])
+      expect(db.raw.prepare(`SELECT COUNT(*) AS n FROM dua_wall_reports WHERE user_id = ?`).get(rep.id).n).toBe(6)
+    })
+
+    it('bloklanmış müəllifin istəyi divardan çıxır; "Dua etdim" ona işləmir', async () => {
+      const au = await signup()
+      const item = await approved(au, 'Bloklanacaq müəllifin dua istəyi')
+      expect(await onWall(item.id)).toBe(true)
+      db.raw.prepare('UPDATE users SET disabled = 1 WHERE id = ?').run(au.id)
+      expect(await onWall(item.id)).toBe(false)
+      expect((await call(`/api/dua-wall/${item.id}/pray`)).status).toBe(404)
+      db.raw.prepare('UPDATE users SET disabled = 0 WHERE id = ?').run(au.id)
+      expect(await onWall(item.id)).toBe(true)
+    })
+
+    it('girişsiz "Dua etdim": eyni IPv6 /64 bir nəfər sayılır; yaddaş həddi dolubsa 429', async () => {
+      const au = await signup()
+      const item = await approved(au, 'IPv6 yoxlaması üçün dua istəyi')
+      const pray = (ip) => call(`/api/dua-wall/${item.id}/pray`, { headers: { ...H, 'x-forwarded-for': ip } }).then((r) => r.json())
+      expect(await pray('2001:db8:5:6::1')).toEqual({ prayed: 1, already: false })
+      expect(await pray('2001:db8:5:6:ffff::abcd')).toEqual({ prayed: 1, already: true })   // eyni /64
+      expect(await pray('2001:db8:5:7::1')).toEqual({ prayed: 2, already: false })          // başqa /64
+      expect((await pray('::ffff:192.0.2.10')).already).toBe(false)
+      expect((await pray('192.0.2.10')).already).toBe(true)                                   // IPv4-mapped = IPv4
+      // kiçik həddli ayrıca router: təmizləmədən sonra da doludursa → 429
+      const app2 = express()
+      app2.set('trust proxy', 1)
+      const dw2 = duaWall.createDuaWallRouter({ db, requireUser: () => (req, res, next) => next(), allowedOrigins: [ORIGIN], now: () => clock, anonMapCap: 2 })
+      app2.use('/api', dw2)
+      const s2 = await listen(app2)
+      try {
+        const p2 = (ip) => fetch(`${s2.url}/api/dua-wall/${item.id}/pray`, { method: 'POST', headers: { ...H, 'x-forwarded-for': ip } })
+        expect((await p2('198.51.100.1')).status).toBe(200)
+        expect((await p2('198.51.100.2')).status).toBe(200)
+        expect((await p2('198.51.100.3')).status).toBe(429)
+      } finally { await s2.close() }
     })
 
     it('qadağan sözlər admin paneldə idarə olunur', async () => {
@@ -383,6 +520,24 @@ describe('K mərhələsi HTTP', () => {
       expect((await get('/api/mosques/n123/live')).status).toBe(404)
       expect((await get('/api/mosque-rep', rep.cookie)).status).toBe(403)
     })
+
+    it('bloklanmış nümayəndənin elanı ictimai görünüşdən çıxır (başqa aktiv nümayəndə olsa da)', async () => {
+      const r1 = await signup(), r2 = await signup()
+      store.setUserRole(r1.id, 'mosque_rep', 'd777', { kind: 'script', id: null }, clock)
+      store.setUserRole(r2.id, 'mosque_rep', 'd777', { kind: 'script', id: null }, clock)
+      await call('/api/mosque-rep', { method: 'PUT', cookie: r1.cookie, body: { ...info } })
+      await call('/api/mosque-rep/announcements', { cookie: r1.cookie, body: { body: 'Birincinin elanı', expiresOn: '2026-11-25' } })
+      await call('/api/mosque-rep/announcements', { cookie: r2.cookie, body: { body: 'İkincinin elanı', expiresOn: '2026-11-25' } })
+      const before = await get('/api/mosques/d777/live')
+      const etag = before.headers.get('etag')
+      expect((await before.json()).announcements.map((a) => a.body).sort()).toEqual(['Birincinin elanı', 'İkincinin elanı'])
+      db.raw.prepare('UPDATE users SET disabled = 1 WHERE id = ?').run(r1.id)
+      const after = await get('/api/mosques/d777/live', undefined, { 'if-none-match': etag })
+      expect(after.status).toBe(200)   // ETag elan siyahısına bağlıdır — köhnə keş qalmır
+      expect((await after.json()).announcements.map((a) => a.body)).toEqual(['İkincinin elanı'])
+      const v = await (await get('/api/mosques/verified?ids=d777')).json()
+      expect(v.mosques.d777.announcements.map((a) => a.body)).toEqual(['İkincinin elanı'])
+    })
   })
 
   // ── K5 ──
@@ -446,6 +601,34 @@ describe('K mərhələsi HTTP', () => {
       clock = t0
     })
 
+    it('abunəlikdən çıxma tokeni razılıq vaxtına bağlıdır: yenidən açanda köhnə keçid işləmir', async () => {
+      const u = await verified()
+      const wk = srv.routers.wk
+      await call('/api/weekly/prefs', { method: 'PUT', cookie: u.cookie, body: { consent: true, enabled: true, weekday: 5, tz: 'Asia/Baku', lang: 'en' } })
+      const c1 = db.raw.prepare('SELECT consent_at FROM weekly_prefs WHERE user_id = ?').get(u.id).consent_at
+      const t1 = weekly.unsubToken('test-secret', u.id, c1)
+      const unsub = (t) => fetch(`${srv.url}/api/weekly/unsubscribe?t=${t}`, { method: 'POST' })
+      expect((await fetch(`${srv.url}/api/weekly/unsubscribe?t=${t1}`)).status).toBe(200)   // təsdiq səhifəsi
+      // eyni razılıqla parametrləri dəyişmək tokeni dəyişmir
+      await call('/api/weekly/prefs', { method: 'PUT', cookie: u.cookie, body: { enabled: true, weekday: 4, tz: 'Asia/Baku' } })
+      expect(db.raw.prepare('SELECT consent_at FROM weekly_prefs WHERE user_id = ?').get(u.id).consent_at).toBe(c1)
+      expect((await unsub(t1)).status).toBe(200)
+      expect(db.raw.prepare('SELECT enabled FROM weekly_prefs WHERE user_id = ?').get(u.id).enabled).toBe(0)
+      // yenidən açır → yeni razılıq vaxtı; köhnə keçid artıq 400
+      clock += 60e3
+      await call('/api/weekly/prefs', { method: 'PUT', cookie: u.cookie, body: { enabled: true, weekday: 4, tz: 'Asia/Baku' } })
+      const c2 = db.raw.prepare('SELECT consent_at FROM weekly_prefs WHERE user_id = ?').get(u.id).consent_at
+      expect(c2).toBe(clock)
+      expect((await unsub(t1)).status).toBe(400)
+      expect(db.raw.prepare('SELECT enabled FROM weekly_prefs WHERE user_id = ?').get(u.id).enabled).toBe(1)
+      expect((await unsub(weekly.unsubToken('test-secret', u.id, c2))).status).toBe(200)
+      // köhnə forma (consent_at-sız) — yalnız LEGACY tarixindən əvvəlki razılıq üçün
+      const legacy = weekly.unsubToken('test-secret', u.id)
+      expect(weekly.verifyUnsub('test-secret', legacy, () => Date.UTC(2026, 10, 20))).toBe(null)
+      expect(weekly.verifyUnsub('test-secret', legacy, () => Date.UTC(2026, 10, 1))).toEqual({ userId: u.id })
+      expect(wk.tick).toBeTypeOf('function')
+    })
+
     it('nextReportDate: həmin gün 09:00-dan əvvəl — bu gün, sonra — gələn həftə', () => {
       expect(weekly.nextReportDate(Date.UTC(2026, 10, 20, 4), 'Asia/Baku', 5)).toBe('2026-11-20')
       expect(weekly.nextReportDate(Date.UTC(2026, 10, 20, 6), 'Asia/Baku', 5)).toBe('2026-11-27')
@@ -457,7 +640,7 @@ describe('K mərhələsi HTTP', () => {
   it('"Mənim məlumatlarım" hər modulu göstərir (token/heş yoxdur); hesab silinəndə hər şey silinir', async () => {
     const u = await signup('Silinən')
     store.markVerified(u.id)
-    await call('/api/profile/public', { method: 'PUT', cookie: u.cookie, body: { consent: true, handle: 'gone_soon', enabled: true, fields: ['khatms'], data: { khatms: 1 } } })
+    await call('/api/profile/public', { method: 'PUT', cookie: u.cookie, body: { consent: true, handle: 'gone_soon', enabled: true, fields: ['favSurah'], data: { favSurah: 36 } } })
     await call('/api/family', { cookie: u.cookie })
     await call('/api/family/duas', { cookie: u.cookie, body: { body: 'ailə duası' } })
     await call('/api/dua-wall', { cookie: u.cookie, body: { body: 'Divar üçün dua istəyim', lang: 'az' } })

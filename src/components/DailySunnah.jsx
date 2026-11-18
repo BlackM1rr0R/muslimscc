@@ -21,7 +21,8 @@ import { pickUi } from '../utils/uiText'
 import { useReduced } from '../motion/reduced'
 import { loadHadithData, peekHadithData } from '../utils/hadithData'
 import { localizeSource } from '../utils/sourceNames'
-import { pathFor } from '../seo/routes'
+// Hədis səhifələri yalnız 5 əsas dildə var (/de/hadith/<id> — server 404): əlavə dildə /en/hadith/<id>
+import { pathFor, canonicalLang } from '../seo/routes'
 import { DAILY_SUNNAH } from '../data/dailySunnah'
 import {
   dayKey, itemForDate, loadLog, saveLog, setDone, streakOf, doneInMonth, monthCells, fromKey,
@@ -146,7 +147,7 @@ export default function DailySunnah({ date }) {
     return { y: n.getFullYear(), m: n.getMonth() }
   })
 
-  const href = hadith ? pathFor('hadith', lang, String(hadith.id)) : null
+  const href = hadith ? pathFor('hadith', canonicalLang('hadith', lang, String(hadith.id)), String(hadith.id)) : null
   const text = (hadith?.text || '').trim()
   const showText = text && text !== (hadith?.ar || '').trim()
   const gradeName = hadith?.g ? pickUi(GRADE, lang, 'en')[hadith.g] : ''
