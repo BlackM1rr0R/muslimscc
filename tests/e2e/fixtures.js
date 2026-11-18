@@ -65,6 +65,9 @@ const IGNORED = [
   /Failed to load resource.*\/api\/(read-together|family|hifz-tests)(\/|\?|$)/i,
   // I mərhələsi (çağırışlar, siniflər, təqvim axını) — gözlənilən 4xx (yanlış keçid, giriş yoxdur): UI özü göstərir
   /Failed to load resource.*\/api\/(challenges|classes|cal-feed)(\/|\?|$)/i,
+  // K mərhələsi (açıq profil, dua divarı, məscid nümayəndəsi, həftəlik hesabat) — gözlənilən 4xx (naməlum ləqəb → 404,
+  // nümayəndə olmayan → 403, girişsiz → 401): UI özü göstərir
+  /Failed to load resource.*\/api\/(profile|u|dua-wall|mosque-rep|mosques|weekly)(\/|\?|$)/i,
 ]
 
 // Saxta Google Identity Services (src/utils/googleSignIn.js-in işlətdiyi hissə)
@@ -184,6 +187,19 @@ export const test = base.extend({
       if (get && pathname === '/api/classes') return route.fulfill({ json: { teaching: [], learning: [], limits: {} } })
       if (get && pathname === '/api/cal-feed') return route.fulfill({ json: { enabled: false, cats: null, lang: null, createdAt: null, available: [] } })
       if (get && pathname === '/api/family/ramadan') return route.fulfill({ json: { season: { open: false, hyear: 1448, start: '2027-02-08', end: '2027-03-09', phase: null }, circle: null } })
+      return route.fulfill({ status: 401, json: { error: 'unauthenticated', code: 'unauthenticated' } })
+    })
+    // K mərhələsi (server/publicProfile.js, duaWall.js, mosqueRep.js, weekly.js) — susmaya görə boş / bağlı.
+    // tests/e2e/vK-community.spec.js öz saxtasını qoyur.
+    await page.route((u) => /^\/api\/(profile|u|dua-wall|mosque-rep|mosques|weekly)(\/|$)/.test(u.pathname), (route) => {
+      const { pathname } = new URL(route.request().url())
+      const get = route.request().method() === 'GET'
+      if (get && pathname === '/api/profile/public') return route.fulfill({ json: { profile: null, limits: {} } })
+      if (get && pathname === '/api/weekly') return route.fulfill({ json: { prefs: null, emailVerified: true, stats: [], nextReport: null } })
+      if (get && pathname === '/api/dua-wall') return route.fulfill({ json: { items: [], next: null } })
+      if (get && pathname === '/api/mosques/verified') return route.fulfill({ json: { mosques: {} } })
+      if (get && pathname === '/api/mosque-rep') return route.fulfill({ status: 403, json: { error: 'No mosque', code: 'no_mosque' } })
+      if (get && /^\/api\/(u|mosques)\//.test(pathname)) return route.fulfill({ status: 404, json: { error: 'Not found', code: 'not_found' } })
       return route.fulfill({ status: 401, json: { error: 'unauthenticated', code: 'unauthenticated' } })
     })
     // Ümmətin Canlı Xətmi (server/globalKhatm.js) — susmaya görə boş dövr; ictimai SSE bir "hello" göndərib

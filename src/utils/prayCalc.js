@@ -150,9 +150,18 @@ export function computeTimes({ year, month, day }, lat, lng, tzHours, method = C
 export const METHOD_ABUBAKR = 99
 export const ABUBAKR_SETTINGS = '18.5,null,90 min'
 
-/** aladhan sorğusu üçün metod parametrləri: 'method=13' və ya 'method=99&methodSettings=…'. */
-export function aladhanMethodQuery(method) {
-  return Number(method) === METHOD_ABUBAKR
+/**
+ * aladhan sorğusu üçün metod parametrləri: 'method=13' və ya 'method=99&methodSettings=…'.
+ * asr = 2 (Hənəfi, utils/madhab) → '&school=1' (aladhan: 0 — Şafii/standart, 1 — Hənəfi).
+ */
+export function aladhanMethodQuery(method, asr = 1) {
+  const q = Number(method) === METHOD_ABUBAKR
     ? `method=${METHOD_ABUBAKR}&methodSettings=${encodeURIComponent(ABUBAKR_SETTINGS)}`
     : `method=${method}`
+  return Number(asr) === 2 ? `${q}&school=1` : q
+}
+
+/** Metodun əsr əmsalı məzhəb seçiminə görə (J1): asr = 2 — Hənəfi; qalan hallarda metodun özü */
+export function withAsr(method = CALC_METHODS.abubakr, asr = 1) {
+  return Number(asr) === 2 && method.asrFactor !== 2 ? { ...method, asrFactor: 2 } : method
 }

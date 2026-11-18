@@ -8,7 +8,7 @@
 // • Əvvəlki fəsillə müqayisə (cədvəl), PNG kart (utils/statCard — yalnız həndəsə).
 // • Rəqəmlər yalnız istifadəçinin öz qeydlərindəndir; ölçülməyən göstərici "ölçülməyib" yazılır.
 // ═══════════════════════════════════════════════════════
-import { useEffect, useMemo, useState } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import Icon from '../Icon'
 import { pickUi } from '../../utils/uiText'
 import { makeFormat } from '../viz/format.js'
@@ -17,7 +17,14 @@ import {
   snapshotAlbum, readAlbum, chapters, compareChapters, metricOf, ALBUM_EVENT, ALBUM_KEY, METRICS, localDay,
 } from '../../utils/ramadanAlbum'
 import { canShareFile, preopenWindow, saveBlob } from '../../utils/quoteCard'
+import { wrappedCards } from '../../utils/ramadanWrapped'
+import { readTaraweeh } from '../../utils/taraweeh'
+import { readKhatm } from '../../utils/worldKhatm'
 import '../../styles/RamadanAlbum.css'
+
+// J4: fəsil "hekayə" kimi (tam ekran kartlar + PNG) — tənbəl chunk
+const RamadanWrapped = lazy(() => import('./RamadanWrapped'))
+const WRAP_OPEN = { az: 'Hekayə kimi bax', en: 'View as a story', ru: 'Смотреть как историю', ar: 'اعرضه كقصة', tr: 'Hikâye olarak gör' }
 
 export const RA_TXT = {
   az: {
@@ -113,6 +120,11 @@ export default function RamadanAlbum({ lang = 'az', compact = false }) {
   const [busy, setBusy] = useState(false)
   const cur = list.find((x) => x.y === sel) || list[0] || null
   const cmp = useMemo(() => (cur?.prev ? compareChapters(cur.c, cur.prev.c) : []), [cur])
+  // Hekayədə ən azı bir ölçülən göstərici olmalıdır
+  const canWrap = useMemo(() => (cur ? wrappedCards(cur.c, { y: cur.y, taraweeh: readTaraweeh(), khatm: readKhatm() }).length > 0 : false), [cur])
+  const [wrap, setWrap] = useState(false)
+  const wrapBtn = useRef(null)
+  const closeWrap = useMemo(() => () => { setWrap(false); setTimeout(() => wrapBtn.current?.focus(), 0) }, [])
 
   const valueText = (c, m) => {
     const v = metricOf(c, m)
@@ -215,12 +227,22 @@ export default function RamadanAlbum({ lang = 'az', compact = false }) {
             <button type="button" className="ui-btn ui-btn--primary ui-btn--sm" onClick={card} disabled={busy} data-testid="ra-card">
               <Icon name="image" className="ui-btn__icon" /> {t.share}
             </button>
+            {canWrap && (
+              <button type="button" ref={wrapBtn} className="ui-btn ui-btn--secondary ui-btn--sm" onClick={() => setWrap(true)} data-testid="ra-wrapped">
+                <Icon name="play" className="ui-btn__icon ui-flip-rtl" /> {pickUi(WRAP_OPEN, lang, 'en')}
+              </button>
+            )}
             <span className="ra__status" role="status">{status}</span>
           </div>
           {!compact && <p className="ra__note">{t.note}</p>}
         </>
       )}
       <p className="ra__privacy"><Icon name="lock" size={14} /> {t.privacy}</p>
+      {wrap && cur && (
+        <Suspense fallback={null}>
+          <RamadanWrapped lang={lang} year={cur.y} chapter={cur.c} onClose={closeWrap} />
+        </Suspense>
+      )}
     </section>
   )
 }

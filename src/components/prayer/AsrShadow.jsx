@@ -16,6 +16,7 @@ import Icon from '../Icon'
 import { pickUi } from '../../utils/uiText'
 import { localizeSource } from '../../utils/sourceNames'
 import { asrDay, shadowVec, tipPath, localDayStart } from '../../utils/asrShadow'
+import { asrOfLoc } from '../../utils/madhab'
 import '../../styles/AsrShadow.css'
 
 const T = {
@@ -28,6 +29,7 @@ const T = {
     dirs: ['Şm', 'Şq', 'C', 'Q'], dirN: 'Şimal', ring1: '1×', ring2: '2×',
     hadith: 'Cəbrail (ə) Peyğəmbərə (ﷺ) iki gün namaz qıldırdı: birinci gün əsri hər şeyin kölgəsi özü qədər olanda, ikinci gün iki misli olanda. Kölgəyə günortadakı kölgə üstəgəl əlavə olunur.',
     method: 'Saytın namaz cədvəli 1× qaydası ilə hesablanır (Şafii, Maliki, Hənbəli məzhəbləri). Hənəfi məzhəbində (Əbu Hənifənin görüşü) əsr 2× ilə hesablanır.',
+    methodH: 'Namaz cədvəliniz 2× qaydası ilə hesablanır — namaz ayarlarında Hənəfi məzhəbini seçmisiniz (Əbu Hənifənin görüşü). Şafii, Maliki və Hənbəli məzhəblərində əsr 1× ilə hesablanır.', mine: 'sizin ayarınız',
     grade: 'əl-Albani: həsən səhih', aria: (len, t) => `Kölgə ${len} boy, saat ${t}`,
   },
   en: {
@@ -39,6 +41,7 @@ const T = {
     dirs: ['N', 'E', 'S', 'W'], dirN: 'North', ring1: '1×', ring2: '2×',
     hadith: 'Jibril (peace be upon him) led the Prophet (ﷺ) in prayer on two days: on the first day he prayed Asr when the shadow of everything was equal to it, on the second day when it was twice as long. The midday shadow is added to this length.',
     method: 'The site’s timetable uses the 1× rule (Shafi‘i, Maliki and Hanbali schools). In the Hanafi school (the view of Abu Hanifah) Asr is calculated with 2×.',
+    methodH: 'Your timetable uses the 2× rule — you chose the Hanafi school in the prayer settings (the view of Abu Hanifah). The Shafi‘i, Maliki and Hanbali schools calculate Asr with 1×.', mine: 'your setting',
     grade: 'al-Albani: hasan sahih', aria: (len, t) => `Shadow ${len} heights at ${t}`,
   },
   ru: {
@@ -50,6 +53,7 @@ const T = {
     dirs: ['С', 'В', 'Ю', 'З'], dirN: 'Север', ring1: '1×', ring2: '2×',
     hadith: 'Джибриль (мир ему) два дня руководил молитвой Пророка (ﷺ): в первый день аср — когда тень каждой вещи стала равна ей, во второй — когда вдвое длиннее. К этой длине прибавляется полуденная тень.',
     method: 'Расписание сайта рассчитано по правилу 1× (шафиитский, маликитский и ханбалитский мазхабы). В ханафитском мазхабе (мнение Абу Ханифы) аср считается по 2×.',
+    methodH: 'Ваше расписание рассчитано по правилу 2× — в настройках намаза выбран ханафитский мазхаб (мнение Абу Ханифы). В шафиитском, маликитском и ханбалитском мазхабах аср считается по 1×.', mine: 'ваша настройка',
     grade: 'аль-Альбани: хасан сахих', aria: (len, t) => `Тень ${len} высоты, ${t}`,
   },
   ar: {
@@ -61,6 +65,7 @@ const T = {
     dirs: ['ش', 'ق', 'ج', 'غ'], dirN: 'الشمال', ring1: '1×', ring2: '2×',
     hadith: 'أمَّ جبريلُ عليه السلام النبيَّ ﷺ يومين: صلى العصر في اليوم الأول حين كان ظل كل شيء مثله، وفي الثاني حين كان مثليه. ويُضاف إلى ذلك فيء الزوال.',
     method: 'جدول الموقع محسوب على المثل (الشافعية والمالكية والحنابلة). وعند الحنفية (قول أبي حنيفة) يُحسب العصر على المثلين.',
+    methodH: 'جدولك محسوب على المثلين — اخترت المذهب الحنفي في إعدادات الصلاة (قول أبي حنيفة). وعند الشافعية والمالكية والحنابلة يُحسب العصر على المثل.', mine: 'إعدادك',
     grade: 'الألباني: حسن صحيح', aria: (len, t) => `الظل ${len} من طوله، الساعة ${t}`,
   },
   tr: {
@@ -72,6 +77,7 @@ const T = {
     dirs: ['K', 'D', 'G', 'B'], dirN: 'Kuzey', ring1: '1×', ring2: '2×',
     hadith: 'Cebrail (a.s.) Peygamber’e (ﷺ) iki gün namaz kıldırdı: ilk gün ikindiyi her şeyin gölgesi kendisi kadar olunca, ikinci gün iki katı olunca. Bu uzunluğa öğlen gölgesi eklenir.',
     method: 'Sitenin namaz takvimi 1× kuralıyla hesaplanır (Şâfiî, Mâlikî ve Hanbelî mezhepleri). Hanefî mezhebinde (Ebû Hanîfe’nin görüşü) ikindi 2× ile hesaplanır.',
+    methodH: 'Namaz takviminiz 2× kuralıyla hesaplanır — namaz ayarlarında Hanefî mezhebini seçtiniz (Ebû Hanîfe’nin görüşü). Şâfiî, Mâlikî ve Hanbelî mezheplerinde ikindi 1× ile hesaplanır.', mine: 'sizin ayarınız',
     grade: 'el-Elbânî: hasen sahih', aria: (len, t) => `Gölge ${len} boy, saat ${t}`,
   },
 }
@@ -83,6 +89,8 @@ const reduced = () => typeof window !== 'undefined' && (window.matchMedia?.('(pr
 export default function AsrShadow({ loc, lang = 'az', city = '', siteAsr }) {
   const t = pickUi(T, lang)
   const { lat, lng, tz } = loc || {}
+  // J1: istifadəçinin məzhəb seçimi (utils/madhab) — cədvəlin əmsalı; həmin sətir vurğulanır
+  const mine = asrOfLoc(loc)
   const [clock, setClock] = useState(() => Date.now())
   const dayStart = useMemo(() => localDayStart(clock, tz), [clock, tz])
   const day = useMemo(() => (Number.isFinite(lat) ? asrDay(dayStart, lat, lng) : null), [dayStart, lat, lng])
@@ -190,8 +198,8 @@ export default function AsrShadow({ loc, lang = 'az', city = '', siteAsr }) {
               <div><dt>{t.len}</dt><dd className="ui-num" data-testid="ash-len">{v ? `${num(v.len)} ${t.boy}` : '—'}</dd></div>
               <div><dt>{t.alt}</dt><dd className="ui-num">{v ? `${num(v.alt, 1)}°` : '—'}</dd></div>
               <div><dt>{t.noon}</dt><dd className="ui-num">{num(day.L0)} {t.boy} · {fmtT(day.noon)}</dd></div>
-              <div className="is-1"><dt>{t.asr1}</dt><dd className="ui-num" data-testid="ash-asr1">{fmtT(day.asr1)}</dd></div>
-              <div className="is-2"><dt>{t.asr2}</dt><dd className="ui-num" data-testid="ash-asr2">{fmtT(day.asr2)}</dd></div>
+              <div className={`is-1${mine === 1 ? ' is-mine' : ''}`}><dt>{t.asr1}{mine === 1 && <span className="ash__mine"> · {t.mine}</span>}</dt><dd className="ui-num" data-testid="ash-asr1">{fmtT(day.asr1)}</dd></div>
+              <div className={`is-2${mine === 2 ? ' is-mine' : ''}`}><dt>{t.asr2}{mine === 2 && <span className="ash__mine"> · {t.mine}</span>}</dt><dd className="ui-num" data-testid="ash-asr2">{fmtT(day.asr2)}</dd></div>
               {siteAsr && <div><dt>{t.table}</dt><dd className="ui-num">{siteAsr}</dd></div>}
             </dl>
           </>}
@@ -205,7 +213,7 @@ export default function AsrShadow({ loc, lang = 'az', city = '', siteAsr }) {
           <a href="https://sunnah.com/tirmidhi:149" target="_blank" rel="noopener noreferrer">{localizeSource('Tirmizi 149', lang)}</a>
         </figcaption>
       </figure>
-      <p className="ash__note"><Icon name="info" size={14} /> {t.method}</p>
+      <p className="ash__note" data-testid="ash-method" data-asr={mine}><Icon name="info" size={14} /> {mine === 2 ? t.methodH : t.method}</p>
     </div>
   )
 }

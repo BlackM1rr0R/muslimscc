@@ -219,8 +219,12 @@ export default function LoginPage({ mode = 'login' }) {
   // Artıq daxil olubsa (və ya giriş indicə alındısa) — hədəf səhifəyə
   const auth = useAuthUser()
   useEffect(() => { if (hasLoginHint()) refreshMe().catch(() => {}) }, [])
+  // J8: yeni hesab → /account-da istəyə bağlı "kunya" addımı (?welcome=1)
+  const justSignedUp = useRef(false)
   useEffect(() => {
-    if (auth.status === 'user') navigate(nextPath, { replace: true })
+    if (auth.status !== 'user') return
+    const acc = pathFor('account', siteLang)
+    navigate(justSignedUp.current && nextPath === acc ? `${acc}?welcome=1` : nextPath, { replace: true })
   // nextPath query-dən gəlir — yalnız vəziyyət dəyişəndə
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [auth.status])
@@ -266,7 +270,7 @@ export default function LoginPage({ mode = 'login' }) {
       if (passwordStrength(password, email).short) { setInvalid('password'); show('bad', errText('errWeak')); return }
       run(async () => {
         const r = await register({ email, password, displayName: name, lang })
-        if (r.checkEmail) { if (alive.current) setView('checkEmail') } else startAccountSync(r.user, { password })
+        if (r.checkEmail) { if (alive.current) setView('checkEmail') } else { justSignedUp.current = true; startAccountSync(r.user, { password }) }
       })
     } else {
       run(async () => {
@@ -289,6 +293,7 @@ export default function LoginPage({ mode = 'login' }) {
   const onGoogle = (credential) => run(async () => {
     const r = await googleLogin(credential, lang)
     if (r.twoFactor) { if (alive.current) setTwoFa({ ticket: r.ticket }); return }
+    if (r.created) justSignedUp.current = true
     startAccountSync(r.user)
   })
   const onPasskey = () => run(async () => {

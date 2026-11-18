@@ -330,6 +330,48 @@ Sərbəst mətn yoxdur — yalnız çağırışın öz başlığı (`custom`, �
   Şəvval daxil deyil), çağırış günləri. `Cache-Control: private, max-age=1800`, `X-Robots-Tag: noindex`. Limit 300/dəq;
   idarə `/api/cal-feed` 30/dəq. nginx: `location ^~ /api/cal/` — `access_log off` (URL-in özü sirdir).
 
+## K mərhələsi: icma — açıq profil, ailə dua siyahısı, dua divarı, məscid nümayəndəsi, həftəlik hesabat
+
+Hamısı könüllüdür və susmaya görə bağlıdır; ilk yazıda razılıq (`consent: true`, vaxtı saxlanır). Cədvəllər
+miqrasiyasızdır (`CREATE TABLE IF NOT EXISTS`, `user_version` dəyişmir), `users(id) ON DELETE CASCADE`; modullar
+(`./communityKit`, `./publicProfile`, `./familyDua`, `./duaWall`, `./mosqueRep`, `./weekly`) `server.js`-in əvvəlcədən
+yükləmə siyahısında, "Mənim məlumatlarım" ixracında (`exportUser`/`summaryUser`). İctimai mətnlərdən keçidlər silinir
+(`communityKit.stripLinks`), dua divarında keçid/telefon → rədd. **Moderasiya — admin PANELİ** (`server/auth.js`
+sessiyası, `admin_roles` ≥ editor; saytın `editor` rolu kifayət deyil): panel → "Dua divarına nəzarət"
+(`src/components/admin/CommunityModeration.jsx`). Moderator yalnız məzmunu görür — e-poçt / hesab id-si göndərilmir.
+
+| Modul | Cədvəllər | Endpoint-lər | Limit (IP) |
+|---|---|---|---|
+| `publicProfile.js` (K1, `/u/<ləqəb>`) | `public_profiles`, `public_profile_reports` | `GET/PUT/DELETE /api/profile/public`, `GET /api/profile/handle?h=`, `GET /api/u/:handle` (girişsiz; gizli/naməlum → eyni 404), `POST /api/u/:handle/report`, admin: `GET /api/admin/moderation/profiles`, `POST …/profiles/:handle {dismiss|hide}` | `/api/profile` 60, `/api/u` 120 |
+| `familyDua.js` (K2) | `family_duas`, `family_dua_prayers`, `family_dua_reports` | `GET/POST /api/family/duas`, `POST …/:id/pray`, `POST …/:id/answered`, `POST …/:id/report`, `DELETE …/:id` | `/api/family` 60 |
+| `duaWall.js` (K3, `/dua-wall`) | `dua_wall`, `dua_wall_prayers`, `dua_wall_reports`, `dua_wall_banned`, `dua_wall_log` | `GET /api/dua-wall` (girişsiz), `GET /api/dua-wall/mine`, `POST /api/dua-wall`, `DELETE …/:id`, `POST …/:id/pray` (girişsiz də, CSRF), `POST …/:id/report`; admin: `GET /api/admin/dua-wall?status=`, `POST /api/admin/dua-wall/:id {approve|reject|delete}`, `GET/POST/DELETE /api/admin/dua-wall/banned` | `/api/dua-wall` 60 |
+| `mosqueRep.js` (K4) | `mosque_info` (məscid üzrə; `updated_by` → SET NULL), `mosque_announcements` | `GET/PUT /api/mosque-rep`, `POST/DELETE /api/mosque-rep/announcements[/:id]` (rol `mosque_rep` + bağlı `mosque_id`; id heç vaxt sorğudan götürülmür), `GET /api/mosques/:id/live` (ETag → 304), `GET /api/mosques/verified?ids=`; admin: `GET /api/admin/mosques`, `DELETE …/:id`, `DELETE …/:id/announcements/:aid` | `/api/mosque-rep` 30, `/api/mosques` 120 |
+| `weekly.js` (K5) | `weekly_prefs`, `weekly_stats`, `weekly_sent` | `GET /api/weekly`, `PUT /api/weekly/prefs`, `PUT /api/weekly/stats`, `DELETE /api/weekly`, `GET/POST /api/weekly/unsubscribe?t=` (girişsiz, HMAC) | `/api/weekly` 30 |
+
+- **Açıq profil:** ləqəb `[a-z0-9_]{3,24}`, unikal, ehtiyat sözlər (`RESERVED`); göstərilən sahələr ağ siyahıdır
+  (`displayName, kunya, stamps, khatms, ummahKhatms, bio ≤160, favSurah`) — rəqəmləri klient bu cihazdan hesablayır
+  (`utils/passport`, `utils/worldKhatm`; künyə — J mərhələsinin `muslim_cc_kunya_v1` açarı varsa). İzləyici/reytinq yoxdur.
+  `/u/<ləqəb>` klientdə render olunur (prerender yox): nginx bu ünvana `404.html` qabığını **HTTP 404** ilə verir
+  (`/group/<id>` kimi), SPA profili göstərir. Ona görə "axtarış sistemlərinə icazə ver" yalnız robots meta-nı dəyişir —
+  **həqiqi indeksləmə üçün nginx-də `/u/` üçün 200 lazımdır** (edilməyib). Moderasiya "gizlət" → profil bağlanır, mətn sahələri silinir.
+- **Ailə dua siyahısı:** yalnız dairə üzvləri; "dua etdim" — yalnız say (kim olduğu yox), hər üzv bir dəfə, öz istəyinə yox.
+  Müəllif — "qəbul olundu"/sil; sahib — istənilən istəyi silir və bildiriş sayını görür. Dairədən çıxanın istəkləri
+  görünmür və saatlıq təmizlikdə silinir. Ömür: qəbul olunan 30 gün, qalanı 90 gün. Gündə 10, açıq ≤20/müəllif, dairədə ≤100.
+- **Dua divarı:** 10–300 simvol, ad ≤30 (yalnız hərflər; susmaya görə "Anonim"), dil etiketi. Süzgəc: keçid/domen/e-poçt
+  → `links_not_allowed`, telefon → `personal_info`, qadağan söz (admin idarə edir; ilk yaradılışda kiçik siyahı) →
+  `not_allowed`, gündə 3 (`daily_limit`). Təsdiq → 30 gün görünür (sonra 7 gün saxlanıb silinir); gözləyən/rədd — 30 gün.
+  Şikayət: ilk şikayət yenidən növbəyə; yenidən təsdiqdən sonra 3 şikayət. "Dua etdim": girişli — bazada bir dəfə;
+  girişsiz — yaddaşda (IP-nin prosesə məxsus duzla HMAC-ı, 24 saat, saatda 120) — **bazaya IP/heş yazılmır**; restartdan sonra eyni girişsiz ziyarətçi yenidən sayıla bilər.
+- **Məscid ekranı:** `/mosque-tv?m=<mosqueId>` — 60 saniyədə bir `GET /api/mosques/:id/live` (`cache: 'no-cache'`, ETag);
+  nümayəndənin iqamə qaydası (dəq. və ya `HH:MM`), adı, Cümə vaxtı/mövzusu, elanlar (birinci slayd) yerli ayarın üstünə
+  (`utils/iqamah.applyLiveConfig`). Aktiv nümayəndə yoxdursa 404 → yerli rejim. Məscid axtarışında (`/mosques`) belə
+  məscidlərdə "Təsdiqlənmiş nümayəndə" kartı. Elanın son günü UTC tarixi ilə yoxlanır.
+- **Həftəlik hesabat:** istifadəçinin seçdiyi gün, öz saat qurşağında 09:00-dan sonra; dövr — həmin gündən əvvəlki 7 gün.
+  Rəqəmləri klient (`utils/weeklyReport.js`) sayt açılanda (ən çox 3 saatda bir; `App.jsx`, yalnız `mcc_weekly` ipucu
+  varsa) hesablayır: namaz X/35, Quran səhifəsi (təxmini — mozaikanın gündəlik anlıq görüntüsündən artım × 604/6236),
+  zikr, oruc günləri (sünnə + Ramazan), vird %. **Həmin həftə rəqəm gəlməyibsə məktub GÖNDƏRİLMİR** ("skipped").
+  Yalnız təsdiqlənmiş e-poçta; şablon `weekly` (5 dil, qalanı en; boş sətirlər atılır), `List-Unsubscribe-Post`.
+
 ## Klient (sayt)
 
 - Səhifələr (noindex, sitemap-a düşmür): `/login`, `/signup`, `/account`, `/account/verify`, `/account/reset`
@@ -338,6 +380,7 @@ Sərbəst mətn yoxdur — yalnız çağırışın öz başlığı (`custom`, �
   (bütün endpoint-lər, `@simplewebauthn/browser` tənbəl). Google: `src/utils/googleSignIn.js` (`VITE_GOOGLE_CLIENT_ID`).
 - Başlıq: localStorage-da `mcc_logged_in` ipucu yoxdursa `/api/auth/me` ÇAĞIRILMIR; varsa — boş vaxtda bir dəfə.
 - Admin paneli → "İstifadəçilər" (`src/components/admin/UserManager.jsx`) — yalnız admin / superadmin.
+- Admin paneli → "Dua divarına nəzarət" (`src/components/admin/CommunityModeration.jsx`) — bütün panel rolları (editor+).
 
 ## Açıq məsələlər
 

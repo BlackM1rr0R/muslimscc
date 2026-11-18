@@ -11,6 +11,7 @@
 //   kimi; vars.unsubUrl varsa — altda "abunəlikdən çıx" keçidi + List-Unsubscribe başlıqları.
 //   Hesab təhlükəsizliyi (server/security.js): newSignIn | securityChange | adminSignIn — {time},
 //   {device}, {place}, {event}; "details" sətirləri ayrıca blokda.
+//   Həftəlik hesabat (server/weekly.js): weekly — {date}, {prayers}, {pages}, {dhikr}, {fasts}, {wird}.
 //   Mətn + sadə HTML; dəyişənlər HTML-escape olunur. Logda alıcı ünvanı və
 //   token YOXDUR (yalnız şablon adı və HTTP statusu).
 // ═══════════════════════════════════════════════════════════════════════
@@ -82,6 +83,15 @@ const T = {
     tr: { subject: 'Zekât yılınız bugün doluyor', intro: 'Bugün ({date}) zekât yılınız (havl) doluyor. Malınız nisaba ulaşıyorsa zekâtını hesaplayıp verin.', amount: 'Son hesaplanan zekât: {amount}', button: 'Zekâtı hesapla', note: 'Bu hatırlatmayı Muslims.cc zekât sayfasında kurdunuz.', unsub: 'Zekât hatırlatmasını durdur' },
     ar: { subject: 'اليوم يتمّ حول زكاتك', intro: 'اليوم ({date}) يتمّ حول زكاتك. إن بلغ مالك النصاب فاحسب زكاته وأخرجها.', amount: 'آخر زكاة محسوبة: {amount}', button: 'احسب الزكاة', note: 'أعددتَ هذا التذكير في صفحة الزكاة على Muslims.cc.', unsub: 'إيقاف تذكير الزكاة' },
   },
+  // ── K5. Həftəlik hesabat (server/weekly.js) — {date}, {prayers}, {pages}, {dhikr}, {fasts}, {wird};
+  //    dropEmpty: dəyəri olmayan sətir (məs. vird qurulmayıb) "details"-dən atılır ──
+  weekly: {
+    az: { subject: 'Həftəniz — Muslims.cc', intro: 'Bu, {date} tarixinə qədərki 7 günün qısa xülasəsidir. Allah qəbul etsin!', details: 'Qılınan namaz: {prayers} / 35\nQuran səhifəsi (təxmini): {pages}\nZikr: {dhikr}\nOruc günü: {fasts}\nVird tamamlanması: {wird}%', button: 'Hesabımı aç', note: 'Rəqəmlər cihazınızda hesablanıb və yalnız bu məktub üçün göndərilib. Həftəlik hesabatı Muslims.cc hesabınızda açmısınız.', unsub: 'Həftəlik hesabatı dayandır', dropEmpty: true },
+    en: { subject: 'Your week — Muslims.cc', intro: 'Here is a short summary of the 7 days before {date}. May Allah accept it from you!', details: 'Prayers logged: {prayers} / 35\nQuran pages (approx.): {pages}\nDhikr: {dhikr}\nFasting days: {fasts}\nWird completed: {wird}%', button: 'Open my account', note: 'The numbers were calculated on your device and sent only for this email. You turned on the weekly summary in your Muslims.cc account.', unsub: 'Stop the weekly summary', dropEmpty: true },
+    ru: { subject: 'Ваша неделя — Muslims.cc', intro: 'Краткий итог 7 дней до {date}. Да примет Аллах!', details: 'Отмечено намазов: {prayers} / 35\nСтраниц Корана (примерно): {pages}\nЗикр: {dhikr}\nДней поста: {fasts}\nВирд выполнен: {wird}%', button: 'Открыть аккаунт', note: 'Цифры посчитаны на вашем устройстве и отправлены только для этого письма. Вы включили еженедельный итог в аккаунте Muslims.cc.', unsub: 'Отключить еженедельный итог', dropEmpty: true },
+    tr: { subject: 'Haftanız — Muslims.cc', intro: '{date} tarihinden önceki 7 günün kısa özeti. Allah kabul etsin!', details: 'Kılınan namaz: {prayers} / 35\nKur’an sayfası (yaklaşık): {pages}\nZikir: {dhikr}\nOruç günü: {fasts}\nVird tamamlama: %{wird}', button: 'Hesabımı aç', note: 'Rakamlar cihazınızda hesaplandı ve yalnızca bu e-posta için gönderildi. Haftalık özeti Muslims.cc hesabınızda açtınız.', unsub: 'Haftalık özeti durdur', dropEmpty: true },
+    ar: { subject: 'أسبوعك — Muslims.cc', intro: 'هذا ملخّص قصير للأيام السبعة التي سبقت {date}. تقبّل الله منك!', details: 'الصلوات المسجّلة: {prayers} / 35\nصفحات القرآن (تقريبًا): {pages}\nالذكر: {dhikr}\nأيام الصيام: {fasts}\nإتمام الورد: {wird}%', button: 'افتح حسابي', note: 'حُسبت الأرقام على جهازك وأُرسلت لهذه الرسالة فقط. فعّلتَ الملخّص الأسبوعي في حسابك على Muslims.cc.', unsub: 'إيقاف الملخّص الأسبوعي', dropEmpty: true },
+  },
   // ── Hesab təhlükəsizliyi (server/security.js) — {time}, {device}, {place}, {event}; düymə — "Bu mən deyildim" ──
   newSignIn: {
     az: { subject: 'Yeni cihazdan giriş — Muslims.cc', intro: 'Muslims.cc hesabınıza yeni cihazdan daxil olundu.', details: 'Vaxt: {time}\nCihaz: {device}\nTəxmini yer: {place}', button: 'Bu mən deyildim', note: 'Bu sizsinizsə, heç nə etməyin. Siz deyilsinizsə, düyməyə basın — bütün girişlər bağlanacaq və şifrəni yeniləmək üçün məktub göndəriləcək. Keçid 7 gün etibarlıdır.' },
@@ -118,7 +128,7 @@ const ordinalEn = (n) => {
 }
 /** "{name}" yer tutucuları; dəyişənlərdən idarə simvolları (başlıq inyeksiyası) atılır */
 function fill(str, vars, l) {
-  return String(str).replace(/\{(name|n|names|date|amount|time|device|place|event)\}/g, (_, k) => {
+  return String(str).replace(/\{(name|n|names|date|amount|time|device|place|event|prayers|pages|dhikr|fasts|wird)\}/g, (_, k) => {
     let v = vars[k]
     if (v == null) return ''
     if (k === 'n' && l === 'en') v = ordinalEn(Number(v))
@@ -141,7 +151,10 @@ function render(kind, lang, vars = {}) {
   const body = typeof vars.body === 'string' ? vars.body.slice(0, 8000) : ''
   const intro = fill(t.intro, vars, l)
   const amount = t.amount && vars.amount ? fill(t.amount, vars, l) : ''
-  const details = t.details ? fill(t.details, vars, l) : ''
+  // dropEmpty (həftəlik hesabat): dəyəri olmayan yer tutuculu sətir atılır
+  const details = !t.details ? '' : t.dropEmpty
+    ? t.details.split('\n').filter((line) => [...line.matchAll(/\{(\w+)\}/g)].every((m) => vars[m[1]] != null && vars[m[1]] !== '')).map((line) => fill(line, vars, l)).join('\n')
+    : fill(t.details, vars, l)
   const dir = l === 'ar' ? 'rtl' : 'ltr'
   const text = `${intro}\n\n` + (details ? `${details}\n\n` : '') + (body ? `${body}\n\n` : '') + (amount ? `${amount}\n\n` : '') +
     `${safeUrl}\n\n${t.note}\n\n— Muslims.cc` + (unsubUrl ? `\n\n${t.unsub}: ${unsubUrl}` : '')

@@ -24,7 +24,7 @@ describe('ICS köməkçiləri', () => {
   })
   it('parseQuery: yoxlama və təmizləmə', () => {
     expect(ics.parseQuery({ lat: '40.40931', lng: '49.86712', tz: 'Asia/Baku', method: '99', lang: 'az', city: 'Bakı<script>' }))
-      .toEqual({ lat: 40.4093, lng: 49.8671, tz: 'Asia/Baku', method: 99, lang: 'az', city: 'Bakıscript' })
+      .toEqual({ lat: 40.4093, lng: 49.8671, tz: 'Asia/Baku', method: 99, asr: 1, lang: 'az', city: 'Bakıscript' })
     expect(ics.parseQuery({ lat: 'x', lng: '1', tz: 'Asia/Baku', method: '99' })).toBeNull()
     expect(ics.parseQuery({ lat: '40', lng: '49', tz: 'Mars/Base', method: '99' })).toBeNull()
     expect(ics.parseQuery({ lat: '40', lng: '49', tz: 'Asia/Baku', method: '50' })).toBeNull()

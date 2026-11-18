@@ -4,7 +4,7 @@
 // hesablanır), təşviq kartları (yalnız şablon). Yeni kart — yumşaq bildiriş (toast) + siyahı.
 // AccountPage bu faylı tənbəl yükləyir.
 // ═══════════════════════════════════════════════════════
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react'
 import Icon from '../Icon'
 import { pickUi } from '../../utils/uiText'
 import { pathFor } from '../../seo/routes'
@@ -17,6 +17,9 @@ import { activeProfile } from '../../utils/profiles'
 import { FAM, CARDS, CARD_N, famError } from './familyText'
 import CopyLink from '../readroom/CopyLink'
 import '../../styles/ReadTogether.css'
+
+// K2: ailə dua siyahısı (server/familyDua.js) — yalnız dairə üzvlərinə
+const FamilyDuaList = lazy(() => import('./FamilyDuaList'))
 
 const fmtDate = (ms, lang) => { try { return new Date(ms).toLocaleDateString(lang === 'az' ? 'az-Latn-AZ' : lang, { dateStyle: 'medium' }) } catch { return new Date(ms).toISOString().slice(0, 10) } }
 const nf = (n, lang) => { try { return new Intl.NumberFormat(lang === 'az' ? 'az-Latn-AZ' : lang).format(n) } catch { return String(n) } }
@@ -156,6 +159,7 @@ export default function FamilySection({ lang, siteLang }) {
 
           <ShareBox t={t} lang={lang} data={data} busy={busy} run={run} />
           {circle.members.length > 1 && <CardSender t={t} C={C} circle={circle} busy={busy} run={run} />}
+          <Suspense fallback={null}><FamilyDuaList key={circle.id} lang={lang} /></Suspense>
         </>
       )}
 

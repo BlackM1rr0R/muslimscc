@@ -1,0 +1,13 @@
+/* J7: avatarın həndəsi çərçivəsi (components/account/JourneyFrame) */
+.jf { position: relative; display: inline-grid; place-items: center; flex-shrink: 0; line-height: 0; }
+.jf > :first-child { position: relative; z-index: 0; }
+.jf__svg { position: absolute; inset: -7px; width: calc(100% + 14px); height: calc(100% + 14px); pointer-events: none; overflow: visible; }
+.jf--sm .jf__svg { inset: -5px; width: calc(100% + 10px); height: calc(100% + 10px); }
+.jf--lg .jf__svg { inset: -11px; width: calc(100% + 22px); height: calc(100% + 22px); }
+.jf__line { fill: none; stroke: var(--brand); stroke-width: 2.4; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.jf__line--soft { stroke: var(--brand); opacity: .45; stroke-width: 1.4; }
+.jf__line--gold { stroke: var(--accent, #b8892b); }
+.jf__dot { fill: var(--brand); }
+.jf__dot--gold { fill: var(--accent, #b8892b); }
+.jf--s0 .jf__line { opacity: .35; }
+.jf__flag { position: absolute; z-index: 2; top: -3px; inset-inline-end: -3px; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 2px var(--surface-1); }

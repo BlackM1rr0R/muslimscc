@@ -74,13 +74,15 @@ const strMax = (v, n) => typeof v === 'string' && v.length <= n
 function validLoc(l) {
   if (l == null) return null
   if (typeof l !== 'object' || Array.isArray(l)) return undefined
-  const allowed = ['lat', 'lng', 'tz', 'method', 'city']
+  const allowed = ['lat', 'lng', 'tz', 'method', 'asr', 'city']
   if (Object.keys(l).some((k) => !allowed.includes(k))) return undefined
   const out = {}
   if ('lat' in l) { if (typeof l.lat !== 'number' || !(l.lat >= -90 && l.lat <= 90)) return undefined; out.lat = l.lat }
   if ('lng' in l) { if (typeof l.lng !== 'number' || !(l.lng >= -180 && l.lng <= 180)) return undefined; out.lng = l.lng }
   if ('tz' in l) { if (!strMax(l.tz, 64)) return undefined; out.tz = l.tz }
   if ('method' in l) { if (typeof l.method !== 'number' || !(l.method >= 0 && l.method <= 99)) return undefined; out.method = l.method }
+  // Əsrin kölgə əmsalı (məzhəb seçimi, src/utils/madhab): 1 | 2 (Hənəfi)
+  if ('asr' in l) { if (l.asr !== 1 && l.asr !== 2) return undefined; if (l.asr === 2) out.asr = 2 }
   if ('city' in l) {
     const c = l.city
     if (!c || typeof c !== 'object' || Array.isArray(c)) return undefined

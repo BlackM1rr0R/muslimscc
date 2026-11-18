@@ -1,0 +1,57 @@
+/* K mərhələsi — açıq profil, həftəlik hesabat, məscid nümayəndəsi, ailə dua siyahısı, dua divarı, /u/<ləqəb>.
+   Yalnız mövcud dizayn tokenləri (ui.css); hərəkət yoxdur (check-motion). */
+.cm-handle { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.cm-handle .ui-input { flex: 1 1 160px; min-width: 0; }
+.cm-handle__pre { color: var(--text-secondary); font-family: var(--font-mono, ui-monospace, monospace); font-size: var(--step--1); }
+.cm-fields, .cm-chips, .cm-iqama { display: grid; gap: 2px; margin: 0; padding: 0; border: 0; min-width: 0; }
+.cm-chips { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
+.cm-narrow { max-width: 260px; }
+.cm-pre { white-space: pre-line; overflow-wrap: anywhere; }
+.cm-iqama__row { display: grid; grid-template-columns: minmax(70px, 110px) minmax(0, 1fr) minmax(0, 120px); gap: 8px; align-items: center; min-height: 48px; }
+.cm-iqama__name { color: var(--text-strong); font-weight: 600; font-size: var(--step--1); }
+.cm-week { margin-top: 12px; padding: 14px; border-radius: var(--radius-md); background: var(--surface-2); }
+.cm-week__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin: 8px 0 0; }
+.cm-week__grid div { display: grid; gap: 2px; }
+.cm-week__grid dt { color: var(--text-secondary); font-size: var(--step--1); }
+.cm-week__grid dd { margin: 0; color: var(--text-strong); font-size: var(--step-1); font-weight: 700; }
+
+/* Ailə dua siyahısı */
+.fd-list { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.fd-item { display: grid; gap: 8px; padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--surface-1, transparent); }
+.fd-item.is-answered { border-style: dashed; }
+.fd-item__body { margin: 0; color: var(--text-primary); line-height: 1.6; white-space: pre-line; overflow-wrap: anywhere; }
+.fd-item__meta { margin: 0; color: var(--text-secondary); font-size: var(--step--1); }
+
+/* Dua divarı */
+.dw-grid { display: grid; gap: 14px; margin: 0; padding: 0; list-style: none; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+.dw-card { display: grid; gap: 10px; align-content: space-between; padding: 18px; border-radius: var(--radius-lg, 16px); }
+.dw-card__body { margin: 0; color: var(--text-strong); font-size: var(--step-0); line-height: 1.7; white-space: pre-line; overflow-wrap: anywhere; }
+.dw-card__who { margin: 0; color: var(--text-secondary); font-size: var(--step--1); }
+.dw-card__row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.dw-count { color: var(--text-secondary); font-size: var(--step--1); }
+.dw-rules { margin: 0; padding-inline-start: 1.2em; display: grid; gap: 4px; color: var(--text-primary); }
+.dw-layout { display: grid; gap: 20px; }
+@media (min-width: 960px) { .dw-layout { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); align-items: start; } }
+.dw-status { font-size: 0.75rem; }
+
+/* /u/<ləqəb> */
+.pub-card { display: grid; gap: 16px; padding: 24px; }
+.pub-head { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.pub-avatar { display: grid; place-items: center; width: 64px; height: 64px; border-radius: 50%; background: var(--brand-soft); color: var(--brand-strong); font-size: 1.75rem; font-weight: 700; }
+.pub-name { margin: 0; color: var(--text-strong); font-size: var(--step-3); line-height: 1.2; }
+.pub-kunya { margin: 2px 0 0; color: var(--text-secondary); }
+.pub-bio { margin: 0; color: var(--text-primary); line-height: 1.7; overflow-wrap: anywhere; }
+.pub-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 0; }
+.pub-stats div { padding: 12px; border-radius: var(--radius-md); background: var(--surface-2); }
+.pub-stats dt { color: var(--text-secondary); font-size: var(--step--1); }
+.pub-stats dd { margin: 4px 0 0; color: var(--text-strong); font-weight: 700; font-size: var(--step-1); }
+.pub-stamps { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
+
+/* Məscid axtarışı: təsdiqlənmiş nümayəndə kartı */
+.mrep-card { display: grid; gap: 6px; margin-top: 8px; padding: 10px 12px; border-radius: var(--radius-md); background: var(--surface-2); font-size: var(--step--1); }
+.mrep-card p { margin: 0; }
+
+/* Məscid ekranı: qoşulu rejim nişanı və elan zolağı */
+.mtv-live-badge { display: inline-flex; align-items: center; gap: 6px; margin-top: 4px; padding: 2px 10px; border-radius: 999px; background: var(--brand-soft); color: var(--brand-strong); font-size: 0.8rem; font-weight: 600; }
+.mtv-announce { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+.mtv-announce li { font-size: clamp(1rem, 1.6vw, 1.6rem); line-height: 1.5; white-space: pre-line; overflow-wrap: anywhere; }

@@ -138,10 +138,17 @@ const METHOD_ABUBAKR = 99
 const ABUBAKR_SETTINGS = '18.5,null,90 min'
 
 /** aladhan sorğusu üçün metod parametrləri: 'method=13' və ya 'method=99&methodSettings=…'. */
-function aladhanMethodQuery(method) {
-  return Number(method) === METHOD_ABUBAKR
+// asr = 2 (Hənəfi — abunəliyin loc.asr, src/utils/madhab) → '&school=1'
+function aladhanMethodQuery(method, asr = 1) {
+  const q = Number(method) === METHOD_ABUBAKR
     ? `method=${METHOD_ABUBAKR}&methodSettings=${encodeURIComponent(ABUBAKR_SETTINGS)}`
     : `method=${method}`
+  return Number(asr) === 2 ? `${q}&school=1` : q
 }
 
-module.exports = { CALC_METHODS, computeTimes, tzOffsetHours, METHOD_ABUBAKR, ABUBAKR_SETTINGS, aladhanMethodQuery }
+/** Metodun əsr əmsalı məzhəbə görə: asr = 2 — Hənəfi */
+function withAsr(method = CALC_METHODS.abubakr, asr = 1) {
+  return Number(asr) === 2 && method.asrFactor !== 2 ? { ...method, asrFactor: 2 } : method
+}
+
+module.exports = { CALC_METHODS, computeTimes, tzOffsetHours, METHOD_ABUBAKR, ABUBAKR_SETTINGS, aladhanMethodQuery, withAsr }

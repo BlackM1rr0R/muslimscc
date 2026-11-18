@@ -20,6 +20,7 @@ import { useAuthUser, initialOf, syncLinkedHere } from '../api/userSession'
 import AccountSyncSection from '../components/account/AccountSyncSection'
 import ContinueCard, { CONT_TXT } from '../components/ContinueCard'
 import { rewrapAfterPasswordChange } from '../utils/accountSync'
+import { readKunya, kunyaText, JOURNEY_EVENT } from '../utils/journeyStore'
 import {
   MAX_NAME, addPasskey, changePassword, deleteAccount, errorKey, isPanelRole, listSessions, logoutUser,
   passkeySupported, passwordStrength, refreshMe, removePasskey, resendVerification, revokeOtherSessions,
@@ -43,6 +44,12 @@ const SecuritySections = lazy(() => import('../components/account/SecuritySectio
 const AccountISections = lazy(() => import('../components/account/AccountISections'))
 // H: vird, kitabxana, öyrənmə məqsədi, uşaq rejimi, şəxsi ana səhifə
 const AccountHSections = lazy(() => import('../components/account/AccountHSections'))
+// K: açıq profil, həftəlik e-poçt hesabatı, məscid nümayəndəsinin paneli (server/publicProfile.js, weekly.js, mosqueRep.js)
+const AccountKSections = lazy(() => import('../components/account/AccountKSections'))
+// J: ildönümü / ad günü kartları, kunya, məzhəb + sevimli qari, "hekayəm", yol mərhələsi (avatar çərçivəsi)
+const AccountJTop = lazy(() => import('../components/account/AccountJSections').then(m => ({ default: m.JTop })))
+const AccountJSections = lazy(() => import('../components/account/AccountJSections'))
+const JourneyFrame = lazy(() => import('../components/account/JourneyFrame'))
 
 const LABELS = {
   az: {
@@ -273,6 +280,8 @@ export default function AccountPage() {
     try { f = new Intl.DateTimeFormat(lang === 'az' ? 'az-Latn-AZ' : lang, { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) } catch { /* köhnə brauzer */ }
     return (ms) => (ms ? (f ? f.format(new Date(ms)) : new Date(ms).toLocaleString()) : '')
   }, [lang])
+  // J8: kunya — "Ad (Kunya)" kimi başlıqda (yerli + sinxron, utils/journeyStore)
+  const kunya = useKunyaText(lang)
 
   if (load !== 'ready' || !user) {
     return (
@@ -306,10 +315,12 @@ export default function AccountPage() {
     <div className="acc-account">
       <section className="ui-page-hero acc-hero">
         <div className="ui-container ui-container--narrow acc-hero__row">
-          <span className="acc-avatar acc-avatar--lg" aria-hidden="true">{initialOf(user)}</span>
+          <Suspense fallback={<span className="acc-avatar acc-avatar--lg" aria-hidden="true">{initialOf(user)}</span>}>
+            <JourneyFrame live size="lg"><span className="acc-avatar acc-avatar--lg" aria-hidden="true">{initialOf(user)}</span></JourneyFrame>
+          </Suspense>
           <div className="acc-hero__text">
             <p className="ui-eyebrow">{l.eyebrow}</p>
-            <h1 className="ui-title">{user.displayName || l.title}</h1>
+            <h1 className="ui-title">{user.displayName || l.title}{kunya && <span className="acc-kunya" data-testid="hero-kunya"> (<bdi>{kunya}</bdi>)</span>}</h1>
             <p className="acc-hero__email"><bdi>{user.email}</bdi></p>
             <p className="acc-hero__badges">
               <span className="ui-sr-only">{l.role}: </span>
@@ -328,6 +339,9 @@ export default function AccountPage() {
       <div className="ui-container ui-container--narrow acc-sections">
         {!user.emailVerified && user.email && <VerifyBanner l={l} errText={errText} lang={lang} />}
         <ProfileSection l={l} t={t} errText={errText} user={user} lang={lang} />
+        <Suspense fallback={null}>
+          <AccountJTop user={user} lang={lang} />
+        </Suspense>
         <AccountSyncSection user={user} fmt={fmt} />
         <ContinueSection lang={lang} />
         <Suspense fallback={null}>
@@ -347,6 +361,12 @@ export default function AccountPage() {
         </Suspense>
         <Suspense fallback={null}>
           <AccountHSections lang={lang} siteLang={siteLang} />
+        </Suspense>
+        <Suspense fallback={null}>
+          <AccountKSections lang={lang} siteLang={siteLang} user={user} />
+        </Suspense>
+        <Suspense fallback={null}>
+          <AccountJSections user={user} lang={lang} />
         </Suspense>
         <PasswordSection l={l} t={t} errText={errText} user={user} />
         <PasskeySection l={l} errText={errText} user={user} fmt={fmt} />
@@ -369,6 +389,18 @@ export default function AccountPage() {
       )}
     </div>
   )
+}
+
+/** Kunyanın mətni (dəyişəndə yenilənir) */
+function useKunyaText(lang) {
+  const [k, setK] = useState(() => readKunya())
+  useEffect(() => {
+    const re = () => setK(readKunya())
+    window.addEventListener(JOURNEY_EVENT, re)
+    window.addEventListener('storage', re)
+    return () => { window.removeEventListener(JOURNEY_EVENT, re); window.removeEventListener('storage', re) }
+  }, [])
+  return kunyaText(k, lang)
 }
 
 /** "Davam et" — bu cihazdakı (hesabla sinxronlanan) tərəqqi: hər element birbaşa həmin yerə */

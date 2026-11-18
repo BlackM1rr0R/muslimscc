@@ -34,6 +34,9 @@
 .ash__facts dt { font-size: .75rem; color: var(--text-secondary); }
 .ash__facts dd { margin: 2px 0 0; font-weight: 700; }
 .ash__facts .is-1 { box-shadow: inset 3px 0 0 var(--ash-r1); } .ash__facts .is-2 { box-shadow: inset 3px 0 0 var(--ash-r2); }
+/* J1: istifadəçinin məzhəb seçiminə uyğun əsr sətri */
+.ash__facts .is-mine { outline: 2px solid var(--accent, currentColor); outline-offset: -2px; }
+.ash__mine { font-weight: 600; color: var(--text-primary); }
 .ash__hadith { margin: 0; padding: 14px 16px; border-radius: 12px; background: var(--bg-secondary, rgba(0,0,0,.03)); display: grid; gap: 8px; }
 .ash__hadith blockquote { margin: 0; font-size: 1.25rem; line-height: 1.9; }
 .ash__hadith p { margin: 0; font-size: .92rem; }

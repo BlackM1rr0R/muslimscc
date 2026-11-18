@@ -38,6 +38,7 @@ import { useEffect, useState } from 'react'
 import { prayerCity } from '../seo/prayerCity.js'
 import { DEFAULT_PRAYER_LOCATION } from '../config/brand'
 import { METHOD_ABUBAKR } from './prayCalc'
+import { currentAsrFactor, asrOfLoc, MADHAB_EVENT, MADHAB_KEY } from './madhab'
 
 const CITY_KEY = 'muslim_cc_selected_city'
 const CUSTOM_KEY = 'muslim_cc_custom_city'
@@ -155,6 +156,7 @@ function fromCity(c, isDefault) {
     lng: c.lng,
     tz: c.tz,
     method: methodFor(c.country, c.method),
+    asr: currentAsrFactor(),
     city: c.label,
     country: c.country,
     isDefault,
@@ -178,6 +180,7 @@ function fromCustom(p) {
     lng: p.lng,
     tz: p.tz,
     method: methodFor(p.country, p.method),
+    asr: currentAsrFactor(),
     city: p.label,
     country: p.country || '',
     isDefault: false,
@@ -205,6 +208,7 @@ export function getPrayerLocation() {
     lng: d.lng,
     tz: d.tz,
     method: methodFor(same ? same.country : '', d.method),
+    asr: currentAsrFactor(),
     city: same ? same.label : d.city,
     country: same ? same.country : '',
     isDefault: true,
@@ -212,9 +216,15 @@ export function getPrayerLocation() {
   }
 }
 
-/** Keş və müqayisə açarı — yalnız vaxtlara təsir edən sahələr. */
+/**
+ * Yerin əsr əmsalı (J1, utils/madhab): loc.asr (1 | 2) və ya — yer başqa yerdə qurulubsa
+ * (məs. /mosque-tv) — istifadəçinin cari məzhəb seçimi. 2 — Hənəfi.
+ */
+export const asrOf = asrOfLoc
+
+/** Keş və müqayisə açarı — yalnız vaxtlara təsir edən sahələr (Hənəfi əsri — ',a2'; əvvəlki açarlar dəyişmir). */
 export function locationSig(loc) {
-  return `${loc.lat},${loc.lng},${loc.method}`
+  return `${loc.lat},${loc.lng},${loc.method}${asrOf(loc) === 2 ? ',a2' : ''}`
 }
 
 function emitChange() {
@@ -305,12 +315,14 @@ export function subscribePrayerLocation(cb) {
   if (typeof window === 'undefined') return () => {}
   const onChange = () => cb(getPrayerLocation())
   const onStorage = (e) => {
-    if (e.key === CITY_KEY || e.key === ADMIN_DEFAULT_KEY || e.key === CUSTOM_KEY) onChange()
+    if (e.key === CITY_KEY || e.key === ADMIN_DEFAULT_KEY || e.key === CUSTOM_KEY || e.key === MADHAB_KEY) onChange()
   }
   window.addEventListener(CHANGE_EVENT, onChange)
+  window.addEventListener(MADHAB_EVENT, onChange)   // məzhəb → əsr əmsalı (utils/madhab)
   window.addEventListener('storage', onStorage)
   return () => {
     window.removeEventListener(CHANGE_EVENT, onChange)
+    window.removeEventListener(MADHAB_EVENT, onChange)
     window.removeEventListener('storage', onStorage)
   }
 }

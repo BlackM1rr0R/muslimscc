@@ -52,6 +52,8 @@ export const PROFILE_KEYS = [
   'arabic_course_v1', 'nawawi40_learned_v1', 'hadith_srs_v1', 'names99_practice_v1',
   // H mərhələsi: şəxsi ana səhifə, vird, kitabxana, öyrənmə məqsədi
   'home_layout_v1', 'wird_v1', 'books_shelf_v1', 'learn_goal_v1',
+  // J: təravih gündəliyi, əzbər surələrin günü, öz mərhələlər ("hekayəm"), ad günü (hər profil — bir insan)
+  'muslim_cc_taraweeh_v1', 'hifz_dates_v1', 'life_milestones_v1', 'muslim_cc_birthday_v1',
 ]
 const SCOPED = new Set(PROFILE_KEYS)
 export const isProfileScoped = (k) => SCOPED.has(k)

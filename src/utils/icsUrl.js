@@ -5,6 +5,7 @@ export function icsUrl(origin, loc, lang, city) {
     lat: String(Math.round(loc.lat * 1e4) / 1e4), lng: String(Math.round(loc.lng * 1e4) / 1e4),
     tz: loc.tz, method: String(loc.method), lang,
   })
+  if (loc.asr === 2) q.set('asr', '2')   // J1: Hənəfi əsri (utils/madhab)
   if (city) q.set('city', city)
   return `${origin}/api/prayer.ics?${q}`
 }

@@ -563,6 +563,8 @@ function createUsersRouter(opts) {
   const meOf = (u) => ({
     id: u.id, email: u.email, emailVerified: u.email_verified === 1, displayName: u.display_name,
     role: u.role, mosqueId: u.mosque_id || null, hasPassword: Boolean(u.pass_hash),
+    // J3: hesabın ildönümü kartı (src/components/account/AccountJSections) — yaradılma anı (ms)
+    createdAt: Number(u.created_at) || null,
     passkeys: store.listPasskeys(u.id), providers: store.providersOf(u.id),
     ...(sec ? sec.meExtra(u.id) : {}),
   })

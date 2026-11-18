@@ -15,7 +15,8 @@
 // Test: ?sky=fajr|sunrise|day|asr|maghrib|isha|night
 // ═══════════════════════════════════════════════════════
 import { getPrayerLocation, subscribePrayerLocation } from './prayerLocation'
-import { computeTimes, tzOffsetHours, CALC_METHODS } from './prayCalc'
+import { computeTimes, tzOffsetHours, CALC_METHODS, withAsr } from './prayCalc'
+import { asrOfLoc } from './madhab'
 
 export const SKY_PHASES = ['night', 'fajr', 'sunrise', 'day', 'asr', 'maghrib', 'isha']
 
@@ -85,7 +86,7 @@ export function initLivingSky() {
     try {
       const loc = getPrayerLocation()
       const n = nowInZone(loc.tz)
-      const t = computeTimes(n.date, loc.lat, loc.lng, n.off, CALC_METHODS.abubakr)
+      const t = computeTimes(n.date, loc.lat, loc.lng, n.off, withAsr(CALC_METHODS.abubakr, asrOfLoc(loc)))
       s = skyAt(n.min, t)
     } catch { s = { phase: 'day', x: 85, y: 0 } }
     if (SKY_PHASES.includes(forced)) {

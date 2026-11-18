@@ -24,6 +24,9 @@ const MosqueBuilder3D = lazy(() => import('../components/MosqueBuilder3D'))
 const MosqueCollection = lazy(() => import('../components/mosque/MosqueCollection'))
 import { MC_TXT } from '../components/mosque/mosqueText'
 import { readVisits, VISITS_EVENT } from '../utils/mosqueVisits'
+// K4: təsdiqlənmiş nümayəndəsi olan məscidlər (server/mosqueRep.js) — kart yalnız belə məscid olanda yüklənir
+import { verifiedMosques } from '../api/community'
+const MosqueRepCard = lazy(() => import('../components/mosque/MosqueRepCard'))
 
 const WALK = { az: (m) => `piyada ≈ ${m} dəq`, en: (m) => `≈ ${m} min walk`, ru: (m) => `пешком ≈ ${m} мин`, tr: (m) => `yürüyerek ≈ ${m} dk`, ar: (m) => `≈ ${m} دقيقة مشيًا` }
 
@@ -132,7 +135,7 @@ const V3 = {
 }
 
 export default function MosqueFinderPage({ setPage }) {
-  const { lang } = useLang()
+  const { lang, siteLang = lang } = useLang()
   const t = pickUi(LABELS, lang)
   const x = pickUi(EXTRA, lang, 'en')
   // Namaz vaxtları üçün seçilmiş şəhər — məkan icazəsi olmayanda ehtiyat
@@ -141,6 +144,7 @@ export default function MosqueFinderPage({ setPage }) {
 
   const [status, setStatus] = useState('idle') // idle | loading | done | error
   const [mosques, setMosques] = useState([])
+  const [verified, setVerified] = useState({})
   const [errorMsg, setErrorMsg] = useState('')
   // vE: kolleksiyadakı OSM id-ləri ('w5') — nəticədə "Kolleksiyada" göstərilir
   const mc = pickUi(MC_TXT, lang, 'en')
@@ -232,6 +236,7 @@ export default function MosqueFinderPage({ setPage }) {
 
       setMosques(results)
       setStatus('done')
+      verifiedMosques(results.slice(0, 60).map(m => m.id)).then(setVerified).catch(() => setVerified({}))
     } catch {
       setStatus('error')
       setErrorMsg('api')
@@ -384,6 +389,9 @@ export default function MosqueFinderPage({ setPage }) {
                         <span className="mosque-maps-btn">{t.openMaps} <Icon name="external" size={15} /></span>
                         <Icon name="chevron" size={18} className="mosque-row-chev ui-flip-rtl" />
                       </a>
+                      {verified[place.id] && (
+                        <Suspense fallback={null}><MosqueRepCard id={place.id} info={verified[place.id]} lang={lang} siteLang={siteLang} /></Suspense>
+                      )}
                       <div className="mosque-checkin-row">
                         {visited.has(shortId(place.id)) ? (
                           <span className="ui-badge ui-badge--brand mosque-checkin" data-testid="mosque-in-collection"><Icon name="check" size={14} /> {mc.inCollection}</span>

@@ -20,6 +20,8 @@ import Icon from './Icon'
 const LogoutDialog = lazy(() => import('./account/LogoutDialog'))
 // Profil seçicisi (utils/profiles) — yalnız profillər açıqdırsa, menyu açılanda (tənbəl chunk)
 const ProfileMenu = lazy(() => import('./account/ProfileMenu'))
+// J7: avatarın həndəsi çərçivəsi (yol mərhələsi) — yalnız daxil olmuş istifadəçidə (tənbəl chunk)
+const HeaderJourney = lazy(() => import('./account/HeaderJourney'))
 const hasProfiles = () => { try { return Boolean(globalThis.localStorage?.getItem('mcc_profiles')) } catch { return false } }
 
 const LABELS = {
@@ -110,7 +112,10 @@ export default function HeaderAccount({ currentPage }) {
       <button ref={btnRef} type="button" className="hdr-btn hdr-account" onClick={() => setOpen(o => !o)}
         aria-label={`${l.menu}: ${user.displayName || user.email}`} title={l.menu}
         aria-expanded={open} aria-controls="hdr-account-menu" data-testid="hdr-account">
-        <span className="hdr-avatar" aria-hidden="true">{initialOf(user)}</span>
+        {/* J7: yol mərhələsinin çərçivəsi + ildönümü / ad günü işarəsi (tənbəl chunk) */}
+        <Suspense fallback={<span className="hdr-avatar" aria-hidden="true">{initialOf(user)}</span>}>
+          <HeaderJourney user={user} lang={lang}><span className="hdr-avatar" aria-hidden="true">{initialOf(user)}</span></HeaderJourney>
+        </Suspense>
       </button>
       {open && (
         <div className="hdr-account-menu" id="hdr-account-menu" role="group" aria-label={l.menu}>

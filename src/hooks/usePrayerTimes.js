@@ -25,8 +25,8 @@
 // ═══════════════════════════════════════════════════════
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { usePrayerLocation, locationSig } from '../utils/prayerLocation'
-import { METHOD_ABUBAKR, aladhanMethodQuery, computeTimes, CALC_METHODS, tzOffsetHours } from '../utils/prayCalc'
+import { usePrayerLocation, locationSig, asrOf } from '../utils/prayerLocation'
+import { METHOD_ABUBAKR, aladhanMethodQuery, computeTimes, CALC_METHODS, tzOffsetHours, withAsr } from '../utils/prayCalc'
 
 export const PRAYER_KEYS = ['fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha']
 
@@ -163,7 +163,7 @@ function parseHijri(json) {
 
 const aladhanUrl = (dateKey, loc) =>
   `https://api.aladhan.com/v1/timings/${dateKey}` +
-  `?latitude=${loc.lat}&longitude=${loc.lng}&${aladhanMethodQuery(loc.method)}` +
+  `?latitude=${loc.lat}&longitude=${loc.lng}&${aladhanMethodQuery(loc.method, asrOf(loc))}` +
   // timezonestring: aladhan vaxtları məhz şəhərin saat qurşağında qaytarsın
   (loc.tz ? `&timezonestring=${encodeURIComponent(loc.tz)}` : '')
 
@@ -173,7 +173,7 @@ async function fetchDay(dateKey, loc, signal) {
   if (Number(loc.method) === METHOD_ABUBAKR) {
     const [d, m, y] = dateKey.split('-').map(Number)
     const tz = tzOffsetHours(loc.tz || 'Asia/Baku', y, m, d)
-    const t = computeTimes({ year: y, month: m, day: d }, loc.lat, loc.lng, tz, CALC_METHODS.abubakr)
+    const t = computeTimes({ year: y, month: m, day: d }, loc.lat, loc.lng, tz, withAsr(CALC_METHODS.abubakr, asrOf(loc)))
     const timings = {}
     for (const k of PRAYER_KEYS) timings[k] = t[k] || ''
     let hijri = null

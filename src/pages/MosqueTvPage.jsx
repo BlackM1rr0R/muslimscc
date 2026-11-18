@@ -29,7 +29,11 @@ import { METHOD_ABUBAKR } from '../utils/prayCalc'
 import {
   IQAMAH_PRAYERS, DEFAULT_IQAMAH, computeIqamahTimes, findPhase, formatCountdown,
   mergeConfig, parseConfig, serializeConfig, hasConfigParams, parseIqamahRule, formatTime, parseTime,
+  parseMosqueId, applyLiveConfig,
 } from '../utils/iqamah'
+// K4: "məscidə qoşul" rejimi (?m=<mosqueId>) — iqamə/elanlar serverdən, 60 san. (ETag); yerli rejim dəyişmir
+import useMosqueLive from '../hooks/useMosqueLive'
+import '../styles/Community.css'
 import { pathFor } from '../seo/routes'
 import Icon from '../components/Icon'
 import '../styles/MosqueTvPage.css'
@@ -39,6 +43,14 @@ import { pickUi } from '../utils/uiText'
 import PresenceSwap from '../motion/PresenceSwap'
 
 const STORE_KEY = 'muslim_cc_mosque_tv'
+// Qoşulu rejimin yazıları (server/mosqueRep.js)
+const LIVE_TXT = {
+  az: { connected: 'Məscidə qoşulub — vaxtları nümayəndə yeniləyir', ann: 'Elanlar', ramadan: 'Ramazan iftar proqramı', topic: 'Xütbənin mövzusu' },
+  en: { connected: 'Connected to the mosque — times are updated by its representative', ann: 'Announcements', ramadan: 'Ramadan iftar programme', topic: 'Khutbah topic' },
+  ru: { connected: 'Подключено к мечети — время обновляет её представитель', ann: 'Объявления', ramadan: 'Программа ифтаров в Рамадан', topic: 'Тема хутбы' },
+  ar: { connected: 'متصل بالمسجد — يحدّث ممثّله الأوقات', ann: 'الإعلانات', ramadan: 'برنامج الإفطار في رمضان', topic: 'موضوع الخطبة' },
+  tr: { connected: 'Camiye bağlı — vakitleri temsilcisi günceller', ann: 'Duyurular', ramadan: 'Ramazan iftar programı', topic: 'Hutbe konusu' },
+}
 const ROTATE_MS = 20000
 const IDLE_MS = 5000
 
@@ -381,6 +393,10 @@ export default function MosqueTvPage({ setPage }) {
 
   const [cfg, setCfgState] = useState(initial.cfg)
   const { compact, kiosk } = initial
+  // K4: ?m=<mosqueId> — nümayəndənin iqamə qaydaları, adı, Cümə vaxtı və elanları (yoxdursa yerli ayar)
+  const [mosqueId] = useState(() => (typeof window !== 'undefined' ? parseMosqueId(window.location.search) : null))
+  const live = useMosqueLive(mosqueId)
+  const view = useMemo(() => (live.status === 'live' ? applyLiveConfig(cfg, live.data) : cfg), [cfg, live])
 
   const setCfg = useCallback((patch) => {
     setCfgState(prev => {
@@ -390,16 +406,17 @@ export default function MosqueTvPage({ setPage }) {
       // Link ilə açılıbsa ünvan da yenilənsin — səhifə yenilənəndə köhnə URL ayarı qaytarmasın
       if (initial.urlDriven) {
         try {
-          const qs = serializeConfig(next, { compact, kiosk })
+          const qs = serializeConfig(next, { compact, kiosk, m: mosqueId })
           window.history.replaceState(window.history.state, '', `${window.location.pathname}?${qs}`)
         } catch { /* */ }
       }
       return next
     })
-  }, [compact, kiosk, initial.urlDriven])
+  }, [compact, kiosk, initial.urlDriven, mosqueId])
 
   const lang = cfg.lang
   const l = pickUi(LABELS, lang)
+  const lt = pickUi(LIVE_TXT, lang)
   const name = (key) => PRAYER_NAMES[key]?.[lang] || key
 
   // ── Vaxtlar ──
@@ -504,9 +521,9 @@ export default function MosqueTvPage({ setPage }) {
 
   // ── İqamə vaxtları ──
   const adhanOf = useMemo(() => Object.fromEntries(prayers.map(p => [p.key, p.adhan])), [prayers])
-  const iqamah = useMemo(() => computeIqamahTimes(adhanOf, cfg.iq), [adhanOf, cfg.iq])
+  const iqamah = useMemo(() => computeIqamahTimes(adhanOf, view.iq), [adhanOf, view.iq])
   // Cümə günü zöhr sətrində iqamə əvəzinə xütbə vaxtı
-  const jumuaTime = isFriday && adhanOf.dhuhr ? (cfg.jumua || adhanOf.dhuhr) : ''
+  const jumuaTime = isFriday && adhanOf.dhuhr ? (view.jumua || adhanOf.dhuhr) : ''
   const iqamahFor = (key) => (key === 'dhuhr' && jumuaTime ? jumuaTime : iqamah[key] || '')
 
   const fardList = useMemo(
@@ -555,8 +572,11 @@ export default function MosqueTvPage({ setPage }) {
       if (i % 3 === 2) out.push({ type: 'adhkar' })
     })
     if (!out.some(s => s.type === 'adhkar')) out.push({ type: 'adhkar' })
+    // Qoşulu rejim: elanlar (və Ramazan iftar proqramı) birinci slayd kimi
+    const ld = live.status === 'live' ? live.data : null
+    if (ld && ((ld.announcements && ld.announcements.length) || ld.ramadanNote)) out.unshift({ type: 'announce' })
     return out
-  }, [isFriday])
+  }, [isFriday, live])
   const [slide, setSlide] = useState(0)
   useEffect(() => {
     const id = setInterval(() => setSlide(s => s + 1), ROTATE_MS)
@@ -614,8 +634,9 @@ export default function MosqueTvPage({ setPage }) {
           </a>
         )}
         <div className="mtv-id">
-          <h1 className="mtv-name">{cfg.name || l.title}</h1>
+          <h1 className="mtv-name">{view.name || l.title}</h1>
           <p className="mtv-city"><Icon name="pin" size={18} /> {cityName}</p>
+          {live.status === 'live' && <p className="mtv-live-badge" data-testid="mtv-live"><Icon name="check" size={14} /> {lt.connected}</p>}
         </div>
         <div className="mtv-dates">
           <span className="mtv-greg">{gregorian}</span>
@@ -658,7 +679,7 @@ export default function MosqueTvPage({ setPage }) {
             </div>
           )}
           {isFriday && jumuaTime && !compact && (
-            <p className="mtv-jumua"><Icon name="mic" size={20} /> {l.jumuaLine}: <strong className="ui-num">{jumuaTime}</strong></p>
+            <p className="mtv-jumua"><Icon name="mic" size={20} /> {l.jumuaLine}: <strong className="ui-num">{jumuaTime}</strong>{live.status === 'live' && live.data.jumuah && live.data.jumuah.topic ? <> · {lt.topic}: <bdi>{live.data.jumuah.topic}</bdi></> : null}</p>
           )}
         </div>
 
@@ -666,7 +687,16 @@ export default function MosqueTvPage({ setPage }) {
           <div className="mtv-panel" aria-live="polite">
             {/* v6: slayd dəyişəndə köhnəsi qısa solur, yenisi yumşaq gəlir (PresenceSwap fade — yalnız opacity, ekran üçün az CPU) */}
             <PresenceSwap swapKey={slide} variant="fade" className="mtv-slide mtv-slide--mo">
-              {current_slide.type === 'verse' ? (
+              {current_slide.type === 'announce' && live.status === 'live' ? (
+                <div className="mtv-adhkar" data-testid="mtv-announce">
+                  <h2 className="mtv-panel-title">{live.data.announcements.length ? lt.ann : lt.ramadan}</h2>
+                  <ul className="mtv-announce">
+                    {live.data.announcements.map((a) => <li key={a.id} dir="auto">{a.body}</li>)}
+                    {live.data.ramadanNote && live.data.announcements.length > 0 && <li dir="auto"><strong>{lt.ramadan}:</strong> {live.data.ramadanNote}</li>}
+                    {live.data.ramadanNote && !live.data.announcements.length && <li dir="auto">{live.data.ramadanNote}</li>}
+                  </ul>
+                </div>
+              ) : current_slide.type === 'verse' ? (
                 <figure className="mtv-verse">
                   <p className="mtv-ar ui-arabic" lang="ar" dir="rtl">{current_slide.v.ar}</p>
                   {lang !== 'ar' && <p className="mtv-tr">{pickUi(current_slide.v.text, lang, 'en')}</p>}

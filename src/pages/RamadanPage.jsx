@@ -18,6 +18,7 @@ const FastingWorldMap = lazy(() => import('../components/FastingWorldMap'))
 const IftarInvite = lazy(() => import('../components/IftarInvite'))
 // vE: Ramazan albomu — hər Ramazan bir fəsil (utils/ramadanAlbum)
 const RamadanAlbum = lazy(() => import('../components/ramadan/RamadanAlbum'))
+const TaraweehLog = lazy(() => import('../components/ramadan/TaraweehLog'))
 import CrescentPath from '../components/CrescentPath'
 import { ummahAdd } from '../utils/ummah'
 import { useNavigate } from 'react-router-dom'
@@ -451,6 +452,11 @@ export default function RamadanPage({ setPage }) {
           <CrescentPath key={year || 'x'} lang={lang} year={year || 'x'} today={st.phase?.phase === 'ramadan' ? st.phase.day : null}
             started={st.phase?.phase === 'ramadan' || st.phase?.phase === 'eid'}
             monthDays={st.calendar?.length === 29 ? 29 : 30} onNavigate={setPage} />
+          {/* J4: təravih gündəliyi (Ramazan "Wrapped" bunu da göstərir) */}
+          <Suspense fallback={null}>
+            <TaraweehLog key={`tw-${year || 'x'}`} lang={lang} year={year || 'x'} today={st.phase?.phase === 'ramadan' ? st.phase.day : null}
+              nightsInMonth={st.calendar?.length === 29 ? 29 : 30} />
+          </Suspense>
 
           <div className="rp-print">
             <div className="rp-toolbar" data-reveal>

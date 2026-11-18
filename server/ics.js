@@ -75,7 +75,9 @@ function parseQuery(q) {
   if (!Number.isInteger(method) || method < 0 || (method > 23 && method !== prayCalc.METHOD_ABUBAKR)) return null
   const lang = LANGS.includes(q.lang) ? q.lang : 'az'
   const city = typeof q.city === 'string' ? q.city.replace(/[\u0000-\u001f<>]/g, '').trim().slice(0, 60) : ''
-  return { lat: Math.round(lat * 1e4) / 1e4, lng: Math.round(lng * 1e4) / 1e4, tz, method, lang, city }
+  // asr=2 — Hənəfi əsri (məzhəb seçimi, src/utils/madhab); yoxdursa 1 (əvvəlki davranış)
+  const asr = String(q.asr) === '2' ? 2 : 1
+  return { lat: Math.round(lat * 1e4) / 1e4, lng: Math.round(lng * 1e4) / 1e4, tz, method, asr, lang, city }
 }
 
 /**
@@ -86,7 +88,7 @@ function buildIcs({ loc, days, now = new Date() }) {
   const T = PUSH_TEXTS[loc.lang] || PUSH_TEXTS.az
   const calName = `${CAL_NAME[loc.lang] || CAL_NAME.az}${loc.city ? ` — ${loc.city}` : ''}`
   const stamp = now.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '')
-  const uidBase = `${loc.lat},${loc.lng},${loc.method}`.replace(/[^0-9a-z.,-]/gi, '')
+  const uidBase = `${loc.lat},${loc.lng},${loc.method}${loc.asr === 2 ? ',a2' : ''}`.replace(/[^0-9a-z.,-]/gi, '')
   const L = [
     'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//muslims.cc//prayer-times//AZ', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH',
     `X-WR-CALNAME:${icsEscape(calName)}`, `NAME:${icsEscape(calName)}`,
@@ -119,11 +121,11 @@ function createIcsRouter({ fetchImpl = (...a) => fetch(...a), now = () => new Da
   const cache = new Map()   // `${lat},${lng}|${tz}|${method}|YYYY-MM` → { at, days: Map(dateKey → times) }
 
   async function monthFromAladhan(loc, y, m) {
-    const key = `${loc.lat},${loc.lng}|${loc.tz}|${loc.method}|${y}-${pad(m)}`
+    const key = `${loc.lat},${loc.lng}|${loc.tz}|${loc.method}${loc.asr === 2 ? '|a2' : ''}|${y}-${pad(m)}`
     const hit = cache.get(key)
     if (hit && Date.now() - hit.at < CACHE_TTL) return hit.days
     const url = `https://api.aladhan.com/v1/calendar/${y}/${m}?latitude=${loc.lat}&longitude=${loc.lng}` +
-      `&${prayCalc.aladhanMethodQuery(loc.method)}&timezonestring=${encodeURIComponent(loc.tz)}`
+      `&${prayCalc.aladhanMethodQuery(loc.method, loc.asr)}&timezonestring=${encodeURIComponent(loc.tz)}`
     const days = new Map()
     try {
       const r = await fetchImpl(url, { signal: AbortSignal.timeout(15000) })
@@ -152,7 +154,7 @@ function createIcsRouter({ fetchImpl = (...a) => fetch(...a), now = () => new Da
     if (loc.method === prayCalc.METHOD_ABUBAKR) {
       return keys.map(k => {
         const [y, m, d] = k.split('-').map(Number)
-        const t = prayCalc.computeTimes({ year: y, month: m, day: d }, loc.lat, loc.lng, prayCalc.tzOffsetHours(loc.tz, y, m, d), prayCalc.CALC_METHODS.abubakr)
+        const t = prayCalc.computeTimes({ year: y, month: m, day: d }, loc.lat, loc.lng, prayCalc.tzOffsetHours(loc.tz, y, m, d), prayCalc.withAsr(prayCalc.CALC_METHODS.abubakr, loc.asr))
         return { dateKey: k, friday: isFri(k), times: t }
       })
     }

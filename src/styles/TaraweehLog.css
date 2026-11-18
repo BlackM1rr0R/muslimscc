@@ -1,0 +1,25 @@
+/* J4: təravih gündəliyi (components/ramadan/TaraweehLog) */
+.tw { display: grid; gap: 12px; padding: clamp(16px, 3vw, 24px); }
+.tw__head { display: grid; gap: 4px; }
+.tw__lead, .tw__hint { margin: 0; color: var(--text-secondary); font-size: var(--step--1); line-height: 1.55; }
+.tw__rak { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 0; padding: 0; border: 0; min-width: 0; }
+.tw__rak legend { width: 100%; margin-bottom: 4px; }
+.tw__chip { display: inline-flex; gap: 6px; align-items: center; min-height: 44px; padding: 6px 14px; border-radius: 999px; border: 1px solid var(--line-strong, var(--line)); cursor: pointer; }
+.tw__chip.is-on { border-color: var(--brand); background: var(--brand-soft); }
+.tw__chip input { width: 18px; height: 18px; margin: 0; accent-color: var(--brand); }
+.tw__other input { width: 7em; }
+.tw__nights { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; grid-template-columns: repeat(auto-fill, minmax(44px, 1fr)); }
+.tw__night {
+  position: relative; width: 100%; min-height: 44px; display: grid; place-items: center; gap: 0;
+  border-radius: var(--radius-md); border: 1px solid var(--line-strong, var(--line)); background: var(--surface-1); color: var(--text-body);
+  font: inherit; cursor: pointer; transition: background-color .15s ease, border-color .15s ease;
+}
+.tw__night.is-on { background: var(--brand); border-color: var(--brand); color: var(--on-brand); }
+.tw__night.is-tonight { box-shadow: 0 0 0 2px var(--accent); }
+.tw__night:focus-visible { outline: 3px solid var(--focus, var(--brand)); outline-offset: 2px; }
+.tw__night:disabled { cursor: not-allowed; opacity: .6; }
+.tw__n { font-size: var(--step--1); font-weight: 600; line-height: 1.1; }
+.tw__v { font-size: 11px; line-height: 1; opacity: .9; }
+.tw__stats { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 18px; color: var(--text-secondary); }
+.tw__stats b { color: var(--text-strong); }
+@media (prefers-reduced-motion: reduce) { .tw__night { transition: none; } }

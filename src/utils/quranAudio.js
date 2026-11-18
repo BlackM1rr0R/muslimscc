@@ -149,4 +149,22 @@ export function readAudioPrefs() {
 }
 export function writeAudioPrefs(prefs) {
   try { localStorage.setItem(PREFS_KEY, JSON.stringify(prefs)) } catch { /* yaddaş bağlıdır */ }
+  try { globalThis.dispatchEvent?.(new CustomEvent(AUDIO_PREFS_EVENT)) } catch { /* */ }
 }
+
+// ── Sevimli qari (J2) — saytın BÜTÜN Quran pleyerlərinin susmaya görə qarisi ──
+// Ayrıca açar YOXDUR: readAudioPrefs().reciter — QuranPlayer, AyahAudio, OfflineAudio, QuranRadio,
+// HifzPage, QuranZen onu oxuyur; /account-dakı seçici də buraya yazır (hesabla sinxronlanır —
+// 'quran_audio' ehtiyat nüsxəyə düşür, birləşdirici: utils/syncMergers).
+// İstisnalar (söz-söz vaxtı / lisenziya bir qariyə bağlıdır): KaraokeAyah, MushafRecite, WordMenu
+// (Quran.com söz vaxtları — əl-Əfasi), namaz təlimatının səsi (PrayerAudio), ərəb dili kursu.
+export const AUDIO_PREFS_KEY = PREFS_KEY
+export const AUDIO_PREFS_EVENT = 'quran-audio-prefs'
+export const favoriteReciter = () => readAudioPrefs().reciter
+export function setFavoriteReciter(id) {
+  if (!RECITERS.some(r => r.id === id)) return favoriteReciter()
+  writeAudioPrefs({ ...readAudioPrefs(), reciter: id })
+  return id
+}
+/** Qısa önizləmə: Fatihə 1 (Bəsmələ) — həmin qarinin ünvanları */
+export const previewSources = (id) => ayahSources(id, { g: 1, s: 1, a: 1 })

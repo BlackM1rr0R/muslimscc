@@ -86,6 +86,8 @@ function locationPayload() {
     lng: r2(loc.lng),
     tz: loc.tz,
     method: loc.method,
+    // J1: Hənəfi əsri (utils/madhab) — yalnız 2 olanda göndərilir (köhnə abunəliklər 1 sayılır)
+    ...(loc.asr === 2 ? { asr: 2 } : {}),
     city: { ...loc.city },
   }
 }

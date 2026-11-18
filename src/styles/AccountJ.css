@@ -1,0 +1,71 @@
+/* ══ /account — J mərhələsi (components/account/AccountJSections) ══ */
+.accj-empty { margin: 0; color: var(--text-secondary); }
+.accj-note { margin: 0; color: var(--text-secondary); font-size: var(--step--1); line-height: 1.55; }
+.accj-h3 { margin: 0; font-size: var(--step-0); font-weight: 600; color: var(--text-strong); }
+.accj-grid3 { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+
+/* Bayram kartları (ildönümü, ad günü) */
+.accj-celebrate {
+  position: relative; display: grid; gap: 12px; padding: clamp(18px, 3vw, 26px);
+  border: 1px solid var(--line); overflow: hidden;
+  background: linear-gradient(135deg, var(--brand-soft, transparent), transparent 60%), var(--surface-1);
+}
+.accj-celebrate__art { position: absolute; inset-inline-end: -18px; top: -18px; width: 140px; height: 140px; opacity: .14; pointer-events: none; }
+.accj-celebrate__art path, .accj-celebrate__art circle { fill: none; stroke: var(--accent); stroke-width: 3; }
+.accj-celebrate__body { display: grid; gap: 10px; position: relative; }
+.accj-celebrate__title { margin: 0; font-family: var(--font-display); font-size: var(--step-2); color: var(--text-strong); }
+.accj-celebrate__lead { margin: 0; color: var(--text-secondary); }
+.accj-celebrate__close { justify-self: start; }
+.accj-stats { display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); margin: 0; }
+.accj-stat { padding: 10px 12px; border-radius: var(--radius-md); background: var(--surface-2, var(--bg-secondary)); }
+.accj-stat dt { display: flex; gap: 6px; align-items: center; color: var(--text-secondary); font-size: var(--step--1); }
+.accj-stat dd { margin: 2px 0 0; font-size: var(--step-1); font-weight: 700; color: var(--text-strong); }
+
+/* Ümumi dua (ad günü) */
+.accj-dua { margin: 0; display: grid; gap: 8px; padding: 14px 16px; border-radius: var(--radius-md); border: 1px dashed var(--line-strong, var(--line)); }
+.accj-dua__note { margin: 0; display: flex; gap: 8px; align-items: flex-start; font-weight: 600; color: var(--text-strong); }
+.accj-dua__ar { margin: 0; font-size: 1.35rem; line-height: 1.9; color: var(--text-strong); }
+.accj-dua__tr { margin: 0; font-style: italic; color: var(--text-secondary); }
+.accj-dua__mean { margin: 0; }
+.accj-dua__src { font-size: var(--step--1); color: var(--text-secondary); }
+
+/* Kunya / seçimlər */
+.accj-seg { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; border: 0; min-width: 0; }
+.accj-seg legend { width: 100%; margin-bottom: 4px; }
+.accj-seg__opt { display: inline-flex; gap: 8px; align-items: center; padding: 8px 14px; min-height: 44px; border: 1px solid var(--line-strong, var(--line)); border-radius: 999px; cursor: pointer; }
+.accj-seg__opt.is-on { border-color: var(--brand); background: var(--brand-soft); }
+.accj-seg__opt input { accent-color: var(--brand); width: 18px; height: 18px; margin: 0; }
+.accj-welcome { border: 2px solid var(--brand); }
+.accj-reciter .acc-row { align-items: center; }
+.accj-reciter select { flex: 1 1 220px; }
+
+/* Zaman xətti — şaquli */
+.accj-tl { display: grid; gap: 14px; }
+.accj-tl__year { display: grid; gap: 6px; }
+.accj-tl__y { margin: 0; font-size: var(--step-0); color: var(--accent-text); letter-spacing: .04em; }
+.accj-tl__list { list-style: none; margin: 0; padding: 0; position: relative; display: grid; gap: 10px; }
+.accj-tl__list::before { content: ''; position: absolute; inset-inline-start: 13px; top: 6px; bottom: 6px; width: 2px; background: var(--line); }
+.accj-tl__item { position: relative; display: grid; grid-template-columns: 28px 1fr; gap: 12px; align-items: start; }
+.accj-tl__dot { position: relative; z-index: 1; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--surface-1); border: 2px solid var(--brand); color: var(--brand); }
+.accj-tl__item--milestone .accj-tl__dot { border-color: var(--accent); color: var(--accent-text); }
+.accj-tl__body { display: grid; gap: 2px; justify-items: start; }
+.accj-tl__date { font-size: var(--step--1); color: var(--text-secondary); }
+.accj-tl__title { color: var(--text-strong); font-weight: 600; }
+.accj-tl__note { margin: 2px 0 0; color: var(--text-body); white-space: pre-wrap; overflow-wrap: anywhere; }
+.accj-tl__mine { margin-top: 2px; }
+.accj-mform { padding-top: 12px; border-top: 1px solid var(--line); }
+
+/* Yol mərhələsi */
+.accj-level { display: grid; gap: 14px; }
+.accj-level__now { display: flex; gap: 22px; align-items: center; flex-wrap: wrap; }
+.accj-level__k { margin: 0; font-size: var(--step--1); color: var(--text-secondary); }
+.accj-level__name { margin: 0; font-family: var(--font-display); font-size: var(--step-2); color: var(--text-strong); }
+.accj-level__pts { margin: 0; color: var(--text-body); }
+.accj-level__how summary { cursor: pointer; font-weight: 600; color: var(--brand); min-height: 44px; display: flex; align-items: center; }
+.accj-level__how ul { margin: 6px 0 10px; padding-inline-start: 20px; display: grid; gap: 4px; }
+.accj-level__how tr.is-on th, .accj-level__how tr.is-on td { background: var(--brand-soft); }
+.accj-level__mini { display: inline-grid; vertical-align: middle; margin-inline-end: 10px; padding: 4px; }
+.accj-level__chip { display: block; width: 18px; height: 18px; border-radius: 50%; background: var(--brand); }
+
+/* Hesab başlığında kunya */
+.acc-kunya { font-weight: 500; color: var(--text-secondary); font-size: .7em; }

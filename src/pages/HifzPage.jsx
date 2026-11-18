@@ -9,6 +9,7 @@ import { navGroupLabel } from '../data/navigation'
 import Icon from '../components/Icon'
 import { AYAH_WORDS, ayahCountText, pluralWord } from '../utils/quranText'
 import { ayahSources, readAudioPrefs, reciterName } from '../utils/quranAudio'
+import { recordHifzDates } from '../utils/hifzDates'
 import {
   loadState as loadSrs, saveState as saveSrs, dateKey, todayStats, streak, perSurahCounts,
   memorisedSeries, dueItems, nextNewAyahs, gradeItem, setGoal, seedItems, previewIntervals,
@@ -65,6 +66,7 @@ function loadProgress() {
 }
 function saveProgress(data) {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)) } catch {}
+  recordHifzDates(data)   // J6: surənin "əzbər" olduğu ilk gün (mənəvi zaman xətti)
 }
 
 const LABELS = {

@@ -128,7 +128,7 @@ describe('seçim və xüsusi şəhər', () => {
     // src/api/push.js → locationPayload() ilə eyni forma
     const payload = { lat: loc.lat, lng: loc.lng, tz: loc.tz, method: loc.method, city: { ...loc.city } }
     const n = normLoc(payload)
-    expect(n).toEqual({ lat: 48.2082, lng: 16.3738, tz: 'Europe/Vienna', method: 13, city: payload.city })
+    expect(n).toEqual({ lat: 48.2082, lng: 16.3738, tz: 'Europe/Vienna', method: 13, asr: 1, city: payload.city })   // asr: J1 (məzhəb) — yoxdursa 1
     expect(n).not.toBe(DEFAULT_LOC)
     // Brauzerin saat qurşağı ilə "Mənim yerim" də keçərlidir
     setPrayerCity({ lat: 40.1, lng: 45.9, label: { az: 'Mənim yerim' } })

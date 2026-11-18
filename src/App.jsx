@@ -171,6 +171,9 @@ const ReadTogetherPage = lazy(() => import('./pages/ReadTogetherPage'))
 const KhatmPage = lazy(() => import('./pages/KhatmPage'))
 const HifzTestPage = lazy(() => import('./pages/HifzTestPage'))
 const TogetherPage = lazy(() => import('./pages/TogetherPage'))
+// K mərhələsi: dua divarı (moderasiyalı) və könüllü açıq profil (/u/<ləqəb>)
+const DuaWallPage = lazy(() => import('./pages/DuaWallPage'))
+const PublicProfilePage = lazy(() => import('./pages/PublicProfilePage'))
 
 // Bu widget-lər hər səhifədə render olunur, amma heç biri ilk ekran üçün
 // vacib deyil — ona görə tənbəl yüklənir.
@@ -326,6 +329,18 @@ function AppInner() {
     return () => { off = true }
   }, [])
 
+  // K5: həftəlik e-poçt hesabatı açıqdırsa (bu cihazın ipucu mcc_weekly) — həftənin rəqəmlərini boş vaxtda
+  // hesablayıb göndər (ən çox 3 saatda bir; utils/weeklyReport). İpucu yoxdursa heç nə yüklənmir.
+  useEffect(() => {
+    let off = false
+    let on = false
+    try { on = Boolean(localStorage.getItem('mcc_weekly')) && Boolean(localStorage.getItem('mcc_logged_in')) } catch { /* */ }
+    if (!on) return undefined
+    whenIdle({ delay: 6000 }).then(() => (off ? null : import('./utils/weeklyReport')))
+      .then((mod) => { if (mod && !off) mod.maybeUpload() }).catch(() => {})
+    return () => { off = true }
+  }, [])
+
   const legacy = legacyRedirect(location.pathname)
 
   // Səhifə və dil artıq URL-dən oxunur — hər səhifənin öz ünvanı var
@@ -459,6 +474,8 @@ function AppInner() {
       case 'khatm':         return <KhatmPage />
       case 'hifztest':      return <HifzTestPage />
       case 'together':      return <TogetherPage />
+      case 'duawall':       return <DuaWallPage />
+      case 'publicprofile': return <PublicProfilePage setPage={navigate} />
       case 'notfound':      return <NotFoundPage      setPage={navigate} />
       default:              return <HomePage          setPage={navigate} />
     }

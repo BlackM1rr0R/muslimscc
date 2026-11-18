@@ -19,6 +19,10 @@ import { mergeLayout, LAYOUT_KEY } from './homeLayout'
 import { mergeWird, WIRD_KEY } from './wird'
 import { mergeShelf, SHELF_KEY } from './bookShelf'
 import { mergeGoal, GOAL_KEY } from './learnGoal'
+import { sanitizeTaraweeh, TARAWEEH_KEY } from './taraweeh'
+import { sanitizeMilestones, sanitizeKunya, sanitizeBirthday, MILESTONES_KEY, KUNYA_KEY, BIRTHDAY_KEY, CELEBRATE_KEY } from './journeyStore'
+import { HIFZ_DATES_KEY } from './hifzDates'
+import { MADHAB_KEY, normMadhab } from './madhab'
 
 export const CONFLICT = Symbol('conflict')
 
@@ -236,6 +240,44 @@ export const MERGERS = {
   [GOAL_KEY]: json((L, R) => mergeGoal(L, R), { ok: isObj }),
   // Dərs yolu sekmesi (lesson/LearningPaths) — sadə sətir tərcih: bu cihazınkı
   learn_path_v1: (l, r) => (typeof l === 'string' ? l : r),
+  // ── J mərhələsi ──
+  // Məzhəb (əsr əmsalı, utils/madhab) — sadə tərcih: hər iki cihaz dəyişibsə bu cihazınkı
+  [MADHAB_KEY]: (l, r) => (normMadhab(l) ? l : normMadhab(r) ? r : undefined),
+  // Sevimli qari və pleyer ayarları (utils/quranAudio) — hər iki cihaz dəyişibsə bu cihazınkı
+  quran_audio: (l, r) => { const L = parse(l); return L !== CONFLICT && isObj(L) ? l : r },
+  // Kunya / ad günü { …, t } — sonra dəyişdirilən qalır
+  [KUNYA_KEY]: json((L, R) => latestBy(sanitizeKunya(L), sanitizeKunya(R)), { ok: isObj }),
+  [BIRTHDAY_KEY]: json((L, R) => latestBy(sanitizeBirthday(L), sanitizeBirthday(R)), { ok: isObj }),
+  // Təravih { il: { gecə: rəkət } } — il və gecə üzrə 3 tərəfli; eyni gecə fərqli dəyişibsə — böyük say
+  [TARAWEEH_KEY]: json((L, R, B) => {
+    const m = mergeMap3(sanitizeTaraweeh(L), sanitizeTaraweeh(R), sanitizeTaraweeh(B), (l, r, b) =>
+      mergeMap3(isObj(l) ? l : {}, isObj(r) ? r : {}, isObj(b) ? b : {}, (x, y) => Math.max(Number(x) || 0, Number(y) || 0)))
+    const out = sanitizeTaraweeh(m)
+    return Object.keys(out).length ? out : undefined
+  }, { ok: isObj }),
+  // Əzbər surələrin ilk günü { surə: gün } — ən erkən gün
+  [HIFZ_DATES_KEY]: earliestDates,
+  // Öz mərhələlər — id üzrə 3 tərəfli (silinmə də keçir); eyni mərhələ hər iki tərəfdə dəyişibsə — təzəsi (u)
+  [MILESTONES_KEY]: json((L, R, B) => {
+    const pick = (o) => sanitizeMilestones(o).l
+    const l = idList((a, b) => ((Number(b.u) || 0) > (Number(a.u) || 0) ? b : a))(pick(L), pick(R), B === undefined ? undefined : pick(B))
+    if (l === CONFLICT) return CONFLICT
+    const out = sanitizeMilestones({ l })
+    return out.l.length ? out : undefined
+  }, { ok: isObj }),
+  // İldönümü / ad günü kartının göstərildiyi il — sahə üzrə ən böyük
+  [CELEBRATE_KEY]: json((L, R) => {
+    const out = {}
+    for (const k of ['a', 'b']) { const v = Math.max(Number(L?.[k]) || 0, Number(R?.[k]) || 0); if (v) out[k] = v }
+    return out
+  }, { ok: isObj }),
+}
+
+/** { …, t } dəyərlərindən sonra dəyişdiriləni (t böyük); bərabərdirsə — bu cihazınkı */
+function latestBy(a, b) {
+  if (!a) return b || undefined
+  if (!b) return a
+  return (Number(b.t) || 0) > (Number(a.t) || 0) ? b : a
 }
 
 /** Cihaz tərcihləri: hər iki tərəf dəyişibsə ziddiyyət deyil (avtomatik yolda bu cihazınkı qalır) */

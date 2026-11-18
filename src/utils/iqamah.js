@@ -209,6 +209,7 @@ export function serializeConfig(cfg, extra = {}) {
   if (c.beep) sp.set('beep', '1')
   if (extra.compact) sp.set('compact', '1')
   if (extra.kiosk) sp.set('kiosk', '1')
+  if (extra.m && /^[A-Za-z0-9_-]{1,64}$/.test(extra.m)) sp.set('m', extra.m)   // K4: məscidə qoşulu rejim
   // URLSearchParams vergülü və iki nöqtəni kodlayır — link oxunaqlı qalsın
   return sp.toString().replace(/%2C/gi, ',').replace(/%3A/gi, ':')
 }
@@ -221,4 +222,33 @@ export function mergeConfig(...parts) {
     for (const k of Object.keys(p)) if (p[k] !== undefined) merged[k] = p[k]
   }
   return normalizeConfig(merged)
+}
+
+// ── K4: "məscidə qoşul" rejimi (/mosque-tv?m=<mosqueId>) — server/mosqueRep.js → GET /api/mosques/:id/live ──
+const MOSQUE_ID_RE = /^[A-Za-z0-9_-]{1,64}$/
+
+/** URL-dən məscid id-si (?m=…) | null */
+export function parseMosqueId(input) {
+  const sp = input instanceof URLSearchParams ? input : new URLSearchParams(String(input ?? '').replace(/^\?/, ''))
+  const m = sp.get('m')
+  return m && MOSQUE_ID_RE.test(m) ? m : null
+}
+
+/**
+ * Yerli ayar + serverin canlı məlumatı → ekranın işlətdiyi ayar. Server qaydası olan namazda
+ * nümayəndənin qaydası (dəqiqə və ya 'HH:MM'), qalanlarda yerli; ad və Cümə vaxtı da serverdən (varsa).
+ */
+export function applyLiveConfig(cfg, live) {
+  if (!live) return cfg
+  const iq = IQAMAH_PRAYERS.map((p, i) => {
+    const r = parseIqamahRule(live.iqama ? live.iqama[p] : null)
+    return r == null ? cfg.iq[i] : r
+  })
+  const jt = live.jumuah && parseTime(live.jumuah.time)
+  return {
+    ...cfg,
+    iq,
+    jumua: jt == null ? cfg.jumua : formatTime(jt),
+    name: typeof live.name === 'string' && live.name.trim() ? live.name.trim().slice(0, 80) : cfg.name,
+  }
 }

@@ -8,6 +8,7 @@ import { subscribeToSettings } from '../data/adminContent'
 import usePrayerTimes from '../hooks/usePrayerTimes'
 import { usePrayerLocation, setAdminDefaultCity, locationSig, locationForCitySlug } from '../utils/prayerLocation'
 import CityPicker from '../components/CityPicker'
+import MadhabPicker from '../components/prayer/MadhabPicker'
 import { haptic } from '../hooks/useHaptic'
 import { pathFor, PAGES, parsePath } from '../seo/routes'
 import { PRAYER_CITY_T } from '../seo/prayerCity'
@@ -425,8 +426,11 @@ export default function PrayerPage({ setPage }) {
   // Seçicidə başqa şəhər seçiləndə həmin şəhərin səhifəsinə (AZ) və ya /prayer-ə keçilir.
   const routeLoc = useLocation()
   const { param: citySlug } = parsePath(routeLoc.pathname)
-  const pageCity = useMemo(() => (citySlug ? locationForCitySlug(citySlug) : null), [citySlug])
   const sharedLoc = usePrayerLocation()
+  // J1: məzhəb dəyişəndə (sharedLoc.asr) şəhər səhifəsinin əsri də yenidən hesablansın
+  const sharedAsr = sharedLoc.asr
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const pageCity = useMemo(() => (citySlug ? locationForCitySlug(citySlug) : null), [citySlug, sharedAsr])
   const loc = pageCity || sharedLoc
   // Siyahı açarı: şəhər dəyişəndə vaxtlar yumşaq yenidən görünsün (xüsusi yer də daxil)
   const sel = locationSig(loc)
@@ -739,6 +743,8 @@ export default function PrayerPage({ setPage }) {
                 </div>
                 {/* 100-ə yaxın şəhər — axtarışlı seçici (components/CityPicker) */}
                 <CityPicker triggerId="prayer-city-trigger" />
+                {/* J1: məzhəb — yalnız əsrin kölgə əmsalı (utils/madhab) */}
+                <MadhabPicker lang={lang} id="pp-madhab" className="pp-madhab" />
               </div>
 
               {/* Əzan: ayarlar sətri — role="switch" + aria-checked */}

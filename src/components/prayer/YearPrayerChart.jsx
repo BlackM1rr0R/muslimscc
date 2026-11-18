@@ -15,7 +15,8 @@
 // Stillər: src/styles/YearPrayerChart.css
 // ═══════════════════════════════════════════════════════
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { computeTimes, tzOffsetHours, CALC_METHODS, METHOD_ABUBAKR } from '../../utils/prayCalc'
+import { computeTimes, tzOffsetHours, CALC_METHODS, METHOD_ABUBAKR, withAsr } from '../../utils/prayCalc'
+import { asrOfLoc } from '../../utils/madhab'
 import { PRAYER_NAMES } from '../../hooks/usePrayerTimes'
 import { pickUi } from '../../utils/uiText'
 import useMedia from '../../hooks/useMedia'
@@ -40,13 +41,14 @@ const hm = (min) => `${String(Math.floor(min / 60) % 24).padStart(2, '0')}:${Str
 
 export function yearDays(loc, year) {
   const out = []
+  const method = withAsr(CALC_METHODS.abubakr, asrOfLoc(loc))   // J1: Hənəfi əsri (utils/madhab)
   const start = Date.UTC(year, 0, 1)
   for (let i = 0; ; i++) {
     const d = new Date(start + i * 86400000)
     if (d.getUTCFullYear() !== year) break
     const y = d.getUTCFullYear(), m = d.getUTCMonth() + 1, day = d.getUTCDate()
     const tz = tzOffsetHours(loc.tz || 'Asia/Baku', y, m, day)
-    const t = computeTimes({ year: y, month: m, day }, loc.lat, loc.lng, tz, CALC_METHODS.abubakr)
+    const t = computeTimes({ year: y, month: m, day }, loc.lat, loc.lng, tz, method)
     const row = { i, m, day }
     for (const k of KEYS) row[k] = toMin(t[k])
     // İşa gecə yarısından sonradırsa (yüksək enlik, yay) — 24:00-dan o yana say

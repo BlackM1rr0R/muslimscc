@@ -24,7 +24,8 @@ if (!OPENROUTER_KEY) { console.error('FATAL: env dəyişəni yoxdur → OPENROUT
 // çağırış pulsuzdur.
 for (const m of ['./auth', './users', './security', './syncKeys', './mailer', './analytics', './csp', './clientErrors', './ummah', './sightings', './content', './feedback', './groups', './sync', './ics', './push',
   './prompts', './ai-utils', './prayer-utils', './daily-ayah', './checkin', './fasting', './reminders', './prayCalc', './eclipse', './eclipse-lib', './daily-hadith', './daily-hadith-data', './personal', './hijri',
-  './readTogether', './family', './hifzTest', './globalKhatm', './challenges', './classes', './familyRamadan', './calFeed']) require(m)
+  './readTogether', './family', './hifzTest', './globalKhatm', './challenges', './classes', './familyRamadan', './calFeed',
+  './communityKit', './publicProfile', './familyDua', './duaWall', './mosqueRep', './weekly']) require(m)
 // Paket asılılıqları da (server/package.json → npm ci) — image-də yoxdursa bazadan ƏVVƏL çöksün
 for (const m of ['@simplewebauthn/server']) require(m)
 
@@ -109,7 +110,8 @@ app.use('/api/security', limit(60000, 30))
 app.use('/api', require('./security').createSecurityRouter({
   security, usersStore, requireUser: usersRouter.requireUser, mailer, publicOrigin: PUBLIC_ORIGIN,
   sources: { personal: () => personalRouter.store, family: () => familyRouter, hifzTests: () => hifzTestRouter, sync: syncKeysStore, readTogether: () => readTogetherRouter, globalKhatm: () => khatmRouter,
-    challenges: () => challengesRouter, classes: () => classesRouter, familyRamadan: () => familyRamadanRouter, calFeed: () => calFeedRouter },
+    challenges: () => challengesRouter, classes: () => classesRouter, familyRamadan: () => familyRamadanRouter, calFeed: () => calFeedRouter,
+    publicProfile: () => publicProfileRouter, familyDuas: () => familyDuaRouter, duaWall: () => duaWallRouter, mosqueRep: () => mosqueRepRouter, weekly: () => weeklyRouter },
 }))
 setInterval(() => security.purge(), 3600e3).unref()
 app.use('/api', syncKeysLib.createSyncKeysRouter({
@@ -212,6 +214,40 @@ const calFeedRouter = require('./calFeed').createCalFeedRouter({
 })
 app.use('/api', calFeedRouter)
 setInterval(() => { try { challengesRouter.purge(); familyRamadanRouter.purge() } catch (e) { console.error('together purge:', e && e.message) } }, 3600e3).unref()
+
+// ─── K mərhələsi: icma (docs/USER-ACCOUNTS.md → "K mərhələsi") — cədvəllər miqrasiyasız, users(id) CASCADE ──
+// Moderasiya — ADMIN PANELİ (server/auth.js admin_roles, editor+); istifadəçi tərəfi — requireUser + CSRF
+const communityKit = require('./communityKit')
+const requireEditor = communityKit.createRequireEditor({ requireAdmin, adminRoleOf: usersStore.adminRole })
+const optionalUser = communityKit.createOptionalUser({ usersStore, cookieName: usersLib.USER_COOKIE })
+// K1. Könüllü açıq profil (/u/<handle>) — susmaya görə gizli, noindex; şikayət → moderasiya növbəsi
+app.use('/api/profile', limit(60000, 60))
+app.use('/api/u', limit(60000, 120))
+const publicProfileRouter = require('./publicProfile').createPublicProfileRouter({ db, requireUser: usersRouter.requireUser, requireEditor })
+app.use('/api', publicProfileRouter)
+// K2. Ailə dua siyahısı (family.js-dən SONRA; /api/family limiti altında)
+const familyDuaRouter = require('./familyDua').createFamilyDuaRouter({ db, requireUser: usersRouter.requireUser })
+app.use('/api', familyDuaRouter)
+// K3. Dua divarı — göndəriş girişli, gündə 3; "Dua etdim" girişsiz də (IP heşi yalnız yaddaşda)
+app.use('/api/dua-wall', limit(60000, 60))
+const duaWallRouter = require('./duaWall').createDuaWallRouter({ db, requireUser: usersRouter.requireUser, requireEditor, optionalUser, allowedOrigins: ALLOWED })
+app.use('/api', duaWallRouter)
+// K4. Məscid nümayəndəsi (role mosque_rep + mosque_id) + məscid ekranının canlı məlumatı (ETag)
+app.use('/api/mosque-rep', limit(60000, 30))
+app.use('/api/mosques', limit(60000, 120))
+const mosqueRepRouter = require('./mosqueRep').createMosqueRepRouter({ db, requireUser: usersRouter.requireUser, requireEditor })
+app.use('/api', mosqueRepRouter)
+// K5. Həftəlik e-poçt hesabatı — rəqəmləri klient göndərir; abunəlikdən çıxma HMAC (personal.js sirri)
+app.use('/api/weekly', limit(60000, 30))
+const weeklyRouter = require('./weekly').createWeeklyRouter({
+  db, requireUser: usersRouter.requireUser, mailer, publicOrigin: PUBLIC_ORIGIN, secret: () => personalRouter.store.secret(),
+})
+app.use('/api', weeklyRouter)
+setInterval(() => {
+  for (const r of [publicProfileRouter, familyDuaRouter, duaWallRouter, mosqueRepRouter, weeklyRouter]) {
+    try { r.purge() } catch (e) { console.error('community purge:', e && e.message) }
+  }
+}, 3600e3).unref()
 
 // ─── CSP pozuntu hesabatları (server/csp.js) — Report-Only rejimi; yaddaşda birləşdirilir ──
 app.use('/api/csp-report', limit(60000, 60))
@@ -580,13 +616,13 @@ async function fetchTimings(loc, ddmmyyyy) {
   if (loc.method === prayCalc.METHOD_ABUBAKR) {
     const [d, m, y] = ddmmyyyy.split('-').map(Number)
     const t = prayCalc.computeTimes({ year: y, month: m, day: d }, loc.lat, loc.lng,
-      prayCalc.tzOffsetHours(loc.tz, y, m, d), prayCalc.CALC_METHODS.abubakr)
+      prayCalc.tzOffsetHours(loc.tz, y, m, d), prayCalc.withAsr(prayCalc.CALC_METHODS.abubakr, loc.asr))
     const out = {}
     for (const [key] of PRAYERS) out[key] = t[key]
     return Object.values(out).every(Boolean) ? out : null
   }
   const url = `https://api.aladhan.com/v1/timings/${ddmmyyyy}` +
-    `?latitude=${loc.lat}&longitude=${loc.lng}&${prayCalc.aladhanMethodQuery(loc.method)}&timezonestring=${encodeURIComponent(loc.tz)}`
+    `?latitude=${loc.lat}&longitude=${loc.lng}&${prayCalc.aladhanMethodQuery(loc.method, loc.asr)}&timezonestring=${encodeURIComponent(loc.tz)}`
   try {
     const r = await fetch(url, { signal: AbortSignal.timeout(15000) })
     if (!r.ok) return null
@@ -924,6 +960,8 @@ setInterval(dailyAyahTick, 20000)
 setInterval(() => { personalRouter.scheduler.tick().catch((e) => console.error('personal tick:', e && e.message)) }, 60000).unref()
 // Qrup çağırışlarının gündəlik xatırlatması (server/challenges.js) — dəqiqədə bir, gündə bir dəfə
 setInterval(() => { challengesRouter.tick().catch((e) => console.error('challenge tick:', e && e.message)) }, 60000).unref()
+// Həftəlik hesabat (server/weekly.js) — dəqiqədə bir; istifadəçinin seçdiyi gün, öz saat qurşağında 09:00-dan sonra
+setInterval(() => { weeklyRouter.tick().catch((e) => console.error('weekly tick:', e && e.message)) }, 60000).unref()
 
 const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`API running on port ${PORT} (DB: ${DB_PATH})`)

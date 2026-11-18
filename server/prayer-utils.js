@@ -45,9 +45,11 @@ function normLoc(raw) {
   // sayt artıq Əbu Bəkr məscidinin cədvəlini göstərir, bildiriş də eyni olsun
   if (tz === 'Asia/Baku' && method === 13) method = 99
   const city = raw.city && typeof raw.city === 'object' ? raw.city : {}
-  return { lat, lng, tz, method, city }
+  // Əsr əmsalı: 2 — Hənəfi (abunəlikdə məzhəb seçimi); yoxdursa 1 (əvvəlki davranış)
+  const asr = raw.asr === 2 ? 2 : 1
+  return { lat, lng, tz, method, asr, city }
 }
-const locKey = (l) => `${l.lat.toFixed(2)},${l.lng.toFixed(2)}|${l.tz}|${l.method}`
+const locKey = (l) => `${l.lat.toFixed(2)},${l.lng.toFixed(2)}|${l.tz}|${l.method}${l.asr === 2 ? '|a2' : ''}`
 
 /** Verilən saat qurşağında cari an. */
 function nowIn(tz) {

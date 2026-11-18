@@ -189,7 +189,10 @@ describe('HTTP', () => {
     const me = await call('/api/auth/me', { method: 'GET', cookie, headers: {} })
     expect(me.status).toBe(200)
     expect(me.headers.get('cache-control')).toBe('no-store')
-    expect(await me.json()).toEqual({ id: j.user.id, email: 'ali@example.com', emailVerified: false, displayName: 'Ali', role: 'user', mosqueId: null, hasPassword: true, passkeys: [], providers: [] })
+    const meJson = await me.json()
+    // J3: createdAt (ms) — hesabın ildönümü kartı üçün
+    expect(meJson.createdAt).toBeGreaterThan(Date.UTC(2020, 0, 1))
+    expect(meJson).toEqual({ id: j.user.id, email: 'ali@example.com', emailVerified: false, displayName: 'Ali', role: 'user', mosqueId: null, hasPassword: true, createdAt: meJson.createdAt, passkeys: [], providers: [] })
     // DB-də token açıq saxlanmır
     const row = db.raw.prepare('SELECT id_hash, ua FROM user_sessions').get()
     expect(row.id_hash).toMatch(/^[0-9a-f]{64}$/)

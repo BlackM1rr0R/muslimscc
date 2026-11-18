@@ -74,6 +74,8 @@ const NAMES = {
   ummah_khatm: STAMP_NAME,
   hifz_surah: { az: 'İlk əzbər surə', en: 'First surah memorised', ru: 'Первая выученная сура', ar: 'أول سورة محفوظة', tr: 'İlk ezber sure' },
 }
+/** Möhürün adı (J6 — mənəvi zaman xətti də işlədir) */
+export const stampName = (id, lang) => pickUi(NAMES[id] || BADGE_NAMES[id], lang, 'en') || id
 const HOW = {
   khatm: { az: 'Quranı xətm edin: Xətm planı ilə və ya ömürlük mozaikada bütün ayələri oxuyaraq.', en: 'Complete the Quran, with the khatm plan or by reading every verse in the lifetime mosaic.', ru: 'Завершите чтение Корана: по плану хатма или прочитав все аяты в мозаике на всю жизнь.', ar: 'اختم القرآن، بخطة الختمة أو بقراءة كل الآيات في فسيفساء العمر.', tr: 'Kur’an’ı hatmedin: hatim planıyla ya da ömür boyu mozaikteki tüm ayetleri okuyarak.' },
   fajr_40: { az: 'Namaz izləyicisində Sübh namazını 40 gün ardıcıl vaxtında qılındı kimi qeyd edin.', en: 'Mark Fajr as prayed on time for 40 days in a row in the prayer tracker.', ru: 'Отмечайте фаджр совершённым вовремя 40 дней подряд в трекере намаза.', ar: 'سجّل صلاة الفجر في وقتها أربعين يومًا متتالية في متتبّع الصلاة.', tr: 'Namaz takipçisinde sabah namazını 40 gün art arda vaktinde kılındı olarak işaretleyin.' },

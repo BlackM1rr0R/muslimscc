@@ -11,7 +11,8 @@
 //   "Ramazana N gün" kartı; ?ramadan=eid — bayram kartı. Yalnız UI-dir.
 // ═══════════════════════════════════════════════════════
 
-import { METHOD_ABUBAKR, aladhanMethodQuery, computeTimes, CALC_METHODS, tzOffsetHours } from './prayCalc'
+import { METHOD_ABUBAKR, aladhanMethodQuery, computeTimes, CALC_METHODS, tzOffsetHours, withAsr } from './prayCalc'
+import { asrOfLoc } from './madhab'
 
 export const SHABAN = 8
 export const RAMADAN = 9
@@ -226,11 +227,11 @@ const inflight = new Map()
 
 export function calendarUrl(year, loc) {
   return `https://api.aladhan.com/v1/hijriCalendar/${year}/${RAMADAN}` +
-    `?latitude=${loc.lat}&longitude=${loc.lng}&${aladhanMethodQuery(loc.method)}` +
+    `?latitude=${loc.lat}&longitude=${loc.lng}&${aladhanMethodQuery(loc.method, asrOfLoc(loc))}` +
     (loc.tz ? `&timezonestring=${encodeURIComponent(loc.tz)}` : '')
 }
 
-const calKey = (year, loc) => `${year}|${loc.lat},${loc.lng},${loc.method}`
+const calKey = (year, loc) => `${year}|${loc.lat},${loc.lng},${loc.method}${asrOfLoc(loc) === 2 ? ',a2' : ''}`
 
 export function readCalendarCache(year, loc) {
   const key = calKey(year, loc)
@@ -253,7 +254,7 @@ export function applyLocalTimes(cal, loc) {
   return cal.map(row => {
     const [d, m, y] = row.date.split('-').map(Number)
     const t = computeTimes({ year: y, month: m, day: d }, loc.lat, loc.lng,
-      tzOffsetHours(loc.tz || 'Asia/Baku', y, m, d), CALC_METHODS.abubakr)
+      tzOffsetHours(loc.tz || 'Asia/Baku', y, m, d), withAsr(CALC_METHODS.abubakr, asrOfLoc(loc)))
     return { ...row, times: { ...t, imsak: t.fajr } }
   })
 }

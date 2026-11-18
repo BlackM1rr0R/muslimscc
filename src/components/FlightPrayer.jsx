@@ -24,6 +24,7 @@ import { useLang } from '../contexts/LangContext'
 import { pickUi } from '../utils/uiText'
 import { getPrayerLocation, searchCities, nearestCity, PRAYER_CITIES } from '../utils/prayerLocation'
 import { CALC_METHODS } from '../utils/prayCalc'
+import { currentAsrFactor } from '../utils/madhab'
 import { KAABA } from '../utils/rasdQibla'
 import {
   flightEvents, greatCircle, distanceKm, trackAt, qiblaFrom, horizonDip, zonedToUtc, utcToZoned,
@@ -202,7 +203,8 @@ export default function FlightPrayer() {
   const [dur, setDur] = useState(init.dur)
   const [durTouched, setDurTouched] = useState(false)
   const [methodKey, setMethodKey] = useState(init.methodKey)
-  const [hanafi, setHanafi] = useState(false)
+  // J1: başlanğıc dəyər — istifadəçinin məzhəb seçimi (utils/madhab); burada yalnız bu hesab üçün dəyişir
+  const [hanafi, setHanafi] = useState(() => currentAsrFactor() === 2)
   const [plan, setPlan] = useState(() => ({ from: init.from, to: init.to, depMs: zonedToUtc(init.dep, init.from.tz), durMin: parseDuration(init.dur) }))
   const [err, setErr] = useState('')
   const [minute, setMinute] = useState(0)

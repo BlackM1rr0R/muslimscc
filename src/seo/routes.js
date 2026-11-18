@@ -153,6 +153,10 @@ export const PAGES = [
   { key: 'hifztest',      path: 'hifz-test',      noindex: true },
   // I mərhələsi — qrup çağırışı / müəllim sinfi (#c=, #k=; dəvət #cj=, #kj= fraqmentdə)
   { key: 'together',      path: 'together',       noindex: true },
+  // K mərhələsi — istifadəçi məzmunu (noindex, sitemap-a düşmür): dua divarı və könüllü açıq profil
+  // (/u/<ləqəb> — klientdə render olunur; ləqəbsiz /u — 404 kimi). docs/USER-ACCOUNTS.md → "K mərhələsi"
+  { key: 'duawall',       path: 'dua-wall',       noindex: true },
+  { key: 'publicprofile', path: 'u',              noindex: true },
 ]
 
 /** İndekslənməyən səhifə açarları (Seo.jsx → robots noindex). */
@@ -193,6 +197,8 @@ export const DETAILS = {
   // Qrup otağı (/group/<id>) — istifadəçinin yaratdığı otaq: indekslənmir,
   // prerender və sitemap-a düşmür (detailParams → [])
   group:  { kind: 'id', pattern: /^[a-z0-9]{10}$/, noindex: true },
+  // K1: açıq profil (/u/<ləqəb>) — ləqəb server/publicProfile.js HANDLE_RE ilə eyni; indekslənmir (istəyə görə — klientdə)
+  publicprofile: { kind: 'id', pattern: /^[a-z0-9_]{3,24}$/, noindex: true },
 }
 
 /** Detal parametri düzgündürmü (surə 1–114, ad 1–99, mövcud səhabə slug-u)? */

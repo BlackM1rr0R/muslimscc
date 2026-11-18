@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { lazy, Suspense, useState, useEffect, useRef } from 'react'
 import { m } from 'motion/react'
 import LayoutFeatures from '../motion/LayoutFeatures'
 import HoverPill from '../motion/HoverPill'
@@ -31,6 +31,8 @@ import AccountManager from '../components/admin/AccountManager'
 import FeedbackManager from '../components/admin/FeedbackManager'
 import AnalyticsManager from '../components/admin/AnalyticsManager'
 import UserManager from '../components/admin/UserManager'
+// K: icma moderasiyası (dua divarı, qadağan sözlər, profil şikayətləri, məscidlər) — panel rolu editor+
+const CommunityModeration = lazy(() => import('../components/admin/CommunityModeration'))
 import { AUTH_TEXT } from '../components/account/authText'
 import { AdminEmpty, AdminAlert } from '../components/admin/AdminUi'
 import Icon, { BrandMark } from '../components/Icon'
@@ -38,11 +40,11 @@ import '../styles/AdminPage.css'
 import { pickUi } from '../utils/uiText'
 
 const LABELS = {
-  az: { users:'İstifadəçilər', roleLabel:'Panel rolu', checking:'Giriş yoxlanılır...', account:'Hesab və şifrə', dashboard:'İdarə paneli', content:'MƏZMUN', videos:'Videolar', books:'Kitablar', hadiths:'Hədislər', duas:'Dualar', quotes:'Sitatlar', announcements:'Elanlar', events:'Hadisələr', daily:'Günün məzmunu', customization:'FƏRDİLƏŞDİRMƏ', hero:'Ana səhifə lövhəsi', system:'SİSTEM', settings:'Parametrlər', analytics:'Sayt statistikası', feedback:'Səhv bildirişləri', stats:'Statistika', backup:'Ehtiyat nüsxə və bərpa', seed:'İlkin məlumatlar', pushNotif:'Anlıq bildirişlər', logout:'Çıxış', adminPanel:'Admin paneli', sections:'Admin bölmələri', dark:'Qaranlıq rejim', light:'İşıqlı rejim' },
-  en: { users:'Users', roleLabel:'Panel role', checking:'Checking sign-in...', account:'Account & password', dashboard:'Dashboard', content:'CONTENT', videos:'Videos', books:'Books', hadiths:'Hadiths', duas:'Duas', quotes:'Quotes', announcements:'Announcements', events:'Events', daily:'Daily Content', customization:'CUSTOMIZATION', hero:'Hero banner', system:'SYSTEM', settings:'Settings', analytics:'Site analytics', feedback:'Error reports', stats:'Statistics', backup:'Backup & Restore', seed:'Seed Data', pushNotif:'Push Notifications', logout:'Log out', adminPanel:'Admin Panel', sections:'Admin sections', dark:'Dark mode', light:'Light mode' },
-  ru: { users:'Пользователи', roleLabel:'Роль в панели', checking:'Проверка входа...', account:'Аккаунт и пароль', dashboard:'Главная', content:'КОНТЕНТ', videos:'Видео', books:'Книги', hadiths:'Хадисы', duas:'Дуа', quotes:'Цитаты', announcements:'Объявления', events:'События', daily:'Контент дня', customization:'НАСТРОЙКА', hero:'Главный баннер', system:'СИСТЕМА', settings:'Настройки', analytics:'Статистика сайта', feedback:'Сообщения об ошибках', stats:'Статистика', backup:'Резервная копия', seed:'Начальные данные', pushNotif:'Мгновенные уведомления', logout:'Выход', adminPanel:'Админ-панель', sections:'Разделы админки', dark:'Тёмная тема', light:'Светлая тема' },
-  ar: { users:'المستخدمون', roleLabel:'الدور في اللوحة', checking:'جارٍ التحقق من تسجيل الدخول...', account:'الحساب وكلمة المرور', dashboard:'لوحة التحكم', content:'المحتوى', videos:'الفيديوهات', books:'الكتب', hadiths:'الأحاديث', duas:'الأدعية', quotes:'الاقتباسات', announcements:'الإعلانات', events:'الأحداث', daily:'محتوى اليوم', customization:'التخصيص', hero:'بانر رئيسي', system:'النظام', settings:'الإعدادات', analytics:'إحصائيات الموقع', feedback:'بلاغات الأخطاء', stats:'الإحصائيات', backup:'النسخ الاحتياطي', seed:'البيانات الأولية', pushNotif:'الإشعارات', logout:'خروج', adminPanel:'لوحة الإدارة', sections:'أقسام الإدارة', dark:'الوضع الداكن', light:'الوضع الفاتح' },
-  tr: { users:'Kullanıcılar', roleLabel:'Panel rolü', checking:'Giriş kontrol ediliyor...', account:'Hesap ve şifre', dashboard:'Yönetim Paneli', content:'İÇERİK', videos:'Videolar', books:'Kitaplar', hadiths:'Hadisler', duas:'Dualar', quotes:'Alıntılar', announcements:'Duyurular', events:'Olaylar', daily:'Günün İçeriği', customization:'KİŞİSELLEŞTİRME', hero:'Ana afiş', system:'SİSTEM', settings:'Ayarlar', analytics:'Site istatistikleri', feedback:'Hata bildirimleri', stats:'İstatistik', backup:'Yedekleme ve geri yükleme', seed:'Başlangıç verileri', pushNotif:'Anlık bildirimler', logout:'Çıkış', adminPanel:'Yönetim paneli', sections:'Yönetim bölümleri', dark:'Karanlık mod', light:'Aydınlık mod' },
+  az: { moderation:'Dua divarına nəzarət', users:'İstifadəçilər', roleLabel:'Panel rolu', checking:'Giriş yoxlanılır...', account:'Hesab və şifrə', dashboard:'İdarə paneli', content:'MƏZMUN', videos:'Videolar', books:'Kitablar', hadiths:'Hədislər', duas:'Dualar', quotes:'Sitatlar', announcements:'Elanlar', events:'Hadisələr', daily:'Günün məzmunu', customization:'FƏRDİLƏŞDİRMƏ', hero:'Ana səhifə lövhəsi', system:'SİSTEM', settings:'Parametrlər', analytics:'Sayt statistikası', feedback:'Səhv bildirişləri', stats:'Statistika', backup:'Ehtiyat nüsxə və bərpa', seed:'İlkin məlumatlar', pushNotif:'Anlıq bildirişlər', logout:'Çıxış', adminPanel:'Admin paneli', sections:'Admin bölmələri', dark:'Qaranlıq rejim', light:'İşıqlı rejim' },
+  en: { moderation:'Dua wall moderation', users:'Users', roleLabel:'Panel role', checking:'Checking sign-in...', account:'Account & password', dashboard:'Dashboard', content:'CONTENT', videos:'Videos', books:'Books', hadiths:'Hadiths', duas:'Duas', quotes:'Quotes', announcements:'Announcements', events:'Events', daily:'Daily Content', customization:'CUSTOMIZATION', hero:'Hero banner', system:'SYSTEM', settings:'Settings', analytics:'Site analytics', feedback:'Error reports', stats:'Statistics', backup:'Backup & Restore', seed:'Seed Data', pushNotif:'Push Notifications', logout:'Log out', adminPanel:'Admin Panel', sections:'Admin sections', dark:'Dark mode', light:'Light mode' },
+  ru: { moderation:'Модерация стены дуа', users:'Пользователи', roleLabel:'Роль в панели', checking:'Проверка входа...', account:'Аккаунт и пароль', dashboard:'Главная', content:'КОНТЕНТ', videos:'Видео', books:'Книги', hadiths:'Хадисы', duas:'Дуа', quotes:'Цитаты', announcements:'Объявления', events:'События', daily:'Контент дня', customization:'НАСТРОЙКА', hero:'Главный баннер', system:'СИСТЕМА', settings:'Настройки', analytics:'Статистика сайта', feedback:'Сообщения об ошибках', stats:'Статистика', backup:'Резервная копия', seed:'Начальные данные', pushNotif:'Мгновенные уведомления', logout:'Выход', adminPanel:'Админ-панель', sections:'Разделы админки', dark:'Тёмная тема', light:'Светлая тема' },
+  ar: { moderation:'الإشراف على جدار الدعاء', users:'المستخدمون', roleLabel:'الدور في اللوحة', checking:'جارٍ التحقق من تسجيل الدخول...', account:'الحساب وكلمة المرور', dashboard:'لوحة التحكم', content:'المحتوى', videos:'الفيديوهات', books:'الكتب', hadiths:'الأحاديث', duas:'الأدعية', quotes:'الاقتباسات', announcements:'الإعلانات', events:'الأحداث', daily:'محتوى اليوم', customization:'التخصيص', hero:'بانر رئيسي', system:'النظام', settings:'الإعدادات', analytics:'إحصائيات الموقع', feedback:'بلاغات الأخطاء', stats:'الإحصائيات', backup:'النسخ الاحتياطي', seed:'البيانات الأولية', pushNotif:'الإشعارات', logout:'خروج', adminPanel:'لوحة الإدارة', sections:'أقسام الإدارة', dark:'الوضع الداكن', light:'الوضع الفاتح' },
+  tr: { moderation:'Dua duvarı moderasyonu', users:'Kullanıcılar', roleLabel:'Panel rolü', checking:'Giriş kontrol ediliyor...', account:'Hesap ve şifre', dashboard:'Yönetim Paneli', content:'İÇERİK', videos:'Videolar', books:'Kitaplar', hadiths:'Hadisler', duas:'Dualar', quotes:'Alıntılar', announcements:'Duyurular', events:'Olaylar', daily:'Günün İçeriği', customization:'KİŞİSELLEŞTİRME', hero:'Ana afiş', system:'SİSTEM', settings:'Ayarlar', analytics:'Site istatistikleri', feedback:'Hata bildirimleri', stats:'İstatistik', backup:'Yedekleme ve geri yükleme', seed:'Başlangıç verileri', pushNotif:'Anlık bildirimler', logout:'Çıkış', adminPanel:'Yönetim paneli', sections:'Yönetim bölümleri', dark:'Karanlık mod', light:'Aydınlık mod' },
 }
 
 // Baş admin üçün güclü tövsiyə: iki addımlı yoxlama açılana qədər hər bölmənin üstündə (server/security.js)
@@ -72,6 +74,8 @@ const NAV_GROUPS = [
       { key:'events',        icon:'calendar', labelKey:'events' },
       { key:'daily',         icon:'sparkle', labelKey:'daily', noCount:true },
       { key:'pushNotif',     icon:'bell', labelKey:'pushNotif', noCount:true },
+      // Dua divarı + açıq profil şikayətləri + məscid nümayəndələri — bütün panel rolları (editor+)
+      { key:'moderation',    icon:'shield', labelKey:'moderation', noCount:true },
     ],
   },
   {
@@ -154,6 +158,7 @@ export default function AdminPage({ setPage }) {
       case 'events':        return <EventManager onUpdate={refreshCounts} />
       case 'daily':         return <DailyContentManager />
       case 'pushNotif':     return <PushNotificationManager />
+      case 'moderation':    return <Suspense fallback={<AdminEmpty icon="shield" busy>{l.checking}</AdminEmpty>}><CommunityModeration /></Suspense>
       case 'hero':          return <HeroBannerManager />
       case 'settings':      return <SettingsManager />
       case 'stats':         return <StatsManager />

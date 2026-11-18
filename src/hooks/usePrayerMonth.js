@@ -12,8 +12,8 @@
 //             loading, error, reload }
 // ═══════════════════════════════════════════════════════
 import { useCallback, useEffect, useState } from 'react'
-import { METHOD_ABUBAKR, aladhanMethodQuery, computeTimes, CALC_METHODS, tzOffsetHours } from '../utils/prayCalc'
-import { locationSig } from '../utils/prayerLocation'
+import { METHOD_ABUBAKR, aladhanMethodQuery, computeTimes, CALC_METHODS, tzOffsetHours, withAsr } from '../utils/prayCalc'
+import { locationSig, asrOf } from '../utils/prayerLocation'
 import { PRAYER_KEYS } from './usePrayerTimes'
 
 const API_KEY = { fajr: 'Fajr', sunrise: 'Sunrise', dhuhr: 'Dhuhr', asr: 'Asr', maghrib: 'Maghrib', isha: 'Isha' }
@@ -26,7 +26,7 @@ function localMonth(loc, y, m) {
   const out = []
   for (let d = 1; d <= n; d++) {
     const tz = tzOffsetHours(loc.tz || 'Asia/Baku', y, m, d)
-    const t = computeTimes({ year: y, month: m, day: d }, loc.lat, loc.lng, tz, CALC_METHODS.abubakr)
+    const t = computeTimes({ year: y, month: m, day: d }, loc.lat, loc.lng, tz, withAsr(CALC_METHODS.abubakr, asrOf(loc)))
     out.push({ day: d, weekday: weekdayOf(y, m, d), times: t })
   }
   return out
@@ -38,7 +38,7 @@ async function fetchMonth(loc, y, m) {
     const c = JSON.parse(sessionStorage.getItem(key) || 'null')
     if (Array.isArray(c) && c.length) return c
   } catch { /* keş yoxdur */ }
-  const url = `https://api.aladhan.com/v1/calendar/${y}/${m}?latitude=${loc.lat}&longitude=${loc.lng}&${aladhanMethodQuery(loc.method)}` +
+  const url = `https://api.aladhan.com/v1/calendar/${y}/${m}?latitude=${loc.lat}&longitude=${loc.lng}&${aladhanMethodQuery(loc.method, asrOf(loc))}` +
     (loc.tz ? `&timezonestring=${encodeURIComponent(loc.tz)}` : '')
   const res = await fetch(url)
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
