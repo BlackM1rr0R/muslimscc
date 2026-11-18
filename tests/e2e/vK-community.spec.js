@@ -122,6 +122,8 @@ async function attachK(page, S, { owner = true } = {}) {
 
 /** Admin panelində "Dua divarına nəzarət" (telefonda menyu əvvəlcə açılır) */
 async function openModeration(page) {
+  // Panel çəkilənə qədər gözlə — yoxsa mobildə menyu düyməsi hələ yoxdur və açılmır
+  await expect(page.getByRole('heading', { level: 1, name: 'İdarə paneli' })).toBeVisible()
   const toggle = page.locator('.admin-menu-toggle')
   if (await toggle.isVisible()) await toggle.click()
   await page.getByRole('button', { name: 'Dua divarına nəzarət' }).click()

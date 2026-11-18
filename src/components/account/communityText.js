@@ -199,9 +199,9 @@ export const FD = {
   en: {
     title: 'Family dua list', lead: 'Ask your family for dua — only members of this circle can see it. Those who pray tap a button; you only see the count.',
     ph: 'For example: please make dua for my exam tomorrow', post: 'Ask for dua', none: 'No dua requests yet.',
-    prayed: 'I prayed for you', prayedDone: 'You prayed', count: (n) => `${n} ${n === 1 ? 'person' : 'people'} prayed`,
+    prayed: 'I prayed for you', prayedDone: 'You prayed', count: (n) => (n === 1 ? '1 person prayed' : `${n} people prayed`),
     answered: 'Answered', markAnswered: 'Mark as answered', unmark: 'Remove mark', del: 'Delete', report: 'Tell the circle owner', reported: 'Reported',
-    flags: (n) => `${n} ${n === 1 ? 'report' : 'reports'}`, you: 'you', confirm: 'Are you sure?', yes: 'Yes', cancel: 'Cancel', failed: 'That did not work. Please try again.', limit: 'Today’s limit has been reached.',
+    flags: (n) => `Reported: ${n}`, you: 'you', confirm: 'Are you sure?', yes: 'Yes', cancel: 'Cancel', failed: 'That did not work. Please try again.', limit: 'Today’s limit has been reached.',
   },
   ru: {
     title: 'Семейный список дуа', lead: 'Попросите семью о дуа — видят только участники этого круга. Кто сделал дуа, нажимает кнопку; вы видите только число.',
@@ -247,7 +247,7 @@ export const DW = {
     mine: 'My requests', status: { pending: 'In review', approved: 'On the wall', rejected: 'Not accepted', expired: 'Expired' },
     reasons: { personal_info: 'contains personal details', not_dua: 'not a dua request', inappropriate: 'inappropriate text', duplicate: 'duplicate', commercial: 'advertising', other: 'other reason' },
     del: 'Delete', wall: 'Wall', all: 'All languages', onlyLang: 'This language only', empty: 'No requests on the wall yet.', anon: 'Anonymous', more: 'Load more',
-    pray: 'I prayed', prayed: 'You prayed', count: (n) => `${n} ${n === 1 ? 'dua' : 'duas'}`, report: 'Report', reportReasons: { inappropriate: 'Inappropriate', personal_info: 'Personal details', spam: 'Spam', other: 'Other' },
+    pray: 'I prayed', prayed: 'You prayed', count: (n) => (n === 1 ? '1 person prayed' : `${n} people prayed`), report: 'Report', reportReasons: { inappropriate: 'Inappropriate', personal_info: 'Personal details', spam: 'Spam', other: 'Other' },
     reportSend: 'Send', reported: 'Thank you — a moderator will review it.', cancel: 'Cancel',
     err: { too_short: 'The text is too short.', links_not_allowed: 'Links, domains and emails are not allowed.', personal_info: 'Please do not write phone numbers or personal details.', not_allowed: 'This text was not accepted.', bad_name: 'The name should contain letters only.', daily_limit: 'You have reached today’s limit of 3 requests.', generic: 'That did not work. Please try again.' },
   },
