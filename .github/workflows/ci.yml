@@ -104,8 +104,11 @@ jobs:
       matrix:
         name: ['1/10', '2/10', '3/10', '4/10', '5/10', '6/10', '7/10', '8/10', '9/10', '10/10']
         include:
-          - { name: 'a11y işıqlı', grep: 'a11y \(light\)' }
-          - { name: 'a11y qaranlıq + a11y.spec', grep: 'a11y \(dark\)|a11y\.spec' }
+          # 2026-11-19: a11y qaranlıq + a11y.spec 7.3 dəq, işıqlı 5.8 dəq idi — hər biri 2 hissəyə
+          - { name: 'a11y işıqlı 1/2', grep: 'a11y \(light\)', shard: '1/2' }
+          - { name: 'a11y işıqlı 2/2', grep: 'a11y \(light\)', shard: '2/2' }
+          - { name: 'a11y qaranlıq + a11y.spec 1/2', grep: 'a11y \(dark\)|a11y\.spec', shard: '1/2' }
+          - { name: 'a11y qaranlıq + a11y.spec 2/2', grep: 'a11y \(dark\)|a11y\.spec', shard: '2/2' }
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
@@ -128,10 +131,10 @@ jobs:
         # kitabxanaları var, çatmasa testlər özü yıxılır
         run: timeout 120 npx playwright install --with-deps chromium || npx playwright install chromium
       - name: E2E testləri
-        env: { G: '${{ matrix.grep }}', N: '${{ matrix.name }}' }
-        # a11y maşınları: --grep; qalan 10 hissə: a11y-siz, --shard <N>
+        env: { G: '${{ matrix.grep }}', N: '${{ matrix.name }}', SH: '${{ matrix.shard }}' }
+        # a11y maşınları: --grep (+ öz --shard-ı); qalan 10 hissə: a11y-siz, --shard <N>
         run: |
-          if [ -n "$G" ]; then set -- --grep "$G"
+          if [ -n "$G" ]; then set -- --grep "$G" --shard "$SH"
           else set -- --grep-invert 'a11y \((light|dark)\)|a11y\.spec' --shard "$N"; fi
           echo "npx playwright test $*"
           npx playwright test "$@"
