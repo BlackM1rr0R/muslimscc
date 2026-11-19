@@ -11,6 +11,9 @@
 // • Media Session API: kilid ekranında / qulaqlıqda oynat, fasilə, növbəti, əvvəlki.
 // • Təkrar: hər ayə N dəfə; A–B aralığı dövrə ilə. Sürət: 0.75× / 1× / 1.25×.
 // • Klaviatura: boşluq — oynat/dayandır, ←/→ — ayə (ərəbcədə güzgülənir).
+// • Yuxu taymeri (setSleep): 15/30/60 dəq və ya "surənin sonu" — pleyerin özündədir (Zen
+//   bağlananda da işləyir). Vaxt çatanda səs AYƏNİN SONUNDA dayanır (ortada kəsilmir);
+//   ayənin son saniyələrində səs yumşaq azalır. Çox uzun ayədə 2 dəq sonra yumşaq dayanır.
 // ═══════════════════════════════════════════════════════
 import { useState, useEffect, useMemo, useRef } from 'react'
 import Icon from './Icon'
@@ -20,6 +23,7 @@ import {
 } from '../utils/quranAudio'
 import '../styles/QuranPlayer.css'
 import { pickUi } from '../utils/uiText'
+import SleepTimer, { SleepBadge } from './quran/SleepTimer'
 
 export const PLAYER_LABELS = {
   az: {
@@ -77,6 +81,9 @@ export const PLAYER_LABELS = {
 const ARTWORK = [{ src: '/android-chrome-512x512.png?v=2', sizes: '512x512', type: 'image/png' }]
 // Fayl bu müddətdə başlamasa (asılı qalan bağlantı) — növbəti mənbə sınanır
 const STALL_MS = 15000
+// Yuxu taymeri: vaxt çatandan sonra ayə bu qədər uzanarsa — yumşaq dayandır; səsin azalma müddəti
+const SLEEP_GRACE_MS = 120000
+const SLEEP_FADE_S = 8
 const isTyping = el => !!el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName))
 // Boşluq düymədə/linkdə öz işini görsün (düyməni basır)
 const isControl = el => !!el && !!el.closest?.('button, a[href], summary, [role="button"], [role="slider"], [role="checkbox"]')
@@ -96,6 +103,7 @@ export function useQuranPlayer({ surahNumber, verses, lang, onFollow, onSurahEnd
   const [range, setRangeState] = useState(null)        // { from, to } | null
   const [detached, setDetached] = useState(false)      // istifadəçi özü sürüşdürüb
   const [repeatNo, setRepeatNo] = useState(1)          // cari ayənin neçənci oxunuşu
+  const [sleep, setSleepState] = useState(null)        // null | { mode: 'min', min, from, at } | { mode: 'surah', from }
 
   const r = useRef({}).current
   r.prefs = prefs
@@ -106,7 +114,7 @@ export function useQuranPlayer({ surahNumber, verses, lang, onFollow, onSurahEnd
   r.onFollow = onFollow
   r.onSurahEnd = onSurahEnd
   r.mediaTitle = mediaTitle
-  if (r.els === undefined) { r.els = []; r.cur = 0; r.src = 0; r.rep = 1; r.current = null; r.status = 'idle'; r.detached = false }
+  if (r.els === undefined) { r.els = []; r.cur = 0; r.src = 0; r.rep = 1; r.current = null; r.status = 'idle'; r.detached = false; r.sleep = null }
 
   const api = useMemo(() => {
     const setSt = s => { r.status = s; setStatus(s) }
@@ -229,9 +237,39 @@ export function useQuranPlayer({ surahNumber, verses, lang, onFollow, onSurahEnd
       if (followIt) follow(n, prev)
     }
 
+    // ── Yuxu taymeri ──
+    const setVol = v => { for (const el of r.els) { try { el.volume = v } catch { /* iOS: həcm yalnız oxunur */ } } }
+    const sleepDue = () => r.sleep?.mode === 'min' && Date.now() >= r.sleep.at
+    function setSleep(v) {
+      const now = Date.now()
+      const next = v === 'surah' ? { mode: 'surah', from: now }
+        : Number(v) > 0 ? { mode: 'min', min: Number(v), from: now, at: now + Number(v) * 60000 } : null
+      r.sleep = next
+      setSleepState(next)
+      setVol(1)
+    }
+    // Taymer bitdi: fasilə (cari ayə yadda qalır — "Davam et" işləyir), həcm bərpa olunur
+    function finishSleep() {
+      r.sleep = null
+      setSleepState(null)
+      pause()
+      setVol(1)
+    }
+    // Hər saniyə (useEffect): vaxt çatıbsa — ayənin son saniyələrində səsi azalt; uzun ayədə dayandır
+    function sleepTick() {
+      if (!sleepDue()) return
+      const el = curEl()
+      if (!el || r.status !== 'playing') return
+      if (Date.now() - r.sleep.at > SLEEP_GRACE_MS) { finishSleep(); return }
+      const left = (el.duration || 0) - (el.currentTime || 0)
+      if (Number.isFinite(left) && left > 0 && left < SLEEP_FADE_S) setVol(Math.max(0.15, left / SLEEP_FADE_S))
+    }
+
     function onEnded() {
       const n = r.current
       if (n == null) return
+      // Yuxu vaxtı çatıb — növbəti ayəyə keçmədən dayan (ayə ortada kəsilmir)
+      if (sleepDue()) { finishSleep(); return }
       if (r.rep < r.prefs.repeat) {
         r.rep += 1; setRepeatNo(r.rep)
         const el = curEl()
@@ -240,6 +278,8 @@ export function useQuranPlayer({ surahNumber, verses, lang, onFollow, onSurahEnd
         return
       }
       const nx = nextOf(n)
+      // "Surənin sonu": son ayə (və ya A–B aralığının sonu) bitdi — dayan
+      if (r.sleep?.mode === 'surah' && (nx == null || nx <= n)) { finishSleep(); return }
       if (nx != null) { start(nx); return }
       // Surənin sonu
       if (r.prefs.autoNext && r.surah < 114 && r.onSurahEnd) {
@@ -277,6 +317,8 @@ export function useQuranPlayer({ surahNumber, verses, lang, onFollow, onSurahEnd
     function stop() {
       clearStall()
       r.autoContinue = false
+      if (r.sleep) { r.sleep = null; setSleepState(null) }
+      setVol(1)
       r.switching = true
       for (const el of r.els) {
         el.pause()
@@ -358,7 +400,7 @@ export function useQuranPlayer({ surahNumber, verses, lang, onFollow, onSurahEnd
     const destroy = () => { stop(); r.els = [] }
     // v5.8: Zen vizualizatoru üçün — oxunan yer (saniyə); səs elementinə toxunulmur
     const time = () => curEl()?.currentTime || 0
-    return { start, toggle, pause, resume, next, prev, stop, retry, backToCurrent, detach, setReciter, setRate, setRepeat, setAutoNext, setRange, surahChanged, versesReady, destroy, time }
+    return { start, toggle, pause, resume, next, prev, stop, retry, backToCurrent, detach, setReciter, setRate, setRepeat, setAutoNext, setRange, surahChanged, versesReady, destroy, time, setSleep, sleepTick }
   }, [r])
 
   // Surə dəyişdi / oxuyucu bağlandı → səs dayanır
@@ -369,6 +411,14 @@ export function useQuranPlayer({ surahNumber, verses, lang, onFollow, onSurahEnd
   }, [surahNumber, api])
   useEffect(() => { if (verses) api.versesReady() }, [verses, api])
   useEffect(() => () => api.destroy(), [api])
+
+  // Yuxu taymeri: saniyədə bir yoxlama (state yenilənmir — səhifə yenidən render olunmur)
+  const sleepOn = !!sleep
+  useEffect(() => {
+    if (!sleepOn) return undefined
+    const id = setInterval(() => api.sleepTick(), 1000)
+    return () => clearInterval(id)
+  }, [sleepOn, api])
 
   // İstifadəçi özü sürüşdürür (təkər, toxunuş, klaviatura) → məcburi izləmə dayanır
   const active = current != null && (status === 'playing' || status === 'loading')
@@ -446,7 +496,7 @@ export function useQuranPlayer({ surahNumber, verses, lang, onFollow, onSurahEnd
     return () => { for (const k of Object.keys(handlers)) { try { ms.setActionHandler(k, null) } catch { /* */ } } }
   }, [api])
 
-  return { ...api, prefs, current, status, errorKind, range, detached, repeatNo, reciterLabel }
+  return { ...api, prefs, current, status, errorKind, range, detached, repeatNo, reciterLabel, sleep }
 }
 
 // ── İkonlar (yalnız stroke/fill currentColor) ──
@@ -489,7 +539,7 @@ const fmtRate = (rate, lang) => `${String(rate).replace('.', /^(az|ru|tr)$/.test
  */
 export default function QuranPlayer({ player, lang, total, verseLabel }) {
   const L = pickUi(PLAYER_LABELS, lang)
-  const { current, status, errorKind, prefs, range, detached, repeatNo, reciterLabel } = player
+  const { current, status, errorKind, prefs, range, detached, repeatNo, reciterLabel, sleep } = player
   const [open, setOpen] = useState(false)
   const panelRef = useRef(null)
   const toggleBtnRef = useRef(null)
@@ -594,6 +644,7 @@ export default function QuranPlayer({ player, lang, total, verseLabel }) {
         <div className="qpl__extra">
           {repeatInfo && <span className="qpl__badge ui-num" dir="ltr" title={L.repeat}><RepeatGlyph />{repeatInfo}</span>}
           {range && <span className="qpl__badge qpl__badge--range ui-num" dir="ltr" title={L.range}>{range.from}–{range.to}</span>}
+          {sleep && <SleepBadge sleep={sleep} lang={lang} />}
           <button type="button" className="qpl__btn qpl__rate ui-num" dir="ltr" onClick={cycleRate}
             aria-label={`${L.speed}: ${fmtRate(prefs.rate, lang)}`} title={L.speed}>{fmtRate(prefs.rate, lang)}</button>
           <button type="button" ref={toggleBtnRef} className={`qpl__btn${open ? ' is-active' : ''}`}
@@ -669,6 +720,7 @@ export default function QuranPlayer({ player, lang, total, verseLabel }) {
             </div>
             {rangeBad && <span className="ui-field__hint qpl__hint-bad" role="alert">{L.rangeBad}</span>}
           </fieldset>
+          <SleepTimer player={player} lang={lang} variant="panel" />
           <label className="qpl__switch">
             <input type="checkbox" checked={prefs.autoNext} onChange={e => { haptic(); player.setAutoNext(e.target.checked) }} />
             <span className="qpl__switch-track" aria-hidden="true"><span className="qpl__switch-thumb" /></span>

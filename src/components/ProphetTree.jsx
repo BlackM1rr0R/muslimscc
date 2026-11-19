@@ -7,6 +7,9 @@
 //   Düz xətt — qohumluq; qırıq xətt — başqa əlaqə (iman, himayə, dua, müjdə).
 // • Düyünə toxun / üzərinə gəl → əlaqələri parlayır, aşağıda ayələr (Quran səhifəsinə keçid).
 // • Görünəndə xətlər bir dəfə "çəkilir" (stroke-dashoffset); hərəkət azaldılıbsa — dərhal.
+// • Ad diskdən enli idi ("Ibrahim (Abraham)") — mötərizəli hissə ikinci sətirdə, kiçik şriftlə.
+// • Telefonda (≤ 760px) ağac yana sürüşür: açılanda kök (İbrahim) ortada, kənarlarda solğunluq,
+//   "↔ sürüşdürün" ipucu; toxunuşdan sonra ayələr paneli görünən yerə gətirilir.
 // ═══════════════════════════════════════════════════════
 import { useEffect, useRef, useState } from 'react'
 import Icon from './Icon'
@@ -16,6 +19,20 @@ import { getSurahLocal } from '../data/surahNamesAz'
 import { SURAH_TABLE } from '../data/mushafIndex'
 import { pathFor } from '../seo/routes'
 import '../styles/ProphetTree.css'
+
+const T2 = {
+  az: { swipe: 'Bütün ağacı görmək üçün yana sürüşdürün' },
+  en: { swipe: 'Swipe sideways to see the whole tree' },
+  ru: { swipe: 'Проведите в сторону, чтобы увидеть всё древо' },
+  ar: { swipe: 'اسحب جانبًا لرؤية الشجرة كاملة' },
+  tr: { swipe: 'Ağacın tamamını görmek için yana kaydırın' },
+}
+// Kökün (İbrahim) x mövqeyi — telefonda açılanda ortaya gətirilir
+const ROOT = 'ibrahim'
+// Kənar yazısı qonşu diskə dəyirsə — sürüşdürmə (ilk ayəyə görə); 61:6 "Muhammad ﷺ" diskinin üstünə düşürdü
+const LABEL_NUDGE = { '61:6': [34, 26] }
+// "Ibrahim (Abraham)" → ["Ibrahim", "(Abraham)"]
+const splitName = (s) => { const i = String(s).indexOf(' ('); return i > 0 ? [s.slice(0, i), s.slice(i + 1)] : [s, ''] }
 
 const T = {
   az: { ey: 'Şəcərə', title: 'Peyğəmbərlər şəcərəsi', lead: 'Yalnız Quranın özünün dediyi əlaqələr — hər xəttin yanında ayəsi. Bir peyğəmbərə toxunun.', solid: 'qohumluq', dashed: 'başqa əlaqə (iman, himayə, dua, müjdə)', hint: 'Bir ada toxunun — əlaqələri və ayələri görünsün.', others: 'Quranda bir-biri ilə qohumluğu açıq deyilməyən peyğəmbərlər', note: 'Rəvayət və təfsirdən gələn əlaqələr (məsələn, Lutun İbrahimin qardaşı oğlu olması) burada çəkilmir — yalnız ayənin açıq dediyi.' },
@@ -36,6 +53,9 @@ function curve([x1, y1], [x2, y2]) {
 
 export default function ProphetTree({ lang = 'az', prophets = [] }) {
   const t = pickUi(T, lang)
+  const t2 = pickUi(T2, lang)
+  const scrollRef = useRef(null)
+  const infoRef = useRef(null)
   const [focus, setFocus] = useState(null)
   const [shown, setShown] = useState(false)
   const ref = useRef(null)
@@ -56,6 +76,19 @@ export default function ProphetTree({ lang = 'az', prophets = [] }) {
     io.observe(el)
     return () => io.disconnect()
   }, [])
+  // Telefonda: kök ortada açılsın (əvvəl sol kənarda açılırdı — İbrahim kəsilirdi)
+  useEffect(() => {
+    const sc = scrollRef.current
+    if (!sc || sc.scrollWidth <= sc.clientWidth + 4) return
+    const x = (TREE_NODES[ROOT].at[0] / 1000) * sc.scrollWidth
+    sc.scrollLeft = Math.max(0, x - sc.clientWidth / 2)
+  }, [])
+  // Toxunuşdan sonra (telefon) ayələr paneli görünən yerə
+  const reveal = () => {
+    if (ptr.current === 'mouse' || typeof window === 'undefined' || !window.matchMedia?.('(max-width: 760px)').matches) return
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    requestAnimationFrame(() => infoRef.current?.scrollIntoView({ block: 'nearest', behavior: reduced ? 'auto' : 'smooth' }))
+  }
 
   return (
     <section className="ptr ui-card" aria-labelledby="ptr-title" data-testid="prophet-tree" ref={ref}>
@@ -63,10 +96,13 @@ export default function ProphetTree({ lang = 'az', prophets = [] }) {
         <span className="ui-eyebrow">{t.ey}</span>
         <h3 id="ptr-title" className="ui-title ui-title--sm">{t.title}</h3>
         <p className="ui-lead">{t.lead}</p>
-        <p className="ptr__legend"><span className="ptr__key" /> {t.solid} <span className="ptr__key is-dash" /> {t.dashed}</p>
+        <p className="ptr__legend">
+          <span className="ptr__lg"><span className="ptr__key" /> {t.solid}</span>
+          <span className="ptr__lg"><span className="ptr__key is-dash" /> {t.dashed}</span>
+        </p>
       </div>
       <div className="ptr__frame">
-        <div className="ptr__scroll">
+        <div className="ptr__scroll" ref={scrollRef} dir="ltr">
         <svg viewBox="0 0 1000 720" className={`ptr__svg${shown ? ' is-shown' : ''}`} role="group" aria-label={t.title} style={{ direction: 'ltr' }}
           onPointerLeave={(e) => { if (e.pointerType === 'mouse') setFocus(null) }}>
           <defs>
@@ -74,34 +110,39 @@ export default function ProphetTree({ lang = 'az', prophets = [] }) {
           </defs>
           {TREE_EDGES.map(([a, b, kind, refs, dash], i) => {
             const c = curve(TREE_NODES[a].at, TREE_NODES[b].at)
+            const [nx, ny] = LABEL_NUDGE[refs[0][0]] || [0, 0]
             const on = focus && (a === focus || b === focus)
             return (
               <g key={i} className={`ptr__edge${dash ? ' is-dash' : ''}${on ? ' is-on' : ''}${focus && !on ? ' is-dim' : ''}`} style={{ '--len': c.len.toFixed(0), '--d': `${i * 90}ms` }}>
                 <path d={c.d} />
-                <text x={c.lx} y={c.ly - 6} textAnchor="middle" className="ptr__rel">{pickUi(TREE_REL[kind], lang)} · {refs[0][0]}</text>
+                <text x={c.lx + nx} y={c.ly - 6 + ny} textAnchor="middle" className="ptr__rel">{pickUi(TREE_REL[kind], lang)} · {refs[0][0]}</text>
               </g>
             )
           })}
           {Object.entries(TREE_NODES).map(([k, n]) => {
             const [x, y] = n.at, isP = Boolean(n.num), r = k === 'muhammad' ? 46 : isP ? R.p : R.o
             const on = !lit || lit.has(k)
+            const [nm1, nm2] = splitName(nameOf(k))
             return (
               <g key={k} className={`ptr__node${isP ? '' : ' is-person'}${k === 'muhammad' ? ' is-last' : ''}${on ? '' : ' is-dim'}${focus === k ? ' is-focus' : ''}`}
                 role="button" tabIndex={0} aria-pressed={focus === k} aria-label={nameOf(k)} data-testid={`ptr-${k}`}
                 onPointerDown={(e) => { ptr.current = e.pointerType || 'mouse' }}
-                onClick={() => setFocus(f => (ptr.current === 'mouse' ? k : f === k ? null : k))}
+                onClick={() => { setFocus(f => (ptr.current === 'mouse' ? k : f === k ? null : k)); reveal() }}
                 onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setFocus(f => (f === k ? null : k)) } }}
                 onPointerEnter={(e) => { if (e.pointerType === 'mouse') setFocus(k) }}>
                 {focus === k && <circle cx={x} cy={y} r={r + 26} fill="url(#ptr-glow)" />}
+                <circle cx={x} cy={y} r={r + 7} className="ptr__ring" />
                 <circle cx={x} cy={y} r={r} className="ptr__disc" />
-                <text x={x} y={y - 4} textAnchor="middle" className="ptr__ar" lang="ar">{arOf(k)}</text>
-                <text x={x} y={y + 16} textAnchor="middle" className="ptr__nm">{nameOf(k)}</text>
+                <text x={x} y={y - (nm2 ? 10 : 4)} textAnchor="middle" className="ptr__ar" lang="ar">{arOf(k)}</text>
+                <text x={x} y={y + (nm2 ? 10 : 16)} textAnchor="middle" className="ptr__nm">{nm1}</text>
+                {nm2 && <text x={x} y={y + 24} textAnchor="middle" className="ptr__nm2">{nm2}</text>}
               </g>
             )
           })}
         </svg>
         </div>
-        <div className="ptr__info" aria-live="polite" data-testid="ptr-info">
+        <p className="ptr__swipe" aria-hidden="true"><span>↔</span> {t2.swipe}</p>
+        <div className="ptr__info" aria-live="polite" data-testid="ptr-info" ref={infoRef}>
           {focus ? (
             <>
               <b>{nameOf(focus)}</b>

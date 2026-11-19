@@ -20,3 +20,16 @@ a:focus-visible .sct__node circle { stroke-width: 5; }
 .sct__src { font-size: .8rem; color: var(--text-muted); }
 .sct__others-t { margin: 14px 0 6px; font-size: .82rem; color: var(--text-muted); }
 .sct__others { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+/* Telefon: SVG əvəzinə siyahı (yazı 5px-ə kiçilmirsin) */
+.sct__list { display: none; }
+.sct__node:focus-visible circle, g[role="button"]:focus-visible .sct__node circle { stroke-width: 5; stroke: var(--accent, #c79a3a); }
+@media (max-width: 600px) {
+  .sct__frame { display: none; }
+  .sct__list { display: grid; gap: 4px; margin: 0; padding: 12px 16px; list-style: none; border-radius: 18px; border: 1px solid var(--border); background: var(--surface); }
+  .sct__list li { padding: 8px 0; line-height: 1.5; border-bottom: 1px solid var(--border); }
+  .sct__list li:last-child { border-bottom: 0; }
+  .sct__list a { display: inline-block; min-height: 32px; padding-block: 4px; font-weight: 700; }
+  .sct__list i { color: var(--text-secondary); }
+  .sct__arr { display: inline-block; color: var(--accent-text, #8a6512); }
+  [dir="rtl"] .sct__arr { transform: scaleX(-1); }
+}

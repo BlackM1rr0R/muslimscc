@@ -107,6 +107,11 @@ export default function SurahInfographic({ n, lang = 'az', onPick, onNightSky, n
           <span className="sgi-label">{t.order}</span>
           <span className="sgi-big ui-num" dir="ltr"><b data-count={f.order}>{f.order}</b><span> / 114</span></span>
         </div>
+        <div className="sgi-tl__wrap">
+        {/* Cari surənin yeri: üstündə 8 guşəli ulduz (rəngi rəqəmlə eyni) */}
+        <span className="sgi-tl__mark" aria-hidden="true" style={{ "--x": `${((REVELATION_SEQ.findIndex(x => x.n === f.n) * 10 + 5) / TL_W * 100).toFixed(2)}%` }}>
+          <svg viewBox="-10 -10 20 20"><path d="M0-9 2.4-5.8 6.4-6.4 5.8-2.4 9 0 5.8 2.4 6.4 6.4 2.4 5.8 0 9-2.4 5.8-6.4 6.4-5.8 2.4-9 0-5.8-2.4-6.4-6.4-2.4-5.8z" /></svg>
+        </span>
         <svg className="sgi-tl__svg" viewBox={`0 0 ${TL_W} ${TL_H}`} preserveAspectRatio="none" role="img" aria-label={t.orderAria(f.order, place)}>
           <g className="sgi-tl__ticks">
             {REVELATION_SEQ.map((s, i) => {
@@ -117,6 +122,7 @@ export default function SurahInfographic({ n, lang = 'az', onPick, onNightSky, n
             })}
           </g>
         </svg>
+        </div>
         <div className="sgi-tl__axis" aria-hidden="true">
           <span>{t.first}</span>
           <span className="sgi-legend"><i className="sgi-sw" />{t.meccan}<i className="sgi-sw is-md" />{t.medinan}</span>

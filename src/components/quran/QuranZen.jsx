@@ -6,7 +6,9 @@
 // • Səs — səhifənin öz pleyeri (useQuranPlayer: qari, sürət, ardıcıl oxu, Media Session);
 //   ekranda yalnız indi oxunan ayə: iri ərəb mətni + (varsa) tərcümə, ayə nömrəsi.
 // • Fon — canlı səma (html[data-sky], utils/livingSky) rəngləri və yavaş ulduzlar.
-// • Yuxu taymeri: 15 / 30 / 60 dəq — vaxt çatanda səs yumşaq dayanır.
+// • Yuxu taymeri (SleepTimer → player.setSleep): 15 / 30 / 60 dəq və ya surənin sonu; pleyerin
+//   özündədir — Zen bağlansa da işləyir, səs ayənin sonunda dayanır. "Gecə qiraəti": taymer
+//   qurulanda səma və halqalar yavaş-yavaş qaralır (--qz-dim 0 → .6); azaldılmış hərəkətdə sabit.
 // • Klaviatura: boşluq — oxu/dayandır, ←/→ — ayə, Esc — çıx. createPortal (main transform-u).
 // • Sözbəsöz işıqlanma bu rejimdə yoxdur — ayə səviyyəsindədir (KaraokeAyah ayrıca).
 // ═══════════════════════════════════════════════════════
@@ -16,22 +18,21 @@ import Icon from '../Icon'
 import { pickUi } from '../../utils/uiText'
 import { offlineUrl } from '../../utils/quranAudio'
 import { ayahEnvelope, FPS } from '../../utils/audioEnvelope'
+import SleepTimer, { sleepProgress } from './SleepTimer'
 import '../../styles/QuranZen.css'
 
 const T = {
-  az: { close: 'Çıx', play: 'Oxu', pause: 'Dayandır', prev: 'Əvvəlki ayə', next: 'Növbəti ayə', sleep: 'Yuxu saatı', off: 'Söndür', min: '{n} dəq', left: '{n} dəq qalıb', ayah: 'ayə' },
-  en: { close: 'Exit', play: 'Play', pause: 'Pause', prev: 'Previous verse', next: 'Next verse', sleep: 'Sleep timer', off: 'Off', min: '{n} min', left: '{n} min left', ayah: 'verse' },
-  ru: { close: 'Выйти', play: 'Слушать', pause: 'Пауза', prev: 'Предыдущий аят', next: 'Следующий аят', sleep: 'Таймер сна', off: 'Выкл.', min: '{n} мин', left: 'Осталось {n} мин', ayah: 'аят' },
-  ar: { close: 'خروج', play: 'تشغيل', pause: 'إيقاف', prev: 'الآية السابقة', next: 'الآية التالية', sleep: 'مؤقت النوم', off: 'إيقاف', min: '{n} د', left: 'باقٍ {n} د', ayah: 'آية' },
-  tr: { close: 'Çık', play: 'Dinle', pause: 'Durdur', prev: 'Önceki ayet', next: 'Sonraki ayet', sleep: 'Uyku zamanlayıcısı', off: 'Kapalı', min: '{n} dk', left: '{n} dk kaldı', ayah: 'ayet' },
+  az: { close: 'Çıx', play: 'Oxu', pause: 'Dayandır', prev: 'Əvvəlki ayə', next: 'Növbəti ayə', ayah: 'ayə' },
+  en: { close: 'Exit', play: 'Play', pause: 'Pause', prev: 'Previous verse', next: 'Next verse', ayah: 'verse' },
+  ru: { close: 'Выйти', play: 'Слушать', pause: 'Пауза', prev: 'Предыдущий аят', next: 'Следующий аят', ayah: 'аят' },
+  ar: { close: 'خروج', play: 'تشغيل', pause: 'إيقاف', prev: 'الآية السابقة', next: 'الآية التالية', ayah: 'آية' },
+  tr: { close: 'Çık', play: 'Dinle', pause: 'Durdur', prev: 'Önceki ayet', next: 'Sonraki ayet', ayah: 'ayet' },
 }
-const SLEEP = [15, 30, 60]
 const STARS = Array.from({ length: 36 }, (_, i) => ({ left: `${(i * 41) % 100}%`, top: `${(i * 29) % 70}%`, '--d': `${(i % 9) * 0.5}s` }))
 
 export default function QuranZen({ player, verses = [], title, lang = 'az', start = 1, surah, onClose }) {
   const t = pickUi(T, lang)
   const [shown, setShown] = useState(player.current || start)
-  const [sleepAt, setSleepAt] = useState(null)
   const [, force] = useState(0)
   const rootRef = useRef(null)
   const closeRef = useRef(onClose)
@@ -74,14 +75,13 @@ export default function QuranZen({ player, verses = [], title, lang = 'az', star
     return () => document.documentElement.classList.remove('qz-open')
   }, [])
 
-  // Yuxu taymeri
+  // "Gecə qiraəti": yuxu taymeri qurulubsa — 15 san.-də bir qaralma dərəcəsi yenilənir
+  const sleep = player.sleep
   useEffect(() => {
-    if (!sleepAt) return undefined
-    const id = setInterval(() => {
-      if (Date.now() >= sleepAt) { player.pause(); setSleepAt(null) } else force(x => x + 1)
-    }, 15000)
+    if (!sleep) return undefined
+    const id = setInterval(() => force(x => x + 1), 15000)
     return () => clearInterval(id)
-  }, [sleepAt, player])
+  }, [sleep])
 
   const v = verses.find(x => x.n === shown) || verses[0]
   const total = verses.length || 1
@@ -99,11 +99,12 @@ export default function QuranZen({ player, verses = [], title, lang = 'az', star
       go((e.key === 'ArrowRight') !== rtl ? 1 : -1)
     }
   }
-  const leftMin = sleepAt ? Math.max(1, Math.round((sleepAt - Date.now()) / 60000)) : 0
+  const dim = sleep ? (0.6 * sleepProgress(sleep, { current: player.current || shown, total })).toFixed(3) : '0'
 
   if (typeof document === 'undefined' || !v) return null
   return createPortal(
-    <div className="qz" role="dialog" aria-modal="true" aria-label={title} tabIndex={-1} ref={rootRef} onKeyDown={onKey} data-testid="quran-zen">
+    <div className={`qz${sleep ? ' is-night' : ''}`} role="dialog" aria-modal="true" aria-label={title} tabIndex={-1} ref={rootRef} onKeyDown={onKey}
+      style={{ '--qz-dim': dim }} data-testid="quran-zen">
       <div className="qz-sky" aria-hidden="true">
         <div className="qz-stars">{STARS.map((s, i) => <i key={i} style={s} />)}</div>
         <div className="qz-glow" />
@@ -130,14 +131,7 @@ export default function QuranZen({ player, verses = [], title, lang = 'az', star
           </button>
           <button type="button" className="qz-btn" onClick={() => go(1)} disabled={shown >= total} aria-label={t.next}><Icon name="chevron" size={22} className="ui-flip-rtl" /></button>
         </div>
-        <div className="qz-sleep" role="group" aria-label={t.sleep}>
-          <Icon name="moon" size={14} />
-          {SLEEP.map(m => (
-            <button key={m} type="button" className={`qz-chip${sleepAt && Math.abs((sleepAt - Date.now()) / 60000 - m) < 0.6 && leftMin === m ? ' is-on' : ''}`}
-              onClick={() => setSleepAt(Date.now() + m * 60000)}>{t.min.replace('{n}', m)}</button>
-          ))}
-          {sleepAt ? <button type="button" className="qz-chip is-on" onClick={() => setSleepAt(null)}>{t.left.replace('{n}', leftMin)} · {t.off}</button> : null}
-        </div>
+        <SleepTimer player={player} lang={lang} variant="zen" />
       </footer>
     </div>,
     document.body,

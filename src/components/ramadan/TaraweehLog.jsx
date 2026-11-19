@@ -76,45 +76,45 @@ export default function TaraweehLog({ lang = 'az', year = 'x', today = null, nig
     setMsg(on ? t.removed(n) : t.saved(n))
   }
   return (
-    <section className="ui-card tw" aria-labelledby="tw-title" data-testid="taraweeh-log">
-      <div className="tw__head">
+    <section className="ui-card trl" aria-labelledby="tw-title" data-testid="taraweeh-log">
+      <div className="trl__head">
         <span className="ui-eyebrow">{t.ey}</span>
         <h2 id="tw-title" className="ui-title ui-title--sm">{t.title}</h2>
-        <p className="tw__lead">{t.lead}</p>
+        <p className="trl__lead">{t.lead}</p>
       </div>
-      <fieldset className="tw__rak">
+      <fieldset className="trl__rak">
         <legend className="ui-field__label">{t.rakLabel}</legend>
         {[['none', t.none], ['8', t.rak(8)], ['20', t.rak(20)], ['other', t.other]].map(([k, label]) => (
-          <label key={k} className={`tw__chip${mode === k ? ' is-on' : ''}`}>
+          <label key={k} className={`trl__chip${mode === k ? ' is-on' : ''}`}>
             <input type="radio" name="tw-rak" value={k} checked={mode === k} onChange={() => setMode(k)} /> <span>{label}</span>
           </label>
         ))}
         {mode === 'other' && (
-          <label className="tw__other">
+          <label className="trl__other">
             <span className="ui-sr-only">{t.otherN}</span>
             <input type="number" className="ui-input" min={RAKAT_MIN} max={RAKAT_MAX} step={1} inputMode="numeric" value={other}
               onChange={(e) => setOther(e.target.value)} aria-label={t.otherN} data-testid="tw-other" />
           </label>
         )}
       </fieldset>
-      <p className="tw__hint">{t.hint}</p>
-      <ol className="tw__nights">
+      <p className="trl__hint">{t.hint}</p>
+      <ol className="trl__nights">
         {Array.from({ length: nightsInMonth }, (_, k) => {
           const n = k + 1, v = nights[n]
           const on = v !== undefined
           return (
             <li key={n}>
-              <button type="button" className={`tw__night${on ? ' is-on' : ''}${tonight === n ? ' is-tonight' : ''}`} aria-pressed={on}
+              <button type="button" className={`trl__night${on ? ' is-on' : ''}${tonight === n ? ' is-tonight' : ''}`} aria-pressed={on}
                 aria-label={`${t.night(n)}${tonight === n ? ` (${t.tonight})` : ''}: ${t.st[on ? 1 : 0]}${on && v > 0 ? ` · ${t.rak(v)}` : ''}`}
                 onClick={() => toggle(n)} disabled={!valid} data-night={n}>
-                <span className="tw__n ui-num">{n}</span>
-                {on && <span className="tw__v ui-num" aria-hidden="true">{v > 0 ? v : '✓'}</span>}
+                <span className="trl__n ui-num">{n}</span>
+                {on && <span className="trl__v ui-num" aria-hidden="true">{v > 0 ? v : '✓'}</span>}
               </button>
             </li>
           )
         })}
       </ol>
-      <ul className="tw__stats">
+      <ul className="trl__stats">
         <li>{t.nights} <b className="ui-num" data-testid="tw-nights">{stats.nights}</b></li>
         {stats.counted > 0 && <li>{t.rakats} <b className="ui-num">{stats.rakats}</b></li>}
       </ul>

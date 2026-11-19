@@ -198,3 +198,6 @@ html.a11y-motion-user .wm-radial__item, html.a11y-motion-user .wm-note__swatch::
 .wm-note__hist li { display: grid; gap: 4px; padding: 8px 10px; border-radius: 10px; background: var(--surface-2, rgba(0, 0, 0, .04)); }
 .wm-note__hist p { margin: 0; color: var(--text-body, var(--text-primary)); white-space: pre-line; }
 .wm-note__hist .ui-btn { justify-self: start; }
+/* "Oxşar ayələr (n)" — link (a), düymələrdən ayrıca xətt ilə */
+.wm-list__twin { text-decoration: none; border-top: 1px solid var(--line); border-radius: 0 0 var(--radius-md) var(--radius-md); margin-top: 4px; }
+.wm-list__twin:hover { background: var(--brand-soft); }

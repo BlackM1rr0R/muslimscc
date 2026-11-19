@@ -20,11 +20,20 @@ test('Səhabə ağacı: Peyğəmbər ﷺ mərkəzdə, kart əlaqələri, toxunan
   for (let i = 0; i < 40 && !(await tr.count()); i++) { await page.mouse.wheel(0, 700); await page.waitForTimeout(150) }
   await tr.scrollIntoViewIfNeeded()
   await expect(tr).toContainText('Peyğəmbər ﷺ')
-  const abuBakr = tr.locator('a', { hasText: 'Əbu Bəkr' }).first()
-  if (info.project.name === 'mobile') await abuBakr.tap(); else await abuBakr.hover()
-  const infoBox = tr.getByTestId('sct-info')
-  await expect(infoBox).toContainText('qayınatası')
-  await expect(infoBox).toContainText('satın alıb azad etdi')
+  if (info.project.name === 'mobile') {
+    // Telefonda (≤ 600px) SVG yerinə oxunaqlı siyahı
+    const list = tr.getByTestId('sct-list')
+    await expect(list).toBeVisible()
+    await expect(tr.locator('.sct__frame')).toBeHidden()
+    await expect(list).toContainText('qayınatası')
+    await expect(list).toContainText('satın alıb azad etdi')
+  } else {
+    await expect(tr.getByTestId('sct-list')).toBeHidden()
+    await tr.locator('.sct__frame a', { hasText: 'Əbu Bəkr' }).first().hover()
+    const infoBox = tr.getByTestId('sct-info')
+    await expect(infoBox).toContainText('qayınatası')
+    await expect(infoBox).toContainText('satın alıb azad etdi')
+  }
   await expect(page).toHaveURL(/\/sahaba$/)
   await expect(tr.locator('.sct__others .ui-chip').first()).toBeVisible()
 })

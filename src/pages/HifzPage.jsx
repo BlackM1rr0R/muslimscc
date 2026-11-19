@@ -321,6 +321,17 @@ const DAY_WORDS = {
 }
 const LOCALES = { az: 'az-Latn-AZ', en: 'en-GB', ru: 'ru-RU', ar: 'ar', tr: 'tr-TR' }
 const fill = (s, vars) => s.replace(/\{(\w+)\}/g, (_, k) => String(vars[k] ?? ''))
+// Əkiz ayələr: adətən ekrana yaxınlaşanda qurulur; dərin keçiddə (?tw=2:48#twin-ayahs — Quran
+// oxuyucusunun ayə menyusundan) dərhal — yoxsa #twin-ayahs-a sürüşmək mümkün olmazdı. URL mount-dan sonra oxunur.
+function TwinSlot({ lang }) {
+  const [now, setNow] = useState(false)
+  useEffect(() => {
+    if (window.location.hash === "#twin-ayahs" || new URLSearchParams(window.location.search).has("tw")) setNow(true) // URL yalnız mount-dan sonra (prerender ilə eyni ilk render)
+  }, [])
+  const body = <Suspense fallback={<div style={{ minHeight: 620 }} />}><TwinAyahs lang={lang} /></Suspense>
+  return now ? body : <DeferRender height="620px" idle={false} rootMargin="400px 0px">{body}</DeferRender>
+}
+
 const reduceMotion = () => typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
 
 // Surə mətni — utils/surahText.js (alquran.cloud, ar.alafasy; "Məni yoxla" səhifəsi ilə ortaq)
@@ -1039,11 +1050,7 @@ export default function HifzPage() {
         </Suspense>
       </DeferRender>
 
-      <DeferRender height="620px" idle={false} rootMargin="400px 0px">
-        <Suspense fallback={<div style={{ minHeight: 620 }} />}>
-          <TwinAyahs lang={lang} />
-        </Suspense>
-      </DeferRender>
+      <TwinSlot lang={lang} />
 
       <HifzMethod lang={lang} />
     </>

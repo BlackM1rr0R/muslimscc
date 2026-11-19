@@ -19,3 +19,6 @@
 #hln-table .vz-mtable td:last-child { min-width: 10rem; max-width: 16rem; font-size: var(--step--1); }
 /* 30 cüz — geniş kartda iki sütun (hündür siyahı olmasın) */
 @media (min-width: 720px) { .nm-juz .vz-cmp__rows { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--space-5); grid-auto-flow: column; grid-template-rows: repeat(15, auto); } }
+
+/* Quran rəqəmlərlə: üfüqi oxun izahı (surə nömrəsidir, mövqe deyil) */
+.nm-axis { margin: 6px 0 0; font-size: var(--step--2, .78rem); color: var(--text-tertiary, var(--text-secondary)); text-align: center; }

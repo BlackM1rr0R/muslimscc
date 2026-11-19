@@ -88,6 +88,8 @@ export const PAGES = [
   // C dəstəsi: Quranda məna ilə axtarış (server/quranMeaning.js — AI yalnız ayə istinadlarını seçir;
   // mətn saytın Quran mənbəyindəndir). Səhifə alət qabığı kimi indekslənir (nəticələr klientdə).
   { key: 'quranmeaning', path: 'quran-meaning', priority: 0.75, changefreq: 'monthly' },
+  // Quranla diqqət seansı (Pomodoro + ayə fasiləsi) — alət səhifəsi, şəxsi say yalnız klientdə
+  { key: 'focus',        path: 'focus',        priority: 0.65, changefreq: 'monthly' },
   { key: 'prayer',       path: 'prayer',       priority: 0.95, changefreq: 'daily'   },
   { key: 'ramadan',      path: 'ramadan',      priority: 0.8,  changefreq: 'daily'   },
   { key: 'hadith',       path: 'hadith',       priority: 0.90, changefreq: 'weekly'  },
@@ -102,6 +104,8 @@ export const PAGES = [
   { key: 'zakat',        path: 'zakat',        priority: 0.85, changefreq: 'monthly' },
   { key: 'inheritance',  path: 'inheritance',  priority: 0.85, changefreq: 'monthly' },
   { key: 'qibla',        path: 'qibla',        priority: 0.85, changefreq: 'monthly' },
+  // "Yolda" rejimi — maşın/səfər ekranı (Quran qiraəti, zikr, növbəti namaz, qiblə); alət səhifəsi
+  { key: 'onroad',       path: 'on-the-road',  priority: 0.65, changefreq: 'monthly' },
   { key: 'calendar',     path: 'calendar',     priority: 0.85, changefreq: 'daily'   },
   { key: 'hijri',        path: 'hijri-converter', priority: 0.80, changefreq: 'daily' },
   { key: 'prayerguide',  path: 'prayerguide',  priority: 0.85, changefreq: 'monthly' },

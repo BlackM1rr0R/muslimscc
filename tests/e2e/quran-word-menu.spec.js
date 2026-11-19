@@ -157,3 +157,17 @@ test('qeyd: rəng + mətn → kart vurğulanır → «Qeydlərim» siyahısında
   await expect(notes.locator('.qn__card')).toHaveCount(1)
   expectCleanConsole(consoleProblems)
 })
+
+test('«…» menyusu: əkizi olan ayədə «Oxşar ayələr (n)» → /hifz?tw=…#twin-ayahs', async ({ page }) => {
+  await page.goto('/quran/1-al-faatiha')
+  await settle(page)
+  await page.locator('#ayah-2').getByTestId('word-menu-btn').click()
+  const link = page.getByTestId('wm-twins')
+  await expect(link).toContainText('Oxşar ayələr')
+  await expect(link).toHaveAttribute('href', /\/hifz\?tw=1:2#twin-ayahs$/)
+  await link.click()
+  await expect(page).toHaveURL(/\/hifz\?tw=1:2#twin-ayahs$/)
+  const tw = page.getByTestId('twin-ayahs')
+  await expect(tw.getByTestId('tw-pair')).toContainText('1:2')
+  await expect(tw.locator('.twa__chip[aria-pressed="true"]')).toHaveText('2')
+})

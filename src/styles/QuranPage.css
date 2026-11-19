@@ -1696,3 +1696,7 @@
   .surah-here-bar { inset-inline: calc(14px + 52px + 12px) 14px; }
   .surah-read { inset-inline-start: 50px; }
 }
+
+/* "Nazil olma sırası" görünüşü: cədvəlin statusu (alimlərin ictihadı) */
+.qp-revnote { display: flex; gap: 8px; align-items: flex-start; margin: 4px 0 12px; padding: 10px 14px; border-radius: 14px; font-size: var(--step--1, .875rem); line-height: 1.5; color: var(--text-secondary); background: color-mix(in srgb, var(--accent, #c79a3a) 9%, var(--surface-1, #fff)); border: 1px solid color-mix(in srgb, var(--accent, #c79a3a) 25%, transparent); }
+.qp-revnote svg { flex: none; margin-top: 3px; color: var(--accent-text, #8a6512); }

@@ -10,17 +10,19 @@
 //   (kartda yalnız "cousin" — ona görə ümumi "qohumu"); Zeyd — "övladlığa götürdüyü"; Bilal — "Əbu Bəkr satın alıb azad etdi".
 //   Kartda yazılmayan əlaqə çəkilmir (məs. Xədicə–Fatimə də doğrudur, amma kartlarda yoxdur).
 // • Toxun/üzərinə gəl → əlaqə və kart; Peyğəmbər ﷺ yalnız ad ilə (təsvir yoxdur).
+// • Telefonda (≤ 600px) 900px-lik SVG 5px yazıya kiçilirdi — orada eyni əlaqələr SİYAHI kimi göstərilir
+//   (CSS ilə; hər ikisi render olunur — prerender ilə ilk render eynidir).
 // ═══════════════════════════════════════════════════════
 import { useMemo, useRef, useState } from 'react'
 import { pickUi } from '../utils/uiText'
 import '../styles/SahabaTree.css'
 
 const T = {
-  az: { ey: 'Ailə ağacı', title: 'Peyğəmbər ﷺ ətrafında yaxınlar', lead: 'Səhabə kartlarında yazılan ailə və yaxınlıq əlaqələri. Bir adın üzərinə gəlin və ya toxunun — əlaqəsi görünsün; ikinci toxunuş kartı açır.', prophet: 'Peyğəmbər ﷺ', others: 'Digər səhabələr — kartlarında ailə əlaqəsi qeyd olunmayıb', hint: 'Bir səhabəyə toxunun.', fromCard: 'Səhabənin kartından', open: 'Kartı aç' },
-  en: { ey: 'Family tree', title: 'Those close to the Prophet ﷺ', lead: 'The family and close ties written on the Companions’ cards. Hover over or tap a name to see the tie; a second tap opens the card.', prophet: 'The Prophet ﷺ', others: 'Other Companions — no family tie is noted on their cards', hint: 'Tap a Companion.', fromCard: 'From the Companion’s card', open: 'Open the card' },
-  ru: { ey: 'Родословная', title: 'Близкие Пророка ﷺ', lead: 'Семейные и близкие связи, указанные в карточках сподвижников. Наведите на имя или коснитесь — появится связь; повторное касание открывает карточку.', prophet: 'Пророк ﷺ', others: 'Другие сподвижники — в их карточках семейная связь не указана', hint: 'Коснитесь сподвижника.', fromCard: 'Из карточки сподвижника', open: 'Открыть карточку' },
-  ar: { ey: 'شجرة القرابة', title: 'المقرّبون من النبي ﷺ', lead: 'صلات القرابة والقرب المذكورة في بطاقات الصحابة. مرّر على اسم أو المسه لتظهر الصلة، واللمسة الثانية تفتح البطاقة.', prophet: 'النبي ﷺ', others: 'صحابة آخرون — لم تُذكر في بطاقاتهم صلة قرابة', hint: 'المس صحابيًا.', fromCard: 'من بطاقة الصحابي', open: 'افتح البطاقة' },
-  tr: { ey: 'Aile ağacı', title: 'Peygamber’e ﷺ yakın olanlar', lead: 'Sahâbe kartlarında yazılan aile ve yakınlık bağları. Bir ismin üzerine gelin veya dokunun — bağı görünsün; ikinci dokunuş kartı açar.', prophet: 'Peygamber ﷺ', others: 'Diğer sahâbîler — kartlarında aile bağı belirtilmemiş', hint: 'Bir sahâbîye dokunun.', fromCard: 'Sahâbînin kartından', open: 'Kartı aç' },
+  az: { ey: 'Ailə ağacı', title: 'Peyğəmbər ﷺ ətrafında yaxınlar', lead: 'Səhabə kartlarında yazılan ailə və yaxınlıq əlaqələri. Bir ada toxunun — əlaqəsi görünsün; yenidən toxunsanız kart açılır.', prophet: 'Peyğəmbər ﷺ', others: 'Digər səhabələr — kartlarında ailə əlaqəsi qeyd olunmayıb', hint: 'Bir səhabəyə toxunun.', fromCard: 'Səhabənin kartından', open: 'Kartı aç' },
+  en: { ey: 'Family tree', title: 'Those close to the Prophet ﷺ', lead: 'The family and close ties written on the Companions’ cards. Tap a name to see the tie; tap again to open the card.', prophet: 'The Prophet ﷺ', others: 'Other Companions — no family tie is noted on their cards', hint: 'Tap a Companion.', fromCard: 'From the Companion’s card', open: 'Open the card' },
+  ru: { ey: 'Родословная', title: 'Близкие Пророка ﷺ', lead: 'Семейные и близкие связи, указанные в карточках сподвижников. Коснитесь имени — появится связь; коснитесь ещё раз, чтобы открыть карточку.', prophet: 'Пророк ﷺ', others: 'Другие сподвижники — в их карточках семейная связь не указана', hint: 'Коснитесь сподвижника.', fromCard: 'Из карточки сподвижника', open: 'Открыть карточку' },
+  ar: { ey: 'شجرة القرابة', title: 'المقرّبون من النبي ﷺ', lead: 'صلات القرابة والقرب المذكورة في بطاقات الصحابة. المس اسمًا لتظهر الصلة، والمسه مرة أخرى لفتح البطاقة.', prophet: 'النبي ﷺ', others: 'صحابة آخرون — لم تُذكر في بطاقاتهم صلة قرابة', hint: 'المس صحابيًا.', fromCard: 'من بطاقة الصحابي', open: 'افتح البطاقة' },
+  tr: { ey: 'Aile ağacı', title: 'Peygamber’e ﷺ yakın olanlar', lead: 'Sahâbe kartlarında yazılan aile ve yakınlık bağları. Bir isme dokunun — bağı görünsün; tekrar dokunursanız kart açılır.', prophet: 'Peygamber ﷺ', others: 'Diğer sahâbîler — kartlarında aile bağı belirtilmemiş', hint: 'Bir sahâbîye dokunun.', fromCard: 'Sahâbînin kartından', open: 'Kartı aç' },
 }
 // Əlaqə növləri (5 dil) — kartlardakı ifadələrə uyğun
 const REL = {
@@ -63,6 +65,11 @@ export default function SahabaTree({ sahaba, lang = 'az', nameOf, hrefOf, onOpen
   }
   const rels = focus == null ? [] : EDGES.filter(e => e[0] === focus || e[1] === focus)
   const fs = typeof focus === 'number' ? byId[focus] : null
+  // Siyahı görünüşü (telefon): ad — səhabə kartına keçid; Peyğəmbər ﷺ və "Həsən və Hüseyn" — mətn
+  const nameEl = (k) => {
+    const s = typeof k === 'number' ? byId[k] : null
+    return s ? <a className="ui-link" href={hrefOf(s)} onClick={(e) => onOpen?.(s, e)}>{label(k)}</a> : <b>{label(k)}</b>
+  }
 
   return (
     <section className="ui-section sct" aria-labelledby="sct-title" data-testid="sahaba-tree">
@@ -72,6 +79,11 @@ export default function SahabaTree({ sahaba, lang = 'az', nameOf, hrefOf, onOpen
           <h2 id="sct-title" className="ui-title">{t.title}</h2>
           <p className="ui-lead">{t.lead}</p>
         </div>
+        <ul className="sct__list" data-testid="sct-list">
+          {EDGES.map(([a, b, k], i) => (
+            <li key={i}>{nameEl(a)} <span className="sct__arr" aria-hidden="true">→</span> {nameEl(b)}: <i>{pickUi(REL[k], lang)}</i></li>
+          ))}
+        </ul>
         <div className="sct__frame">
           <svg viewBox="0 0 900 560" className="sct__svg" role="group" aria-label={t.title} style={{ direction: 'ltr' }}
             onPointerLeave={(e) => { if (e.pointerType === 'mouse') setFocus(null) }}>

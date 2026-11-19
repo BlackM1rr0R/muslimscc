@@ -187,3 +187,14 @@ test('oxuduqca yer yadda qalır, Geri → siyahı, davam et həmin yerə qaytar�
   await expectAyahOnTop(page, saved)
   expectCleanConsole(consoleProblems)
 })
+
+test('surə siyahısı «Nazil olma sırası» ilə: kartda sıra nömrəsi, cədvəlin statusu qeyd olunur', async ({ page }) => {
+  await page.goto('/quran')
+  await settle(page)
+  await page.locator('select:has(option[value="rev"])').selectOption('rev')
+  await expect(page.getByTestId('rev-note')).toContainText('qəti deyil')
+  const first = page.locator('.surah-grid .surah-card').first()
+  await expect(first).toHaveAttribute('data-n', '96')
+  await expect(first.locator('.surah-meta')).toContainText('Nazil olma sırası: 1')
+  await expect(first.locator('.surah-meta')).toContainText('Məkki')
+})

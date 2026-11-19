@@ -25,6 +25,8 @@ import { HIFZ_DATES_KEY } from './hifzDates'
 import { MADHAB_KEY, normMadhab } from './madhab'
 import { sanitizeJariyah, JARIYAH_KEY } from './jariyahJournal'
 import { sanitizePath, PATH_KEY } from './newMuslimPath'
+import { sanitizeFocusPrefs, sanitizeDone, FOCUS_PREFS_KEY, FOCUS_DONE_KEY } from './focusStore'
+import { sanitizeRoad, ROAD_KEY } from './roadMode'
 
 export const CONFLICT = Symbol('conflict')
 
@@ -281,6 +283,18 @@ export const MERGERS = {
     const m = mergeMap3(sanitizePath(L).d, sanitizePath(R).d, B === undefined ? {} : sanitizePath(B).d, (l, r) => (l < r ? l : r))
     const out = sanitizePath({ d: m })
     return Object.keys(out.d).length ? out : undefined
+  }, { ok: isObj }),
+  // ── Yolda rejimi və diqqət seansı ──
+  // Ayarlar (dəqiqələr, ayə seçimi; yolda: xatırlatma, səs, son surə) — tərcih: hər iki cihaz dəyişibsə bu cihazınkı
+  [FOCUS_PREFS_KEY]: json((L, R) => sanitizeFocusPrefs(L ?? R), { ok: isObj }),
+  [ROAD_KEY]: json((L, R) => sanitizeRoad(L ?? R), { ok: isObj }),
+  // Günün bitən seansları { gün: say } — gün üzrə sayğac (iki cihazın artımı toplanır), son 14 gün
+  [FOCUS_DONE_KEY]: json((L, R, B) => {
+    const Lm = sanitizeDone(L), Rm = sanitizeDone(R), Bm = B === undefined ? null : sanitizeDone(B)
+    const out = {}
+    for (const d of new Set([...Object.keys(Lm), ...Object.keys(Rm)])) out[d] = mergeCounter(Lm[d], Rm[d], Bm ? (Bm[d] ?? 0) : undefined)
+    const v = sanitizeDone(out)
+    return Object.keys(v).length ? v : undefined
   }, { ok: isObj }),
   // İldönümü / ad günü kartının göstərildiyi il — sahə üzrə ən böyük
   [CELEBRATE_KEY]: json((L, R) => {

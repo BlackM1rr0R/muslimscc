@@ -249,6 +249,28 @@ test('surənin kök buludu: düymə ilə açılır, köklər kök səhifəsinə 
   await expect(c.locator('.src-cloud__w').first()).toHaveAttribute('href', /quran-roots\?root=/)
 })
 
+test('surənin kök buludu: ilk 12 kök + «Hamısını göstər», ad sayla birlikdə oxunur', async ({ page }) => {
+  // Fikstür hər surə üçün Fatihəni (number: 1) qaytarır — səhifə 2-ci surəni gözləyir və "Yüklənir…"də qalırdı.
+  // Bəqərənin öz cavabı (kök buludu real public/data/quran-roots.json-dan gəlir, ayə mətni lazım deyil).
+  await page.route(/api\.alquran\.cloud\/v1\/surah\/2\/editions\//, route => {
+    const eds = decodeURIComponent(route.request().url().split('/editions/')[1].split('?')[0]).split(',')
+    route.fulfill({ json: { code: 200, status: 'OK', data: eds.map(identifier => ({
+      number: 2, name: 'سُورَةُ البَقَرَةِ', englishName: 'Al-Baqara', englishNameTranslation: 'The Cow',
+      numberOfAyahs: 7, revelationType: 'Medinan',
+      ayahs: Array.from({ length: 7 }, (_, i) => ({ number: 8 + i, numberInSurah: i + 1, juz: 1, page: 2, text: `[test ${identifier} ${i + 1}]` })),
+      edition: { identifier, language: identifier.split('.')[0], type: identifier.startsWith('ar.') ? 'quran' : 'translation', format: 'text' },
+    })) } })
+  })
+  await page.goto('/quran/2-al-baqara')
+  await settle(page)
+  const c = page.getByTestId('surah-root-cloud')
+  await c.getByRole('button', { name: /kök buludu/ }).click()
+  await expect(c.locator('.src-cloud__w')).toHaveCount(12)
+  await expect(c.locator('.src-cloud__w').first()).toHaveAttribute('aria-label', /— \d+ dəfə/)
+  await c.getByTestId('root-cloud-more').click()
+  expect(await c.locator('.src-cloud__w').count()).toBeGreaterThan(12)
+})
+
 test.describe('azan dalğası', () => {
   test.use({ reducedMotion: 'no-preference' })
   test('xəritə, gecə sahəsi, şəhərlər; 24 saat oynanır və canlıya qayıdır', async ({ page }) => {

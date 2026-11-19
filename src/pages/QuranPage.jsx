@@ -402,6 +402,17 @@ const REVELATION = {
   tr: { Meccan:'Mekki', Medinan:'Medeni' },
 }
 const revelationLabel = (type, lang) => (pickUi(REVELATION, lang, 'en'))[type] || type
+// "Nazil olma sırası" ilə düzüləndə kartda sıra nömrəsi + cədvəlin statusu (SurahInfographic-dəki qeydlə eyni)
+const REV_SORT = {
+  az: { revN: (n) => `Nazil olma sırası: ${n}`, note: 'Nazil olma sırası — məşhur cədvəl (Quran.com); alimlərin ictihadıdır, qəti deyil.' },
+  en: { revN: (n) => `Revealed #${n}`, note: 'Order of revelation — the well-known table (Quran.com); a scholarly estimate, not definitive.' },
+  // lang-ok[Quran]: mənbə adı (Quran.com)
+  ru: { revN: (n) => `Порядок ниспослания: ${n}`, note: 'Порядок ниспослания — известная таблица (Quran.com); это иджтихад учёных, а не точные данные.' },
+  // lang-ok[Quran]: mənbə adı (Quran.com)
+  ar: { revN: (n) => `ترتيب النزول: ${n}`, note: 'ترتيب النزول — الجدول المشهور (Quran.com)؛ اجتهاد من العلماء وليس قطعيًا.' },
+  // lang-ok[Quran]: mənbə adı (Quran.com)
+  tr: { revN: (n) => `İniş sırası: ${n}`, note: 'İniş sırası — meşhur tablo (Quran.com); âlimlerin ictihadıdır, kesin değildir.' },
+}
 
 // ── Surənin adı və mənası cari dildə ──
 // az/ru/tr: yerli yazılış (surahNamesAz.js — SURAH_AZ/RU/TR); ar: API-dəki
@@ -1992,13 +2003,19 @@ export default function QuranPage() {
                   </button>
                 }>{rl.listMsg}</QEmpty>
               )}
+              {sort === 'rev' && !listLoading && !listError && (
+                <p className="qp-revnote" data-testid="rev-note"><Icon name="info" size={15} /> <span>{pickUi(REV_SORT, lang, 'en').note}</span></p>
+              )}
               {/* Kart şəbəkəsi (telefonda qruplaşdırılmış siyahı) */}
               <div className="surah-grid" data-reveal="stagger" ref={gridRef}>
                 {filtered.map((s) => {
                   const isAr = lang === 'ar'
                   const displayName = surahTitle(s, lang)
                   // ərəbcədə ingiliscə məna yox, "7 آيات · مكية"
-                  const displayMeta = isAr
+                  // "Nazil olma sırası" görünüşündə: "Revealed #1 · Meccan · 19 verses" (mushaf nömrəsi rozetdə qalır)
+                  const displayMeta = sort === 'rev'
+                    ? [pickUi(REV_SORT, lang, 'en').revN(REVELATION_ORDER[s.number - 1]), revelationLabel(s.revelationType, lang), ayahCountText(s.numberOfAyahs, lang)].join(' · ')
+                    : isAr
                     ? `${ayahCountText(s.numberOfAyahs, lang)} · ${revelationLabel(s.revelationType, lang)}`
                     : [extra ? '' : surahMeaning(s, lang), ayahCountText(s.numberOfAyahs, lang)].filter(Boolean).join(' · ')
                   const isMadani = s.revelationType === 'Medinan'

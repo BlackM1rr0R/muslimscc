@@ -113,3 +113,22 @@ test('Siyər tuneli: hadisələr 610–632, "Növbəti" mətni dəyişir', async
   await fig.locator('.stn__dots button').last().click()
   await expect(text).toContainText('632')
 })
+
+test.describe('Peyğəmbərlər şəcərəsi — telefon 360', () => {
+  test.use({ viewport: { width: 360, height: 740 }, hasTouch: true })
+  test('kök (İbrahim) ortada açılır, sürüşdürmə ipucu görünür, ayələr paneli ekrana gəlir', async ({ page }) => {
+    await page.goto('/history')
+    await settle(page)
+    const tr = page.getByTestId('prophet-tree')
+    await scrollTo(page, tr)
+    const sc = tr.locator('.ptr__scroll')
+    expect(await sc.evaluate(el => el.scrollLeft)).toBeGreaterThan(0)
+    await expect(tr.locator('.ptr__swipe')).toBeVisible()
+    const ib = tr.getByTestId('ptr-ibrahim')
+    const b = await ib.boundingBox()
+    expect(b.x).toBeGreaterThanOrEqual(0)
+    expect(b.x + b.width).toBeLessThanOrEqual(360)
+    await ib.tap()
+    await expect(tr.getByTestId('ptr-info')).toBeInViewport()
+  })
+})

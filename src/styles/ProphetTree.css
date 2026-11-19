@@ -46,3 +46,16 @@
   .ptr__rel { font-size: 14px; }
   .ptr__nm { font-size: 14px; }
 }
+/* Ad ikinci sətri (mötərizəli), fokus halqası, əfsanə açarları sətirdə qırılmır */
+.ptr__nm2 { font-size: 10.5px; font-weight: 700; fill: var(--text-secondary); paint-order: stroke; stroke: var(--surface); stroke-width: 4px; }
+.ptr__ring { fill: none; stroke: var(--accent, #c79a3a); stroke-width: 2.5; stroke-dasharray: 4 4; opacity: 0; }
+.ptr__node:focus-visible .ptr__ring { opacity: 1; }
+.ptr__lg { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.ptr__swipe { display: none; }
+@media (max-width: 760px) {
+  .ptr__nm2 { font-size: 12px; }
+  /* Kənarlarda solğunluq — yana sürüşdürmənin işarəsi */
+  .ptr__scroll { -webkit-mask-image: linear-gradient(90deg, transparent, #000 24px, #000 calc(100% - 24px), transparent); mask-image: linear-gradient(90deg, transparent, #000 24px, #000 calc(100% - 24px), transparent); }
+  .ptr__swipe { display: flex; justify-content: center; align-items: center; gap: 6px; margin: 0; padding: 6px 12px 0; font-size: .8rem; color: var(--text-muted); }
+  .ptr__swipe span { font-size: 1.1rem; }
+}

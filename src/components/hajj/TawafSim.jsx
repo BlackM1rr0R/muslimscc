@@ -9,6 +9,8 @@
 //   • Klaviatura: ←/→/↑/↓ — səkkizdə bir dövrə; Enter / düymə — tam dövrə.
 //   • Hər dövrədə titrəmə + parıltı, aria-live elanı; 7-dən sonra yekun kartı.
 //   • Qeydlər yalnız səhih/həsən mənbə ilə (mənbə nömrələri yoxlanıb).
+//   • Telefonda sayğac səhnənin altında qalırdı — çəkərkən görünsün deyə səhnənin üstündə kiçik "3/7".
+//   • "Təvafımı say" — həqiqi təvaf üçün tam ekran böyük sayğac (./TawafCounter.jsx).
 // Stillər: ./TawafSim.css (sonsuz animasiya yoxdur).
 // ═══════════════════════════════════════════════════════
 import { useCallback, useEffect, useRef, useState } from 'react'
@@ -21,6 +23,7 @@ import {
   TAU, CIRCUITS, CORNERS, STONE_ANGLE, local, angleOf, createTawaf, grab, move, advanceBy, advanceCircuit,
   circuitsOf, currentCircuit, lapFraction, markerAngle, segmentAt,
 } from '../../utils/tawaf'
+import TawafCounter from './TawafCounter'
 import './TawafSim.css'
 
 const P = (o, lang) => (o && (pickUi(o, lang, 'en') || o.az)) || ''
@@ -29,6 +32,7 @@ const P = (o, lang) => (o && (pickUi(o, lang, 'en') || o.az)) || ''
 const T = {
   az: {
     label: 'Təvaf simulyatoru: Kəbənin ətrafında barmaqla saat əqrəbinin əksinə çəkin',
+    realOpen: 'Təvafımı say', realHint: 'Həqiqi təvaf üçün böyük sayğac: hər dəfə Həcərül-Əsvəd xəttinə çatanda bir dəfə toxunun. Ekran sönmür, internetsiz işləyir.',
     howTo: 'Barmağınızla Kəbənin ətrafında saat əqrəbinin əksinə çəkin — Kəbə solunuzda qalsın. Klaviatura: oxlar və təsdiq düyməsi.',
     done: 'dövrə tamam', now: (n) => `İndi: ${n}-ci dövrə`, of: '/',
     next: 'Növbəti dövrə', demo: 'Bir dövrəni göstər', stop: 'Dayandır', reset: 'Yenidən başla',
@@ -39,6 +43,7 @@ const T = {
   },
   en: {
     label: 'Tawaf simulator: drag counter-clockwise around the Kaaba',
+    realOpen: 'Count my tawaf', realHint: 'A large counter for the real tawaf: tap once each time you reach the Black Stone line. The screen stays on and it works offline.',
     howTo: 'Drag your finger around the Kaaba counter-clockwise — keep the Kaaba on your left. Keyboard: arrow keys and Enter.',
     done: 'circuits done', now: (n) => `Now: circuit ${n}`, of: '/',
     next: 'Next circuit', demo: 'Show one circuit', stop: 'Stop', reset: 'Start again',
@@ -49,6 +54,7 @@ const T = {
   },
   ru: {
     label: 'Симулятор тавафа: ведите пальцем вокруг Каабы против часовой стрелки',
+    realOpen: 'Считать мой таваф', realHint: 'Большой счётчик для настоящего тавафа: нажимайте один раз каждый раз, когда доходите до линии Чёрного камня. Экран не гаснет, работает без интернета.',
     howTo: 'Ведите пальцем вокруг Каабы против часовой стрелки — Кааба должна быть слева от вас. Клавиатура: стрелки и клавиша ввода.',
     done: 'кругов пройдено', now: (n) => `Сейчас: круг ${n}`, of: '/',
     next: 'Следующий круг', demo: 'Показать один круг', stop: 'Стоп', reset: 'Начать заново',
@@ -59,6 +65,7 @@ const T = {
   },
   ar: {
     label: 'محاكي الطواف: اسحب حول الكعبة عكس اتجاه عقارب الساعة',
+    realOpen: 'عُدَّ طوافي', realHint: 'عدّاد كبير للطواف الحقيقي: اضغط مرة واحدة كلما وصلت إلى خط الحجر الأسود. تبقى الشاشة مضاءة ويعمل دون إنترنت.',
     howTo: 'اسحب بإصبعك حول الكعبة عكس عقارب الساعة، واجعل الكعبة عن يسارك. لوحة المفاتيح: الأسهم وزر الإدخال.',
     done: 'أشواط مكتملة', now: (n) => `الآن: الشوط ${n}`, of: '/',
     next: 'الشوط التالي', demo: 'اعرض شوطًا واحدًا', stop: 'إيقاف', reset: 'ابدأ من جديد',
@@ -69,6 +76,7 @@ const T = {
   },
   tr: {
     label: 'Tavaf simülatörü: Kâbe’nin etrafında saat yönünün tersine sürükleyin',
+    realOpen: 'Tavafımı say', realHint: 'Gerçek tavaf için büyük sayaç: Hacerü’l-Esved hizasına her gelişinizde bir kez dokunun. Ekran açık kalır, internetsiz çalışır.',
     howTo: 'Parmağınızla Kâbe’nin etrafında saat yönünün tersine sürükleyin; Kâbe solunuzda kalsın. Klavye: ok tuşları ve Enter.',
     done: 'şavt tamam', now: (n) => `Şimdi: ${n}. şavt`, of: '/',
     next: 'Sonraki şavt', demo: 'Bir şavtı göster', stop: 'Durdur', reset: 'Yeniden başla',
@@ -207,6 +215,8 @@ export default function TawafSim() {
   const [glow, setGlow] = useState(0)
   const [say, setSay] = useState('')
   const [demo, setDemo] = useState(false)
+  const [real, setReal] = useState(false)
+  const realBtn = useRef(null)
   const stageRef = useRef(null)
   const dragging = useRef(null)
   const raf = useRef(0)
@@ -371,6 +381,8 @@ export default function TawafSim() {
               </g>
             </svg>
             {glow > 0 && <span key={glow} className="tw__glow" aria-hidden="true" />}
+            {/* Telefonda: çəkərkən də görünən sayğac (ekran oxuyucusu üçün aria-valuetext/aria-live var) */}
+            <span className="tw__mini ui-num" aria-hidden="true">{done}/{CIRCUITS}</span>
           </div>
           <p className="tw__how"><Icon name="touch" size={16} /> <span>{t.howTo}</span></p>
         </div>
@@ -408,6 +420,17 @@ export default function TawafSim() {
               <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm" onClick={reset}>{t.reset}</button>
             )}
           </div>
+
+          <div className="tw__real">
+            <button type="button" ref={realBtn} className="ui-btn ui-btn--secondary ui-btn--sm" onClick={() => setReal(true)} data-testid="tawaf-real-open">
+              <Icon name="target" size={16} className="ui-btn__icon" /> {t.realOpen}
+            </button>
+            <p className="tw__real-hint">{t.realHint}</p>
+          </div>
+          {real && (
+            <TawafCounter lang={lang} takbir={NOTE_STONE.ar} doneTitle={P(FINISH.title, lang)}
+              onClose={() => { setReal(false); requestAnimationFrame(() => realBtn.current?.focus()) }} />
+          )}
 
           <p className={`tw__hint${hint ? ' is-on' : ''}`} role="status" data-testid="tawaf-hint">{hint ? t.hint : ''}</p>
 

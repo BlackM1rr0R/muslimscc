@@ -138,10 +138,11 @@ export function Block({ b, lang }) {
     case 'ayah': {
       const href = ayahHref(b.ref, lang)
       return (
-        <figure className="ui-quote ls-ayah">
+        <figure className="ui-quote ls-ayah" data-listen-quran={b.ref}>
           <Kicker icon="quran">{L.quran}</Kicker>
           <blockquote>
-            {b.ar && <p className="ui-quote__ar ui-arabic" lang="ar" dir="rtl">{b.ar}</p>}
+            {/* Quran mətni səsli oxuda (ListenButton) heç vaxt maşın səsi ilə oxunmur */}
+            {b.ar && <p className="ui-quote__ar ui-arabic" lang="ar" dir="rtl" data-listen-skip="">{b.ar}</p>}
             {!(isAr && b.ar) && <p className="ui-quote__text">{pick(b.text, lang)}</p>}
           </blockquote>
           <figcaption className="ui-quote__src">

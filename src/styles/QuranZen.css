@@ -28,9 +28,6 @@ html[data-sky="maghrib"] .qz-sky, html[data-sky="fajr"] .qz-sky { background: ra
 .qz-btn { width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center; border: 1px solid rgba(255, 255, 255, .22); background: rgba(0, 0, 0, .2); color: #fff; cursor: pointer; }
 .qz-btn:disabled { opacity: .3; cursor: default; }
 .qz-play { width: 76px; height: 76px; border-radius: 50%; display: grid; place-items: center; border: 0; cursor: pointer; background: #e7c77d; color: #241a05; box-shadow: 0 10px 30px rgba(231, 199, 125, .35); }
-.qz-sleep { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 6px; font-size: 12px; color: rgba(255, 255, 255, .75); }
-.qz-chip { border: 1px solid rgba(255, 255, 255, .25); background: none; color: #fff; border-radius: 99px; padding: 4px 12px; font: inherit; cursor: pointer; }
-.qz-chip.is-on { background: rgba(231, 199, 125, .22); border-color: #e7c77d; color: #f3e6b5; }
 @media (prefers-reduced-motion: no-preference) {
   html:not(.a11y-motion-user) .qz { animation: qz-in .5s cubic-bezier(.22, 1, .36, 1) both; }
   html:not(.a11y-motion-user) .qz-ayah { animation: qz-ayah .9s cubic-bezier(.22, 1, .36, 1) both; }
@@ -53,3 +50,16 @@ html[data-sky="maghrib"] .qz-sky, html[data-sky="fajr"] .qz-sky { background: ra
 html.a11y-motion-user .qz-rings { display: none; }
 @media (prefers-reduced-motion: reduce) { .qz-rings { display: none; } }
 .qz-ayah { position: relative; }
+
+/* "Gecə qiraəti": yuxu taymeri qurulanda səma, ulduzlar və halqalar yavaş qaralır (--qz-dim 0 → .6, JS 15 san.-də bir).
+   Mətn bir az sönükləşir, amma oxunaqlı qalır; azaldılmış hərəkətdə keçid yoxdur — sabit qaralma. */
+.qz { --qz-dim: 0; }
+.qz-sky::after { content: ''; position: absolute; inset: 0; background: #000; opacity: var(--qz-dim); pointer-events: none; transition: opacity 15s linear; }
+.qz-rings { opacity: calc(1 - var(--qz-dim)); transition: opacity 15s linear; }
+.qz-ayah { opacity: calc(1 - var(--qz-dim) * .45); transition: opacity 15s linear; }
+@media (prefers-reduced-motion: reduce) {
+  .qz.is-night { --qz-dim: .35 !important; }
+  .qz-sky::after, .qz-rings, .qz-ayah { transition: none; }
+}
+html.a11y-motion-user .qz.is-night { --qz-dim: .35 !important; }
+html.a11y-motion-user .qz-sky::after, html.a11y-motion-user .qz-ayah { transition: none; }

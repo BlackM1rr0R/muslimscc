@@ -44,9 +44,18 @@ function noiseBuffer(ac, seconds) {
   return buf
 }
 
-/** Səsi çal (söndürülübsə — heç nə). */
-export function playSound(kind) {
-  if (!soundsOn()) return
+/** AudioContext-i istifadəçi jestində hazırla (sonrakı avtomatik zəng — məs. xatırlatma — səssiz qalmasın) */
+export function unlockAudio() {
+  const ac = audio()
+  try { if (ac?.state === 'suspended') ac.resume?.() } catch { /* */ }
+}
+
+/**
+ * Səsi çal (söndürülübsə — heç nə).
+ * force — səhifənin öz səs seçimi var (məs. /on-the-road, /focus): qlobal seçimdən asılı deyil.
+ */
+export function playSound(kind, force = false) {
+  if (!force && !soundsOn()) return
   const ac = audio()
   if (!ac) return
   if (ac.state === 'suspended') ac.resume?.()

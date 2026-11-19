@@ -80,7 +80,7 @@
 [dir="rtl"] .sgi-tl__svg { transform: scaleX(-1); }
 .sgi-tick { fill: color-mix(in srgb, var(--brand) 42%, transparent); }
 .sgi-tick.is-md { fill: color-mix(in srgb, var(--accent) 62%, transparent); }
-.sgi-tick.is-cur { fill: var(--text-strong); }
+.sgi-tick.is-cur { fill: var(--accent-text, #8a6512); }
 .sgi-tl__ticks { transform-box: fill-box; transform-origin: 50% 100%; }
 .sgi-tl__axis {
   display: flex; align-items: center; justify-content: space-between; gap: 8px;
@@ -167,3 +167,11 @@ html.qns-open { overflow: hidden; }
   html:not(.a11y-reduce-motion) .qns { animation: qns-in 420ms cubic-bezier(.22, 1, .36, 1) both; }
 }
 @keyframes qns-in { from { opacity: 0; } }
+
+/* Cari surə: qızılı-tünd tik + üstündə ulduz; "41 / 114" rəqəmi də eyni rəngdə */
+.sgi-big b { color: var(--accent-text, #8a6512); }
+.sgi-tl__wrap { position: relative; padding-top: 14px; }
+.sgi-tl__wrap .sgi-tl__svg { margin-top: 0; }
+.sgi-tl__mark { position: absolute; top: 0; inset-inline-start: var(--x); width: 14px; height: 14px; transform: translateX(-50%); line-height: 0; }
+[dir="rtl"] .sgi-tl__mark { transform: translateX(50%); }
+.sgi-tl__mark svg { width: 100%; height: 100%; fill: var(--accent-text, #8a6512); }

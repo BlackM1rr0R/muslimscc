@@ -23,6 +23,7 @@ import { isPlainClick } from '../PageLink'
 import { haptic } from '../../hooks/useHaptic'
 import { pickUi } from '../../utils/uiText'
 import { pathFor } from '../../seo/routes'
+import { loadMutashabihat, twinCount } from '../../utils/mutashabihat'
 import { useReduced } from '../../motion/reduced'
 import { SPRING, DUR, EASE } from '../../motion/presets'
 import { RADIAL, layoutRadial, pickIndex, placePopover, cycleIndex } from '../../utils/radialMenu'
@@ -51,6 +52,7 @@ const T = {
     noteHint: 'Bu cihazda saxlanılır; sinxronizasiya açıqdırsa — digər cihazlarınızda da.',
     wroteOn: (d) => `Bu qeydi ${d} tarixində yazmısınız`, editedOn: (d) => `son dəyişiklik: ${d}`, history: 'Əvvəlki versiyalar', restore: 'Redaktora qaytar',
     shareAyah: 'Ayəni paylaş', copyWord: 'Sözü kopyala', copied: 'Kopyalandı',
+    twins: (n) => `Oxşar ayələr (${n})`,
     hint: 'Barmağı düyməyə sürüşdürüb buraxın',
   },
   en: {
@@ -70,6 +72,7 @@ const T = {
     noteHint: 'Stored on this device; with sync turned on — on your other devices too.',
     wroteOn: (d) => `You wrote this on ${d}`, editedOn: (d) => `last edited: ${d}`, history: 'Earlier versions', restore: 'Put back in the editor',
     shareAyah: 'Share verse', copyWord: 'Copy word', copied: 'Copied',
+    twins: (n) => (n === 1 ? 'Similar verse (1)' : `Similar verses (${n})`),
     hint: 'Slide your finger onto a button and release',
   },
   ru: {
@@ -90,6 +93,7 @@ const T = {
     noteHint: 'Хранится на этом устройстве; при включённой синхронизации — и на других ваших устройствах.',
     wroteOn: (d) => `Вы написали это ${d}`, editedOn: (d) => `последнее изменение: ${d}`, history: 'Прежние версии', restore: 'Вернуть в редактор',
     shareAyah: 'Поделиться аятом', copyWord: 'Копировать слово', copied: 'Скопировано',
+    twins: (n) => `Похожие аяты (${n})`,
     hint: 'Проведите пальцем к кнопке и отпустите',
   },
   ar: {
@@ -110,6 +114,7 @@ const T = {
     noteHint: 'تُحفظ على هذا الجهاز؛ وإن كانت المزامنة مفعّلة — على أجهزتك الأخرى أيضًا.',
     wroteOn: (d) => `كتبتَ هذا في ${d}`, editedOn: (d) => `آخر تعديل: ${d}`, history: 'نسخ سابقة', restore: 'أعِدها إلى المحرّر',
     shareAyah: 'شارك الآية', copyWord: 'انسخ الكلمة', copied: 'نُسخ',
+    twins: (n) => `آيات متشابهة (${n})`,
     hint: 'اسحب إصبعك إلى زر ثم ارفعه',
   },
   tr: {
@@ -130,6 +135,7 @@ const T = {
     noteHint: 'Bu cihazda saklanır; senkronizasyon açıksa diğer cihazlarınızda da.',
     wroteOn: (d) => `Bu notu ${d} tarihinde yazdınız`, editedOn: (d) => `son değişiklik: ${d}`, history: 'Önceki sürümler', restore: 'Düzenleyiciye geri al',
     shareAyah: 'Ayeti paylaş', copyWord: 'Kelimeyi kopyala', copied: 'Kopyalandı',
+    twins: (n) => `Benzer ayetler (${n})`,
     hint: 'Parmağınızı bir düğmeye kaydırıp bırakın',
   },
 }
@@ -168,6 +174,15 @@ export default function WordMenu({ req, verse, surah, lang = 'az', refLabel = ''
   const popRef = useRef(null)
   const itemRefs = useRef([])
   const key = `${surah}:${req.a}`
+  const navigate = useNavigate()
+  // "Oxşar ayələr (n)" — ayənin əkizi varsa (utils/mutashabihat, bir dəfə yüklənir) → /hifz?tw=2:48#twin-ayahs
+  const [twinN, setTwinN] = useState(0)
+  useEffect(() => {
+    let alive = true
+    loadMutashabihat().then(d => { if (alive) setTwinN(twinCount(d, key)) }).catch(() => {})
+    return () => { alive = false }
+  }, [key])
+  const twinHref = `${pathFor('hifz', lang)}?tw=${key}#twin-ayahs`
 
   const close = useCallback((restore = true) => {
     onClose?.()
@@ -179,7 +194,7 @@ export default function WordMenu({ req, verse, surah, lang = 'az', refLabel = ''
     const vw = window.innerWidth, vh = window.innerHeight
     if (req.mode === 'radial') return layoutRadial({ x: req.x, y: req.y, count: WORD_ACTIONS.length, vw, vh, rtl })
     const a = req.anchor || { left: req.x, right: req.x, top: req.y, bottom: req.y }
-    return { list: placePopover(a, { w: LIST_W, h: WORD_ACTIONS.length * 48 + 16 }, vw, vh, { gap: 6 }) }
+    return { list: placePopover(a, { w: LIST_W, h: (WORD_ACTIONS.length + 1) * 48 + 16 }, vw, vh, { gap: 6 }) }
   }, [req, rtl])
 
   const choose = useCallback((id) => {
@@ -262,7 +277,8 @@ export default function WordMenu({ req, verse, surah, lang = 'az', refLabel = ''
   }, [action, req.focus, req.mode])
 
   const onMenuKey = (e) => {
-    const n = WORD_ACTIONS.length
+    // siyahı rejimində "Oxşar ayələr" linki də ox düymələri ilə gəzilir
+    const n = WORD_ACTIONS.length + (req.mode !== 'radial' && twinN > 0 ? 1 : 0)
     const cur = itemRefs.current.findIndex(b => b === document.activeElement)
     let next = -1
     const fwd = req.mode === 'radial' && rtl ? ['ArrowLeft', 'ArrowDown'] : ['ArrowRight', 'ArrowDown']
@@ -358,6 +374,12 @@ export default function WordMenu({ req, verse, surah, lang = 'az', refLabel = ''
             <Icon name={it.icon} size={18} /><span>{label(it.id)}</span>
           </button>
         ))}
+        {twinN > 0 && (
+          <a role="menuitem" ref={el => { itemRefs.current[WORD_ACTIONS.length] = el }} className="wm-list__item wm-list__twin" href={twinHref} data-testid="wm-twins"
+            onClick={(e) => { if (!isPlainClick(e)) return; e.preventDefault(); close(false); navigate(twinHref) }}>
+            <Icon name="hifz" size={18} /><span>{t.twins(twinN)}</span>
+          </a>
+        )}
       </m.div>
     )
   )

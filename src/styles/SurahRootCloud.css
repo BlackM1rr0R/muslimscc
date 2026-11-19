@@ -11,12 +11,22 @@
 .src-cloud__w small { font-size: max(.62rem, .32em); font-weight: 600; color: var(--text-secondary); line-height: 1; }
 .src-cloud__w:hover { transform: scale(1.08); }
 .src-cloud__w:focus-visible { outline: 3px solid var(--focus, #c59a2c); outline-offset: 2px; }
+/* Rəng tezlik pilləsini bildirir: 0 — ilk 3 kök, 1 — sonrakı 6, 2 — qalanı */
 .src-cloud__w--0 { color: var(--primary, #0d5c46); }
-.src-cloud__w--1 { color: color-mix(in srgb, var(--gold, #c59a2c) 80%, var(--text-primary)); }
-.src-cloud__w--2 { color: var(--text-primary); }
+.src-cloud__w--1 { color: color-mix(in srgb, var(--gold, #c59a2c) 72%, var(--text-primary)); }
+.src-cloud__w--2 { color: var(--text-secondary); }
 [data-theme="dark"] .src-cloud__w--0 { color: var(--accent-text, #7fd6b5); }
+[data-theme="dark"] .src-cloud__w--1 { color: #e7c77d; }
 .src-cloud__src { margin: 0; font-size: .75rem; color: var(--text-secondary); }
 @media (prefers-reduced-motion: no-preference) {
   html:not(.a11y-reduce-motion) .src-cloud__w { animation: src-in 500ms cubic-bezier(.2, .8, .2, 1.2) both; animation-delay: calc(var(--i, 0) * 30ms); }
 }
 @keyframes src-in { from { opacity: 0; transform: scale(.6); } }
+.src-cloud__g { font-size: max(.66rem, .3em); font-weight: 600; color: var(--text-secondary); line-height: 1.2; font-family: var(--font-sans, inherit); }
+.src-cloud__more { justify-self: center; min-height: 40px; }
+/* Telefon: bulud 3 ekran tutmasın — şriftin tavanı kiçik */
+@media (max-width: 600px) {
+  .src-cloud__w { font-size: calc(1rem + var(--k, 0) * 1rem); }
+  .src-cloud__words { gap: 8px 18px; }
+}
+.src-cloud__w { min-height: 40px; min-width: 40px; align-content: center; }

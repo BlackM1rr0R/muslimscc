@@ -146,6 +146,8 @@ const QuranRootsPage = lazy(() => import('./pages/QuranRootsPage'))
 // C dəstəsi: Quranda məna ilə axtarış, yeni müsəlmanın yolu, sədəqeyi-cariyə gündəliyi
 const QuranMeaningPage = lazy(() => import('./pages/QuranMeaningPage'))
 const NewMuslimPathPage = lazy(() => import('./pages/NewMuslimPathPage'))
+const OnTheRoadPage = lazy(() => import('./pages/OnTheRoadPage'))
+const FocusPage = lazy(() => import('./pages/FocusPage'))
 const JariyahJournalPage = lazy(() => import('./pages/JariyahJournalPage'))
 const MushafPage = lazy(() => import('./pages/MushafPage'))
 const HijriPage = lazy(() => import('./pages/HijriPage'))
@@ -452,6 +454,8 @@ function AppInner() {
       case 'quranroots': return <QuranRootsPage setPage={navigate} />
       case 'quranmeaning': return <QuranMeaningPage setPage={navigate} />
       case 'newmuslim':  return <NewMuslimPathPage setPage={navigate} />
+      case 'onroad':     return <OnTheRoadPage setPage={navigate} />
+      case 'focus':      return <FocusPage setPage={navigate} />
       case 'jariyah':    return <JariyahJournalPage setPage={navigate} />
       case 'mushaf':     return <MushafPage setPage={navigate} />
       case 'hijri':      return <HijriPage setPage={navigate} />

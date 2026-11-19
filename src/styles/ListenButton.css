@@ -48,3 +48,13 @@
   color: var(--text-tertiary);
   font-size: var(--step--1);
 }
+
+/* İndi oxunan blok (ListenButton → .lb-reading): yumşaq fon + başlanğıc tərəfdə zolaq */
+.lb-reading {
+  background: color-mix(in srgb, var(--accent, #c79a3a) 10%, transparent);
+  box-shadow: inset 3px 0 0 var(--accent, #c79a3a);
+  border-radius: 6px;
+  transition: background-color var(--dur-1, 160ms) ease;
+}
+[dir="rtl"] .lb-reading { box-shadow: inset -3px 0 0 var(--accent, #c79a3a); }
+@media (prefers-reduced-motion: reduce) { .lb-reading { transition: none; } }

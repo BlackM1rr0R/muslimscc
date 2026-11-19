@@ -1,0 +1,18 @@
+/* Yuxu taymeri (components/quran/SleepTimer.jsx) — Zen və pleyer paneli */
+.slt { display: grid; gap: 8px; }
+.slt__label { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; font-size: var(--step--1, .875rem); color: var(--text-secondary); }
+.slt__chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.slt__chip { min-height: 40px; }
+.slt__pill { justify-self: start; gap: 6px; }
+.slt__pill b { font-weight: 800; }
+.slt__hint { font-size: var(--step--2, .78rem); color: var(--text-muted); line-height: 1.45; }
+.qpl__badge--sleep { background: color-mix(in srgb, var(--accent, #c79a3a) 16%, transparent); color: var(--accent-text, #8a6512); }
+
+/* Zen: gecə səması üstündə, ağ mətn; etiket görünür (əvvəl yalnız 14px ay ikonu idi) */
+.slt--zen { justify-items: center; gap: 8px; color: rgba(255, 255, 255, .82); }
+.slt--zen .slt__label { color: rgba(255, 255, 255, .82); font-size: 13px; }
+.slt--zen .slt__chips { justify-content: center; }
+.slt--zen .slt__chip { min-height: 44px; padding: 8px 14px; border: 1px solid rgba(255, 255, 255, .28); background: rgba(0, 0, 0, .18); color: #fff; border-radius: 99px; font: inherit; font-size: 14px; cursor: pointer; }
+.slt--zen .slt__chip:hover { border-color: rgba(255, 255, 255, .5); }
+.slt--zen .slt__chip:focus-visible { outline: 2px solid #e7c77d; outline-offset: 2px; }
+.slt--zen .slt__pill { justify-self: center; display: inline-flex; align-items: center; background: rgba(231, 199, 125, .2); border-color: #e7c77d; color: #f3e6b5; }

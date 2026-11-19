@@ -135,9 +135,28 @@ function buildTpl() {
     // (Əvvəl ən uzun TƏK hissəyə görə idi: "{0} times in the Quran" "Mentioned {0} times in the Quran"-dan
     // əvvəl tutuşur, "Mentioned 5" {0}-a düşürdü → de "Mentioned 5-mal im Koran".)
     const lit = chunks.reduce((s, c) => s + c.length, 0)
-    TPL.push({ re: new RegExp(re + '$'), order, v, key: chunks[0] || '', lit })
+    // letters — sabit hissələrdəki hərflərin sayı ("{0} of {1}" → 2): qısa şablon nəsr cümləsini tutmasın
+    const letters = (chunks.join('').match(/\p{L}/gu) || []).length
+    TPL.push({ re: new RegExp(re + '$'), order, v, key: chunks[0] || '', lit, letters })
   }
   TPL.sort((a, b) => b.lit - a.lit || b.key.length - a.key.length)
+}
+// Şablon yalnız DƏYƏRƏ oxşayan hissələri tutmalıdır. Əvvəl "{0} of {1}" → "{0} von {1}" istənilən
+// ingiliscə cümləni tuturdu: dərs başlığı "The virtue of dhikr after prayer" (/de) →
+// "The virtue von dhikr after prayer". İndi hər dəyər ya "lövbərlidir" (rəqəm/say və ya lüğətdə olan
+// yazı), ya da qısa addır (≤ 3 söz, cümlə durğusu yoxdur); üstəlik ən azı bir dəyər lövbərli olmalı
+// və ya şablonun öz sabit mətni uzun olmalıdır (≥ 8 hərf). Uyğun gəlmirsə — sətir ingiliscə qalır.
+const NUMISH = /^[\s\d.,:/%×+\-–—()$€£°]*\d[\s\d.,:/%×+\-–—()$€£°]*$/u
+const anchored = (x) => NUMISH.test(x) || (typeof dict[x] === 'string' && !!dict[x])
+const shortName = (x) => !/[.;!?]/.test(x) && x.trim().split(/\s+/).length <= 3
+function tplAccept(t, m) {
+  let anchor = false
+  for (let i = 1; i < m.length; i++) {
+    const x = m[i]
+    if (anchored(x)) anchor = true
+    else if (!shortName(x)) return false
+  }
+  return anchor || t.letters >= 8
 }
 function tplTranslate(s) {
   if (s.length > 600 || !/\p{L}/u.test(s)) return s
@@ -148,7 +167,7 @@ function tplTranslate(s) {
   for (const t of TPL) {
     if (t.key && !s.includes(t.key)) continue
     const m = t.re.exec(s)
-    if (!m) continue
+    if (!m || !tplAccept(t, m)) continue
     const vals = []
     t.order.forEach((n, i) => { const x = m[i + 1]; const tv = dict[x]; vals[n] = typeof tv === 'string' && tv ? tv : x })
     out = t.v.replace(/\{(\d)\}/g, (_, n) => (vals[n] ?? ''))

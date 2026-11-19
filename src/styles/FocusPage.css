@@ -1,0 +1,53 @@
+/* ══════════════════════════════════════════════════════
+   Quranla diqqət seansı (/focus) — sakit halqa, ayə fasiləsi kartı
+   Yalnız semantik tokenlər (açıq/tünd mövzu avtomatik), məntiqi xassələr (RTL), 360px.
+   ══════════════════════════════════════════════════════ */
+.fx-hero .breadcrumb, .fx-hero .bc-list { justify-content: flex-start; }
+.fx-wrap { display: flex; flex-direction: column; gap: var(--space-5); }
+
+.fx-stage { display: flex; flex-direction: column; align-items: center; gap: var(--space-4); padding: var(--space-5) var(--space-4); }
+
+.fx-ring { position: relative; width: min(78vw, 300px); aspect-ratio: 1; }
+.fx-ring svg { width: 100%; height: 100%; display: block; }
+.fx-ring__track { fill: none; stroke: var(--line); stroke-width: 5; }
+.fx-ring__bar { fill: none; stroke: var(--brand); stroke-width: 5; stroke-linecap: round; transition: stroke-dashoffset 1s linear; }
+.fx-ring--break .fx-ring__bar { stroke: var(--accent); }
+.fx-ring__center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-align: center; padding: 18%; }
+.fx-phase { color: var(--text-secondary); font-size: var(--step-0); font-weight: 600; }
+.fx-time { color: var(--text-strong); font-family: var(--font-heading); font-size: clamp(2.6rem, 13vw, 3.6rem); font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; direction: ltr; unicode-bidi: isolate; }
+.fx-state { color: var(--text-tertiary); font-size: var(--step--1); }
+
+.fx-ctrl { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-2); }
+.fx-btn { min-height: 48px; min-width: 120px; }
+.fx-today { margin: 0; color: var(--text-secondary); font-size: var(--step--1); text-align: center; }
+
+.fx-break { display: flex; flex-direction: column; gap: var(--space-3); }
+.fx-break__h { margin: 0; font-size: var(--step-2); color: var(--text-strong); }
+.fx-break__lead { margin: 0; color: var(--text-secondary); }
+
+.fx-ayah { margin: 0; padding: var(--space-5) var(--space-4); border-radius: var(--radius-lg); background: var(--bg-card); border: 1px solid var(--accent-line, var(--line)); display: flex; flex-direction: column; gap: var(--space-3); }
+.fx-ayah__body { margin: 0; display: flex; flex-direction: column; gap: var(--space-3); }
+.fx-ayah__ar { margin: 0; font-family: var(--font-arabic, 'Amiri', serif); font-size: clamp(1.6rem, 6vw, 2.2rem); line-height: 2; color: var(--text-strong); text-align: center; }
+.fx-ayah__tr { margin: 0; color: var(--text-body); font-size: var(--step-0); line-height: 1.7; }
+.fx-ayah__cap { display: flex; flex-wrap: wrap; gap: 4px 14px; color: var(--text-secondary); font-size: var(--step--1); }
+.fx-ayah__ref { font-weight: 700; color: var(--text-strong); }
+.fx-ayah__note { margin: 0; color: var(--text-secondary); }
+.fx-ayah__actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+
+.fx-settings { padding: var(--space-4); }
+.fx-settings__sum { cursor: pointer; font-weight: 700; color: var(--text-strong); min-height: 44px; display: flex; align-items: center; }
+.fx-settings__body { display: flex; flex-direction: column; gap: var(--space-4); padding-top: var(--space-3); }
+.fx-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: var(--space-3); }
+.fx-field { display: flex; flex-direction: column; gap: 6px; color: var(--text-body); font-size: var(--step--1); font-weight: 600; }
+.fx-field select { min-height: 44px; padding-inline: 10px; border-radius: var(--radius-sm); border: 1px solid var(--line-strong); background: var(--bg-card); color: var(--text-strong); font: inherit; font-weight: 500; max-width: 100%; }
+.fx-choice { border: 0; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.fx-choice legend { font-weight: 700; color: var(--text-strong); margin-bottom: 6px; padding: 0; }
+.fx-radio, .fx-check { display: flex; align-items: center; gap: 10px; min-height: 44px; color: var(--text-body); cursor: pointer; }
+.fx-radio input, .fx-check input { width: 20px; height: 20px; margin: 0; accent-color: var(--brand); flex-shrink: 0; }
+.fx-surah { display: flex; flex-direction: column; gap: 6px; padding-inline-start: 30px; }
+.fx-hint { margin: 0; color: var(--text-tertiary); font-size: var(--step--1); line-height: 1.5; }
+
+@media (prefers-reduced-motion: reduce) {
+  .fx-ring__bar { transition: none; }
+}
+:root.a11y-reduce-motion .fx-ring__bar { transition: none; }

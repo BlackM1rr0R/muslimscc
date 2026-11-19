@@ -93,3 +93,62 @@ html.a11y-motion-user .tw__ring-fill, html.a11y-motion-user .tw__hint { transiti
 /* Qaranlıq rejim: mətaf daş rəngi tündləşir, Kəbə görünsün deyə kənarı açıq */
 [data-theme="dark"] .tw__mataf { fill: color-mix(in srgb, #3a3833 70%, var(--surface-1, #111)); }
 [data-theme="dark"] .tw__kaaba { stroke: #6b6555; }
+
+/* Telefonda çəkərkən görünən kiçik sayğac (səhnənin yuxarı küncündə) */
+.tw__mini { display: none; }
+@media (max-width: 600px) {
+  .tw__mini {
+    display: block; position: absolute; top: 4px; inset-inline-end: 4px; pointer-events: none;
+    padding: 4px 10px; border-radius: 99px; font-weight: 800; font-size: 1rem;
+    background: color-mix(in srgb, var(--surface-1, #fff) 88%, transparent); color: var(--text-strong);
+    border: 1px solid color-mix(in srgb, var(--tw-gold) 55%, transparent); box-shadow: var(--shadow-1, 0 1px 3px rgba(0,0,0,.12));
+  }
+}
+.tw__real { display: grid; gap: 6px; padding-top: 12px; border-top: 1px dashed var(--line, rgba(0,0,0,.1)); }
+.tw__real .ui-btn { justify-self: start; min-height: 44px; }
+.tw__real-hint { margin: 0; font-size: var(--step--1, .9rem); color: var(--text-secondary); line-height: 1.5; }
+
+/* ══ Həqiqi təvaf sayğacı (TawafCounter.jsx) — tam ekran, tünd; sonsuz animasiya yoxdur ══ */
+html.twc-open { overflow: hidden; }
+.twc {
+  position: fixed; inset: 0; z-index: 1500; display: grid; grid-template-rows: auto 1fr auto; gap: 12px;
+  padding: calc(env(safe-area-inset-top, 0px) + 12px) 16px calc(env(safe-area-inset-bottom, 0px) + 16px);
+  background: radial-gradient(ellipse 90% 60% at 50% 40%, #16261f, #07100c 75%); color: #f4efe2;
+}
+.twc__top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.twc__title { margin: 0; font-size: 1.05rem; font-weight: 700; }
+.twc__x { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; border: 1px solid rgba(255,255,255,.25); background: rgba(0,0,0,.25); color: #fff; cursor: pointer; }
+.twc__main { display: grid; justify-items: center; align-content: center; gap: 18px; text-align: center; }
+.twc__count { margin: 0; font-size: 1.4rem; color: rgba(244,239,226,.7); }
+.twc__count b { font-size: clamp(3.5rem, 18vw, 6rem); line-height: 1; color: #fff; font-weight: 800; }
+.twc__dots { display: flex; gap: 10px; list-style: none; margin: 0; padding: 0; }
+.twc__dots li { width: 16px; height: 16px; border-radius: 50%; border: 2px solid rgba(255,255,255,.4); }
+.twc__dots li.is-done { background: #e7c77d; border-color: #e7c77d; }
+.twc__dots li.is-cur { border-color: #7fd6b5; }
+.twc__tap {
+  position: relative; width: min(78vw, 300px); aspect-ratio: 1; border-radius: 50%; border: 0; cursor: pointer;
+  display: grid; place-content: center; gap: 8px; padding: 24px; font: inherit; color: #1c1505;
+  background: radial-gradient(circle at 50% 35%, #f3dca0, #d9b25a); box-shadow: 0 14px 40px rgba(231,199,125,.28);
+  -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+}
+.twc__tap b { font-size: 1.35rem; }
+.twc__tap span { font-size: .9rem; line-height: 1.35; }
+.twc__tap:focus-visible, .twc__x:focus-visible, .twc__undo:focus-visible, .twc__reset:focus-visible { outline: 3px solid #7fd6b5; outline-offset: 4px; }
+.twc__tap:active { transform: scale(.98); }
+.twc__tap-ring { position: absolute; inset: 0; border-radius: 50%; pointer-events: none; opacity: 0; box-shadow: 0 0 0 4px #fff3cf; }
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-motion-user) .twc__tap-ring { animation: twc-ring 600ms ease-out 1; }
+}
+@keyframes twc-ring { from { opacity: .9; transform: scale(1); } to { opacity: 0; transform: scale(1.12); } }
+.twc__takbir { margin: 0; font-size: 1.6rem; color: #e7c77d; }
+.twc__done { display: grid; justify-items: center; gap: 10px; color: #e7c77d; }
+.twc__done-h { margin: 0; font-size: 1.3rem; font-weight: 700; color: #fff; }
+.twc__reset, .twc__undo {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 18px; border-radius: 99px;
+  border: 1px solid rgba(255,255,255,.3); background: rgba(0,0,0,.25); color: #fff; font: inherit; font-weight: 600; cursor: pointer;
+}
+.twc__undo:disabled { opacity: .35; cursor: default; }
+.twc__undo-ic { transform: scaleX(-1); }
+[dir="rtl"] .twc__undo-ic { transform: none; }
+.twc__foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+.twc__awake { display: inline-flex; align-items: center; gap: 6px; font-size: .82rem; color: rgba(244,239,226,.7); }

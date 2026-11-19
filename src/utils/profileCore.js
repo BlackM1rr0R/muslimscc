@@ -56,6 +56,8 @@ export const PROFILE_KEYS = [
   'muslim_cc_taraweeh_v1', 'hifz_dates_v1', 'life_milestones_v1', 'muslim_cc_birthday_v1',
   // C: sədəqeyi-cariyə gündəliyi, yeni müsəlmanın yolu (ilk 40 gün)
   'sadaqah_jariyah_v1', 'new_muslim_path_v1',
+  // Quranla diqqət seansı: günün bitən seansları (utils/focusStore)
+  'focus_done_v1',
 ]
 const SCOPED = new Set(PROFILE_KEYS)
 export const isProfileScoped = (k) => SCOPED.has(k)

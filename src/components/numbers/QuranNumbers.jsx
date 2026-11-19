@@ -18,6 +18,7 @@ import { quranTotals, surahSeries, juzAyahs, readCoverage } from '../../utils/nu
 
 const TXT = {
   az: {
+    axisM: 'Üfüqi ox: surə nömrələri, mushaf sırası ilə', axisR: 'Üfüqi ox: surə nömrələri, nazil olma sırası ilə',
     title: 'Quran rəqəmlərlə', lead: 'Surələrin həcmi, Məkki və Mədəni surələr, cüzlər — mushafın öz cədvəllərindən hesablanıb.',
     surahs: 'Surə', ayahs: 'Ayə', makki: 'Məkki', madani: 'Mədəni', nSurahs: (n) => `${n} surə`, nAyahs: (n) => `${n} ayə`,
     perSurah: 'Surələrin ayə sayı', subM: 'mushaf sırası ilə (1 → 114)', subR: 'nazil olma sırası ilə (məşhur cədvəl, qəti deyil)',
@@ -29,6 +30,7 @@ const TXT = {
     dayN: (n) => (n ? 'oxunub' : 'oxunmayıb'), startTitle: 'Oxuya başlayın', startText: 'Surə açdıqca burada oxu günləriniz və Quranın nə qədərini açdığınız görünəcək. Məlumat yalnız bu cihazda saxlanılır.', start: 'əl-Fatihəni aç',
   },
   en: {
+    axisM: 'Horizontal axis: surah numbers, in mushaf order', axisR: 'Horizontal axis: surah numbers, in order of revelation',
     title: 'The Quran in numbers', lead: 'The size of the surahs, Meccan and Medinan surahs, the juz’ — calculated from the mushaf tables themselves.',
     surahs: 'Surahs', ayahs: 'Ayahs', makki: 'Meccan', madani: 'Medinan', nSurahs: (n) => `${n} surahs`, nAyahs: (n) => `${n} ayahs`,
     perSurah: 'Ayahs per surah', subM: 'in mushaf order (1 → 114)', subR: 'in order of revelation (the well-known table, not definitive)',
@@ -40,6 +42,7 @@ const TXT = {
     dayN: (n) => (n ? 'read' : 'not read'), startTitle: 'Start reading', startText: 'As you open surahs, your reading days and how much of the Quran you have opened will appear here. The data stays on this device.', start: 'Open al-Fatihah',
   },
   ru: {
+    axisM: 'Горизонтальная ось: номера сур в порядке мусхафа', axisR: 'Горизонтальная ось: номера сур в порядке ниспослания',
     title: 'Коран в цифрах', lead: 'Объём сур, мекканские и мединские суры, джузы — подсчитано по таблицам самого мусхафа.',
     surahs: 'Суры', ayahs: 'Аяты', makki: 'Мекканские', madani: 'Мединские', nSurahs: (n) => `сур: ${n}`, nAyahs: (n) => `аятов: ${n}`,
     perSurah: 'Число аятов в сурах', subM: 'в порядке мусхафа (1 → 114)', subR: 'в порядке ниспослания (известная таблица, не окончательная)',
@@ -51,6 +54,7 @@ const TXT = {
     dayN: (n) => (n ? 'читали' : 'не читали'), startTitle: 'Начните чтение', startText: 'Когда вы будете открывать суры, здесь появятся дни чтения и то, какую часть Корана вы открыли. Данные хранятся только на этом устройстве.', start: 'Открыть аль-Фатиху',
   },
   ar: {
+    axisM: 'المحور الأفقي: أرقام السور بترتيب المصحف', axisR: 'المحور الأفقي: أرقام السور بترتيب النزول',
     title: 'القرآن بالأرقام', lead: 'أطوال السور، والسور المكية والمدنية، والأجزاء — محسوبة من جداول المصحف نفسه.',
     surahs: 'السور', ayahs: 'الآيات', makki: 'مكية', madani: 'مدنية', nSurahs: (n) => `${n} سورة`, nAyahs: (n) => `${n} آية`,
     perSurah: 'عدد آيات كل سورة', subM: 'بترتيب المصحف (١ ← ١١٤)', subR: 'بترتيب النزول (الجدول المشهور، وليس قطعيًا)',
@@ -62,6 +66,7 @@ const TXT = {
     dayN: (n) => (n ? 'قرأت' : 'لم تقرأ'), startTitle: 'ابدأ القراءة', startText: 'كلما فتحت سورة ظهرت هنا أيام قراءتك ومقدار ما فتحته من القرآن. تبقى البيانات على هذا الجهاز فقط.', start: 'افتح الفاتحة',
   },
   tr: {
+    axisM: 'Yatay eksen: sure numaraları, mushaf sırasıyla', axisR: 'Yatay eksen: sure numaraları, iniş sırasıyla',
     title: 'Rakamlarla Kur’an', lead: 'Surelerin hacmi, Mekkî ve Medenî sureler, cüzler — mushafın kendi tablolarından hesaplandı.',
     surahs: 'Sure', ayahs: 'Ayet', makki: 'Mekkî', madani: 'Medenî', nSurahs: (n) => `${n} sure`, nAyahs: (n) => `${n} ayet`,
     perSurah: 'Surelerin ayet sayısı', subM: 'mushaf sırasıyla (1 → 114)', subR: 'iniş sırasıyla (meşhur tablo, kesin değil)',
@@ -101,10 +106,12 @@ export default function QuranNumbers({ lang = 'az', stats, surahName = (n) => St
       <ChartCard span={8} id="qn-ayahs" title={t.perSurah} sub={order === 'revelation' ? t.subR : t.subM}
         actions={<RangeTabs label={t.order} value={order} onChange={setOrder}
           options={[{ value: 'mushaf', label: t.oMushaf }, { value: 'revelation', label: t.oRev }]} />}>
-        <AreaChart key={order} integer height={260} curve="linear" label={t.perSurah} legend={false}
+        {/* Məkki — yaşıl (ton 1), Mədəni — qızılı (ton 2): donutla eyni rənglər */}
+        <AreaChart key={order} integer height={260} curve="linear" label={t.perSurah} mode="stacked"
           labels={ser.nums} xFormat={(n) => String(n)}
           tooltipTitle={(n, i) => `${n}. ${surahName(n)} · ${ser.madani[i] ? t.madani : t.makki}`}
-          series={[{ key: 'ayahs', label: t.ayahs, values: ser.nums.map((_, i) => ser.makki[i] + ser.madani[i]), tone: 1 }]} />
+          series={[{ key: 'makki', label: t.makki, values: ser.makki, tone: 1 }, { key: 'madani', label: t.madani, values: ser.madani, tone: 2 }]} />
+        <p className="nm-axis">{order === 'revelation' ? t.axisR : t.axisM}</p>
       </ChartCard>
 
       <ChartCard span={4} id="qn-split" title={t.split} sub={t.splitSub}>
@@ -116,7 +123,7 @@ export default function QuranNumbers({ lang = 'az', stats, surahName = (n) => St
 
       <ChartCard span={7} id="qn-juz" title={t.juz} sub={t.juzSub} className="nm-juz">
         <CompareBars label={t.juz} lang={lang} currentLabel={t.ayahs} prevLabel={`${t.avg} (${f.num(juzAvg)})`}
-          items={juz.map((v, i) => ({ key: i + 1, label: t.juzN(i + 1), value: v, prev: juzAvg, tone: 3 }))} />
+          items={juz.map((v, i) => ({ key: i + 1, label: t.juzN(i + 1), value: v, prev: juzAvg, tone: 1 }))} />
       </ChartCard>
 
       <ChartCard span={5} id="qn-len" title={t.len} sub={t.lenSub} flush
