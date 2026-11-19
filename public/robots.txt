@@ -32,5 +32,42 @@ Disallow: /tr/admin
 # Server API-si (PM2 / Node)
 Disallow: /api/
 
+# ── AI təlim/toplama robotları — sahibin seçimi: bağlı (2026-11-19) ──
+# Əvvəl Cloudflare-in "managed robots.txt" bloku bu siyahını faylın ƏVVƏLİNƏ əlavə edirdi
+# (+ ikinci "User-agent: *" qrupu və Content-Signal — Lighthouse SEO 92). İndi siyahı burada,
+# Cloudflare-də söndürülüb. Bunlar üçün "Disallow: /" hər şeyi örtür. Baiduspider və PetalBot
+# AXTARIŞ motorlarıdır (Çin/Huawei; saytın /zh versiyası var) — açıq, yuxarıdakı "*" qrupuna tabe.
+User-agent: Amazonbot
+User-agent: Applebot-Extended
+User-agent: Bytespider
+User-agent: CCBot
+User-agent: ClaudeBot
+User-agent: Diffbot
+User-agent: Google-Extended
+User-agent: GPTBot
+User-agent: omgili
+User-agent: anthropic-ai
+User-agent: Claude-Web
+User-agent: cohere-ai
+User-agent: MistralAI-Training
+User-agent: meta-externalagent
+User-agent: GoogleOther
+User-agent: AwarioSmartBot
+User-agent: AwarioRssBot
+User-agent: Google-CloudVertexBot
+User-agent: QualifiedBot
+User-agent: Cotoyogi
+User-agent: ICC-Crawler
+User-agent: atlassian-bot
+User-agent: FishBot
+User-agent: BorderxBot
+User-agent: NavuBot
+User-agent: SemrushBot-SWA
+User-agent: WARDBot
+User-agent: magpie-crawler
+User-agent: KimiBot
+User-agent: CitibotSiteCrawler
+Disallow: /
+
 # Sitemap — bütün dillərdəki səhifələr (build zamanı yaradılır)
 Sitemap: https://muslims.cc/sitemap.xml

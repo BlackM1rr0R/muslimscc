@@ -65,11 +65,40 @@ describe('Hisn fəsil 28 — səhər və axşam zikrləri', () => {
     expect(ch28('en')[15].src).toMatch(/Lord of the worlds».*good of this night.*Abu Dawud 4\/322/)
   })
 
-  it('istinadı faylda olmayan bəndlər (17–25) uydurma istinad daşımır', () => {
-    expect(MISSING_REF[28]).toEqual([17, 18, 19, 20, 21, 22, 23, 24, 25])
-    for (const l of LANGS) for (const n of MISSING_REF[28]) expect(refSig(ch28(l)[n - 1].src)).toBe('')
-    for (const l of LANGS) for (let n = 18; n <= 25; n++) expect(ch28(l)[n - 1].src).toBeUndefined()
-    expect(Object.keys(KNOWN)).toEqual(['28:17'])
+  it('17–25-ci bəndlər kitabdakı öz istinadını daşıyır (5 dildə eyni)', () => {
+    const want = {
+      17: '3/406,407,34,4/209', // Əhməd — أصبحنا على فطرة الإسلام
+      18: '4/2071', // Müslim — سبحان الله وبحمده (100)
+      19: '24,1/272,44,146,255,4/319,4/60,1/270,3/957,2/331,2/377', // Nəsai 24 (10 dəfə) + Əbu Davud 4/319 (bir dəfə)
+      20: '4/95,4/2071', // Buxari/Müslim — لا إله إلا الله … (100)
+      21: '4/2090', // Müslim — سبحان الله وبحمده عدد خلقه
+      22: '54,925,2/375', // İbn əs-Sunni, İbn Macə — علماً نافعاً
+      23: '11/101,4/2075', // Buxari/Müslim — أستغفر الله وأتوب إليه
+      24: '2/290,590,68,3/187,2/266,45', // Əhməd — أعوذ بكلمات الله التامات
+      25: '10/120,1/273', // Təbərani — salavat 10 dəfə
+    }
+    for (const [n, sig] of Object.entries(want)) for (const l of LANGS) expect(refSig(ch28(l)[n - 1].src)).toBe(sig)
+    expect(ch28('ar')[16].src).toMatch(/^وإذا أمسى قال: أمسينا على فطرة الإسلام\. أحمد 3\/ 406/)
+    expect(ch28('en')[16].src).toMatch(/^And in the evening he says: «We have entered the evening upon the fitrah of Islam»\. Ahmad 3\/406/)
+    expect(ch28('ar')[17].src).toMatch(/مسلم4 \/ 2071$/)
+    expect(ch28('en')[20].src).toBe('Muslim 4/2090')
+    expect(ch28('az')[22].src).toBe('Buxari («Fəth» ilə) 11/101 və Müslim 4/2075')
+    expect(MISSING_REF).toEqual({})
+    expect(KNOWN).toEqual({})
+  })
+
+  it('fəsil 28-də istinadsız bənd qalmayıb', () => {
+    for (const l of LANGS) for (const it of ch28(l)) expect(refSig(it.src)).not.toBe('')
+  })
+
+  it('fəsil 28-də istinad bir bənd sürüşəndə xəta verir', () => {
+    const bad = JSON.parse(JSON.stringify(data))
+    const it = bad.tr.chapters.find((c) => c.id === 28).items
+    it.splice(17, 0, { ar: it[17].ar, src: it[16].src }) // 18-dən sonrakılar bir bənd aşağı düşür
+    it.pop()
+    const { errors } = checkHisn(bad)
+    expect(errors.some((e) => /fəsil 28 bənd 18: tr/.test(e))).toBe(true)
+    expect(errors.some((e) => /fəsil 28 bənd 25: tr/.test(e))).toBe(true)
   })
 })
 
@@ -89,9 +118,18 @@ describe('check-hisn-sources', () => {
 
   it('MISSING_REF bəndinə istinad düşəndə xəta verir', () => {
     const bad = JSON.parse(JSON.stringify(data))
-    bad.ar.chapters.find((c) => c.id === 28).items[17].src = 'مسلم 4/ 2071'
-    const { errors } = checkHisn(bad)
+    const { errors } = checkHisn(bad, { missingRef: { 28: [18] } })
     expect(errors.some((e) => /fəsil 28 bənd 18: MISSING_REF/.test(e))).toBe(true)
+    expect(checkHisn(bad, { missingRef: { 28: [18] } }).errors).toHaveLength(1)
+  })
+
+  it('ərəb faylında istinadsız haşiyə xəta, KNOWN-da isə xəbərdarlıq verir', () => {
+    const bad = JSON.parse(JSON.stringify(data))
+    for (const l of LANGS) bad[l].chapters.find((c) => c.id === 28).items[16].src = 'وإذا أمسى قال: أمسينا على فطرة الإسلام'
+    expect(checkHisn(bad).errors.some((e) => /fəsil 28: bənd 17: istinadsız haşiyə/.test(e))).toBe(true)
+    const r = checkHisn(bad, { known: { '28:17': 'test' } })
+    expect(r.errors).toEqual([])
+    expect(r.warnings.some((w) => /bənd 17: istinadsız/.test(w))).toBe(true)
   })
 
   it('refSig ərəb rəqəmlərini və gizli işarələri normallaşdırır', () => {

@@ -25,11 +25,13 @@ export const LANGS = ['ar', 'en', 'az', 'ru', 'tr']
 
 // Fəsil 28 (səhər/axşam zikrləri) düzəldilib: axşam variantları ayrıca "src" bəndi kimi düşmüşdü,
 // istinadlar 4-cü bənddən sonra sürüşmüşdü — indi hər haşiyə öz bəndindədir (ərəb faylı əsasında).
-// 17-ci bənd (أصبحنا على فطرة الإسلام): faylda yalnız axşam variantı var, istinadı yoxdur.
-// 18–25-ci bəndlərin istinadı faylda heç yoxdur — src boş qalır (MISSING_REF), mənbə uydurulmur;
-// sahibi mənbəni əlavə edəndə bu siyahıdan çıxarılır.
-export const KNOWN = { '28:17': 'yalnız axşam variantı, istinad faylda yoxdur (sahibi mənbə əlavə etməlidir)' }
-export const MISSING_REF = { 28: [17, 18, 19, 20, 21, 22, 23, 24, 25] }
+// 17–25-ci bəndlərin istinadı əvvəl faylda yox idi; indi kitabın eyni nəşrindən hərfi əlavə olunub
+// (bənd 1–17 ilə eyni mətn: github.com/rn0x/hisn_almuslim_json, haşiyə 25–34; müəllifin islamhouse
+// PDF nəşri ilə tutuşdurulub). 19-cu bənd iki haşiyə daşıyır: "on dəfə" və "tənbəllikdə bir dəfə".
+// MISSING_REF — istinadı faylda olmayan bəndlər ({ fəsil: [bənd, …] }); hazırda boşdur.
+// Belə bəndə istinad düşsə (sürüşmə) xəta verilir; mənbə uydurulmur.
+export const KNOWN = {}
+export const MISSING_REF = {}
 
 const AR_DIGITS = '٠١٢٣٤٥٦٧٨٩'
 // İstinad imzası: "6/ 214", "6/‌214", "2892" → "6/214,2892"
@@ -45,7 +47,7 @@ export function loadHisn(root = ROOT) {
   return out
 }
 
-export function checkHisn(data) {
+export function checkHisn(data, { known: knownMap = KNOWN, missingRef = MISSING_REF } = {}) {
   const errors = []
   const warnings = []
   const ar = data.ar.chapters
@@ -55,7 +57,7 @@ export function checkHisn(data) {
   }
   for (const c of ar) {
     c.items.forEach((it, i) => {
-      const known = KNOWN[`${c.id}:${i + 1}`] || KNOWN[c.id]
+      const known = knownMap[`${c.id}:${i + 1}`] || knownMap[c.id]
       const report = (msg) => (known ? warnings : errors).push(`fəsil ${c.id}: ${msg}`)
       const sig = refSig(it.src)
       for (const l of LANGS.slice(1)) {
@@ -68,7 +70,7 @@ export function checkHisn(data) {
         if (ls !== sig) errors.push(`fəsil ${c.id} bənd ${i + 1}: ${l} istinadı "${ls}" ≠ ərəb "${sig}"`)
       }
       // MISSING_REF bəndinə istinad düşübsə — ya sürüşmə qayıdıb, ya sahibi mənbə əlavə edib (siyahını yenilə)
-      if ((MISSING_REF[c.id] || []).includes(i + 1) && sig) errors.push(`fəsil ${c.id} bənd ${i + 1}: MISSING_REF-dədir, amma istinad "${sig}" var`)
+      if ((missingRef[c.id] || []).includes(i + 1) && sig) errors.push(`fəsil ${c.id} bənd ${i + 1}: MISSING_REF-dədir, amma istinad "${sig}" var`)
       const src = String(it.src || '').trim()
       if (src && !sig && !src.startsWith('*')) report(`bənd ${i + 1}: istinadsız haşiyə — sürüşmə ehtimalı ("${src.slice(0, 50)}…")`)
     })

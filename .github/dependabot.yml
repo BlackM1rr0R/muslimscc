@@ -7,3 +7,8 @@ updates:
     schedule:
       interval: monthly
     open-pull-requests-limit: 2
+    # Böyük versiyalar (v4 → v7) CI/deploy-u sındıra bilər — yalnız patch/minor (təhlükəsizlik düzəlişləri).
+    # Böyük keçid lazım olanda əl ilə, ayrıca yoxlanaraq edilir.
+    ignore:
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']

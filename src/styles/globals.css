@@ -834,12 +834,16 @@ html[lang="ar"] .anim-slideInRight { animation-name: slideInLeft; }
 
 /* ── Touch target minimums (WCAG 2.5.5 — 44px) ── */
 @media (hover: none) and (pointer: coarse) {
-  button:not(.a11y-btn):not(.a11y-toggle-switch):not(.aiw-icon-btn):not(.notif-switch),
-  a[role="button"],
-  [role="button"],
-  input[type="button"],
-  input[type="submit"],
-  input[type="checkbox"] + label {
+  /* :where() — specificity 0: komponent öz min-height-ini (məs. 84px kafel) təyin edibsə o qalır;
+     əvvəl (0,4,1) bütün böyük düymələri telefonda 44px-ə kiçildirdi (2026-11-19, "Yolda" səhifəsi) */
+  :where(
+    button:not(.a11y-btn):not(.a11y-toggle-switch):not(.aiw-icon-btn):not(.notif-switch),
+    a[role="button"],
+    [role="button"],
+    input[type="button"],
+    input[type="submit"],
+    input[type="checkbox"] + label
+  ) {
     min-height: var(--tap);
   }
 
