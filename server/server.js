@@ -25,7 +25,7 @@ if (!OPENROUTER_KEY) { console.error('FATAL: env dəyişəni yoxdur → OPENROUT
 for (const m of ['./auth', './users', './security', './syncKeys', './mailer', './analytics', './csp', './clientErrors', './ummah', './sightings', './content', './feedback', './groups', './sync', './ics', './push',
   './prompts', './ai-utils', './prayer-utils', './daily-ayah', './checkin', './fasting', './reminders', './prayCalc', './eclipse', './eclipse-lib', './daily-hadith', './daily-hadith-data', './personal', './hijri',
   './readTogether', './family', './hifzTest', './globalKhatm', './challenges', './classes', './familyRamadan', './calFeed',
-  './communityKit', './publicProfile', './familyDua', './duaWall', './mosqueRep', './weekly', './ipKey']) require(m)
+  './communityKit', './publicProfile', './familyDua', './duaWall', './mosqueRep', './weekly', './ipKey', './pushClaims', './quranMeaning']) require(m)
 // Paket asılılıqları da (server/package.json → npm ci) — image-də yoxdursa bazadan ƏVVƏL çöksün
 for (const m of ['@simplewebauthn/server']) require(m)
 
@@ -57,6 +57,8 @@ app.use(cors({
 
 const limit = (windowMs, max) => rateLimit({ windowMs, max, standardHeaders: 'draft-7', legacyHeaders: false, message: { error: 'Limit' } })
 app.use('/api/ask-ai', rateLimit({ windowMs: 60000, max: 10, message: { error: 'Cox sorgu. 1 deqiqe gozleyin.' } }))
+// Quranda məna ilə axtarış (server/quranMeaning.js) — AI çağırır: dəqiqədə 6, saatda 40
+app.use('/api/quran-meaning', limit(60000, 6), limit(3600e3, 40))
 app.use('/api/send-notification', limit(60000, 5))
 // Admin məzmun yazıları (məs. SeedManager 50 sənədi ardıcıl yazır) — daha geniş limit
 app.use(/^\/api\/admin\/(content|singletons)(\/|$)/, limit(60000, 300))
@@ -453,6 +455,20 @@ app.post('/api/ask-ai', async (req, res) => {
   }
 })
 
+// ─── Quranda məna ilə axtarış (server/quranMeaning.js) ───────────────
+// Model yalnız ayə istinadlarını seçir (JSON); server yoxlayır, mətn klientdə saytın Quran mənbəyindən gəlir.
+async function callModelText(messages, signal) {
+  refreshModelMeta()
+  const r = await callOpenRouter(messages, false, signal)
+  if (!r.ok) {
+    const e = await r.text().catch(() => '')
+    throw new Error(`AI ${r.status}: ${e.slice(0, 200)}`)
+  }
+  const data = await r.json()
+  return String(data?.choices?.[0]?.message?.content || '')
+}
+app.use('/api', require('./quranMeaning').createQuranMeaningRouter({ callModel: callModelText, allowedOrigins: ALLOWED }))
+
 app.get('/api/health', (req, res) => {
   // Healthcheck (Dockerfile) DB-ni də yoxlayır: baza açılmırsa konteyner "unhealthy"
   let dbOk = false
@@ -641,7 +657,11 @@ async function fetchTimings(loc, ddmmyyyy) {
 let tokenGroups = new Map()      // locKey → { loc, entries:[{ id, sub, lang, ... }] }
 let tokensLoadedAt = 0
 const dayTimes = new Map()       // `${locKey}|${dateKey}` → { times, tomorrowFajr } | { failedAt }
-const sentKeys = new Set()       // `${locKey}|${dateKey}|${prayer}`
+// Bazada atom "tutulan" Set (server/pushClaims.js): deploy zamanı köhnə+yeni proses yanaşı işləyəndə
+// və ya eyni dəqiqədə yenidən başlayanda eyni push iki dəfə getməsin
+const pushClaims = require('./pushClaims').createPushClaims(db)
+setInterval(() => { try { pushClaims.purge() } catch (e) { console.error('push claims purge:', e && e.message) } }, 3600e3).unref()
+const sentKeys = pushClaims.set()   // `${locKey}|${dateKey}|${prayer}`
 
 async function loadTokens() {
   const groups = new Map()
@@ -789,35 +809,32 @@ async function prayerTick() {
       // deyil (aladhan çatmasa da gedir). Açar timesFor-da köhnə günlərlə təmizlənir.
       if (fasting.isDueNow(now.hhmm) && group.entries.some(e => e.fasting)) {
         const fk = `${key}|${now.dateKey}|fasting`
-        if (!sentKeys.has(fk)) {
-          sentKeys.add(fk)
+        if (sentKeys.claim(fk)) {
           await sendFastingPush(group, now)
         }
       }
       // Tutulma xəbərdarlığı — yerli 20:00, gündə bir dəfə (namaz vaxtlarından asılı deyil)
       if (now.hhmm === eclipse.ECLIPSE_HHMM && group.entries.some(e => e.eclipse)) {
         const ek = `${key}|${now.dateKey}|eclipse`
-        if (!sentKeys.has(ek)) { sentKeys.add(ek); await sendEclipsePush(group, now) }
+        if (sentKeys.claim(ek)) { await sendEclipsePush(group, now) }
       }
       // Cümə xatırlatması namaz vaxtlarından asılı deyil (aladhan çatmasa da gedir)
       if (now.friday && now.hhmm === reminders.JUMUAH_HHMM && group.entries.some(e => e.jumuah)) {
         const jk = `${key}|${now.dateKey}|jumuah`
-        if (!sentKeys.has(jk)) { sentKeys.add(jk); await sendReminderPush(group, 'jumuah', now) }
+        if (sentKeys.claim(jk)) { await sendReminderPush(group, 'jumuah', now) }
       }
       const day = await timesFor(key, group.loc, now)
       if (!day) continue
       if (group.entries.some(e => e.adhkar)) {
         for (const kind of reminders.dueReminders(day.times, now.hhmm, { jumuah: false })) {
           const rk = `${key}|${now.dateKey}|${kind}`
-          if (sentKeys.has(rk)) continue
-          sentKeys.add(rk)
+          if (!sentKeys.claim(rk)) continue
           await sendReminderPush(group, kind, now)
         }
       }
       for (const [prayer] of PRAYERS) {
         const sk = `${key}|${now.dateKey}|${prayer}`
-        if (day.times[prayer] === now.hhmm && !sentKeys.has(sk)) {
-          sentKeys.add(sk)
+        if (day.times[prayer] === now.hhmm && sentKeys.claim(sk)) {
           await sendPrayerPush(group, prayer, now, day)
         }
       }
@@ -825,8 +842,7 @@ async function prayerTick() {
       if (group.entries.some(e => e.checkin)) {
         for (const prayer of checkin.dueCheckins(day.times, now.hhmm)) {
           const ck = `${key}|${now.dateKey}|checkin-${prayer}`
-          if (sentKeys.has(ck)) continue
-          sentKeys.add(ck)
+          if (!sentKeys.claim(ck)) continue
           await sendCheckinPush(group, prayer, now)
         }
       }
@@ -853,7 +869,7 @@ prayerTick()
 // • tag 'daily-ayah' — eyni dəqiqədə gələn azan bildirişini əvəz etməsin.
 
 const ayahCache = new Map()      // ref → { data, at } | { failedAt }
-const ayahSentKeys = new Set()   // `${locKey}|${dateKey}|${hour}`
+const ayahSentKeys = pushClaims.set()   // `${locKey}|${dateKey}|${hour}`
 
 async function fetchAyahPart(s, a) {
   try {
@@ -932,8 +948,7 @@ async function dailyAyahTick() {
       for (const hour of hours) {
         if (!dailyAyah.isDueNow(now.hhmm, hour)) continue
         const sk = `${key}|${now.dateKey}|${hour}`
-        if (ayahSentKeys.has(sk)) continue
-        ayahSentKeys.add(sk)
+        if (!ayahSentKeys.claim(sk)) continue
         const atHour = subs.filter(e => e.daily.hour === hour)
         const ayahList = atHour.filter(e => e.daily.ayah !== false)
         if (ayahList.length) {
@@ -979,12 +994,37 @@ const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`API running on port ${PORT} (DB: ${DB_PATH})`)
 })
 
-// docker stop → SIGTERM: yeni sorğu qəbul etmə, bazanı səliqəli bağla (WAL checkpoint)
-for (const sig of ['SIGTERM', 'SIGINT']) {
-  process.once(sig, () => {
-    try { readTogetherRouter.shutdown() } catch { /* */ }   // açıq SSE axınları bağlansın
-    server.close()
+// docker stop → SIGTERM: səliqəli boşaltma (kəsintisiz deploy, infra/deploy.sh). Dinləmə dərhal
+// dayanır — nginx-in bu ünvana cəhdi "refused" alır, sorğunu yeni api konteynerinə ötürür və bu
+// ünvanı müvəqqəti "ölü" sayır (muslims.cc.conf: max_fails/fail_timeout). İşdəki sorğular bitir,
+// SSE axınları bağlanır (brauzer özü yenidən qoşulur — artıq yeni prosesə), WAL checkpoint + baza
+// bağlanır. Proses ən azı LINGER_MS yaşayır: ünvan "refused" (tez) qalsın, nginx onu DNS-dən
+// silinməmiş ölü saysın — konteyner ölüb ünvan cavabsız qalanda ora gedən sorğu 502/504 alırdı.
+// Ən çox DRAIN_MS (compose stop_grace_period 15s-dən az).
+const DRAIN_MS = Math.max(0, Number(process.env.DRAIN_MS) || 8000)
+const LINGER_MS = Math.min(DRAIN_MS, Math.max(0, Number(process.env.LINGER_MS ?? 4000)))
+let stopping = false
+let stopAt = 0
+let finished = false
+function finishShutdown() {
+  if (finished) return
+  finished = true
+  // Baza linger bitəndə bağlanır: o vaxta qədər planlayıcılar işləyir (push-lar pushClaims ilə bir dəfə)
+  setTimeout(() => {
     try { db.raw.exec('PRAGMA wal_checkpoint(TRUNCATE)'); db.close() } catch { /* */ }
     process.exit(0)
+  }, Math.max(0, stopAt + LINGER_MS - Date.now()))
+}
+for (const sig of ['SIGTERM', 'SIGINT']) {
+  process.once(sig, () => {
+    if (stopping) return
+    stopping = true
+    stopAt = Date.now()
+    console.log(`${sig}: draining (max ${DRAIN_MS} ms, linger ${LINGER_MS} ms)`)
+    server.close(finishShutdown)               // dinləməni dayandır; bütün bağlantılar bağlananda bitir
+    try { server.closeIdleConnections() } catch { /* */ }
+    try { readTogetherRouter.shutdown() } catch { /* */ }   // açıq SSE axınları bağlansın
+    try { khatmRouter.shutdown() } catch { /* */ }
+    setTimeout(() => { try { server.closeAllConnections() } catch { /* */ } finishShutdown() }, DRAIN_MS).unref()
   })
 }

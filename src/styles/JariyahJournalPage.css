@@ -1,0 +1,45 @@
+/* ══════════════════════════════════════════════════════
+   Sədəqeyi-cariyə gündəliyi (/sadaqah-jariyah) — C dəstəsi
+   Yalnız semantik tokenlər (açıq/tünd), məntiqi xassələr (RTL), 360px.
+   ══════════════════════════════════════════════════════ */
+.jrj-hero .breadcrumb, .jrj-hero .bc-list { justify-content: flex-start; }
+.jrj-main { display: flex; flex-direction: column; gap: var(--space-5); }
+.jrj-muted { margin: 0; color: var(--text-tertiary); font-size: var(--step--1); line-height: 1.55; }
+
+.jrj-hadith { display: flex; flex-direction: column; gap: var(--space-3); align-items: flex-start; }
+.jrj-quote { margin: 0; }
+.jrj-quote .ui-quote__text { font-size: var(--step-0); }
+
+.jrj-page .jrj-form { display: flex; flex-direction: column; gap: var(--space-4); padding: var(--card-pad); }
+.jrj-form .ui-title { margin: 0; }
+.jrj-kinds { margin: 0; padding: 0; border: 0; min-width: 0; }
+.jrj-kinds legend { margin-bottom: 8px; padding: 0; }
+.jrj-kinds__row { display: flex; flex-wrap: wrap; gap: 8px; }
+.jrj-kind { position: relative; cursor: pointer; white-space: normal; }
+.jrj-kind svg { flex-shrink: 0; }
+/* Həqiqi radio — görünməz, amma fokuslanır və oxunur; fokus halqası etiketdə */
+.jrj-kind__input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.jrj-kind:focus-within { outline: 2px solid var(--ring); outline-offset: 2px; }
+.jrj-kind.is-on { background: var(--brand-soft); color: var(--brand-strong, var(--brand)); box-shadow: inset 0 0 0 1px var(--brand-line); }
+
+.jrj-form__grid { display: grid; gap: var(--space-3); }
+@media (min-width: 600px) { .jrj-form__grid { grid-template-columns: minmax(0, 200px) minmax(0, 1fr); } }
+.jrj-form .ui-input { width: 100%; }
+.jrj-note { min-height: 84px; resize: vertical; line-height: 1.6; }
+.jrj-error { margin: 0; color: var(--bad); font-size: var(--step--1); }
+.jrj-form__actions { display: flex; flex-wrap: wrap; gap: var(--space-3); justify-content: flex-end; }
+
+.jrj-list-wrap { display: flex; flex-direction: column; gap: var(--space-3); }
+.jrj-list-wrap > .ui-title { margin: 0; outline-offset: 4px; }
+.jrj-list { display: grid; gap: var(--space-3); margin: 0; padding: 0; list-style: none; }
+.jrj-page .jrj-item { display: flex; gap: var(--space-3); align-items: flex-start; padding: var(--space-4); }
+.jrj-item__body { display: flex; flex-direction: column; gap: 4px; min-width: 0; flex: 1; }
+.jrj-item__title { margin: 0; display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; color: var(--text-strong); }
+.jrj-item__date { color: var(--text-tertiary); font-size: var(--step--1); }
+.jrj-item__on { margin: 0; color: var(--brand); font-size: var(--step--1); overflow-wrap: anywhere; }
+.jrj-item__note { margin: 0; color: var(--text-body); font-size: var(--step--1); line-height: 1.6; white-space: pre-line; overflow-wrap: anywhere; }
+.jrj-item__actions, .jrj-item__confirm { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 4px; }
+.jrj-item__confirm > span { color: var(--text-strong); font-size: var(--step--1); }
+.jrj-danger { color: var(--bad); }
+
+.jrj-related-title { margin: var(--space-4) 0 0; }

@@ -3,14 +3,15 @@
 ## Quruluş
 
 ```
-İnternet ──► Cloudflare ──► server :80/:443 ──► [web] nginx (root-suz) ──► /api/ ──► [api] Node
-                                     ▲                                              │
-                     yalnız Cloudflare IP-ləri qəbul edilir              Web Push, OpenRouter, aladhan
+İnternet ──► Cloudflare ──► server :80/:443 ──► [edge] L4 ──► [web] nginx (TLS) ──► /api/ ──► [api] Node
+                                     ▲                                                          │
+                     yalnız Cloudflare IP-ləri (edge + web)                  Web Push, OpenRouter, aladhan
 ```
 
 | Konteyner | Image | Nə edir |
 |---|---|---|
-| `web` | `infra/web.Dockerfile` | Sayt (Vite build + prerender) + `/api/` proksi. Yeganə açıq xidmət. |
+| `edge` | `nginxinc/nginx-unprivileged` (digest ilə sabit) + `infra/edge/` | 80/443-ün **daimi** sahibi: TCP-ni (TLS açmadan) web-ə ötürür, yalnız Cloudflare IP-lərini buraxır. Deploy-da yenidən yaradılmır. |
+| `web` | `infra/web.Dockerfile` | Sayt (Vite build + prerender), TLS, `/api/` proksi. Host portu yoxdur (edge arxasında). |
 | `api` | `server/Dockerfile` | `server/server.js`: AI köməkçi, məzmun API-si və admin girişi (SQLite, volume `api-data` → `/data`), admin push, **azan push planlayıcısı** (hər abunəçiyə öz şəhərinin vaxtında). Port açmır. Əməliyyatlar: [docs/SERVER-OPS.md](../docs/SERVER-OPS.md). |
 
 Serverdə hər şey `/opt/muslimscc/`-dədir:
@@ -20,7 +21,8 @@ Serverdə hər şey `/opt/muslimscc/`-dədir:
 | `docker-compose.yml` | `infra/docker-compose.yml`-in surəti |
 | `api.env` | API sirləri (600, root). **Git-də yoxdur.** |
 | `certs/` | Let's Encrypt sertifikatının root-suz nginx üçün surəti (hook yeniləyir) |
-| `deploy.sh`, `ci-gate.sh` | `infra/`-dan |
+| `deploy.sh`, `ci-gate.sh`, `docker-compose.legacy.yml` | `infra/`-dan |
+| `edge/` | `infra/edge/` (`nginx.conf`, `cloudflare-allow.conf`); `upstream.conf`-u deploy.sh yazır |
 | `releases/<TAG>/` | CI-ın yüklədiyi image-lər (son 3 versiya saxlanılır) |
 | `.current_tag`, `.previous_tag` | canlı və əvvəlki versiya |
 | `backup.sh`, `backups/` | SQLite-ın gündəlik ehtiyat nüsxəsi (systemd timer `muslimscc-backup`, 14 gün) — docs/SERVER-OPS.md |
@@ -32,10 +34,30 @@ Serverdə hər şey `/opt/muslimscc/`-dədir:
 1. yoxlamalar (dil təmizliyi, konfiq sinxronluğu), unit testlər, build
 2. e2e (Playwright, kompüter + telefon)
 3. Docker image-ləri (nginx konfiqi image-in içində `nginx -t` ilə yoxlanılır)
-4. serverə yükləmə → `deploy.sh <TAG>`: sağlamlıq yoxlaması + tüstü testi; **alınmasa avtomatik əvvəlki versiyaya qayıdır**
+4. serverə yükləmə (mənbəyi dəyişməyən image — çox vaxt api — yüklənmir: `ci-gate reuse`) →
+   `deploy.sh <TAG>`: **kəsintisiz** (aşağıya bax), sağlamlıq yoxlaması + tüstü testi; **alınmasa avtomatik əvvəlki versiyaya qayıdır**
 5. Cloudflare üzərindən canlı yoxlama
 
-Testlərdən biri yıxılsa, deploy olmur.
+Testlərdən biri yıxılsa, deploy olmur. Yalnız `docs/**`, `*.md`, `.claude/**` dəyişən push-larda CI işləmir.
+
+### Kəsintisiz deploy (deploy.sh)
+- **api**: köhnənin yanında yeni konteyner (`--scale api=2 --no-recreate`, eyni DNS adı `api`) → birbaşa
+  `/api/health` → 11 san gözləmə (nginx yeni ünvanı tanısın) → köhnəyə SIGTERM: dinləmə dayanır, 4 san
+  "refused" verərək yaşayır (nginx onu ölü sayır, sorğular yeniyə keçir), işdəki sorğular bitir, SSE bağlanır.
+  İki proses bir neçə saniyə eyni SQLite-ı (WAL) paylaşır; azan/xatırlatma push-ları `server/pushClaims.js`
+  ilə bazada atom "tutulur" — bir dəfə gedir. Həftəlik e-poçt, şəxsi məktublar, qrup xatırlatmaları
+  onsuz da bazada claim edir.
+- **web**: yanında yeni konteyner → öz IP-si üzərindən HTTPS tüstü testi → edge `upstream.conf` yalnız
+  yeni IP-yə (reload, kəsintisiz) → köhnə web SIGQUIT ilə səliqəli dayanır → edge yenə DNS adı `web`-ə.
+- image ID eynidirsə xidmət yenidən başladılmır. Yeni konteyner yoxlamadan keçməsə yalnız o silinir.
+- Edge-siz (etiketsiz, köhnə) web image-inə qayıdış → `docker-compose.legacy.yml` (web portları özü tutur, qısa kəsinti).
+- Konteyner adları dəyişir (`muslimscc-api-2`, `-3`…): həmişə `docker compose exec api …` işlədin.
+  **`docker compose up -d` (seçimsiz) işlətməyin** — hamısını birdən yenidən yaradar (kəsinti).
+
+### Edge
+- Konfiq dəyişəndə (`infra/edge/*`): `scp` → `docker compose exec edge nginx -t -c /etc/nginx/edge/nginx.conf && docker compose kill -s HUP edge` (kəsintisiz).
+- Edge image-ini dəyişmək (digest, `docker-compose.yml`) — portları tutan konteyner yenidən yaradılır: ~1 san kəsinti, planlı et:
+  `TAG=$(cat .current_tag) docker compose up -d --no-deps edge`.
 
 ### GitHub sirləri (bir dəfəlik)
 
@@ -51,7 +73,7 @@ CI açarı serverdə belə yazılıb (`/root/.ssh/authorized_keys`):
 ```
 restrict,command="/opt/muslimscc/ci-gate.sh" ssh-ed25519 AAAA... muslimscc-ci
 ```
-Bu açarla yalnız `upload`, `deploy`, `status` mümkündür — shell yoxdur. Açar oğurlansa: həmin sətri sil.
+Bu açarla yalnız `upload`, `reuse`, `deploy`, `status` mümkündür — shell yoxdur. Açar oğurlansa: həmin sətri sil.
 
 ## Əl ilə əməliyyatlar (serverdə, root)
 
@@ -62,7 +84,7 @@ docker compose ps                         # vəziyyət + healthcheck
 docker compose logs -f --tail=100 api     # API logları (azan push-ları: "Push fajr ...")
 docker compose logs -f --tail=100 web     # nginx logları
 ./deploy.sh --rollback                    # əvvəlki versiyaya qayıt
-TAG=$(cat .current_tag) docker compose restart api
+TAG=$(cat .current_tag) docker compose restart api   # ~5 san API kəsintisi (sayt işləyir)
 ```
 
 ### Sirri dəyişmək (məs. OpenRouter açarı)
@@ -78,7 +100,8 @@ Sertifikat Let's Encrypt-dəndir, certbot (host-da) özü yeniləyir; yeni serti
 
 ### Cloudflare IP-ləri
 nginx yalnız Cloudflare-dən gələn bağlantıları qəbul edir (`infra/nginx/cloudflare.conf`).
-Cloudflare siyahını dəyişəndə: `sh infra/nginx/gen-cloudflare.sh`, commit, push.
+Cloudflare siyahını dəyişəndə: `sh infra/nginx/gen-cloudflare.sh` (həm `cloudflare.conf`, həm
+`infra/edge/cloudflare-allow.conf`), commit, push; edge üçün əlavə: faylı serverə `scp` + HUP (yuxarıda).
 
 ## Təhlükəsizlik (2026-10-27 vəziyyəti)
 

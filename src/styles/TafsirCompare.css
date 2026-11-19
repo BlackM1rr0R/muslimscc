@@ -1,0 +1,114 @@
+/* ═══════════════════════════════════════════════════════
+   Təfsirlərin müqayisəsi (components/quran/TafsirCompare.jsx)
+   Yalnız tokenlər; RTL — məntiqi xassələr; telefonda alt-alta, ≥960px sütunlar.
+   ═══════════════════════════════════════════════════════ */
+
+.tfc-dialog {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  width: min(1240px, calc(100vw - 24px));
+  height: min(920px, calc(100dvh - 24px));
+  max-height: calc(100dvh - 24px);
+  padding: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface-1);
+  color: var(--text-body);
+  box-shadow: var(--shadow-4);
+}
+.tfc-dialog[open] { animation: tfc-in var(--dur-2) var(--ease-out) both; }
+.tfc-dialog::backdrop { background: rgba(10, 16, 22, 0.5); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
+@keyframes tfc-in {
+  from { opacity: 0; transform: translate3d(0, 8px, 0) scale(0.99); }
+  to   { opacity: 1; transform: none; }
+}
+
+.tfc-body { display: grid; gap: var(--space-3, 12px); padding: var(--space-5, 24px); }
+.tfc-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.tfc-title {
+  display: flex; align-items: center; gap: 10px; margin: 0;
+  font-family: var(--font-display); font-size: var(--step-1); color: var(--text-strong);
+}
+.tfc-title svg { color: var(--brand); flex-shrink: 0; }
+html[lang="ar"] .tfc-title { font-family: var(--font-arabic-ui); }
+.tfc-close { inline-size: 44px; min-height: 44px; padding: 0; justify-content: center; flex-shrink: 0; }
+.tfc-lead { margin: 0; color: var(--text-secondary); font-size: var(--step--1); line-height: 1.55; max-width: 80ch; }
+
+/* Seçim: checkbox "çipləri" */
+.tfc-pick { margin: 0; padding: 0; border: 0; min-width: 0; }
+.tfc-pick__legend { padding: 0; margin-bottom: 8px; font-weight: 600; color: var(--text-strong); font-size: var(--step--1); }
+.tfc-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.tfc-chip {
+  position: relative;
+  display: inline-flex; align-items: center; gap: 8px;
+  min-height: 44px; padding: 6px 14px;
+  border: 1px solid var(--line); border-radius: var(--radius-pill);
+  background: var(--surface-2); color: var(--text-body);
+  font-size: var(--step--1); cursor: pointer;
+  transition: background var(--dur-1) var(--ease-out), border-color var(--dur-1) var(--ease-out);
+}
+.tfc-chip input { inline-size: 18px; block-size: 18px; margin: 0; accent-color: var(--brand); flex-shrink: 0; }
+.tfc-chip.is-on { background: var(--brand-soft); border-color: var(--brand); color: var(--text-strong); }
+.tfc-chip.is-off { opacity: 0.55; cursor: not-allowed; }
+.tfc-chip:has(input:focus-visible) { outline: 2px solid var(--brand); outline-offset: 2px; }
+.tfc-chip__lang { color: var(--text-tertiary); font-size: var(--step--2); }
+.tfc-count { margin: 8px 0 0; color: var(--text-tertiary); font-size: var(--step--2); }
+
+/* Ayə naviqasiyası */
+.tfc-nav {
+  position: sticky; top: calc(-1 * var(--space-5, 24px)); z-index: 2;
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 10px;
+  margin-inline: calc(-1 * var(--space-5, 24px));
+  padding: 10px var(--space-5, 24px);
+  background: var(--surface-1);
+  border-block: 1px solid var(--line);
+}
+.tfc-ref { flex: 1 1 auto; margin: 0; text-align: center; font-weight: 600; color: var(--text-strong); min-width: 0; }
+.tfc-ref__name { color: var(--text-secondary); font-weight: 500; }
+.tfc-nav__btn[disabled] { opacity: 0.45; }
+
+/* Sütunlar */
+.tfc-cols { display: grid; gap: 14px; grid-template-columns: minmax(0, 1fr); align-items: start; }
+@media (min-width: 960px) {
+  .tfc-cols { grid-template-columns: repeat(var(--tfc-n, 3), minmax(0, 1fr)); }
+}
+.tfc-col {
+  display: flex; flex-direction: column; min-width: 0;
+  padding: 14px 16px 10px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+}
+.tfc-col__head { padding-bottom: 10px; margin-bottom: 10px; border-bottom: 1px solid var(--line); }
+.tfc-col__name { display: block; margin: 0; }
+.tfc-col__by { margin: 2px 0 0; }
+.tfc-col__lang {
+  display: inline-block; margin-top: 6px; padding: 2px 8px;
+  border-radius: var(--radius-pill); background: var(--surface-1);
+  color: var(--text-tertiary); font-size: var(--step--2);
+}
+.tfc-col__body { flex: 1 1 auto; min-width: 0; }
+.tfc-col .tf-more { margin-top: 4px; margin-inline-start: -10px; color: var(--brand); }
+.tfc-col__src { margin-top: auto; flex-direction: column; align-items: flex-start; }
+.tfc-col__ed { overflow-wrap: anywhere; }
+
+@media (max-width: 767.98px) {
+  .tfc-dialog { width: 100vw; height: 100dvh; max-width: 100vw; max-height: 100dvh; border-radius: 0; border: 0; }
+  .tfc-body { padding: 16px 14px 24px; }
+  .tfc-nav { top: -16px; margin-inline: -14px; padding: 8px 14px; }
+  .tfc-nav__btn { padding-inline: 10px; }
+  .tfc-ref { font-size: var(--step--1); }
+  .tfc-col { padding: 12px 12px 8px; }
+}
+@media (max-width: 400px) {
+  /* 360px: düymələrdə yalnız ox qalmasın deyə yazı kiçilir, sətir sınmır */
+  .tfc-nav__btn { font-size: var(--step--2); gap: 4px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tfc-dialog[open] { animation: none; }
+  .tfc-chip { transition: none; }
+}

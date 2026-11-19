@@ -85,6 +85,9 @@ export const PAGES = [
   // Ümmətin Canlı Xətmi (server/globalKhatm.js) — izləmə hamıya açıqdır, səhifə götürmək girişlidir
   { key: 'khatm',        path: 'khatm',        priority: 0.80, changefreq: 'daily'   },
   { key: 'quranroots',   path: 'quran-roots',  priority: 0.80, changefreq: 'monthly' },
+  // C dəstəsi: Quranda məna ilə axtarış (server/quranMeaning.js — AI yalnız ayə istinadlarını seçir;
+  // mətn saytın Quran mənbəyindəndir). Səhifə alət qabığı kimi indekslənir (nəticələr klientdə).
+  { key: 'quranmeaning', path: 'quran-meaning', priority: 0.75, changefreq: 'monthly' },
   { key: 'prayer',       path: 'prayer',       priority: 0.95, changefreq: 'daily'   },
   { key: 'ramadan',      path: 'ramadan',      priority: 0.8,  changefreq: 'daily'   },
   { key: 'hadith',       path: 'hadith',       priority: 0.90, changefreq: 'weekly'  },
@@ -105,6 +108,8 @@ export const PAGES = [
   { key: 'hajjguide',    path: 'hajjguide',    priority: 0.85, changefreq: 'monthly' },
   { key: 'hifz',         path: 'hifz',         priority: 0.80, changefreq: 'monthly' },
   { key: 'arabic',       path: 'learn-arabic', priority: 0.80, changefreq: 'monthly' },
+  // C dəstəsi: yeni müsəlmanın yolu — saytın mövcud alətlərini sıralayan bələdçi (irəliləyiş yalnız klientdə)
+  { key: 'newmuslim',    path: 'new-muslim',   priority: 0.80, changefreq: 'monthly' },
   { key: 'namecalligraphy', path: 'name-in-arabic', priority: 0.70, changefreq: 'monthly' },
   { key: 'babynames',    path: 'muslim-baby-names', priority: 0.75, changefreq: 'monthly' },
   { key: 'quiz',         path: 'quiz',         priority: 0.80, changefreq: 'monthly' },
@@ -157,6 +162,8 @@ export const PAGES = [
   // (/u/<ləqəb> — klientdə render olunur; ləqəbsiz /u — 404 kimi). docs/USER-ACCOUNTS.md → "K mərhələsi"
   { key: 'duawall',       path: 'dua-wall',       noindex: true },
   { key: 'publicprofile', path: 'u',              noindex: true },
+  // C dəstəsi — şəxsi gündəlik (yalnız cihazda + E2E sinxronizasiya): indekslənmir
+  { key: 'jariyah',       path: 'sadaqah-jariyah', noindex: true },
 ]
 
 /** İndekslənməyən səhifə açarları (Seo.jsx → robots noindex). */

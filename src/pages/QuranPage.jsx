@@ -21,6 +21,9 @@ import { QURAN_GUIDE } from '../data/guides/QuranPage'
 import KhatmPlanner from '../components/quran/KhatmPlanner'
 import QuranRadio from '../components/quran/QuranRadio'
 import SurahArt from '../components/quran/SurahArt'
+// Batch Q: məlumatdan doğan rozet, kart dalğası, infoqrafika, gecə səması (lazy — components/quran/viz)
+import useSurahGridFx from '../components/quran/viz/useSurahGridFx'
+import { REVELATION_ORDER } from '../data/surahRevelation'
 // Dizayn v6: seqmentlərdə seçilmiş hap yayla sürüşür (src/motion, layoutId)
 import { SegGroup, SegPill } from '../components/quran/SegPill'
 import SurahRootCloud from '../components/quran/SurahRootCloud'
@@ -107,7 +110,7 @@ const BOOKMARK_LABELS = {
 const V32_LABELS = {
   az: {
     views:'Görünüş', surahs:'Surələr', juz:'Cüzlər', saved:'Saxlanılanlar',
-    sort:'Sıralama', sortMushaf:'Mushaf sırası', sortShort:'Əvvəlcə qısa', sortLong:'Əvvəlcə uzun',
+    sort:'Sıralama', sortMushaf:'Mushaf sırası', sortShort:'Əvvəlcə qısa', sortLong:'Əvvəlcə uzun', sortRev:'Nazil olma sırası',
     read:'Oxunub', save:'Ayəni saxla', unsave:'Saxlanılanlardan çıxar', remove:'Sil',
     share:'Paylaş', copied:'Kopyalandı',
     zen:'Zen', zenHint:'Tam ekranda ayə-ayə dinlə', memorize:'Əzbər rejimi', memorizeHint:'Ərəb mətni gizlədilib — yoxlamaq üçün «Göstər» düyməsini basın.', reveal:'Göstər', hide:'Gizlət',
@@ -119,7 +122,7 @@ const V32_LABELS = {
   },
   en: {
     views:'View', surahs:'Surahs', juz:'Juz', saved:'Saved',
-    sort:'Sort', sortMushaf:'Mushaf order', sortShort:'Shortest first', sortLong:'Longest first',
+    sort:'Sort', sortMushaf:'Mushaf order', sortShort:'Shortest first', sortLong:'Longest first', sortRev:'Order of revelation',
     read:'Read', save:'Save verse', unsave:'Remove from saved', remove:'Remove',
     share:'Share', copied:'Copied',
     zen:'Zen', zenHint:'Listen verse by verse in full screen', memorize:'Memorise mode', memorizeHint:'The Arabic text is hidden — press “Show” to check yourself.', reveal:'Show', hide:'Hide',
@@ -131,7 +134,7 @@ const V32_LABELS = {
   },
   ru: {
     views:'Вид', surahs:'Суры', juz:'Джузы', saved:'Сохранённые',
-    sort:'Сортировка', sortMushaf:'Порядок мусхафа', sortShort:'Сначала короткие', sortLong:'Сначала длинные',
+    sort:'Сортировка', sortMushaf:'Порядок мусхафа', sortShort:'Сначала короткие', sortLong:'Сначала длинные', sortRev:'Порядок ниспослания',
     read:'Прочитано', save:'Сохранить аят', unsave:'Убрать из сохранённых', remove:'Удалить',
     share:'Поделиться', copied:'Скопировано',
     zen:'Дзен', zenHint:'Слушать по аятам на весь экран', memorize:'Режим заучивания', memorizeHint:'Арабский текст скрыт — нажмите «Показать», чтобы проверить себя.', reveal:'Показать', hide:'Скрыть',
@@ -143,7 +146,7 @@ const V32_LABELS = {
   },
   ar: {
     views:'العرض', surahs:'السور', juz:'الأجزاء', saved:'المحفوظات',
-    sort:'الترتيب', sortMushaf:'ترتيب المصحف', sortShort:'الأقصر أولًا', sortLong:'الأطول أولًا',
+    sort:'الترتيب', sortMushaf:'ترتيب المصحف', sortShort:'الأقصر أولًا', sortLong:'الأطول أولًا', sortRev:'ترتيب النزول',
     read:'مقروءة', save:'احفظ الآية', unsave:'أزل من المحفوظات', remove:'حذف',
     share:'مشاركة', copied:'نُسخ',
     zen:'وضع التأمل', zenHint:'استمع آية آية بملء الشاشة', memorize:'وضع الحفظ', memorizeHint:'النص العربي مخفي — اضغط «أظهر» لتختبر نفسك.', reveal:'أظهر', hide:'أخفِ',
@@ -155,7 +158,7 @@ const V32_LABELS = {
   },
   tr: {
     views:'Görünüm', surahs:'Sureler', juz:'Cüzler', saved:'Kaydedilenler',
-    sort:'Sıralama', sortMushaf:'Mushaf sırası', sortShort:'Önce kısa', sortLong:'Önce uzun',
+    sort:'Sıralama', sortMushaf:'Mushaf sırası', sortShort:'Önce kısa', sortLong:'Önce uzun', sortRev:'İniş sırası',
     read:'Okundu', save:'Ayeti kaydet', unsave:'Kaydedilenlerden çıkar', remove:'Sil',
     share:'Paylaş', copied:'Kopyalandı',
     zen:'Zen', zenHint:'Tam ekranda ayet ayet dinle', memorize:'Ezber modu', memorizeHint:'Arapça metin gizlendi — kendinizi kontrol etmek için «Göster» düğmesine basın.', reveal:'Göster', hide:'Gizle',
@@ -552,6 +555,10 @@ const SAJDAH_BADGE = { az: 'Səcdə', en: 'Sajdah', ru: 'Саджда', ar: 'س�
 // v5.8: 3D Quran qalaktikası (three.js — yalnız bölməyə yaxınlaşanda)
 const QuranGalaxy = lazy(() => import('../components/quran/QuranGalaxy'))
 const SurahRhythm = lazy(() => import('../components/quran/SurahRhythm'))
+const SurahGlyph = lazy(() => import('../components/quran/viz/SurahGlyph'))
+const SurahSpark = lazy(() => import('../components/quran/viz/SurahGlyph').then(m => ({ default: m.SurahSpark })))
+const SurahInfographic = lazy(() => import('../components/quran/viz/SurahInfographic'))
+const SurahNightSky = lazy(() => import('../components/quran/viz/SurahNightSky'))
 // v6.2: eyni ayə 5 qarinin səsində — söz-söz müqayisə (Quran.com söz vaxtları)
 const ReciterCompare = lazy(() => import('../components/quran/ReciterCompare'))
 // v6.3: Surələr şəhəri — 114 bina, nazil olma sırası ilə küçə (three.js)
@@ -986,12 +993,15 @@ export default function QuranPage() {
   const [flash, setFlash] = useState({ n: 0, k: 0 })
   const currentAyahRef = useRef(null)     // ekranın yuxarısındakı ilk ayə
   const progressRef = useRef(null)        // paneldəki irəliləyiş xətti
+  const glyphRingRef = useRef(null)       // başlıq rozetinin irəliləyiş halqası (--rp)
   // React state-siz: sürüşdükcə 286 kart yenidən çəkilməsin
   const paintProgress = useCallback((n) => {
     const el = progressRef.current
     const total = surahsRef.current.find(x => x.number === selectedRef.current)?.numberOfAyahs
       || document.querySelectorAll('.ayahs-list [data-ayah]').length
-    if (el && total) el.style.transform = `scaleX(${Math.min(1, Math.max(0, n / total)).toFixed(4)})`
+    const p = total ? Math.min(1, Math.max(0, n / total)).toFixed(4) : null
+    if (el && p) el.style.transform = `scaleX(${p})`
+    if (p) glyphRingRef.current?.style.setProperty('--rp', p)
   }, [])
   const jumpingRef = useRef(false)        // proqram sürüşdürür — yer yazılmır
   const armedRef = useRef(false)          // yer yalnız istifadəçi özü sürüşdürəndən sonra yazılır
@@ -1437,8 +1447,17 @@ export default function QuranPage() {
     })
     if (sort === 'short') return [...list].sort((a, b) => a.numberOfAyahs - b.numberOfAyahs || a.number - b.number)
     if (sort === 'long') return [...list].sort((a, b) => b.numberOfAyahs - a.numberOfAyahs || a.number - b.number)
+    if (sort === 'rev') return [...list].sort((a, b) => (REVELATION_ORDER[a.number - 1] || 0) - (REVELATION_ORDER[b.number - 1] || 0))
     return list
   }, [surahs, search, filter, juz, sort])
+  // Batch Q: kartlar ekranda canlanır, süzgəc/sıralama dəyişəndə yeni yerinə sürüşür (FLIP)
+  const gridRef = useRef(null)
+  const gridSig = selected || searchMode !== 'surah' || view !== 'surahs' ? '' : filtered.map(s => s.number).join(',')
+  useSurahGridFx(gridRef, gridSig)
+  // "Gecə səması" (SurahNightSky) — surə dəyişəndə bağlanır
+  const [nightSky, setNightSky] = useState(false)
+  const nightBtnRef = useRef(null)
+  useEffect(() => { setNightSky(false) }, [selected])
 
   // Hero-dakı "Quran haqqında" — bələdçiyə hamar keçid (ünvan dəyişmir)
   const jumpToAbout = (e) => {
@@ -1567,20 +1586,36 @@ export default function QuranPage() {
                     </h2>
                   )}
                 </div>
+                {/* Batch Q: surənin rozeti (kartdakı ilə eyni — keçiddə kartdan bura "uçur") +
+                    oxu irəliləyişi halqası (--rp, paintProgress yazır; React render yoxdur) */}
+                <span className="rh-glyph" data-vt-glyph="" ref={glyphRingRef} aria-hidden="true">
+                  <Suspense fallback={<SurahArt n={surah.number} />}><SurahGlyph n={surah.number} className="sg--hero" /></Suspense>
+                  <svg className="rh-ring" viewBox="0 0 100 100" focusable="false">
+                    <circle className="rh-ring__track" cx="50" cy="50" r="48" />
+                    <circle className="rh-ring__bar" cx="50" cy="50" r="48" pathLength="1" />
+                  </svg>
+                </span>
               </div>
               {/* Surənin açar göstəriciləri (mono rəqəm + kiçik etiket) */}
               <dl className="reader-facts">
-                <div><dt>{pk(QURAN_GUIDE.facts.items[1].label, lang)}</dt><dd className="ui-num">{surah.numberOfAyahs}</dd></div>
+                <div><dt>{pk(QURAN_GUIDE.facts.items[1].label, lang)}</dt><dd className="ui-num" data-count={surah.numberOfAyahs}>{surah.numberOfAyahs}</dd></div>
                 <div><dt>{sl.place}</dt><dd>{revelationLabel(surah.revelationType, lang)}</dd></div>
                 {surahPages && <div><dt>{pk(QURAN_GUIDE.ui.pages, lang)}</dt><dd className="ui-num" dir="ltr">{surahPages}</dd></div>}
                 {surahJuz && <div><dt>{pk(QURAN_GUIDE.ui.juzLabel, lang)}</dt><dd className="ui-num" dir="ltr">{surahJuz}</dd></div>}
               </dl>
             </header>
-            <SurahRootCloud key={surah.number} surah={surah.number} lang={lang} />
-            {/* v5.6: surənin ritmi — hər ayə bir sütun (söz sayı); toxunuş → ayəyə keçid */}
+            {/* Batch Q: "Surə bir baxışda" — nazil olma sırası (114), cüz halqası, səcdə, müqəttəə, gecə səması */}
             <Suspense fallback={null}>
-              <SurahRhythm key={`rh${surah.number}`} verses={surah.verses} madani={surah.revelationType === 'Medinan'} lang={lang} onPick={(n) => goToAyah(n)} />
+              <SurahInfographic key={`gi${surah.number}`} n={surah.number} lang={lang} onPick={(n) => goToAyah(n)}
+                onNightSky={() => { haptic(); setNightSky(true) }} nightRef={nightBtnRef} />
             </Suspense>
+            {/* v5.6: surənin ritmi — hər ayə bir sütun (söz sayı); toxunuş → ayəyə keçid.
+                Batch Q: səslənən ayə dalğada işıqlanır (active), kompüterdə açıq başlayır */}
+            <Suspense fallback={null}>
+              <SurahRhythm key={`rh${surah.number}`} verses={surah.verses} madani={surah.revelationType === 'Medinan'} lang={lang} onPick={(n) => goToAyah(n)}
+                active={playerBusy ? player.current : null} defaultOpen />
+            </Suspense>
+            <SurahRootCloud key={surah.number} surah={surah.number} lang={lang} />
             {/* Tərcümə seçicisi: standart nəşr + QuranEnc.com tərcümələri (mətn dəyişmir; mənbə, versiya, tarix) */}
             {extra && (
               <p className="qp-trans-src qp-trans-src__meta">
@@ -1654,6 +1689,12 @@ export default function QuranPage() {
             {surah.verses?.some(v => v.sj) && (
               <Suspense fallback={null}>
                 <SajdahMoment listRef={listRef} activeAyah={playerBusy ? player.current : null} surah={surah.number} lang={lang} />
+              </Suspense>
+            )}
+            {nightSky && (
+              <Suspense fallback={null}>
+                <SurahNightSky n={surah.number} player={player} lang={lang} title={surahTitle(surah, lang) || String(surah.number)}
+                  onClose={() => setNightSky(false)} />
               </Suspense>
             )}
             {zen && (
@@ -1921,6 +1962,7 @@ export default function QuranPage() {
                     <option value="mushaf">{xl.sortMushaf}</option>
                     <option value="short">{xl.sortShort}</option>
                     <option value="long">{xl.sortLong}</option>
+                    <option value="rev">{xl.sortRev}</option>
                   </select>
                 </label>
                 {!listLoading && !listError && (
@@ -1951,7 +1993,7 @@ export default function QuranPage() {
                 }>{rl.listMsg}</QEmpty>
               )}
               {/* Kart şəbəkəsi (telefonda qruplaşdırılmış siyahı) */}
-              <div className="surah-grid" data-reveal="stagger">
+              <div className="surah-grid" data-reveal="stagger" ref={gridRef}>
                 {filtered.map((s) => {
                   const isAr = lang === 'ar'
                   const displayName = surahTitle(s, lang)
@@ -1963,20 +2005,25 @@ export default function QuranPage() {
                   const wasRead = !!stats.reads[s.number]
                   const here = bookmark?.surah === s.number
                   return (
-                    <a key={s.number} className={`surah-card${here ? ' is-here' : ''}${isMadani ? ' is-madani' : ''}`} href={pathFor('quran', tlang, s.number)}
+                    <a key={s.number} data-n={s.number} className={`surah-card${here ? ' is-here' : ''}${isMadani ? ' is-madani' : ''}`} href={pathFor('quran', tlang, s.number)}
                       onClick={linkTo(s.number)}>
-                      {/* Surənin öz həndəsi rozeti (nömrədən yaranır — hər surədə fərqli) */}
-                      <SurahArt n={s.number} />
+                      {/* Surənin rozeti — məlumatdan doğur (ayə sayı, orta söz sayı, cüzlər, nazil olma
+                          sırası, səcdə; components/quran/viz/surahViz.js). Yüklənənə qədər köhnə rozet */}
+                      <span className="sc-glyph" data-vt-glyph="">
+                        <Suspense fallback={<SurahArt n={s.number} />}><SurahGlyph n={s.number} /></Suspense>
+                        <span className={`surah-num${isMadani ? ' is-madani' : ''}`}>{s.number}</span>
+                      </span>
                       {wasRead && (
                         <span className="surah-read" title={xl.read}>
                           <Icon name="check" size={12} /><span className="ui-sr-only">{xl.read}</span>
                         </span>
                       )}
                       {here && bmProgress > 0 && <span className="surah-here-bar" style={{ '--p': bmProgress.toFixed(3) }} aria-hidden="true" />}
-                      <span className={`surah-num${isMadani ? ' is-madani' : ''}`}>{s.number}</span>
                       <span className="surah-body">
                         <span className={`surah-name-en${isAr ? ' is-ar' : ''}`}>{displayName}</span>
                         <span className="surah-meta">{displayMeta}</span>
+                        {/* Ayələrin söz sayı dalğası (Tanzil məlumatı) */}
+                        <Suspense fallback={<span className="sc-spark" aria-hidden="true" />}><SurahSpark n={s.number} /></Suspense>
                       </span>
                       {!isAr && <span className="surah-name-ar" lang="ar">{s.name}</span>}
                     </a>

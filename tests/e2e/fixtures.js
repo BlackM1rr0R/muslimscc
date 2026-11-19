@@ -154,6 +154,18 @@ export const test = base.extend({
         edition: { identifier: e, language: e.split('.')[0], type: e.startsWith('ar.') ? 'quran' : 'translation', format: 'text' },
       })) } })
     })
+    // C dəstəsi: "s:a" formasında tək ayə (components/quote/content → fetchAyah; /quran-meaning nəticələri)
+    await page.route(/api\.alquran\.cloud\/v1\/ayah\/\d{1,3}:\d{1,3}\/editions\//, route => {
+      const url = route.request().url()
+      const ref = decodeURIComponent(url.split('/v1/ayah/')[1].split('/')[0])
+      const [s, a] = ref.split(':').map(Number)
+      const eds = decodeURIComponent(url.split('/editions/')[1].split('?')[0]).split(',')
+      route.fulfill({ json: { code: 200, status: 'OK', data: eds.map(e => ({
+        number: s * 1000 + a, numberInSurah: a, text: `[test ${s}:${a} ${e}]`,
+        surah: { number: s, name: 'سورة', englishName: `Surah ${s}` },
+        edition: { identifier: e, language: e.split('.')[0], type: e.startsWith('quran') ? 'quran' : 'translation', format: 'text', name: `Test ${e}`, englishName: `Test ${e}` },
+      })) } })
+    })
     await page.route(/api\.alquran\.cloud\/v1\/surah(\?|$)/, route => route.fulfill({
       // 1-ci sürə real adı ilə (testlər onu adla tapıb açır), qalanları yer tutucu
       json: { code: 200, status: 'OK', data: Array.from({ length: 114 }, (_, i) => (i === 0
@@ -297,6 +309,11 @@ export const test = base.extend({
     await page.route((u) => /^\/api\/groups(\/|$)/.test(u.pathname), (route) => (route.request().method() === 'GET'
       ? route.fulfill({ status: 404, json: { error: 'not found' } })
       : route.fulfill({ status: 503, json: { error: 'unavailable' } })))
+    // C dəstəsi: Quranda məna ilə axtarış (server/quranMeaning.js) — susmaya görə iki yoxlanmış istinad.
+    // tests/e2e/batch-c.spec.js öz saxtasını qoyur (boş nəticə, 429 və s.)
+    await page.route((u) => u.pathname === '/api/quran-meaning', (route) => route.fulfill({
+      json: { results: [{ s: 2, a: 153 }, { s: 94, a: 5 }], cached: false },
+    }))
     // "Səhv bildir" / AI qiymətləndirməsi (server/feedback.js → POST /api/feedback)
     await page.route((u) => u.pathname === '/api/feedback', (route) => route.fulfill({ status: 201, json: { ok: true } }))
     // Namaz vaxtları abunəliyi və vidjet (server/ics.js) — brauzer adətən yalnız linki göstərir; açılsa — boş cavab

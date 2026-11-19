@@ -44,3 +44,8 @@
   html:not(.a11y-motion-user) .srh { animation: srh-open .45s cubic-bezier(.22, 1, .36, 1) both; }
 }
 @keyframes srh-open { from { opacity: 0; transform: translate3d(0, -6px, 0); } }
+
+/* Batch Q: səslənən ayə və oxunmuş hissə; səcdə ayəsi romb ilə (rəngdən əlavə forma) */
+.srh-bar.is-played { fill: color-mix(in srgb, var(--srh-c) 80%, transparent); }
+.srh-bar.is-active { fill: var(--accent); }
+.srh-saj { fill: var(--accent); }

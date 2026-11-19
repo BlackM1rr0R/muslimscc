@@ -15,9 +15,12 @@
 name: CI/CD
 
 on:
-  # Hər branch-da testlər işləyir; deploy yalnız main-də (aşağıda "deploy" job-unun if-i)
+  # Hər branch-da testlər işləyir; deploy yalnız main-də (aşağıda "deploy" job-unun if-i).
+  # Yalnız sənəd/agent faylları dəyişibsə (README, docs/, .claude/) CI və deploy işləmir — sayta
+  # təsiri yoxdur (build *.md oxumur). Kod + sənəd birlikdədirsə adi qaydada işləyir.
   push:
     branches: ['**']
+    paths-ignore: ['docs/**', '**/*.md', '.claude/**']
   pull_request:
   workflow_dispatch:
 
@@ -31,10 +34,14 @@ concurrency:
 env:
   NODE_VERSION: '22'
 
+# Sxem (kritik yol: build → e2e → deploy; qalanı paralel):
+#   checks  ─────────────────────────────┐
+#   build ── e2e (12 maşın) ─────────────┼── deploy (main)
+#   images (Docker, nginx -t, api smoke) ┘
 jobs:
-  # ── 1) Sürətli yoxlamalar + build ──
+  # ── 1a) Sürətli yoxlamalar + unit testlər (build-i gözləmir) ──
   checks:
-    name: Yoxlamalar, unit testlər, build
+    name: Yoxlamalar, unit testlər
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -61,41 +68,52 @@ jobs:
       - name: API sintaksisi
         run: for f in server/*.js; do node --check "$f"; done
 
+  # ── 1b) Build — e2e yalnız bunu gözləyir (əvvəl yoxlamalar + unit testlərdən sonra başlayırdı: +2 dəq) ──
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with: { node-version: '${{ env.NODE_VERSION }}', cache: npm }
+      - run: npm ci
       - name: Build
         run: |
           cp .env.public .env.production.local
           npm run build
           test -f dist/404.html && test -f dist/sitemap.xml
+      # ~45k kiçik fayl: upload-artifact onları tək-tək göndərəndə 62 san çəkirdi — bir arxiv kimi saniyələrdir
+      - name: dist arxivi
+        run: tar -I 'zstd -T0 -3' -cf dist.tar.zst dist && ls -l dist.tar.zst
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        with: { name: dist, path: dist, retention-days: 3 }
+        with: { name: dist, path: dist.tar.zst, retention-days: 3, compression-level: 0 }
 
-  # ── 2) Real brauzerdə e2e (kompüter + telefon) — 6 paralel maşın ──
-  # Tək maşında ~23 dəq çəkirdi (bütün CI ~35 dəq, 2026-11-16). Playwright --shard testləri SAYA görə
-  # bölür, vaxta görə yox: ağır a11y-all (hər səhifədə axe, ~9 dəq) tam 1-ci hissəyə düşürdü (14 dəq).
-  # Ona görə a11y-all tema üzrə iki ayrı maşında, qalanı 4 hissədə (3 hissədə 1-ci yenə 12.8 dəq idi);
-  # a11y.spec (əsas səhifələrdə axe, 62 test) ən qısa a11y maşınına köçürüldü — 1/4-ü 11 dəq edirdi. Deploy hamısını gözləyir.
+  # ── 2) Real brauzerdə e2e (kompüter + telefon) — 12 paralel maşın ──
+  # Playwright --shard testləri SAYA görə bölür, vaxta görə yox. Ağır a11y-all (hər səhifədə axe) tema üzrə
+  # iki ayrı maşında; a11y.spec qaranlıq a11y maşınında. Qalanı 10 hissədə: 2026-11-18 (run 44392783483)
+  # 4 hissənin cəmi 30.9 dəq test vaxtı idi (8.0/9.7/5.8/7.4) → 10 hissədə ~3.1 dəq orta, ən ağırı ~4 dəq.
+  # Deploy hamısını gözləyir.
   e2e:
     name: E2E (${{ matrix.name }})
-    needs: checks
+    needs: build
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
+        name: ['1/10', '2/10', '3/10', '4/10', '5/10', '6/10', '7/10', '8/10', '9/10', '10/10']
         include:
           - { name: 'a11y işıqlı', grep: 'a11y \(light\)' }
           - { name: 'a11y qaranlıq + a11y.spec', grep: 'a11y \(dark\)|a11y\.spec' }
-          - { name: '1/4', invert: 'a11y \((light|dark)\)|a11y\.spec', shard: '1/4' }
-          - { name: '2/4', invert: 'a11y \((light|dark)\)|a11y\.spec', shard: '2/4' }
-          - { name: '3/4', invert: 'a11y \((light|dark)\)|a11y\.spec', shard: '3/4' }
-          - { name: '4/4', invert: 'a11y \((light|dark)\)|a11y\.spec', shard: '4/4' }
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with: { node-version: '${{ env.NODE_VERSION }}', cache: npm }
       - run: npm ci
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
-        with: { name: dist, path: dist }
+        with: { name: dist }
+      - run: tar -I zstd -xf dist.tar.zst && rm dist.tar.zst
       - name: Playwright versiyası
         id: pw
         run: echo "v=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
@@ -105,16 +123,16 @@ jobs:
           path: ~/.cache/ms-playwright
           key: pw-${{ runner.os }}-${{ steps.pw.outputs.v }}-chromium
       - name: Playwright brauzeri
-        # apt güzgüləri əlçatmaz olanda (2026-11-11: DNS xətası) — sistem paketsiz quraşdırma;
-        # ubuntu-latest image-ində Chromium-un kitabxanaları var, çatmasa testlər özü yıxılır
-        run: npx playwright install --with-deps chromium || npx playwright install chromium
+        # Adətən ~10 san. apt güzgüsü ləng/əlçatmaz olanda (2026-11-11 DNS xətası; 2026-11-18 bir maşında
+        # 6 dəq 19 san) — 2 dəqiqədən sonra sistem paketsiz quraşdırma: ubuntu-latest-də Chromium-un
+        # kitabxanaları var, çatmasa testlər özü yıxılır
+        run: timeout 120 npx playwright install --with-deps chromium || npx playwright install chromium
       - name: E2E testləri
-        env: { G: '${{ matrix.grep }}', GI: '${{ matrix.invert }}', S: '${{ matrix.shard }}' }
+        env: { G: '${{ matrix.grep }}', N: '${{ matrix.name }}' }
+        # a11y maşınları: --grep; qalan 10 hissə: a11y-siz, --shard <N>
         run: |
-          set --
-          [ -n "$G" ] && set -- "$@" --grep "$G"
-          [ -n "$GI" ] && set -- "$@" --grep-invert "$GI"
-          [ -n "$S" ] && set -- "$@" --shard "$S"
+          if [ -n "$G" ]; then set -- --grep "$G"
+          else set -- --grep-invert 'a11y \((light|dark)\)|a11y\.spec' --shard "$N"; fi
           echo "npx playwright test $*"
           npx playwright test "$@"
       - name: Hesabat (yıxılanda)
@@ -122,18 +140,25 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with: { name: 'playwright-report-${{ strategy.job-index }}', path: playwright-report, retention-days: 7 }
 
-  # ── 3) Docker image-ləri (hər push-da build olunur ki, Dockerfile sınmasın) ──
+  # ── 3) Docker image-ləri (hər push-da build olunur ki, Dockerfile sınmasın) — heç nəyi gözləmir ──
   images:
     name: Docker image-ləri
-    needs: checks
     runs-on: ubuntu-latest
     timeout-minutes: 20
     outputs:
       tag: ${{ steps.tag.outputs.tag }}
+      api_src: ${{ steps.tag.outputs.api_src }}
+      web_src: ${{ steps.tag.outputs.web_src }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      # cc.muslims.src — image-in mənbəyinin git həşi: api = server/ qovluğu (kontekst), web = server/-dən
+      # başqa hər şey (web build server/-i oxumur). Serverdə eyni mənbəli image varsa deploy onu yükləmir
+      # (ci-gate "reuse") və deploy.sh eyni image-i yenidən başlatmır.
       - id: tag
-        run: echo "tag=${GITHUB_SHA::12}" >> "$GITHUB_OUTPUT"
+        run: |
+          echo "tag=${GITHUB_SHA::12}" >> "$GITHUB_OUTPUT"
+          echo "api_src=$(git rev-parse HEAD:server)" >> "$GITHUB_OUTPUT"
+          echo "web_src=$(git ls-tree HEAD | grep -vP '\tserver$' | git hash-object --stdin)" >> "$GITHUB_OUTPUT"
       - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
 
       - name: api image
@@ -141,6 +166,7 @@ jobs:
         with:
           context: server
           tags: muslimscc-api:${{ steps.tag.outputs.tag }}
+          labels: cc.muslims.src=${{ steps.tag.outputs.api_src }}
           outputs: type=docker,dest=/tmp/api.tar
           cache-from: type=gha,scope=api
           cache-to: type=gha,mode=max,scope=api
@@ -150,6 +176,7 @@ jobs:
           context: .
           file: infra/web.Dockerfile
           tags: muslimscc-web:${{ steps.tag.outputs.tag }}
+          labels: cc.muslims.src=${{ steps.tag.outputs.web_src }}
           outputs: type=docker,dest=/tmp/web.tar
           cache-from: type=gha,scope=web
           cache-to: type=gha,mode=max,scope=web
@@ -160,6 +187,15 @@ jobs:
           mkdir -p /tmp/c && openssl req -x509 -nodes -newkey rsa:2048 -days 1 -subj /CN=muslims.cc \
             -keyout /tmp/c/privkey.pem -out /tmp/c/fullchain.pem 2>/dev/null && chmod 644 /tmp/c/*.pem
           docker run --rm -v /tmp/c:/certs:ro muslimscc-web:${{ steps.tag.outputs.tag }} nginx -t
+          docker image inspect -f '{{index .Config.Labels "cc.muslims.edge"}}' muslimscc-web:${{ steps.tag.outputs.tag }} | grep -qx 1
+
+      # Kənar (edge) konteynerinin konfiqi — serverdəki ilə eyni (digest-li) image-də
+      - name: edge nginx konfiqi keçərlidir
+        run: |
+          img=$(grep -o 'EDGE_IMAGE:-[^}]*' infra/docker-compose.yml | sed 's/^EDGE_IMAGE:-//')
+          test -n "$img"
+          docker run --rm --read-only --tmpfs /tmp --add-host web:127.0.0.1 -v "$PWD/infra/edge:/etc/nginx/edge:ro" \
+            --entrypoint nginx "$img" -t -c /etc/nginx/edge/nginx.conf
 
       # API image-i həqiqətən başlayırmı (məs. Dockerfile-a düşməyən modul —
       # 2026-11-04: "Cannot find module './sync'" yalnız serverdə üzə çıxdı)
@@ -192,7 +228,7 @@ jobs:
   deploy:
     name: Serverə deploy
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: [e2e, images]
+    needs: [checks, e2e, images]
     runs-on: ubuntu-latest
     timeout-minutes: 15
     environment:
@@ -203,6 +239,8 @@ jobs:
       cancel-in-progress: false
     env:
       TAG: ${{ needs.images.outputs.tag }}
+      API_SRC: ${{ needs.images.outputs.api_src }}
+      WEB_SRC: ${{ needs.images.outputs.web_src }}
     steps:
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with: { name: images, path: images }
@@ -218,10 +256,15 @@ jobs:
           printf 'Host prod\n  HostName %s\n  User root\n  IdentityFile ~/.ssh/deploy\n  IdentitiesOnly yes\n  StrictHostKeyChecking yes\n  ServerAliveInterval 15\n' \
             "${{ secrets.DEPLOY_HOST }}" > ~/.ssh/config
 
+      # Mənbəyi dəyişməyən image (çox vaxt api) yüklənmir — serverdəki eyni image <TAG> kimi işarələnir.
+      # "reuse" alınmasa (yoxdur / köhnə ci-gate.sh) — adi upload.
       - name: Image-ləri yüklə
         run: |
-          ssh prod "upload $TAG api" < images/api.tar.gz
-          ssh prod "upload $TAG web" < images/web.tar.gz
+          for n in api web; do
+            src=$API_SRC; [ "$n" = web ] && src=$WEB_SRC
+            if ssh prod "reuse $TAG $n $src"; then continue; fi
+            ssh prod "upload $TAG $n" < "images/$n.tar.gz"
+          done
 
       - name: Deploy (sağlamlıq yoxlaması + avtomatik geri qaytarma)
         run: ssh prod "deploy $TAG"

@@ -1,0 +1,169 @@
+/* ═══════════════════════════════════════════════════════
+   Surə vizualları (Batch Q) — components/quran/viz/*
+   1) .sg   — surənin rozeti (kart, başlıq)
+   2) .sgi  — "Surə bir baxışda" infoqrafikası
+   3) .qns  — "Gecə səması" dialoqu
+   Sonsuz animasiyalar YALNIZ transform/opacity (scripts/check-motion.mjs) və yalnız
+   ekrandakı kartda ([data-vis]). Hərəkət azaldılıbsa — statik, amma eyni şəkil.
+   ═══════════════════════════════════════════════════════ */
+
+/* ── 1. Rozet ── */
+.sg { position: absolute; inset: 0; display: block; color: var(--brand); pointer-events: none; }
+.sg--madani { color: var(--accent); }
+.sg > svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.sg-ring { fill: none; stroke: currentColor; stroke-width: 1.2; opacity: 0.5; }
+.sg-ring.is-dotted { stroke-dasharray: 0.4 4.4; stroke-linecap: round; stroke-width: 2.2; opacity: 0.7; }
+.sg-orbit { fill: var(--accent); stroke: var(--surface-1); stroke-width: 1.4; transform-box: fill-box; transform-origin: center; transition: transform var(--dur-3, .4s) var(--ease-out, ease); }
+.sg--madani .sg-orbit { fill: var(--brand); }
+.sg-saj { fill: var(--accent-text, var(--accent)); stroke: var(--surface-1); stroke-width: 0.8; }
+.sg-layer {
+  fill: color-mix(in srgb, currentColor 6%, transparent);
+  stroke: currentColor; stroke-width: 1.4; stroke-linejoin: round;
+  opacity: calc(1 - var(--i, 0) * 0.2);
+  stroke-dasharray: 1; stroke-dashoffset: 0;
+}
+.sg-core { fill: color-mix(in srgb, currentColor 16%, transparent); }
+.sg-star { transform-origin: 50% 50%; transition: scale 600ms var(--ease-out, ease); }
+
+/* Kartın yuvası (QuranPage.css → .sc-glyph) */
+@media (hover: hover) {
+  .surah-card:hover .sg-star { scale: 1.1; }
+  .surah-card:hover .sg-orbit { transform: scale(1.5); }
+  .surah-card:hover .sg-ring { opacity: 0.9; }
+}
+.surah-card:focus-visible .sg-star { scale: 1.1; }
+.surah-card:focus-visible .sg-ring { opacity: 0.9; }
+
+@media (prefers-reduced-motion: no-preference) {
+  /* İlk dəfə görünəndə rozet "çəkilir" (bir dəfə) */
+  html.wow-ready:not(.a11y-reduce-motion) .surah-card:not([data-seen]) .sg-layer { stroke-dashoffset: 1; }
+  html.wow-ready:not(.a11y-reduce-motion) .surah-card[data-seen] .sg-layer,
+  html.wow-ready:not(.a11y-reduce-motion) .rh-glyph .sg-layer { animation: sg-draw 1.3s cubic-bezier(.22, 1, .36, 1) calc(var(--i, 0) * 140ms) both; }
+  /* Boş dayananda — çox yavaş fırlanma (ulduz simmetrikdir; məlumat qatı yerində qalır) */
+  html:not(.a11y-reduce-motion) .surah-card[data-vis] .sg-star { animation: sg-spin 80s linear infinite; }
+  html:not(.a11y-reduce-motion) .surah-card[data-vis] .sg--madani .sg-star { animation-direction: reverse; }
+  html:not(.a11y-reduce-motion) .rh-glyph .sg-star { animation: sg-spin 120s linear infinite; }
+}
+@keyframes sg-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+@keyframes sg-spin { to { transform: rotate(360deg); } }
+
+/* ── 2. Infoqrafika ── */
+.sgi {
+  --sgi-c: var(--brand);
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) auto minmax(0, 1fr);
+  gap: 12px;
+  margin-block: 12px;
+}
+.sgi--madani { --sgi-c: var(--accent); }
+.sgi-panel {
+  min-width: 0;
+  padding: 14px 16px;
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+}
+.sgi-label {
+  display: block;
+  color: var(--text-tertiary);
+  font-family: var(--font-label);
+  font-size: var(--step--2);
+  font-weight: 500;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+}
+[dir="rtl"] .sgi-label { letter-spacing: 0; text-transform: none; }
+.sgi-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.sgi-big { color: var(--text-tertiary); font-family: var(--font-num); font-size: var(--step-0); }
+.sgi-big b { color: var(--text-strong); font-size: var(--step-3); font-weight: 600; line-height: 1; }
+.sgi-tl__svg { display: block; width: 100%; height: 56px; margin-top: 10px; }
+[dir="rtl"] .sgi-tl__svg { transform: scaleX(-1); }
+.sgi-tick { fill: color-mix(in srgb, var(--brand) 42%, transparent); }
+.sgi-tick.is-md { fill: color-mix(in srgb, var(--accent) 62%, transparent); }
+.sgi-tick.is-cur { fill: var(--text-strong); }
+.sgi-tl__ticks { transform-box: fill-box; transform-origin: 50% 100%; }
+.sgi-tl__axis {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  margin-top: 6px; color: var(--text-tertiary); font-size: var(--step--2);
+}
+.sgi-legend { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: center; }
+.sgi-sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; background: color-mix(in srgb, var(--brand) 42%, transparent); }
+.sgi-sw.is-md { margin-inline-start: 6px; background: color-mix(in srgb, var(--accent) 62%, transparent); }
+.sgi-note { margin: 8px 0 0; color: var(--text-tertiary); font-size: var(--step--2); line-height: 1.45; }
+
+.sgi-juz { display: grid; place-items: center; }
+.sgi-ring { position: relative; width: 128px; aspect-ratio: 1; }
+.sgi-ring svg { display: block; width: 100%; height: 100%; }
+.sgi-seg { fill: none; stroke: var(--viz-track, var(--line)); stroke-width: 7; }
+.sgi-seg.is-on { stroke: var(--sgi-c); stroke-dasharray: 1; stroke-dashoffset: 0; }
+.sgi-ring__c { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; gap: 0; }
+.sgi-ring__c b { color: var(--text-strong); font-family: var(--font-num); font-size: var(--step-2); font-weight: 600; line-height: 1.1; }
+.sgi-ring__c span { color: var(--text-tertiary); font-size: var(--step--2); }
+
+.sgi-side { display: flex; flex-direction: column; gap: 12px; justify-content: space-between; }
+.sgi-letters { display: grid; gap: 2px; }
+.sgi-letters__ar { justify-self: start; color: var(--sgi-c); font-family: var(--font-arabic); font-size: 2.1rem; line-height: 1.7; }
+.sgi-letters__names { color: var(--text-secondary); font-size: var(--step--1); }
+.sgi-saj { display: grid; gap: 6px; }
+.sgi-saj__list { display: flex; flex-wrap: wrap; gap: 6px; }
+.sgi-saj__btn { gap: 6px; }
+.sgi-saj__btn b { color: var(--accent-text); font-weight: 400; }
+.sgi-night { display: grid; gap: 6px; justify-items: start; }
+.sgi-night__btn { min-height: 44px; }
+.sgi-night__hint { margin: 0; color: var(--text-tertiary); font-size: var(--step--1); line-height: 1.45; }
+
+@media (max-width: 899.98px) {
+  .sgi { grid-template-columns: auto minmax(0, 1fr); }
+  .sgi-tl { grid-column: 1 / -1; }
+}
+@media (max-width: 479.98px) {
+  .sgi { gap: 10px; }
+  .sgi-panel { padding: 12px 14px; }
+  .sgi-ring { width: 104px; }
+  .sgi-big b { font-size: var(--step-2); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html.wow-ready:not(.a11y-reduce-motion) .sgi:not(.is-in) .sgi-tl__ticks { transform: scaleY(0); }
+  html.wow-ready:not(.a11y-reduce-motion) .sgi .sgi-tl__ticks { transition: transform 1s cubic-bezier(.22, 1, .36, 1) 120ms; }
+  html.wow-ready:not(.a11y-reduce-motion) .sgi:not(.is-in) .sgi-seg.is-on { stroke-dashoffset: 1; }
+  html.wow-ready:not(.a11y-reduce-motion) .sgi .sgi-seg.is-on { transition: stroke-dashoffset 700ms cubic-bezier(.22, 1, .36, 1) calc(200ms + var(--i, 0) * 60ms); }
+  html:not(.a11y-reduce-motion) .sgi.is-in .sgi-tick.is-cur { animation: sgi-pulse 2.4s ease-in-out infinite alternate; }
+}
+@keyframes sgi-pulse { from { opacity: 0.55; } to { opacity: 1; } }
+
+/* ── 3. Gecə səması (həmişə gecədir — mövzudan asılı deyil) ── */
+html.qns-open { overflow: hidden; }
+.qns {
+  position: fixed; inset: 0; z-index: 1500;
+  display: grid; grid-template-rows: auto minmax(0, 1fr) auto;
+  background: #040814; color: #eef2ff; outline: none;
+  padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
+}
+.qns-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 14px 16px 6px; }
+.qns-titles { min-width: 0; }
+.qns-title { margin: 0; color: #fff8e6; font-family: var(--font-heading); font-size: var(--step-1); font-weight: 500; }
+.qns-title span { color: rgba(255, 248, 230, 0.72); }
+.qns-lead { margin: 2px 0 0; color: rgba(223, 232, 255, 0.72); font-size: var(--step--1); }
+.qns-close {
+  flex-shrink: 0; display: inline-grid; place-items: center; width: 44px; height: 44px;
+  border: 1px solid rgba(255, 255, 255, 0.22); border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06); color: #fff; cursor: pointer;
+}
+.qns-close:focus-visible, .qns .ui-btn:focus-visible { outline: 2px solid #f0cf7e; outline-offset: 2px; }
+@media (hover: hover) { .qns-close:hover { background: rgba(255, 255, 255, 0.14); } }
+.qns-stage { position: relative; min-height: 0; }
+.qns-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.qns-bar { display: grid; justify-items: center; gap: 10px; padding: 10px 16px 18px; text-align: center; }
+.qns-status { margin: 0; color: #fff8e6; font-size: var(--step-0); font-variant-numeric: tabular-nums; }
+.qns-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+.qns-btn { min-height: 44px; }
+.qns .ui-btn--ghost, .qns .ui-btn--secondary {
+  color: #eef2ff; background: rgba(255, 255, 255, 0.06); border-color: rgba(255, 255, 255, 0.24);
+}
+.qns-dim { margin-inline-start: 6px; opacity: 0.72; font-size: 0.85em; }
+.qns-note, .qns-msg { margin: 0; color: rgba(223, 232, 255, 0.72); font-size: var(--step--1); }
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .qns { animation: qns-in 420ms cubic-bezier(.22, 1, .36, 1) both; }
+}
+@keyframes qns-in { from { opacity: 0; } }

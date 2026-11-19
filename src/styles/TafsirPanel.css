@@ -222,3 +222,7 @@ html[lang="ar"] .tf-name { font-family: var(--font-arabic-ui); }
   .tf-toggle, .tf-toggle__chev, .tf-more__icon, .tf-toggle::before { transition: none; }
 }
 .tf-src__report { margin-inline-start: auto; }
+
+/* "Təfsirləri müqayisə et" (dialoq: components/quran/TafsirCompare.jsx) */
+.tf-panel .tf-compare-btn { margin-top: 6px; margin-inline-start: -10px; color: var(--brand); }
+.tf-compare-err { margin-top: 8px; }

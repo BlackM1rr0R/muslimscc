@@ -622,22 +622,33 @@ function initCardMorph() {
     const root = html()
     cardMorphing = true
     title.style.viewTransitionName = 'qm-card'
+    // Surə kartının rozeti (data-vt-glyph) yeni səhifənin rozetinə "uçur" (QuranPage)
+    const glyph = card.querySelector('[data-vt-glyph]')
+    let glyphTarget = null
+    if (glyph) glyph.style.viewTransitionName = 'qm-card-glyph'
     root.classList.add('qm-vt', 'qm-vt-card')
     const done = () => {
       cardMorphing = false
       title.style.viewTransitionName = ''
+      if (glyph) glyph.style.viewTransitionName = ''
       if (target) target.style.viewTransitionName = ''
+      if (glyphTarget) glyphTarget.style.viewTransitionName = ''
       root.classList.remove('qm-vt', 'qm-vt-card')
     }
     try {
       const vt = document.startViewTransition(() => new Promise((resolve) => {
         title.style.viewTransitionName = ''
+        if (glyph) glyph.style.viewTransitionName = ''
         cardBypass = true
         try { a.click() } finally { cardBypass = false }
         const t0 = performance.now()
         const tick = () => {
           const t = morphTarget()
-          if (location.pathname !== oldPath && t && t !== oldTarget) { target = t; t.style.viewTransitionName = 'qm-card'; resolve(); return }
+          if (location.pathname !== oldPath && t && t !== oldTarget) {
+            target = t; t.style.viewTransitionName = 'qm-card'
+            if (glyph) { glyphTarget = document.querySelector('main [data-vt-glyph]:not(.surah-card *)'); if (glyphTarget) glyphTarget.style.viewTransitionName = 'qm-card-glyph' }
+            resolve(); return
+          }
           if (performance.now() - t0 > 700) { resolve(); return }
           setTimeout(tick, 16)
         }

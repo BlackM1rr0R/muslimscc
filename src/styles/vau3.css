@@ -728,6 +728,10 @@ html.qm-vt-card::view-transition-new(root) { animation: vx-vt-up 460ms cubic-bez
 html.qm-vt-card::view-transition-group(qm-card) { animation-duration: 560ms; animation-timing-function: cubic-bezier(.22, 1, .36, 1); }
 html.qm-vt-card::view-transition-old(qm-card),
 html.qm-vt-card::view-transition-new(qm-card) { height: 100%; width: auto; animation-duration: 560ms; }
+/* Surə rozeti kartdan surə səhifəsinə (QuranPage, data-vt-glyph) */
+html.qm-vt-card::view-transition-group(qm-card-glyph) { animation-duration: 640ms; animation-timing-function: cubic-bezier(.22, 1, .36, 1); }
+html.qm-vt-card::view-transition-old(qm-card-glyph),
+html.qm-vt-card::view-transition-new(qm-card-glyph) { height: 100%; width: 100%; animation-duration: 640ms; }
 @keyframes vx-vt-up { from { opacity: 0; transform: translate3d(0, 14px, 0); } }
 
 /* ══════════════════════════════════════════════════════════

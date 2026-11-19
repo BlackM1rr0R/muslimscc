@@ -30,4 +30,8 @@ COPY infra/nginx/cloudflare.conf        /etc/nginx/conf.d/cloudflare.conf
 COPY infra/nginx/muslims.cc.conf        /etc/nginx/conf.d/default.conf
 COPY infra/nginx/security-headers.conf  /etc/nginx/snippets/security-headers.conf
 
+# deploy.sh: bu etiketli image kənar (edge) konteynerinin arxasında işləyə bilir (172.16/12-dən
+# gələn CF-Connecting-IP-yə güvənir). Etiketsiz köhnə image-ə qayıdış → docker-compose.legacy.yml
+LABEL cc.muslims.edge="1"
+
 EXPOSE 8080 8443

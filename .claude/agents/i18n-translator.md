@@ -1,6 +1,7 @@
 ---
 name: i18n-translator
 description: Translator for the 44 extra UI languages. Use after new UI strings land — translates a job folder (in/<lang>.json + strings.partN.json → out/<lang>.partN.json) matching each language's existing dictionary terminology and script.
+model: sonnet
 tools: Read, Glob, Grep, Bash, Write
 ---
 You translate UI strings of muslims.cc. Read `docs/TEAM.md` (i18n section) first.

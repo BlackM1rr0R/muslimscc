@@ -9,12 +9,12 @@ import { pickMeta } from '../src/seo/meta.js'
 
 // Bölmələr — qruplar (key-lər routes.js PAGES-dən). Siyahıda olmayan indekslənən səhifə "Other"-ə düşür.
 const GROUPS = [
-  ['Quran', ['quran', 'mushaf', 'quranroots', 'hifz', 'qurangame']],
+  ['Quran', ['quran', 'mushaf', 'quranroots', 'quranmeaning', 'hifz', 'qurangame']],
   ['Prayer', ['prayer', 'qibla', 'prayerguide', 'tracker', 'qada', 'jamaat', 'mosques', 'mosquetv', 'widget']],
   ['Hadith', ['hadith', 'nawawi40', 'hadithbooks', 'hadeethenc']],
   ['Dua and dhikr', ['duas', 'hisn', 'dhikr', 'names', 'duajournal']],
   ['Calendar, fasting and Hajj', ['calendar', 'hijri', 'ramadan', 'hajjguide', 'holyplaces']],
-  ['Learning', ['learn', 'arabic', 'glossary', 'fatwa', 'history', 'sahaba', 'scholars', 'kids', 'quiz', 'books', 'videos']],
+  ['Learning', ['learn', 'newmuslim', 'arabic', 'glossary', 'fatwa', 'history', 'sahaba', 'scholars', 'kids', 'quiz', 'books', 'videos']],
   ['Calculators and tools', ['zakat', 'inheritance', 'halalcheck', 'charity', 'babynames', 'namecalligraphy', 'quotes', 'dailytracker', 'muhasabah']],
 ]
 const SKIP = new Set(['home', 'privacy', 'terms', 'licenses', 'analytics', 'group', 'aichat', 'donate', 'announcements'])

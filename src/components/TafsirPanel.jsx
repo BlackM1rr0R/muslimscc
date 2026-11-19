@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import Icon from './Icon'
 import ReportErrorButton from './ReportErrorButton'
 import { exitDelay } from '../utils/promptCoordinator'
@@ -7,6 +7,13 @@ import {
 } from '../utils/tafsir'
 import '../styles/TafsirPanel.css'
 import { pickUi } from '../utils/uiText'
+
+// Müqayisə dialoqu — yalnız düymə basılanda yüklənir (ayrı chunk)
+// Chunk yüklənmədisə (oflayn, yeni deploy) — səhifə çökmür, düymənin altında xəta yazılır
+function CompareChunkError({ errorText }) {
+  return <p className="tf-msg tf-msg--bad tf-compare-err" role="alert"><Icon name="alert" size={18} className="tf-msg__icon" /><span className="tf-msg__text">{errorText}</span></p>
+}
+const TafsirCompare = lazy(() => import('./quran/TafsirCompare').catch(() => ({ default: CompareChunkError })))
 
 // ═══════════════════════════════════════════════════════
 // Ayənin altındakı təfsir: "Təfsir" düyməsi + açılan panel.
@@ -18,6 +25,7 @@ import { pickUi } from '../utils/uiText'
 
 export const TAFSIR_UI = {
   az: {
+    compare: 'Yan-yana müqayisə et',
     open: 'Təfsir', choose: 'Təfsiri seçin', source: 'Mənbə',
     more: 'Daha çox göstər', less: 'Qısalt', retry: 'Yenidən cəhd et',
     loading: 'Təfsir yüklənir…',
@@ -31,6 +39,7 @@ export const TAFSIR_UI = {
     langNames: { azerbaijani: 'azərbaycanca', arabic: 'ərəbcə', english: 'ingiliscə', russian: 'rusca' },
   },
   en: {
+    compare: 'Compare tafsirs',
     open: 'Tafsir', choose: 'Choose a tafsir', source: 'Source',
     more: 'Show more', less: 'Show less', retry: 'Try again',
     loading: 'Loading tafsir…',
@@ -44,6 +53,7 @@ export const TAFSIR_UI = {
     langNames: { azerbaijani: 'Azerbaijani', arabic: 'Arabic', english: 'English', russian: 'Russian' },
   },
   ru: {
+    compare: 'Сравнить тафсиры',
     open: 'Тафсир', choose: 'Выберите тафсир', source: 'Источник',
     more: 'Показать больше', less: 'Свернуть', retry: 'Повторить',
     loading: 'Тафсир загружается…',
@@ -57,6 +67,7 @@ export const TAFSIR_UI = {
     langNames: { azerbaijani: 'на азербайджанском', arabic: 'на арабском', english: 'на английском', russian: 'на русском' },
   },
   ar: {
+    compare: 'قارن بين التفاسير',
     open: 'تفسير', choose: 'اختر التفسير', source: 'المصدر',
     more: 'عرض المزيد', less: 'عرض أقل', retry: 'أعد المحاولة',
     loading: 'جارٍ تحميل التفسير…',
@@ -70,6 +81,7 @@ export const TAFSIR_UI = {
     langNames: { azerbaijani: 'بالأذربيجانية', arabic: 'بالعربية', english: 'بالإنجليزية', russian: 'بالروسية' },
   },
   tr: {
+    compare: 'Yan yana karşılaştır',
     open: 'Tefsir', choose: 'Tefsir seçin', source: 'Kaynak',
     more: 'Devamını göster', less: 'Kısalt', retry: 'Tekrar dene',
     loading: 'Tefsir yükleniyor…',
@@ -93,7 +105,7 @@ function rangeText(verses) {
   return `${verses[0]}–${verses[verses.length - 1]}`
 }
 
-function TafsirBody({ surah, ayah, tafsirId, ui }) {
+export function TafsirBody({ surah, ayah, tafsirId, ui, idBase = 'tf-text' }) {
   const meta = getTafsir(tafsirId)
   const [attempt, setAttempt] = useState(0)
   const [state, setState] = useState(() => {
@@ -153,7 +165,7 @@ function TafsirBody({ surah, ayah, tafsirId, ui }) {
   const { html, verses } = state.data
   const long = plainLength(html) > COLLAPSE_AT
   const collapsed = long && !expanded
-  const textId = `tf-text-${surah}-${ayah}`
+  const textId = `${idBase}-${surah}-${ayah}`
   return (
     <>
       {verses.length > 1 && (
@@ -191,6 +203,13 @@ export function TafsirPanel({ id, surah, ayah, lang, tafsirId, onChangeTafsir, l
   const selectId = `${id}-select`
   // Saytın dilində təfsir yoxdursa (az, tr) — dürüst qeyd
   const showNoNative = !hasNativeTafsir(lang) && ui.noNative
+  const [comparing, setComparing] = useState(false)
+  const compareBtn = useRef(null)
+  const closeCompare = () => {
+    setComparing(false)
+    // Fokus dialoqu açan düyməyə qayıdır
+    requestAnimationFrame(() => compareBtn.current?.focus())
+  }
   return (
     <section id={id} className={`tf-panel${leaving ? ' is-leaving' : ''}`} aria-label={label}>
       <div className="tf-head">
@@ -226,6 +245,15 @@ export function TafsirPanel({ id, surah, ayah, lang, tafsirId, onChangeTafsir, l
           className="tf-src__link" dir="ltr">quran.com<Icon name="external" size={13} className="tf-src__icon" /></a>
         {meta.local && <ReportErrorButton compact refText={`${pickUi(meta.name, lang, 'en')} — ${surah}:${ayah}`} kind="translation" className="tf-src__report" />}
       </p>
+      <button ref={compareBtn} type="button" className="ui-btn ui-btn--ghost ui-btn--sm tf-compare-btn"
+        aria-haspopup="dialog" onClick={() => setComparing(true)}>
+        <Icon name="books" size={16} fallback="quran" className="ui-btn__icon" />{ui.compare}
+      </button>
+      {comparing && (
+        <Suspense fallback={null}>
+          <TafsirCompare surah={surah} ayah={ayah} lang={lang} onClose={closeCompare} errorText={ui.error} />
+        </Suspense>
+      )}
     </section>
   )
 }

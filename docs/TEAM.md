@@ -20,6 +20,12 @@ unless the lead explicitly says so in the task.**
 8. **i18n-translator** — new strings into the 44 extra languages.
 9. Lead: final gates, commit, push, watch CI, verify prod.
 
+## Token budget
+- Agents do **not** run `npm run build`/prerender or the full e2e suite. They run eslint, `npm run check`, vitest, and at most the 1–3 specs for their change against the lead's build if the lead says one exists. The lead builds once at the end; CI runs the full e2e.
+- Cheap models: pm, content-reviewer and i18n-translator run on Sonnet (set in their frontmatter).
+- Prefer few larger agents over many small ones (e.g. 3–4 translators for 44 languages, not 11). Don't re-read huge files (dictionaries, data JSON) whole when grep/targeted reads suffice.
+- Audits only for what changed, not a full-site sweep every round.
+
 ## Hard rules (learned from incidents)
 - **DB is additive only:** `CREATE TABLE IF NOT EXISTS` inside the module; no new MIGRATIONS entry, no `user_version` bump (2026-11-04 one-way migration outage).
 - **Every new server module goes into the preload list at the top of `server/server.js`** (module-miss outage).
@@ -28,6 +34,7 @@ unless the lead explicitly says so in the task.**
 - **Gates before reporting done:** `npx eslint . --max-warnings=0` · `npm run check` · `npx vitest run` · `npm run build` · related e2e. `.env.public` must exist before a local build.
 - **e2e:** fixtures mock every `/api/*` (`tests/e2e/fixtures.js`); new endpoints need mocks; reducedMotion on; `page.route` regexes can match chunk names; never leave an empty `role="alert"` rendered; wait for the page to render before checking optional elements (`isVisible()` races).
 - **Parallel builds:** `PRERENDER_DIST=dist-<x>` and `--output test-results-<x>`; delete them afterwards (lint fails on stray dist dirs).
+- **Never run plain `docker compose up -d` on the server** — it recreates every container at once (outage). Deploys go only through `infra/deploy.sh` (edge + per-service blue/green, zero downtime). Container names drift (`muslimscc-api-N`); use `docker compose exec api`.
 - **CI installs root deps, then `server/` deps (`npm ci --prefix server`) before unit tests** — a test that spawns `server/server.js` passes locally but fails in CI without them (2026-11-19, 4394a77).
 - **Controlled checkboxes with async onChange** need optimistic local state, otherwise Playwright `.check()` fails ("did not change its state").
 - **Dependabot PRs** (GitHub Actions major bumps) are never auto-merged; security-reviewer checks them first.

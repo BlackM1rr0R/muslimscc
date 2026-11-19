@@ -1,0 +1,12 @@
+# ═══════════════════════════════════════════════════════
+# Köhnə (edge-siz) topologiya — yalnız deploy.sh istifadə edir: "cc.muslims.edge" etiketi OLMAYAN
+# (kəsintisiz deploy-dan əvvəlki) web image-inə qayıdanda edge dayandırılır və web portları özü
+# tutur (qısa kəsinti). Köhnə web image-i edge-in Docker ünvanından gələn CF-Connecting-IP-yə
+# güvənmir — edge arxasında bütün ziyarətçilər bir IP sayılardı.
+#   docker compose -f docker-compose.yml -f docker-compose.legacy.yml up -d --no-deps web
+# ═══════════════════════════════════════════════════════
+services:
+  web:
+    ports:
+      - "${BIND_IP:-0.0.0.0}:${HTTP_PORT:-80}:8080"
+      - "${BIND_IP:-0.0.0.0}:${HTTPS_PORT:-443}:8443"

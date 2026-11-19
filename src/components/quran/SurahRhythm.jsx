@@ -11,6 +11,9 @@
 //   ← → düymələri ilə ayədən ayəyə.
 // • Ekrana girəndə sütunlar soldan sağa "dalğa" kimi açılır (bir clip-path
 //   animasiyası — 286 ayəlik surədə də yüngül).
+// • Batch Q: active — səslənən ayənin sütunu işıqlanır, ondan əvvəlkilər "oxunub" tonunda;
+//   səcdə ayələri (verse.sj — API məlumatı) üstündə kiçik romb. defaultOpen — kompüterdə
+//   (≥768px) açıq başlayır (telefonda yığılmış qalır — ilk ayə ekrandan itələnməsin).
 // Stillər: src/styles/SurahRhythm.css
 // ═══════════════════════════════════════════════════════
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -33,10 +36,15 @@ export function wordCount(ar) {
 
 const W = 600, H = 96
 
-export default function SurahRhythm({ verses = [], madani = false, lang = 'az', onPick }) {
+export default function SurahRhythm({ verses = [], madani = false, lang = 'az', onPick, active = null, defaultOpen = false }) {
   const t = pickUi(TXT, lang, 'en')
-  const rows = useMemo(() => verses.map(v => ({ n: v.n, w: wordCount(v.ar) })), [verses])
+  const rows = useMemo(() => verses.map(v => ({ n: v.n, w: wordCount(v.ar), sj: Boolean(v.sj) })), [verses])
   const [open, setOpen] = useState(false)
+  // Ölçü yalnız mount-dan sonra oxunur (ilk render hər yerdə eynidir)
+  useEffect(() => {
+    if (!defaultOpen) return
+    try { if (window.matchMedia('(min-width: 768px)').matches) setOpen(true) } catch { /* */ }
+  }, [defaultOpen])
   const [hover, setHover] = useState(null)
   const [shown, setShown] = useState(false)
   const ref = useRef(null)
@@ -110,10 +118,14 @@ export default function SurahRhythm({ verses = [], madani = false, lang = 'az', 
           <g className="srh-bars">
             {rows.map((r, i) => {
               const h = Math.max(2, (r.w / stats.max) * (H - 4))
-              return <rect key={r.n} className={`srh-bar${i === hover ? ' is-hover' : ''}${r === stats.hi ? ' is-max' : ''}`}
+              const st = active == null ? '' : r.n === active ? ' is-active' : r.n < active ? ' is-played' : ''
+              return <rect key={r.n} className={`srh-bar${i === hover ? ' is-hover' : ''}${r === stats.hi ? ' is-max' : ''}${st}`}
                 x={i * bw + gap / 2} y={H - h} width={Math.max(0.6, bw - gap)} height={h} rx={bw > 6 ? 2 : 0} />
             })}
           </g>
+          {rows.map((r, i) => r.sj && (
+            <rect key={`sj${r.n}`} className="srh-saj" x={i * bw + bw / 2 - 2.5} y="0" width="5" height="5" transform={`rotate(45 ${i * bw + bw / 2} 2.5)`} />
+          ))}
           <line className="srh-avg" x1="0" x2={W} y1={H - (stats.avg / stats.max) * (H - 4)} y2={H - (stats.avg / stats.max) * (H - 4)} />
         </svg>
       </div>

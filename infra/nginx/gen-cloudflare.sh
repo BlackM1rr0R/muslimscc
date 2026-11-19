@@ -18,6 +18,10 @@ V6=$(curl -fsS https://www.cloudflare.com/ips-v6)
   echo "#    Cloudflare qorumasından yan keçə bilməsin."
   echo
   for r in $V4 $V6; do echo "set_real_ip_from $r;"; done
+  echo "# Kənar (edge) konteyneri — infra/edge/nginx.conf: 80/443-ü o tutur və TCP-ni olduğu kimi bura"
+  echo "# ötürür (yalnız Cloudflare IP-lərini buraxır). Onun Docker ünvanından gələn CF-Connecting-IP-yə də"
+  echo "# güvənilir, yoxsa bütün ziyarətçilər edge-in tək IP-si kimi sayılardı (rate-limit)."
+  echo "set_real_ip_from 172.16.0.0/12;"
   echo "real_ip_header CF-Connecting-IP;"
   echo
   echo "geo \$realip_remote_addr \$from_cloudflare {"
@@ -33,3 +37,19 @@ V6=$(curl -fsS https://www.cloudflare.com/ips-v6)
   echo "}"
 } > "$OUT"
 echo "yazıldı: $OUT"
+
+# Kənar (edge, L4) konteynerinin icazə siyahısı — eyni ünvanlar (tests/unit/infra-edge.test.js müqayisə edir)
+EDGE="$(dirname "$0")/../edge/cloudflare-allow.conf"
+{
+  echo "# AVTOMATİK YARADILIB — infra/nginx/gen-cloudflare.sh (nginx/cloudflare.conf ilə eyni siyahı). Əl ilə redaktə etmə."
+  echo "#"
+  echo "# Kənar (edge) konteyneri (infra/edge/nginx.conf) yalnız bu ünvanlardan gələn TCP bağlantılarını"
+  echo "# qəbul edir, qalanını dərhal kəsir (web-dəki \"return 444\"-ün L4 qarşılığı). Serverin öz yoxlamaları"
+  echo "# (deploy.sh → curl 127.0.0.1:443) docker-proxy ilə Docker körpüsündən (172.16.0.0/12) gəlir."
+  echo
+  echo "allow 127.0.0.1;"
+  echo "allow 172.16.0.0/12;"
+  for r in $V4 $V6; do echo "allow $r;"; done
+  echo "deny all;"
+} > "$EDGE"
+echo "yazıldı: $EDGE (serverdə: /opt/muslimscc/edge/ + docker compose kill -s HUP edge)"

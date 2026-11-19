@@ -143,6 +143,10 @@ const GroupPage = lazy(() => import('./pages/GroupPage'))
 const WidgetPage = lazy(() => import('./pages/WidgetPage'))
 const MosqueTvPage = lazy(() => import('./pages/MosqueTvPage'))
 const QuranRootsPage = lazy(() => import('./pages/QuranRootsPage'))
+// C dəstəsi: Quranda məna ilə axtarış, yeni müsəlmanın yolu, sədəqeyi-cariyə gündəliyi
+const QuranMeaningPage = lazy(() => import('./pages/QuranMeaningPage'))
+const NewMuslimPathPage = lazy(() => import('./pages/NewMuslimPathPage'))
+const JariyahJournalPage = lazy(() => import('./pages/JariyahJournalPage'))
 const MushafPage = lazy(() => import('./pages/MushafPage'))
 const HijriPage = lazy(() => import('./pages/HijriPage'))
 const QadaPage = lazy(() => import('./pages/QadaPage'))
@@ -446,6 +450,9 @@ function AppInner() {
       case 'widget':     return <WidgetPage setPage={navigate} />
       case 'mosquetv':   return <MosqueTvPage setPage={navigate} />
       case 'quranroots': return <QuranRootsPage setPage={navigate} />
+      case 'quranmeaning': return <QuranMeaningPage setPage={navigate} />
+      case 'newmuslim':  return <NewMuslimPathPage setPage={navigate} />
+      case 'jariyah':    return <JariyahJournalPage setPage={navigate} />
       case 'mushaf':     return <MushafPage setPage={navigate} />
       case 'hijri':      return <HijriPage setPage={navigate} />
       case 'qada':       return <QadaPage setPage={navigate} />

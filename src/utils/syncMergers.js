@@ -23,6 +23,8 @@ import { sanitizeTaraweeh, TARAWEEH_KEY } from './taraweeh'
 import { sanitizeMilestones, sanitizeKunya, sanitizeBirthday, MILESTONES_KEY, KUNYA_KEY, BIRTHDAY_KEY, CELEBRATE_KEY } from './journeyStore'
 import { HIFZ_DATES_KEY } from './hifzDates'
 import { MADHAB_KEY, normMadhab } from './madhab'
+import { sanitizeJariyah, JARIYAH_KEY } from './jariyahJournal'
+import { sanitizePath, PATH_KEY } from './newMuslimPath'
 
 export const CONFLICT = Symbol('conflict')
 
@@ -264,6 +266,21 @@ export const MERGERS = {
     if (l === CONFLICT) return CONFLICT
     const out = sanitizeMilestones({ l })
     return out.l.length ? out : undefined
+  }, { ok: isObj }),
+  // ── C dəstəsi ──
+  // Sədəqeyi-cariyə gündəliyi — qeyd üzrə 3 tərəfli (silinmə də keçir); eyni qeyd hər iki tərəfdə dəyişibsə — təzəsi (u)
+  [JARIYAH_KEY]: json((L, R, B) => {
+    const pick = (o) => sanitizeJariyah(o).l
+    const l = idList((a, b) => ((Number(b.u) || 0) > (Number(a.u) || 0) ? b : a))(pick(L), pick(R), B === undefined ? undefined : pick(B))
+    if (l === CONFLICT) return CONFLICT
+    const out = sanitizeJariyah({ l })
+    return out.l.length ? out : undefined
+  }, { ok: isObj }),
+  // Yeni müsəlmanın yolu — addım üzrə 3 tərəfli (işarənin götürülməsi də keçir); eyni addım iki cihazda — ən erkən gün
+  [PATH_KEY]: json((L, R, B) => {
+    const m = mergeMap3(sanitizePath(L).d, sanitizePath(R).d, B === undefined ? {} : sanitizePath(B).d, (l, r) => (l < r ? l : r))
+    const out = sanitizePath({ d: m })
+    return Object.keys(out.d).length ? out : undefined
   }, { ok: isObj }),
   // İldönümü / ad günü kartının göstərildiyi il — sahə üzrə ən böyük
   [CELEBRATE_KEY]: json((L, R) => {

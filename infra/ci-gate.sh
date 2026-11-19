@@ -12,16 +12,21 @@
 #
 # İcazəli əmrlər ($SSH_ORIGINAL_COMMAND):
 #   upload <TAG> <web|api>   stdin → releases/<TAG>/<ad>.tar.gz
+#   reuse <TAG> <web|api> <SRC>
+#                            serverdəki image-lərdən "cc.muslims.src" etiketi SRC olanı (mənbəsi
+#                            eyni — məs. server/ dəyişməyib) <TAG> kimi işarələ; yükləmə lazım olmur.
+#                            Tapılmasa çıxış kodu 3 ("miss") — CI onda adi upload edir.
 #   deploy <TAG>             /opt/muslimscc/deploy.sh <TAG>
 #   status                   cari versiya + konteynerlərin vəziyyəti
-# TAG: 7-40 simvollu git hash (yalnız [0-9a-f]) — yol hücumu mümkün deyil.
+# TAG: 7-40 simvollu git hash (yalnız [0-9a-f]) — yol hücumu mümkün deyil. SRC: 40 simvollu git hash.
 # ═══════════════════════════════════════════════════════
 set -eu
 cd /opt/muslimscc
 
 # shellcheck disable=SC2086
 set -- ${SSH_ORIGINAL_COMMAND:-}
-CMD="${1:-}"; TAG="${2:-}"; NAME="${3:-}"
+CMD="${1:-}"; TAG="${2:-}"; NAME="${3:-}"; SRC="${4:-}"
+[ $# -le 4 ] || { echo "ci-gate: artıq arqument" >&2; exit 1; }
 
 valid_tag() { echo "$1" | grep -Eq '^[0-9a-f]{7,40}$'; }
 deny() { echo "ci-gate: icazə yoxdur: ${SSH_ORIGINAL_COMMAND:-<boş>}" >&2; logger -t ci-gate "rədd: ${SSH_ORIGINAL_COMMAND:-}"; exit 1; }
@@ -37,6 +42,22 @@ case "$CMD" in
     mv "releases/$TAG/$NAME.tar.gz.part" "releases/$TAG/$NAME.tar.gz"
     logger -t ci-gate "upload $TAG $NAME"
     echo "yükləndi: $TAG/$NAME"
+    ;;
+  reuse)
+    valid_tag "$TAG" || deny
+    case "$NAME" in web|api) ;; *) deny ;; esac
+    echo "$SRC" | grep -Eq '^[0-9a-f]{40}$' || deny
+    for id in $(docker image ls "muslimscc-$NAME" --format '{{.ID}}' | sort -u); do
+      if [ "$(docker image inspect -f '{{index .Config.Labels "cc.muslims.src"}}' "$id" 2>/dev/null)" = "$SRC" ]; then
+        docker tag "$id" "muslimscc-$NAME:$TAG"
+        mkdir -p "releases/$TAG" && : > "releases/$TAG/$NAME.reused"
+        logger -t ci-gate "reuse $TAG $NAME"
+        echo "təkrar istifadə: $NAME ($SRC) → $TAG"
+        exit 0
+      fi
+    done
+    echo "miss"
+    exit 3
     ;;
   deploy)
     valid_tag "$TAG" || deny

@@ -1,8 +1,11 @@
 # ═══════════════════════════════════════════════════════
 # Muslims.cc — istehsal (serverdə: /opt/muslimscc/docker-compose.yml)
 #
-# İki konteyner:
-#   web — root-suz nginx: sayt + /api/ proksi. Yeganə internetə açıq xidmət.
+# Üç xidmət:
+#   edge — host-un 80/443 portlarının DAİMİ sahibi: kiçik L4 (TCP) proksi, yalnız Cloudflare
+#         IP-lərini buraxır və bağlantını "web"-ə ötürür (infra/edge/nginx.conf). Deploy-da
+#         YENİDƏN YARADILMIR — kəsintisiz deploy məhz buna görə mümkündür.
+#   web — root-suz nginx: TLS, sayt + /api/ proksi. Host portu yoxdur (edge arxasında).
 #   api — Node (server.js): AI, məzmun API-si (SQLite), admin girişi, push
 #         bildirişləri, azan planlayıcısı. Heç bir port açmır — yalnız "web"
 #         ona Docker şəbəkəsində çatır. Baza: named volume api-data → /data
@@ -12,6 +15,12 @@
 # Image-lər CI-da (GitHub Actions) build olunur və serverə tar kimi
 # göndərilir (server 1 CPU / 1 GB — build üçün kiçikdir). Versiya: TAG
 # (git commit qısa hash-i). İşə salma və geri qaytarma: deploy.sh.
+#
+# KƏSİNTİSİZ DEPLOY (deploy.sh): api və web "docker compose up --scale <xidmət>=2 --no-recreate"
+# ilə yanına yeni konteyner alır (eyni DNS adı), yenisi yoxlanılır, köhnəsi səliqəli dayanır.
+# Ona görə konteyner adları dəyişir (muslimscc-api-1, -2, …) — həmişə "docker compose exec api"
+# işlədin, konteyner adını yox. DİQQƏT: "docker compose up -d" (seçimsiz) əl ilə İŞLƏTMƏYİN —
+# hər şeyi birdən yenidən yaradar (kəsinti); deploy.sh <TAG> və ya deploy.sh --rollback işlədin.
 #
 # DİQQƏT — Docker və UFW: Docker açdığı portları UFW-dən yan keçir. Ona
 # görə yalnız web portları açılır, həm də yalnız IPv4-də (IPv6-da Docker
@@ -33,7 +42,7 @@ x-hardening: &hardening
 services:
   api:
     <<: *hardening
-    image: muslimscc-api:${TAG:?TAG verilməyib}
+    image: ${IMAGE_PREFIX:-muslimscc}-api:${TAG:?TAG verilməyib}
     env_file: ./api.env          # 600, root — sirlər yalnız burada
     tmpfs: [/tmp]
     volumes:
@@ -43,28 +52,47 @@ services:
       - api-data:/data
     mem_limit: 320m
     # Healthcheck Dockerfile-dadır: /api/health — o, DB-ni də yoxlayır (SELECT 1)
-    stop_grace_period: 15s    # SIGTERM → WAL checkpoint + DB səliqəli bağlanır
+    # SIGTERM → dinləmə dayanır, işdəki sorğular bitir (≤ 8 san, server.js DRAIN_MS), SSE bağlanır,
+    # WAL checkpoint + DB səliqəli bağlanır. Deploy zamanı iki api prosesi bir neçə saniyə eyni
+    # bazanı paylaşır (WAL + busy_timeout); push-lar server/pushClaims.js ilə bir dəfə gedir.
+    stop_grace_period: 15s
     networks: [backend]
 
   web:
     <<: *hardening
-    image: muslimscc-web:${TAG:?TAG verilməyib}
+    image: ${IMAGE_PREFIX:-muslimscc}-web:${TAG:?TAG verilməyib}
     depends_on:
       api: { condition: service_healthy }
-    ports:
-      - "${BIND_IP:-0.0.0.0}:${HTTP_PORT:-80}:8080"
-      - "${BIND_IP:-0.0.0.0}:${HTTPS_PORT:-443}:8443"
+    # Host portu YOXDUR — edge ötürür (köhnə, edge-siz image-ə qayıdış: docker-compose.legacy.yml)
     volumes:
       - ./certs:/certs:ro                        # certbot deploy-hook kopyalayır
       - /var/www/certbot:/var/www/certbot:ro     # Let's Encrypt yoxlama faylları
     tmpfs: [/tmp, /var/cache/nginx]
     mem_limit: 96m
+    stop_grace_period: 10s    # SIGQUIT → nginx səliqəli dayanır (açıq SSE axınları 10 san sonra kəsilir)
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/healthz >/dev/null || exit 1"]
       interval: 30s
       timeout: 5s
       start_period: 10s
       retries: 3
+    networks: [backend]
+
+  edge:
+    <<: *hardening
+    # nginx ≥ 1.27.3 (upstream "resolve"); digest ilə sabitlənib — dəyişdirmək kəsinti deməkdir
+    # (portları tutan konteyner yenidən yaradılır): yalnız planlı, README → "edge".
+    image: ${EDGE_IMAGE:-nginxinc/nginx-unprivileged:stable-alpine@sha256:f5116ed4606f3eb015dd4a8e28cb9b351476dc0ad4bc6e9f93b19cec130cdf03}
+    entrypoint: ["nginx"]
+    command: ["-c", "/etc/nginx/edge/nginx.conf", "-g", "daemon off;"]
+    ports:
+      - "${BIND_IP:-0.0.0.0}:${HTTP_PORT:-80}:8080"
+      - "${BIND_IP:-0.0.0.0}:${HTTPS_PORT:-443}:8443"
+    volumes:
+      - ./edge:/etc/nginx/edge:ro    # fayl yox, qovluq: scp ilə yenilənəndə də görünsün (HUP)
+    tmpfs: [/tmp]
+    mem_limit: 48m
+    stop_grace_period: 5s
     networks: [backend]
 
 networks:

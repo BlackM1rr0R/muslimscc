@@ -393,6 +393,8 @@ function Header({ currentPage, setPage }) {
     try {
       const params = new URLSearchParams(window.location.search);
       if (!params.has("q")) return;
+      // Quranı mənaya görə axtarış səhifəsi ?q=-ni özü işlədir — qlobal axtarış ona toxunmasın
+      if (/(^|\/)quran-meaning\/?$/.test(window.location.pathname)) return;
       q = (params.get("q") || "").trim().slice(0, MAX_DEEPLINK_Q);
       params.delete("q");
       const rest = params.toString();
