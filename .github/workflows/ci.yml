@@ -45,7 +45,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with: { node-version: '${{ env.NODE_VERSION }}', cache: npm }
       - run: npm ci
@@ -74,7 +74,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with: { node-version: '${{ env.NODE_VERSION }}', cache: npm }
       - run: npm ci
@@ -110,7 +110,7 @@ jobs:
           - { name: 'a11y qaranlıq + a11y.spec 1/2', grep: 'a11y \(dark\)|a11y\.spec', shard: '1/2' }
           - { name: 'a11y qaranlıq + a11y.spec 2/2', grep: 'a11y \(dark\)|a11y\.spec', shard: '2/2' }
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with: { node-version: '${{ env.NODE_VERSION }}', cache: npm }
       - run: npm ci
@@ -153,7 +153,7 @@ jobs:
       api_src: ${{ steps.tag.outputs.api_src }}
       web_src: ${{ steps.tag.outputs.web_src }}
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       # cc.muslims.src — image-in mənbəyinin git həşi: api = server/ qovluğu (kontekst), web = server/-dən
       # başqa hər şey (web build server/-i oxumur). Serverdə eyni mənbəli image varsa deploy onu yükləmir
       # (ci-gate "reuse") və deploy.sh eyni image-i yenidən başlatmır.
