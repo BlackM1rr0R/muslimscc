@@ -24,8 +24,10 @@ async function serious(page, include) {
     .flatMap(v => v.nodes.map(n => `${v.impact} · ${v.id} · ${n.target.join(' ')} — ${n.html.slice(0, 120)}`))
 }
 const store = (page, key) => page.evaluate((k) => JSON.parse(localStorage.getItem(k) || 'null'), key)
-const ymd = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-const shift = (n) => { const d = new Date(); d.setDate(d.getDate() + n); return ymd(d) }
+// Brauzer Asia/Baku saat qurşağındadır (playwright.config) — "bu gün" Bakı tarixinə görə
+// (CI UTC-də işləyir; 20:00 UTC-dən sonra Bakıda ertəsi gündür və günlər bir sürüşürdü)
+const bakuToday = () => new Date(new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Baku' }).format(new Date()) + 'T12:00:00Z')
+const shift = (n) => { const d = bakuToday(); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10) }
 
 // ── 1. Borc dəftəri ──
 test('borc dəftəri: əlavə et, qismən qaytarma, bağla, filtr, sil; noindex; ayə saytın mənbəyindən', async ({ page, consoleProblems }) => {

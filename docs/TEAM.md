@@ -36,6 +36,7 @@ unless the lead explicitly says so in the task.**
 - **Parallel builds:** `PRERENDER_DIST=dist-<x>` and `--output test-results-<x>`; delete them afterwards (lint fails on stray dist dirs).
 - **Never run plain `docker compose up -d` on the server** — it recreates every container at once (outage). Deploys go only through `infra/deploy.sh` (edge + per-service blue/green, zero downtime). Container names drift (`muslimscc-api-N`); use `docker compose exec api`.
 - **CI installs root deps, then `server/` deps (`npm ci --prefix server`) before unit tests** — a test that spawns `server/server.js` passes locally but fails in CI without them (2026-11-19, 4394a77).
+- **Date-relative e2e tests:** the browser runs in `Asia/Baku` (playwright.config), CI in UTC — after 20:00 UTC "today" differs. Compute dates in the Baku zone (`Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Baku' })`), never with the Node process' local `new Date()`.
 - **Controlled checkboxes with async onChange** need optimistic local state, otherwise Playwright `.check()` fails ("did not change its state").
 - **Dependabot PRs** (GitHub Actions major bumps) are never auto-merged; security-reviewer checks them first.
 - **localStorage:** use the `safeStorage()` pattern (try/catch); profile keys via `PROFILE_KEYS` in `src/utils/profileCore.js`; synced keys need a merger in `src/utils/syncMergers.js`.
