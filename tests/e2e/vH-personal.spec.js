@@ -28,14 +28,14 @@ const order = (page) => page.locator('[data-home-section]').evaluateAll((els) =>
 test('ana səhifə: bölmələrin sırası və görünməsi yadda qalır', async ({ page, consoleProblems }) => {
   await page.goto('/')
   await settle(page)
-  expect((await order(page)).slice(0, 3)).toEqual(['stories', 'today', 'myday'])
+  expect((await order(page)).slice(0, 3)).toEqual(['stories', 'now', 'today'])
   await page.getByTestId('home-customize').click()
   const dlg = page.getByTestId('home-layout-editor')
   await expect(dlg).toBeVisible()
   // "Nə axtarırsınız?" ən yuxarıya — klaviatura alternativi (↑ düyməsi), fokus düymədə qalır
   const up = dlg.getByTestId('hl-up-quick')
-  for (let i = 0; i < 4; i++) await up.click()
-  await expect(dlg.getByTestId('hl-live')).toContainText('1 / 10')
+  for (let i = 0; i < 5; i++) await up.click()
+  await expect(dlg.getByTestId('hl-live')).toContainText('1 / 11')
   await expect(up).toBeDisabled()
   await expect(dlg.getByTestId('hl-down-quick')).toBeFocused()
   // Günün hekayələrini və "Bu gün" panelindəki ayəni gizlət

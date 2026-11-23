@@ -18,14 +18,15 @@ import { pathFor } from '../seo/routes'
 import Icon, { hasIcon } from './Icon'
 import { useBackToClose } from '../utils/useBackToClose'
 import { pickUi } from '../utils/uiText'
+import { openTour } from '../utils/tour'
 
 // Mətnlər saytda artıq var (44 lüğətdə tərcüməsi hazırdır)
 const L = {
-  az: { how: 'Necə işləyir', onPage: 'Bu səhifədə', related: 'Əlaqəli bölmələr', close: 'Bağla' },
-  en: { how: 'How it works', onPage: 'On this page', related: 'Related sections', close: 'Close' },
-  ru: { how: 'Как это работает', onPage: 'На этой странице', related: 'Связанные разделы', close: 'Закрыть' },
-  ar: { how: 'طريقة العمل', onPage: 'في هذه الصفحة', related: 'أقسام ذات صلة', close: 'إغلاق' },
-  tr: { how: 'Nasıl işler', onPage: 'Bu sayfada', related: 'İlgili bölümler', close: 'Kapat' },
+  az: { how: 'Necə işləyir', onPage: 'Bu səhifədə', related: 'Əlaqəli bölmələr', close: 'Bağla', tour: 'Burada nə edə bilərəm?', tourHint: 'Saytla bir dəqiqəlik tanışlıq turu' },
+  en: { how: 'How it works', onPage: 'On this page', related: 'Related sections', close: 'Close', tour: 'What can I do here?', tourHint: 'A one-minute tour of the site' },
+  ru: { how: 'Как это работает', onPage: 'На этой странице', related: 'Связанные разделы', close: 'Закрыть', tour: 'Что здесь можно делать?', tourHint: 'Тур по сайту за одну минуту' },
+  ar: { how: 'طريقة العمل', onPage: 'في هذه الصفحة', related: 'أقسام ذات صلة', close: 'إغلاق', tour: 'ماذا يمكنني أن أفعل هنا؟', tourHint: 'جولة في الموقع مدتها دقيقة واحدة' },
+  tr: { how: 'Nasıl işler', onPage: 'Bu sayfada', related: 'İlgili bölümler', close: 'Kapat', tour: 'Burada neler yapabilirim?', tourHint: 'Sitede bir dakikalık tanıtım turu' },
 }
 
 const FOCUSABLE = 'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'
@@ -139,6 +140,15 @@ export default function PageHelp({ page, onClose, onNavigate }) {
               </ol>
             </section>
           )}
+
+          {/* Bələdçi tur (TourHost): pəncərə bağlanır, fokus ⓘ düyməsinə qayıdır, sonra tur açılır */}
+          <section className="vx-help__sec">
+            <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm vx-help__tour" aria-haspopup="dialog"
+              onClick={() => { onClose(); requestAnimationFrame(openTour) }}>
+              <Icon name="tour" size={16} className="ui-btn__icon" /> {l.tour}
+            </button>
+            <p className="vx-help__how">{l.tourHint}</p>
+          </section>
 
           {related.length > 0 && (
             <section className="vx-help__sec">

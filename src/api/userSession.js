@@ -111,7 +111,10 @@ let mePromise = null
  */
 export function refreshMe() {
   if (mePromise) return mePromise
-  mePromise = authFetch('/api/auth/me')
+  // Saytın aktiv dili (server/welcome.js saxlayır — xoş gəldin məktubu həmin dildə gedir)
+  let lang = ''
+  try { lang = globalThis.document?.documentElement?.lang || '' } catch { /* prerender */ }
+  mePromise = authFetch('/api/auth/me' + (/^[a-z]{2,3}$/.test(lang) ? `?lang=${lang}` : ''))
     .then((u) => { setCurrentUser(u); return u })
     .catch((e) => {
       if (e instanceof AuthError && e.status === 401) { setCurrentUser(null); return null }

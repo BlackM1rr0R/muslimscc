@@ -138,6 +138,9 @@ export const test = base.extend({
     // Zəif cihaz rejimi (utils/liteDevice) nüvə sayından asılıdır: GitHub runner-də 4 vCPU
     // → "lite", lokalda isə yox. Testlər hər yerdə EYNİ rejimdə işləsin deyə sabitlənir.
     await page.addInitScript(() => { try { localStorage.setItem('muslim_cc_motion', 'full') } catch { /* */ } })
+    // D dəstəsi: ilk gəlişdəki "turu başlat?" təklifi (components/tour/TourOffer) testlərdə çıxmasın —
+    // üzən kart düymələri örtə bilər. Turun öz testi (tour-whatsnew.spec.js) bu açarı silir.
+    await page.addInitScript(() => { try { if (!localStorage.getItem('qm_tour_v1')) localStorage.setItem('qm_tour_v1', '{"offered":true}') } catch { /* */ } })
     await page.route(/api\.aladhan\.com\//, route => route.fulfill({ json: TIMINGS }))
     // v5.7: hava (components/home/WeatherDua) — standart: aydın, küləksiz (kart görünmür)
     await page.route(/api\.open-meteo\.com\/v1\/forecast/, route => route.fulfill({ json: { current: { weather_code: 0, wind_speed_10m: 5, temperature_2m: 12 } } }))

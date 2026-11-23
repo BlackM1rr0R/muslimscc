@@ -50,6 +50,9 @@ import HoverPill from '../motion/HoverPill'
 import { SPRING } from '../motion/presets'
 import { pickUi } from '../utils/uiText'
 import { useAuthUser } from '../api/userSession'
+// D dəstəsi: "Yeni" nişanı (yalnız mount-dan sonra) və bələdçi tur
+import { useNewBadges } from '../utils/whatsNewSeen'
+import { openTour } from '../utils/tour'
 
 // Açar "v2"-dir: sahibin qərarı ilə susmaya görə BÜTÜN qruplar açıq oldu.
 // Köhnə açarda (qm_sidenav_groups) yalnız bir qrup yazılmışdı — onu oxusaydıq,
@@ -114,6 +117,8 @@ const LABELS = {
     tools: 'Alətlər',
     ai: 'AI köməkçi',
     a11y: 'Əlçatanlıq',
+    tour: 'Burada nə edə bilərəm?',
+    isNew: 'Yeni',
   },
   en: {
     sections: 'Sections',
@@ -130,6 +135,8 @@ const LABELS = {
     tools: 'Tools',
     ai: 'AI assistant',
     a11y: 'Accessibility',
+    tour: 'What can I do here?',
+    isNew: 'New',
   },
   ru: {
     sections: 'Разделы',
@@ -146,6 +153,8 @@ const LABELS = {
     tools: 'Инструменты',
     ai: 'ИИ-помощник',
     a11y: 'Доступность',
+    tour: 'Что здесь можно делать?',
+    isNew: 'Новое',
   },
   ar: {
     sections: 'الأقسام',
@@ -162,6 +171,8 @@ const LABELS = {
     tools: 'الأدوات',
     ai: 'المساعد الذكي',
     a11y: 'إمكانية الوصول',
+    tour: 'ماذا يمكنني أن أفعل هنا؟',
+    isNew: 'جديد',
   },
   tr: {
     sections: 'Bölümler',
@@ -178,6 +189,8 @@ const LABELS = {
     tools: 'Araçlar',
     ai: 'Yapay zekâ',
     a11y: 'Erişilebilirlik',
+    tour: 'Burada neler yapabilirim?',
+    isNew: 'Yeni',
   },
 }
 
@@ -430,6 +443,8 @@ export default function SideNav({ mode = 'drawer', id, open = false, onClose, cu
   // İstiqamət kontekstdən: ərəbcə və rtl əlavə dillər (urdu interfeysi) — rtl
   const isRtl = (uiDir || (lang === 'ar' ? 'rtl' : 'ltr')) === 'rtl'
   const currentGroup = navGroupOf(currentPage)
+  // Hələ açılmamış yeni səhifələr (prerender və ilk render-də boş)
+  const newKeys = useNewBadges()
 
   // Açıq qruplar: yadda saxlanmış seçim (yoxdursa hamısı) + cari səhifənin qrupu
   const [expanded, setExpanded] = useState(() => {
@@ -632,6 +647,18 @@ export default function SideNav({ mode = 'drawer', id, open = false, onClose, cu
     else window.dispatchEvent(new CustomEvent(OPEN_SEARCH_EVENT))
   }
 
+  // Bələdçi tur (TourHost): çəkmə menyu əvvəlcə bağlanır, fokus ☰-yə verilir (tur bağlananda ora qayıdır)
+  const startTour = () => {
+    if (!isRail) handOffFocus()
+    openTour()
+  }
+  const tourBtn = (
+    <button type="button" className="qm-sn-tour" onClick={startTour} aria-haspopup="dialog">
+      <Icon name="tour" size={18} />
+      <span>{l.tour}</span>
+    </button>
+  )
+
   // Alətlər: AI köməkçi, əlçatanlıq, bildiriş ayarları — panelləri FloatingDock açır
   const openTool = (key) => {
     handOffFocus()
@@ -695,12 +722,16 @@ export default function SideNav({ mode = 'drawer', id, open = false, onClose, cu
             {group.items.map(item => {
               const isCurrent = item.key === currentPage
               const label = pickUi(item.label, lang) || item.label.en
+              // "Yeni" nişanı linkin adına qarışmır (ad dəyişməsin), aria-describedby ilə oxunur
+              const isNew = !isCurrent && newKeys.has(item.key)
+              const newId = isNew ? `qm-sn-new-${mode}-${item.key}` : undefined
               return (
-                <li key={item.key}>
+                <li key={item.key} className={`qm-sn-li${isNew ? ' has-new' : ''}`}>
                   <a
                     href={pathFor(item.key, lang)}
                     className={`qm-sn-item${isCurrent ? ' is-current' : ''}`}
                     aria-current={isCurrent ? 'page' : undefined}
+                    aria-describedby={newId}
                     onClick={(e) => onItemClick(e, item.key)}
                   >
                     {/* Xətti SVG ikon (Icon.jsx); ikon yoxdursa emoji ehtiyatı */}
@@ -709,6 +740,7 @@ export default function SideNav({ mode = 'drawer', id, open = false, onClose, cu
                     </span>
                     <span className="qm-sn-item-label">{label}</span>
                   </a>
+                  {isNew && <span className="qm-sn-new" id={newId}>{l.isNew}</span>}
                 </li>
               )
             })}
@@ -748,6 +780,7 @@ export default function SideNav({ mode = 'drawer', id, open = false, onClose, cu
             aria-hidden="true"
           />
           {groups}
+          {tourBtn}
         </div>
         {/* Hesab — 1024–1439px (başlıqda yer azdır, orada düymə ≥1440px-dədir; SideNav.css) */}
         <div className="qm-sn-rail-foot">
@@ -838,6 +871,7 @@ export default function SideNav({ mode = 'drawer', id, open = false, onClose, cu
           {/* ── Qruplar ── */}
           <nav className="qm-sn-body" ref={bodyRef} aria-label={l.sections}>
             {groups}
+            {tourBtn}
           </nav>
 
           {/* ── Alt hissə: bir sətir ikon düymələri (alətlər, hesab, tema, dil) ──

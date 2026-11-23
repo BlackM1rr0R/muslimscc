@@ -1,0 +1,69 @@
+/* ══════════════════════════════════════════════════════
+   Yeniliklər (/whats-new) — D dəstəsi
+   Tarix xətti: hər gün — nöqtəli başlıq + kartlar. Yalnız semantik tokenlər,
+   məntiqi xassələr (RTL avtomatik), hover yalnız incə göstəricidə, hərəkət yalnız
+   transform/opacity və "hərəkəti azalt"da söndürülür.
+   ══════════════════════════════════════════════════════ */
+.wn-hero .breadcrumb, .wn-hero .bc-list { justify-content: flex-start; }
+
+.wn-tour { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-2); padding: var(--card-pad); }
+.wn-tour__title { margin: 0; font-family: var(--font-heading); font-size: var(--step-1); color: var(--text-strong); }
+.wn-tour__text { margin: 0; color: var(--text-secondary); font-size: var(--step--1); line-height: 1.55; }
+.wn-tour .ui-btn { margin-top: var(--space-1); min-height: 44px; }
+
+.wn-count { margin: 0 0 var(--space-4); color: var(--text-tertiary); font-size: var(--step--1); }
+
+.wn-timeline { list-style: none; margin: 0; padding: 0; position: relative; }
+/* Şaquli xətt — nöqtələrin arxasında */
+.wn-timeline::before {
+  content: ""; position: absolute; inset-block: 10px 0; inset-inline-start: 7px;
+  width: 2px; border-radius: 2px; background: var(--line);
+}
+.wn-day { position: relative; padding-inline-start: 30px; margin-bottom: var(--space-5); }
+.wn-day__date {
+  display: flex; align-items: center; gap: 10px;
+  margin: 0 0 var(--space-3); font-family: var(--font-label); font-size: var(--step--1);
+  font-weight: 700; color: var(--text-secondary); letter-spacing: .02em;
+}
+.wn-day__dot {
+  position: absolute; inset-inline-start: 1px; top: 4px;
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--surface-1); box-shadow: inset 0 0 0 3px var(--brand);
+}
+
+.wn-list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-3); }
+@media (min-width: 760px) { .wn-list { grid-template-columns: 1fr 1fr; } }
+
+.wn-page .wn-item {
+  position: relative; display: flex; align-items: flex-start; gap: var(--space-3);
+  margin: 0; padding: var(--space-4); min-width: 0;
+}
+.wn-item.is-fresh { border-color: var(--accent-line, var(--line)); box-shadow: 0 0 0 1px var(--accent-line, var(--line)); }
+.wn-item__ic { flex-shrink: 0; }
+.wn-item__body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.wn-item__tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.wn-item__title { margin: 0; font-family: var(--font-heading); font-size: var(--step-0); line-height: 1.35; color: var(--text-strong); overflow-wrap: anywhere; }
+.wn-item__title a { color: inherit; text-decoration: none; }
+/* Bütün kart toxunula bilir: linkin ::after-i kartı örtür (bir fokus nöqtəsi) */
+.wn-item__title a::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
+.wn-item__title a:focus-visible { outline: none; }
+.wn-item:has(a:focus-visible) { outline: 2px solid var(--brand); outline-offset: 2px; }
+.wn-item__desc { margin: 0; color: var(--text-body); font-size: var(--step--1); line-height: 1.55; }
+.wn-item__where { display: inline-flex; align-items: center; gap: 5px; margin: 0; color: var(--text-tertiary); font-size: var(--step--2); }
+.wn-item__where svg { flex-shrink: 0; }
+.wn-item__chev { flex-shrink: 0; align-self: center; color: var(--text-tertiary); }
+
+@media (hover: hover) and (pointer: fine) {
+  .wn-item { transition: transform 200ms var(--ease-out, ease), box-shadow 200ms var(--ease-out, ease); }
+  .wn-item:hover { transform: translateY(-2px); box-shadow: var(--shadow-2); }
+  .wn-item:hover .wn-item__title { color: var(--brand-strong, var(--brand)); }
+}
+@media (prefers-reduced-motion: reduce) { .wn-item { transition: none; } .wn-item:hover { transform: none; } }
+html.a11y-motion-user .wn-item { transition: none; }
+html.a11y-motion-user .wn-item:hover { transform: none; }
+
+@media (max-width: 420px) {
+  .wn-day { padding-inline-start: 24px; }
+  .wn-page .wn-item { padding: var(--space-3); gap: 10px; }
+  .wn-item__chev { display: none; }
+}

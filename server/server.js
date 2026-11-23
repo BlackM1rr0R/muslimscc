@@ -26,7 +26,7 @@ for (const m of ['./auth', './users', './security', './syncKeys', './mailer', '.
   './prompts', './ai-utils', './prayer-utils', './daily-ayah', './checkin', './fasting', './reminders', './prayCalc', './eclipse', './eclipse-lib', './daily-hadith', './daily-hadith-data', './personal', './hijri',
   './readTogether', './family', './hifzTest', './globalKhatm', './challenges', './classes', './familyRamadan', './calFeed',
   './communityKit', './publicProfile', './familyDua', './duaWall', './mosqueRep', './weekly', './ipKey', './pushClaims', './quranMeaning',
-  './duaFriend', './hajjJourney']) require(m)
+  './duaFriend', './hajjJourney', './welcome']) require(m)
 // Paket asılılıqları da (server/package.json → npm ci) — image-də yoxdursa bazadan ƏVVƏL çöksün
 for (const m of ['@simplewebauthn/server']) require(m)
 
@@ -94,12 +94,16 @@ app.use('/api/auth', limit(60000, 60))
 const syncKeysLib = require('./syncKeys')
 const syncKeysStore = syncKeysLib.createSyncKeysStore(db)
 const mailer = require('./mailer').createMailer({ apiKey: process.env.RESEND_API_KEY })
+// Xoş gəldin məktubu (bir dəfə) + sayt dili (server/welcome.js) — cədvəllər miqrasiyasız
+const welcome = require('./welcome').createWelcome({ db, mailer, publicOrigin: PUBLIC_ORIGIN })
 const usersRouter = usersLib.createUsersRouter({
   db, store: usersStore, requireAdmin, allowedOrigins: ALLOWED,
   hooks: {
     beforeDeleteUser: (id) => { syncKeysStore.deleteUserData(id); readTogetherRouter.closeOwnerRooms(id) },
     passkeyRemoved: (userId, credId) => syncKeysStore.remove(userId, 'prf', credId),
     passwordReset: (userId) => syncKeysStore.remove(userId, 'password', ''),
+    emailVerified: (userId, lang) => welcome.onVerified(userId, lang),
+    seenLang: (userId, lang) => welcome.onSeenLang(userId, lang),
   },
   mailer,
   security,
@@ -115,7 +119,7 @@ app.use('/api', require('./security').createSecurityRouter({
   sources: { personal: () => personalRouter.store, family: () => familyRouter, hifzTests: () => hifzTestRouter, sync: syncKeysStore, readTogether: () => readTogetherRouter, globalKhatm: () => khatmRouter,
     challenges: () => challengesRouter, classes: () => classesRouter, familyRamadan: () => familyRamadanRouter, calFeed: () => calFeedRouter,
     publicProfile: () => publicProfileRouter, familyDuas: () => familyDuaRouter, duaWall: () => duaWallRouter, mosqueRep: () => mosqueRepRouter, weekly: () => weeklyRouter,
-    duaFriend: () => duaFriendRouter, hajjJourney: () => hajjJourneyRouter },
+    duaFriend: () => duaFriendRouter, hajjJourney: () => hajjJourneyRouter, welcome },
 }))
 setInterval(() => security.purge(), 3600e3).unref()
 app.use('/api', syncKeysLib.createSyncKeysRouter({

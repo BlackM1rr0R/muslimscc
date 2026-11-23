@@ -128,6 +128,8 @@ export const PAGES = [
   { key: 'nikahprep',    path: 'nikah-preparation', priority: 0.75, changefreq: 'monthly' },
   // R2: xəstəni ziyarət bələdçisi (dərs + Hisn, mənbələri ilə; xatırlatmalar yalnız klientdə)
   { key: 'sickvisit',    path: 'visiting-the-sick', priority: 0.75, changefreq: 'monthly' },
+  // D dəstəsi: yeniliklər — son əlavə olunan funksiyaların tarixli siyahısı (src/data/whatsNew.js)
+  { key: 'whatsnew',     path: 'whats-new',    priority: 0.60, changefreq: 'weekly' },
   { key: 'namecalligraphy', path: 'name-in-arabic', priority: 0.70, changefreq: 'monthly' },
   { key: 'babynames',    path: 'muslim-baby-names', priority: 0.75, changefreq: 'monthly' },
   { key: 'quiz',         path: 'quiz',         priority: 0.80, changefreq: 'monthly' },

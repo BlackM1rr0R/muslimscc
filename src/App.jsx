@@ -22,6 +22,9 @@ import InstallBanner from './components/InstallBanner'
 // Adi import: dok özü yüngüldür, ağır panelləri (AI, bildirişlər) içəridə tənbəl yükləyir,
 // əlçatanlıq tərcihləri isə ilk boyamadan tətbiq olunmalıdır.
 import FloatingDock from './components/FloatingDock'
+// D dəstəsi: "Kəşf et" turu + menyuda "Yeni" nişanlarının "açıldı" qeydi. Host kiçikdir (adi import —
+// tur düyməsinin hadisəsi itməsin); turun özü və ilk gəliş təklifi öz içində tənbəl yüklənir.
+import TourHost from './components/tour/TourHost'
 import { lazyWhenIdle, whenIdle } from './utils/idle'
 import { usePageviews } from './api/analytics'
 import { withChunkRetry } from './utils/chunkRetry'
@@ -168,6 +171,8 @@ const HaidCalendarPage = lazy(() => import('./pages/HaidCalendarPage'))
 // R3: müsəlman səyyahın dəsti, 'Mənim ilim' çap kitabı
 const TravellerKitPage = lazy(() => import('./pages/TravellerKitPage'))
 const YearBookPage = lazy(() => import('./pages/YearBookPage'))
+// D dəstəsi: yeniliklər (tarixli siyahı)
+const WhatsNewPage = lazy(() => import('./pages/WhatsNewPage'))
 const SimpleModePage = lazy(() => import('./pages/SimpleModePage'))
 const ShariaUnitsPage = lazy(() => import('./pages/ShariaUnitsPage'))
 const MushafPage = lazy(() => import('./pages/MushafPage'))
@@ -494,6 +499,7 @@ function AppInner() {
       case 'haid':       return <HaidCalendarPage setPage={navigate} />
       case 'travelkit':  return <TravellerKitPage setPage={navigate} />
       case 'yearbook':   return <YearBookPage setPage={navigate} />
+      case 'whatsnew':   return <WhatsNewPage setPage={navigate} />
       case 'simple':     return <SimpleModePage setPage={navigate} />
       case 'units':      return <ShariaUnitsPage setPage={navigate} />
       case 'mushaf':     return <MushafPage setPage={navigate} />
@@ -631,6 +637,10 @@ function AppInner() {
         <EidMode />
         <DuaFriendNotice />
       </Suspense>
+      {/* Suspense-dən KƏNARDA: yuxarıdakı qardaşlar lazyWhenIdle-dır (load + ~1.2 s + idle) — eyni
+          sərhəddə olsa host o vaxta qədər mount olmur, "Turu başlat" kliki (qm-tour-open) itir və
+          yeni səhifənin "Yeni" nişanı götürülmür. Host adi importdur; tur öz Suspense-i ilə yüklənir. */}
+      <TourHost page={page} setPage={navigate} />
     </>
   )
 }

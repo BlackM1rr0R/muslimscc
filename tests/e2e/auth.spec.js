@@ -239,7 +239,7 @@ test.describe('e-poçt keçidləri', () => {
     await page.getByRole('button', { name: 'Şifrəni yadda saxla' }).click()
     await expect(page).toHaveURL(/\/login\?reset=done$/)
     await expect(page.getByRole('status').filter({ hasText: 'Şifrəniz dəyişdirildi' })).toBeVisible()
-    expect(state.bodies['POST /api/auth/reset']).toEqual({ token: RESET_TOKEN, password: 'Yeni-uzun-şifrə 77' })
+    expect(state.bodies['POST /api/auth/reset']).toEqual({ token: RESET_TOKEN, password: 'Yeni-uzun-şifrə 77', lang: 'az' })
     expectCleanConsole(consoleProblems)
   })
 
@@ -258,7 +258,7 @@ test.describe('e-poçt keçidləri', () => {
     await page.goto(`/account/verify#token=${VERIFY_TOKEN}`)
     await expect(page.getByRole('status').filter({ hasText: 'E-poçt ünvanınız təsdiqləndi' })).toBeVisible()
     expect(await page.evaluate(() => window.location.hash)).toBe('')
-    expect(state.bodies['POST /api/auth/verify']).toEqual({ token: VERIFY_TOKEN })
+    expect(state.bodies['POST /api/auth/verify']).toEqual({ token: VERIFY_TOKEN, lang: 'az' })   // xoş gəldin məktubunun dili
     expect(state.requests.filter(r => r === 'POST /api/auth/verify')).toHaveLength(1)
     expectCleanConsole(consoleProblems)
   })
@@ -269,7 +269,7 @@ test.describe('e-poçt keçidləri', () => {
     await page.goto(`/account/verify#token=${VERIFY_TOKEN}`)
     await expect(page).toHaveURL(/\/en\/account\/verify$/)
     await expect(page.getByRole('status').filter({ hasText: 'Your email address is confirmed' })).toBeVisible()
-    expect(state.bodies['POST /api/auth/verify']).toEqual({ token: VERIFY_TOKEN })
+    expect(state.bodies['POST /api/auth/verify']).toEqual({ token: VERIFY_TOKEN, lang: 'en' })
   })
 })
 

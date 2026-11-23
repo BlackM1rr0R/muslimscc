@@ -18,7 +18,8 @@ export const LAYOUT_KEY = 'home_layout_v1'
 export const LAYOUT_EVENT = 'mcc-homelayout'
 
 // Hero-dan aşağıdakı bölmələr (admin məzmunu və CTA həmişə sonda — sabit)
-export const HOME_SECTIONS = ['stories', 'today', 'myday', 'wird', 'quick', 'daystory', 'start', 'feats', 'tawheed', 'names']
+// 'now' — "İndi sizin üçün" (components/home/NowForYou): günün vaxtına uyğun təkliflər
+export const HOME_SECTIONS = ['stories', 'now', 'today', 'myday', 'wird', 'quick', 'daystory', 'start', 'feats', 'tawheed', 'names']
 // "Bu gün" panelinin kartları
 export const TODAY_CELLS = ['hadith', 'ayah', 'cont', 'date']
 

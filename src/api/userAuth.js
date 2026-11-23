@@ -158,8 +158,8 @@ export async function register({ email, password, displayName, lang }) {
 }
 
 export const forgotPassword = (email, lang) => post('/api/auth/forgot', { email: String(email || '').trim(), lang })
-export const verifyEmail = (token) => post('/api/auth/verify', { token })
-export const resetPassword = (token, password) => post('/api/auth/reset', { token, password })
+export const verifyEmail = (token, lang) => post('/api/auth/verify', { token, ...(lang ? { lang } : {}) })
+export const resetPassword = (token, password, lang) => post('/api/auth/reset', { token, password, ...(lang ? { lang } : {}) })
 export const resendVerification = (lang) => post('/api/auth/verify/resend', { lang })
 
 export async function googleLogin(credential, lang) {

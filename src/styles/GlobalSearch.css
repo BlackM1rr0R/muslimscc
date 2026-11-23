@@ -924,3 +924,11 @@ html.gs-open body {
     animation-duration: 2s;
   }
 }
+
+/* D dəstəsi (whatsNewSeen / tur) */
+/* Qlobal axtarış nəticəsində "Yeni" */
+.gs-new {
+  display: inline-flex; align-items: center; height: 18px; margin-inline-start: 6px; padding: 0 6px; border-radius: 999px;
+  vertical-align: middle; background: var(--accent-soft); color: var(--accent-text);
+  font-size: 10.5px; font-weight: 700; line-height: 1;
+}

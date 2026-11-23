@@ -236,6 +236,9 @@ export const NAV_GROUPS = [
         label: { az: 'Sitatlar', en: 'Quotes', ru: 'Цитаты', ar: 'اقتباسات', tr: 'Alıntılar' } },
       { key: 'kids', icon: '🎈',
         label: { az: 'Uşaqlar', en: 'Kids', ru: 'Дети', ar: 'الأطفال', tr: 'Çocuklar' } },
+      // D dəstəsi: son əlavələrin tarixli siyahısı (src/data/whatsNew.js)
+      { key: 'whatsnew', icon: '✨',
+        label: { az: 'Yeniliklər', en: 'What’s new', ru: 'Что нового', ar: 'ما الجديد', tr: 'Yenilikler' } },
       { key: 'about', icon: 'ℹ️',
         label: { az: 'Haqqımızda', en: 'About', ru: 'О нас', ar: 'عن الموقع', tr: 'Hakkımızda' } },
     ],

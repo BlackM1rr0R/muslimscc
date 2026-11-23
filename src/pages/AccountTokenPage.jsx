@@ -112,7 +112,7 @@ export default function AccountTokenPage({ mode = 'verify' }) {
   useEffect(() => {
     if (isReset || !token || started.current) return
     started.current = true
-    verifyEmail(token).then(() => {
+    verifyEmail(token, siteLang).then(() => {
       if (!alive.current) return
       setState('ok')
       if (hasLoginHint()) refreshMe().catch(() => {})
@@ -131,7 +131,7 @@ export default function AccountTokenPage({ mode = 'verify' }) {
     setBusy(true)
     setMsg(null)
     try {
-      await resetPassword(token, password)
+      await resetPassword(token, password, siteLang)
       // Server bütün sessiyaları ləğv etdi — klientdə də "daxil olub" ipucu silinsin
       setCurrentUser(null)
       navigate(`${pathFor('login', siteLang)}?reset=done`, { replace: true })

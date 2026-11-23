@@ -1053,6 +1053,19 @@ export const META = {
     ar: { t: 'الاستعداد للنكاح — المهر والولي والشاهدان والوليمة',
           d: 'قائمة ما قبل الزواج: المهر والشروط والولي والشاهدان وأسئلة للنقاش وخطبة الحاجة وخطة الوليمة — من درس النكاح، وملاحظاتك تبقى عندك وحدك.' },
   },
+  // D dəstəsi: yeniliklər (src/data/whatsNew.js)
+  whatsnew: {
+    az: { t: 'Yeniliklər — saytda son əlavə olunan alət və bölmələr',
+          d: 'Tarix sırası ilə yeni bölmələr və funksiyalar: yatmazdan əvvəl sünnə, səyyahın dəsti, borc dəftəri, məna ilə Quran axtarışı və daha çoxu — hər birinə keçid.' },
+    en: { t: 'What’s New — Recently Added Tools and Sections',
+          d: 'New sections and features in date order: the bedtime Sunnah routine, the traveller kit, a debt ledger, Quran search by meaning and more — each with a link.' },
+    ru: { t: 'Что нового — недавно добавленные разделы и инструменты',
+          d: 'Новые разделы и функции по датам: сунна перед сном, набор путешественника, книга долгов, поиск в Коране по смыслу и многое другое — со ссылками.' },
+    tr: { t: 'Yenilikler — Sitede Son Eklenen Araçlar ve Bölümler',
+          d: 'Tarih sırasıyla yeni bölümler ve özellikler: yatmadan önce sünnet, yolcu çantası, borç defteri, anlamla Kur’an araması ve dahası — her birine bağlantı.' },
+    ar: { t: 'ما الجديد — الأدوات والأقسام المضافة حديثًا',
+          d: 'الأقسام والميزات الجديدة مرتبة بالتاريخ: سنن النوم، وحقيبة المسافر، وسجل الديون، والبحث في القرآن بالمعنى، وغير ذلك — مع رابط لكل منها.' },
+  },
   jariyah: {
     az: { t: 'Davamlı sədəqə gündəliyi',
           d: 'Davamlı sədəqələrinizin şəxsi qeydi — bağışlanan Mushaf, əkilən ağac, öyrədilən elm, su. Yalnız sizdə saxlanılır.' },

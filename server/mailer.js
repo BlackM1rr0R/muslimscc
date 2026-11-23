@@ -12,6 +12,7 @@
 //   Hesab təhlükəsizliyi (server/security.js): newSignIn | securityChange | adminSignIn — {time},
 //   {device}, {place}, {event}; "details" sətirləri ayrıca blokda.
 //   Həftəlik hesabat (server/weekly.js): weekly — {date}, {prayers}, {pages}, {dhikr}, {fasts}, {wird}.
+//   Xoş gəldin (server/welcome.js): welcome — ayrıca zəngin HTML (renderWelcome), dil 'bi' = en + ar.
 //   Mətn + sadə HTML; dəyişənlər HTML-escape olunur. Logda alıcı ünvanı və
 //   token YOXDUR (yalnız şablon adı və HTTP statusu).
 // ═══════════════════════════════════════════════════════════════════════
@@ -137,6 +138,7 @@ function fill(str, vars) {
  * Köhnə şablonlarda (verify/reset/exists) yer tutucu yoxdur — nəticə əvvəlki ilə eynidir.
  */
 function render(kind, lang, vars = {}) {
+  if (kind === 'welcome') return renderWelcome(lang, vars)
   const tpl = T[kind]
   if (!tpl) throw new Error('unknown template')
   const l = pickLang(lang)
@@ -169,6 +171,199 @@ function render(kind, lang, vars = {}) {
   // RFC 8058: poçt proqramının "abunəlikdən çıx" düyməsi (POST, girişsiz)
   if (unsubUrl) out.headers = { 'List-Unsubscribe': `<${unsubUrl}>`, 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' }
   return out
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// Xoş gəldin məktubu (server/welcome.js) — render('welcome', lang, { name, origin })
+//   lang: az | en | ru | tr | ar | 'bi' (en + ar alt-alta; dili bilinməyən köhnə istifadəçilər üçün)
+//   Cədvəl əsaslı, inline stillər, max 600px; başlıqda animasiyalı GIF (public/email/welcome-v1.gif,
+//   scripts/build-welcome-gif.mjs). Keçidlər dilin prefiksi ilə (az — prefikssiz). İzləmə/UTM YOXDUR.
+// ═══════════════════════════════════════════════════════════════════════
+const WELCOME_IMG = '/email/welcome-v1.gif'
+const WELCOME = {
+  az: {
+    subject: 'Muslims.cc-yə xoş gəlmisiniz', hello: 'Əssəlamu aleykum, {name}!', helloAnon: 'Əssəlamu aleykum!',
+    thanks: 'Muslims.cc-yə qoşulduğunuz üçün təşəkkür edirik. Sizi burada görməyimizə şadıq.',
+    start: 'Başlamaq üçün bir neçə yer:',
+    cards: [
+      { path: '/prayer', title: 'Namaz vaxtları', desc: 'Şəhəriniz üçün namaz vaxtları və azan xatırlatması', button: 'Namaz vaxtlarını aç' },
+      { path: '/quran', title: 'Qurani-Kərim', desc: 'Tərcümə, qiraət və təfsirlə Quran', button: 'Quranı aç' },
+      { path: '/whats-new', title: 'Yeniliklər', desc: 'Yeniliklər və saytla bir dəqiqəlik tanışlıq turu', button: 'Yeniliklərə bax' },
+    ],
+    sync: 'Hesabınız irəliləyişinizi (Quran oxunuşu, qeydlər, zikr) qoruyur və cihazlarınız arasında uçdan-uca şifrəli şəkildə sinxronlaşdırır.',
+    only: 'Bu, sizə göndərdiyimiz yeganə məktubdur. Xatırlatmalar və həftəlik xülasə yalnız onları hesabınızda açsanız gələcək.',
+    sign: '— Muslims.cc komandası',
+    alt: 'Muslims.cc — səkkizguşəli ulduz və aypara',
+  },
+  en: {
+    subject: 'Welcome to Muslims.cc', hello: 'Assalamu alaykum, {name}!', helloAnon: 'Assalamu alaykum!',
+    thanks: 'Thank you for joining Muslims.cc. We’re glad you’re here.',
+    start: 'A few places to start:',
+    cards: [
+      { path: '/prayer', title: 'Prayer times', desc: 'Prayer times for your city, with the adhan reminder', button: 'Open prayer times' },
+      { path: '/quran', title: 'The Quran', desc: 'The Quran with translation, recitation and tafsir', button: 'Open the Quran' },
+      { path: '/whats-new', title: 'What’s new', desc: 'What’s new, plus a one-minute tour of the site', button: 'See what’s new' },
+    ],
+    sync: 'Your account keeps your progress (Quran reading, notes, dhikr) safe and in sync across your devices, end-to-end encrypted.',
+    only: 'This is the only email we send you. Reminders and the weekly summary arrive only if you turn them on in your account.',
+    sign: '— The Muslims.cc team',
+    alt: 'Muslims.cc — an eight-pointed star and a crescent',
+  },
+  ru: {
+    subject: 'Добро пожаловать в Muslims.cc', hello: 'Ассаляму алейкум, {name}!', helloAnon: 'Ассаляму алейкум!',
+    thanks: 'Спасибо, что присоединились к Muslims.cc. Мы рады, что вы с нами.',
+    start: 'С чего начать:',
+    cards: [
+      { path: '/prayer', title: 'Время намаза', desc: 'Время намаза для вашего города с напоминанием об азане', button: 'Открыть время намаза' },
+      { path: '/quran', title: 'Коран', desc: 'Коран с переводом, чтением и тафсиром', button: 'Открыть Коран' },
+      { path: '/whats-new', title: 'Что нового', desc: 'Что нового на сайте и экскурсия по нему за одну минуту', button: 'Посмотреть новое' },
+    ],
+    sync: 'Ваш аккаунт сохраняет ваш прогресс (чтение Корана, заметки, зикр) и синхронизирует его между устройствами со сквозным шифрованием.',
+    only: 'Это единственное письмо, которое мы вам отправляем. Напоминания и еженедельный итог приходят, только если вы включите их в аккаунте.',
+    sign: '— Команда Muslims.cc',
+    alt: 'Muslims.cc — восьмиконечная звезда и полумесяц',
+  },
+  tr: {
+    subject: 'Muslims.cc’ye hoş geldiniz', hello: 'Esselâmü aleyküm, {name}!', helloAnon: 'Esselâmü aleyküm!',
+    thanks: 'Muslims.cc’ye katıldığınız için teşekkür ederiz. Burada olmanıza sevindik.',
+    start: 'Başlamak için birkaç yer:',
+    cards: [
+      { path: '/prayer', title: 'Namaz vakitleri', desc: 'Şehriniz için namaz vakitleri ve ezan hatırlatıcısı', button: 'Namaz vakitlerini aç' },
+      { path: '/quran', title: 'Kur’an-ı Kerim', desc: 'Meal, tilavet ve tefsirle Kur’an-ı Kerim', button: 'Kur’an’ı aç' },
+      { path: '/whats-new', title: 'Yenilikler', desc: 'Yenilikler ve bir dakikalık site turu', button: 'Yeniliklere bak' },
+    ],
+    sync: 'Hesabınız ilerlemenizi (Kur’an okuma, notlar, zikir) güvende tutar ve cihazlarınız arasında uçtan uca şifreli olarak eşitler.',
+    only: 'Size gönderdiğimiz tek e-posta budur. Hatırlatmalar ve haftalık özet yalnızca hesabınızda açarsanız gelir.',
+    sign: '— Muslims.cc ekibi',
+    alt: 'Muslims.cc — sekiz köşeli yıldız ve hilal',
+  },
+  ar: {
+    subject: 'أهلاً بك في Muslims.cc', hello: 'السلام عليكم، {name}!', helloAnon: 'السلام عليكم!',
+    thanks: 'شكرًا لانضمامك إلى Muslims.cc، يسعدنا وجودك معنا.',
+    start: 'من أين تبدأ:',
+    cards: [
+      { path: '/prayer', title: 'مواقيت الصلاة', desc: 'مواقيت الصلاة لمدينتك مع تذكير الأذان', button: 'افتح مواقيت الصلاة' },
+      { path: '/quran', title: 'القرآن الكريم', desc: 'القرآن الكريم مع الترجمة والتلاوة والتفسير', button: 'افتح القرآن' },
+      { path: '/whats-new', title: 'ما الجديد', desc: 'ما الجديد وجولة قصيرة في الموقع', button: 'اطّلع على الجديد' },
+    ],
+    sync: 'حسابك يحفظ تقدّمك (القراءة والملاحظات والأذكار) ويزامنه بين أجهزتك بتشفير تام.',
+    only: 'هذه هي الرسالة الوحيدة التي نرسلها إليك؛ التذكيرات والملخص الأسبوعي تصلك فقط إذا فعّلتها من حسابك.',
+    sign: '— فريق Muslims.cc',
+    alt: 'Muslims.cc — نجمة ثمانية وهلال',
+  },
+}
+const WELCOME_BI_SUBJECT = `${WELCOME.en.subject} · ${WELCOME.ar.subject}`
+const ORIGIN_RE = /^https?:\/\/[a-z0-9.-]+(:\d+)?$/i
+const FONT = "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif"
+const FONT_AR = "'Segoe UI',Tahoma,'Geeza Pro','Noto Naskh Arabic',Arial,sans-serif"
+// Rənglər: tünd başlıq + açıq kart; qaranlıq rejimdə (Apple Mail, Outlook.com) <style> bloku əvəz edir,
+// Gmail tətbiqinin məcburi inversiyasında da oxunaqlı qalır (saf ağ/qara yoxdur)
+const C = { page: '#eef2ee', card: '#fbfcfa', ink: '#16241e', muted: '#4f6158', line: '#dfe7e1', tile: '#f1f6f2', brand: '#0f6b4f', gold: '#c99a3e', head: '#062a20' }
+
+function welcomeCopy(l, name) {
+  const t = WELCOME[l]
+  const n = typeof name === 'string' ? name.replace(/[\p{Cc}‪-‮⁦-⁩]/gu, ' ').replace(/\s+/g, ' ').trim().slice(0, 80) : ''
+  // ərəbcə blokda latın adı düzgün yerləşsin — Unicode izolyasiyası (FSI … PDI)
+  const hello = n ? t.hello.replace('{name}', l === 'ar' ? `⁨${n}⁩` : n) : t.helloAnon
+  return { t, hello }
+}
+
+function welcomeLinks(l, origin) {
+  const prefix = l === 'az' ? '' : '/' + l
+  return WELCOME[l].cards.map((c) => ({ ...c, url: `${origin}${prefix}${c.path}` }))
+}
+
+function welcomeBlockHtml(l, origin, name) {
+  const { t, hello } = welcomeCopy(l, name)
+  const rtl = l === 'ar'
+  const dir = rtl ? 'rtl' : 'ltr'
+  const align = rtl ? 'right' : 'left'
+  const font = rtl ? FONT_AR : FONT
+  const accent = rtl ? 'border-right' : 'border-left'
+  const p = (txt, extra = '') => `<p class="mcc-ink" style="margin:0 0 16px;font-size:16px;line-height:1.6;color:${C.ink};${extra}">${esc(txt)}</p>`
+  const cards = welcomeLinks(l, origin).map((c) =>
+    `<tr><td style="padding:0 0 12px">` +
+    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="mcc-tile" style="background:${C.tile};border-radius:10px;${accent}:4px solid ${C.gold}">` +
+    `<tr><td dir="${dir}" style="padding:16px 18px;text-align:${align};font-family:${font}">` +
+    `<p class="mcc-ink" style="margin:0 0 4px;font-size:17px;font-weight:700;line-height:1.4;color:${C.ink}">${esc(c.title)}</p>` +
+    `<p class="mcc-muted" style="margin:0 0 14px;font-size:15px;line-height:1.5;color:${C.muted}">${esc(c.desc)}</p>` +
+    // "bulletproof" düymə: rəng hüceyrədədir (Outlook şəkilsiz/CSS-siz də göstərir), keçid bütün sahəni tutur
+    `<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="${align}"><tr>` +
+    `<td bgcolor="${C.brand}" style="border-radius:8px;background:${C.brand}">` +
+    `<a href="${esc(c.url)}" target="_blank" style="display:inline-block;padding:11px 20px;font-family:${font};font-size:15px;font-weight:700;line-height:1.2;color:#ffffff;text-decoration:none;border-radius:8px">${esc(c.button)}&nbsp;${rtl ? '&larr;' : '&rarr;'}</a>` +
+    `</td></tr></table>` +
+    `</td></tr></table></td></tr>`).join('')
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" dir="${dir}" lang="${l}">` +
+    `<tr><td dir="${dir}" style="padding:28px 28px 8px;text-align:${align};font-family:${font}">` +
+    `<h1 class="mcc-ink" style="margin:0 0 12px;font-size:24px;line-height:1.3;font-weight:700;color:${C.ink}">${esc(hello)}</h1>` +
+    p(t.thanks) +
+    `<p class="mcc-muted" style="margin:8px 0 12px;font-size:13px;font-weight:700;letter-spacing:${rtl ? '0' : '0.06em'};text-transform:${rtl ? 'none' : 'uppercase'};color:${C.muted}">${esc(t.start)}</p>` +
+    `</td></tr>` +
+    `<tr><td style="padding:0 28px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${cards}</table></td></tr>` +
+    `<tr><td dir="${dir}" style="padding:8px 28px 4px;text-align:${align};font-family:${font}">` +
+    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>` +
+    `<td width="28" valign="top" style="width:28px;padding-top:2px;font-size:18px;line-height:1;color:${C.gold}">&#9670;</td>` +
+    `<td dir="${dir}" class="mcc-muted" style="font-size:15px;line-height:1.6;color:${C.muted};text-align:${align}">${esc(t.sync)}</td>` +
+    `</tr></table></td></tr>` +
+    `<tr><td dir="${dir}" style="padding:16px 28px 28px;text-align:${align};font-family:${font}">` +
+    `<p class="mcc-muted" style="margin:0 0 18px;font-size:14px;line-height:1.6;color:${C.muted}">${esc(t.only)}</p>` +
+    `<p class="mcc-ink" style="margin:0;font-size:16px;font-weight:700;color:${C.ink}">${esc(t.sign)}</p>` +
+    `</td></tr></table>`
+}
+
+function welcomeBlockText(l, origin, name) {
+  const { t, hello } = welcomeCopy(l, name)
+  const cards = welcomeLinks(l, origin).map((c) => `• ${c.title} — ${c.desc}\n  ${c.url}`).join('\n\n')
+  return `${hello}\n\n${t.thanks}\n\n${t.start}\n\n${cards}\n\n${t.sync}\n\n${t.only}\n\n${t.sign}`
+}
+
+/** Xoş gəldin məktubu: lang — az|en|ru|tr|ar|'bi'; vars.name (ixtiyari), vars.origin (susmaya görə https://muslims.cc). */
+function renderWelcome(lang, vars = {}) {
+  const bi = lang === 'bi'
+  const l = bi ? 'en' : pickLang(lang)
+  const origin = ORIGIN_RE.test(String(vars.origin || '')) ? String(vars.origin).replace(/\/+$/, '') : 'https://muslims.cc'
+  const name = vars.name
+  const blocks = bi ? ['en', 'ar'] : [l]
+  const subject = bi ? WELCOME_BI_SUBJECT : WELCOME[l].subject
+  const pre = blocks.map((b) => WELCOME[b].thanks).join(' · ')
+  const alt = blocks.map((b) => WELCOME[b].alt).join(' · ')
+  const dir = !bi && l === 'ar' ? 'rtl' : 'ltr'
+  const text = blocks.map((b) => welcomeBlockText(b, origin, name)).join('\n\n— — —\n\n') + `\n\n${origin}${l === 'az' && !bi ? '' : '/' + l}`
+  const divider = `<tr><td style="padding:0 28px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td class="mcc-line" style="border-top:1px solid ${C.line};font-size:0;line-height:0;height:1px">&nbsp;</td></tr></table></td></tr>`
+  const body = blocks.map((b) => `<tr><td>${welcomeBlockHtml(b, origin, name)}</td></tr>`).join(divider)
+  const home = `${origin}${!bi && l === 'az' ? '' : '/' + l}`
+  const html = '<!doctype html>' +
+    `<html lang="${l}" dir="${dir}" xmlns="http://www.w3.org/1999/xhtml"><head>` +
+    '<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">' +
+    '<meta name="color-scheme" content="light dark"><meta name="supported-color-schemes" content="light dark">' +
+    '<meta http-equiv="X-UA-Compatible" content="IE=edge">' +
+    `<title>${esc(subject)}</title>` +
+    '<style>:root{color-scheme:light dark;supported-color-schemes:light dark}' +
+    'body{margin:0;padding:0;-webkit-text-size-adjust:100%}img{border:0;outline:none;text-decoration:none}' +
+    'a{text-decoration:none}' +
+    '@media (prefers-color-scheme: dark){' +
+    '.mcc-page{background:#0c1512!important}.mcc-card{background:#12211b!important}' +
+    '.mcc-tile{background:#183128!important}.mcc-ink{color:#eef3ef!important}.mcc-muted{color:#b5c4bb!important}' +
+    '.mcc-line{border-color:#264238!important}}' +
+    '[data-ogsc] .mcc-ink{color:#eef3ef!important}[data-ogsc] .mcc-muted{color:#b5c4bb!important}' +
+    '</style></head>' +
+    `<body class="mcc-page" style="margin:0;padding:0;background:${C.page}">` +
+    // önizləmə mətni (gizli)
+    `<div style="display:none;max-height:0;overflow:hidden;mso-hide:all;font-size:1px;line-height:1px;color:${C.page};opacity:0">${esc(pre)}</div>` +
+    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="mcc-page" style="background:${C.page}"><tr><td align="center" style="padding:16px 8px">` +
+    '<!--[if mso]><table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0"><tr><td><![endif]-->' +
+    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="mcc-card" style="width:100%;max-width:600px;background:${C.card};border-radius:14px;overflow:hidden">` +
+    `<tr><td style="padding:0;background:${C.head};line-height:0;font-size:0" bgcolor="${C.head}">` +
+    `<a href="${esc(home)}" target="_blank"><img src="${esc(origin + WELCOME_IMG)}" width="600" height="220" alt="${esc(alt)}" style="display:block;width:100%;max-width:600px;height:auto;border:0;background:${C.head};color:#e8c16a;font-family:${FONT};font-size:22px;line-height:1.3"></a>` +
+    `</td></tr>` +
+    body +
+    `<tr><td style="padding:14px 28px 18px;background:${C.head};text-align:center;font-family:${FONT};font-size:13px;line-height:1.5" bgcolor="${C.head}">` +
+    `<a href="${esc(home)}" target="_blank" style="color:#e8c16a;text-decoration:none;font-weight:700">Muslims.cc</a>` +
+    `</td></tr>` +
+    '</table>' +
+    '<!--[if mso]></td></tr></table><![endif]-->' +
+    '</td></tr></table></body></html>'
+  return { subject, text, html }
 }
 
 /**
@@ -213,4 +408,4 @@ function createMailer({ apiKey = process.env.RESEND_API_KEY, from = DEFAULT_FROM
   }
 }
 
-module.exports = { createMailer, render, LANGS, RESEND_URL }
+module.exports = { createMailer, render, renderWelcome, LANGS, RESEND_URL, WELCOME_IMG }

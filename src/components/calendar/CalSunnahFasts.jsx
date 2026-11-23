@@ -21,6 +21,7 @@ import { haptic } from '../../hooks/useHaptic'
 import { loadQada, saveQada, adjustOwed, makeUp, undoMakeUp, dayKey } from '../../utils/qada'
 import { pickUi } from '../../utils/uiText'
 import SunnahFastInsights from '../insights/SunnahFastInsights'
+import { fastStatus } from '../../utils/fastStatus'
 
 export const SUNNAH_FASTS_KEY = 'muslim_cc_sunnah_fasts_v1'
 const KEEP_DAYS = 800
@@ -94,22 +95,8 @@ export function dayMonth(date, lang) {
   try { return date.toLocaleDateString(LOC[lang] || 'en-GB', { day: 'numeric', month: 'long' }) } catch { return `${date.getDate()}.${date.getMonth() + 1}` }
 }
 
-/** Gün oruc baxımından: 'ramadan' | 'haram' | səbəblər massivi (boş ola bilər). Ay 1..12. */
-export function fastStatus(h, date) {
-  const { month: m, day: d } = h
-  if (m === 9) return 'ramadan'
-  if ((m === 10 && d === 1) || (m === 12 && d >= 10 && d <= 13)) return 'haram'
-  const r = []
-  if (m === 1 && d === 9) r.push('tasua')
-  if (m === 1 && d === 10) r.push('ashura')
-  if (m === 12 && d === 9) r.push('arafah')
-  if (m === 10 && d >= 2) r.push('shawwal')
-  if (d >= 13 && d <= 15 && m !== 12) r.push('bid')
-  const wd = date.getDay()
-  if (wd === 1) r.push('mon')
-  if (wd === 4) r.push('thu')
-  return r
-}
+// Saf qayda utils/fastStatus.js-dədir (ana səhifə kartı da işlədir) — burada yenidən ixrac
+export { fastStatus }
 
 function loadLog() {
   try {

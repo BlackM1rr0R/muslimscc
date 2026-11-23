@@ -513,7 +513,8 @@ function createGoogleVerifier({ clientId, fetchImpl = (...a) => fetch(...a), now
  *  googleVerify, fetchImpl, limits, now
  *  security             — server/security.js createSecurity(): yeni cihaz xəbərdarlığı, hadisələr, TOTP 2FA,
  *                         "security hold" (verilməyibsə hamısı sönülüdür — köhnə davranış)
- *  hooks                — { beforeDeleteUser(id), passkeyRemoved(userId, credId), passwordReset(userId) }:
+ *  hooks                — { beforeDeleteUser(id), passkeyRemoved(userId, credId), passwordReset(userId),
+ *                           emailVerified(userId, lang?), seenLang(userId, lang) — xoş gəldin məktubu (server/welcome.js) }:
  *                         hesaba bağlı sinxronizasiya (server/syncKeys.js) — blok və açar qabları təmizlənsin
  */
 function createUsersRouter(opts) {
@@ -572,6 +573,16 @@ function createUsersRouter(opts) {
     ...(sec ? sec.meExtra(u.id) : {}),
   })
   const langOf = (b) => (b && typeof b.lang === 'string' && b.lang.length <= 8 ? b.lang : undefined)
+  // Köhnə (keşlənmiş) klient təsdiq sorğusunda dil göndərmir — öz saytımızın Referer yolundan götür
+  // (/en/account/verify → en; prefikssiz → az). Başqa origin → yox.
+  const refLang = (req) => {
+    try {
+      const u = new URL(String(req.headers.referer || ''))
+      if (u.origin !== publicOrigin && !allowedOrigins.includes(u.origin)) return undefined
+      const m = /^\/([a-z]{2,3})(?:\/|$)/.exec(u.pathname)
+      return m ? m[1] : 'az'
+    } catch { return undefined }
+  }
   const secEvent = (req, user, kind, lang) => { if (sec) sec.userEvent(req, user, kind, { lang }) }
   /**
    * Şifrə / Google yoxlanandan sonra: hold → 403; 2FA açıqdırsa sessiya YOX, bilet → { twoFactor, ticket }.
@@ -672,7 +683,12 @@ function createUsersRouter(opts) {
     res.json({ ok: true })
   })
 
-  router.get('/auth/me', requireUser(), (req, res) => res.json(meOf(req.user)))
+  router.get('/auth/me', requireUser(), (req, res) => {
+    // ?lang=<sayt dili> — klientin aktiv dili (server/welcome.js saxlayır, yalnız dəyişəndə yazır)
+    const ql = req.query && req.query.lang
+    if (typeof ql === 'string' && ql.length <= 8) hook('seenLang', req.user.id, ql)
+    res.json(meOf(req.user))
+  })
 
   // ── İki addımlı yoxlama: girişin ikinci addımı (bilet + TOTP kodu və ya ehtiyat kodu) ──
   router.post('/auth/2fa', json, (req, res) => {
@@ -698,6 +714,7 @@ function createUsersRouter(opts) {
     const uid = store.consumeToken(req.body && req.body.token, 'verify', now())
     if (!uid) { lim.token.fail(ik); return err(res, 400, 'invalid_token', 'Invalid or expired link') }
     store.markVerified(uid, now())
+    hook('emailVerified', uid, langOf(req.body) || refLang(req))   // xoş gəldin məktubu (server/welcome.js) — gözlənmir
     res.json({ ok: true })
   })
   router.post('/auth/verify/resend', requireUser(), json, (req, res) => {
@@ -741,6 +758,7 @@ function createUsersRouter(opts) {
       if (!u || u.disabled) { lim.token.fail(ik); return err(res, 400, 'invalid_token', 'Invalid or expired link') }
       store.setPasswordHash(uid, hash, now())
       store.markVerified(uid, now())          // poçta çıxışı sübut olundu
+      if (u.email_verified !== 1) hook('emailVerified', uid, langOf(b) || refLang(req))
       store.revokeAllSessions(uid)
       hook('passwordReset', uid)              // köhnə şifrə ilə şifrələnmiş sinxronizasiya açarı artıq açılmır
       if (sec) { sec.clearHold(uid); secEvent(req, u, 'password_reset', langOf(b)) }   // "Bu mən deyildim" hold-u bərpa ilə açılır
@@ -984,7 +1002,7 @@ function createUsersRouter(opts) {
       const u = store.byId(uid)
       if (!u || u.disabled) { lim.google.fail(ik); return err(res, 401, 'google_invalid', 'Invalid Google credential') }
       if (!created && gate(req, res, u, 'google')) return
-      if (created) { startSession(req, res, u); if (sec) sec.afterRegister(req, res, u) } else startSession(req, res, u, 'google', langOf(req.body))
+      if (created) { startSession(req, res, u); if (sec) sec.afterRegister(req, res, u); hook('emailVerified', uid, langOf(req.body)) } else startSession(req, res, u, 'google', langOf(req.body))
       res.status(created ? 201 : 200).json({ ok: true, created, user: meOf(store.byId(uid)) })
     } catch (e) {
       console.error('google login error:', e && e.message)

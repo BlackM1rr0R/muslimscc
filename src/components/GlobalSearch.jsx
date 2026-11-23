@@ -14,6 +14,8 @@ import { loadHadithData, hadithLangOf } from '../utils/hadithData'
 import Icon from './Icon'
 import '../styles/GlobalSearch.css'
 import { pickUi } from '../utils/uiText'
+// D dəstəsi: hələ açılmamış yeni səhifələrin "Yeni" nişanı (mount-dan sonra)
+import { useNewBadges } from '../utils/whatsNewSeen'
 
 // ═══════════════════════════════════════════════════════
 // GlobalSearch — bir sözlə bütün saytda axtarış (komanda paneli)
@@ -98,6 +100,7 @@ const SUGGEST = {
 
 const LABELS = {
   az: {
+    isNew: 'Yeni',
     placeholder: 'Hədis, ayə, dua, səhifə axtar…',
     dialog: 'Saytda axtarış', close: 'Bağla', clear: 'Sorğunu təmizlə', filters: 'Nəticə növü',
     types: { all: 'Hamısı', page: 'Səhifələr', quran: 'Quran', hadith: 'Hədis', dua: 'Dua', name: 'Allahın adları', glossary: 'Lüğət' },
@@ -117,6 +120,7 @@ const LABELS = {
     hintMove: 'seç', hintOpen: 'aç', hintClose: 'bağla',
   },
   en: {
+    isNew: 'New',
     placeholder: 'Search hadith, verses, duas, pages…',
     dialog: 'Search the site', close: 'Close', clear: 'Clear search', filters: 'Result type',
     types: { all: 'All', page: 'Pages', quran: 'Quran', hadith: 'Hadith', dua: 'Duas', name: 'Names of Allah', glossary: 'Glossary' },
@@ -136,6 +140,7 @@ const LABELS = {
     hintMove: 'select', hintOpen: 'open', hintClose: 'close',
   },
   ru: {
+    isNew: 'Новое',
     placeholder: 'Поиск хадисов, аятов, дуа, страниц…',
     dialog: 'Поиск по сайту', close: 'Закрыть', clear: 'Очистить запрос', filters: 'Тип результатов',
     types: { all: 'Все', page: 'Страницы', quran: 'Коран', hadith: 'Хадисы', dua: 'Дуа', name: 'Имена Аллаха', glossary: 'Словарь' },
@@ -155,6 +160,7 @@ const LABELS = {
     hintMove: 'выбрать', hintOpen: 'открыть', hintClose: 'закрыть',
   },
   ar: {
+    isNew: 'جديد',
     placeholder: 'ابحث عن حديث أو آية أو دعاء أو صفحة…',
     dialog: 'البحث في الموقع', close: 'إغلاق', clear: 'مسح البحث', filters: 'نوع النتائج',
     types: { all: 'الكل', page: 'الصفحات', quran: 'القرآن', hadith: 'الحديث', dua: 'الأدعية', name: 'أسماء الله', glossary: 'المصطلحات' },
@@ -174,6 +180,7 @@ const LABELS = {
     hintMove: 'تنقّل', hintOpen: 'فتح', hintClose: 'إغلاق',
   },
   tr: {
+    isNew: 'Yeni',
     placeholder: 'Hadis, ayet, dua, sayfa ara…',
     dialog: 'Sitede ara', close: 'Kapat', clear: 'Aramayı temizle', filters: 'Sonuç türü',
     types: { all: 'Tümü', page: 'Sayfalar', quran: 'Kuran', hadith: 'Hadis', dua: 'Dua', name: 'Allah’ın isimleri', glossary: 'Sözlük' },
@@ -464,6 +471,7 @@ export default function GlobalSearch({ open, onClose, setPage, initialQuery }) {
 function SearchDialog({ onClose, setPage, initialQuery }) {
   const { lang } = useLang()
   const L = pickUi(LABELS, lang, 'en')
+  const newKeys = useNewBadges()
 
   const [query, setQuery] = useState(() => (initialQuery ? String(initialQuery) : lastQuery))
   const [filter, setFilter] = useState('all')
@@ -703,7 +711,7 @@ function SearchDialog({ onClose, setPage, initialQuery }) {
     if (type === 'page') {
       main = (
         <>
-          <div className="gs-opt-title"><Hl segs={highlightSegments(it.title, q)} /></div>
+          <div className="gs-opt-title"><Hl segs={highlightSegments(it.title, q)} />{newKeys.has(it.key) && <span className="gs-new">{L.isNew}</span>}</div>
           {it.desc && <div className="gs-opt-desc"><Hl segs={highlightSegments(it.desc, q)} /></div>}
           {it.group && <div className="gs-opt-meta">{it.group}</div>}
         </>
