@@ -151,15 +151,23 @@ const NewbornGuidePage = lazy(() => import('./pages/NewbornGuidePage'))
 const LovedOneGuidePage = lazy(() => import('./pages/LovedOneGuidePage'))
 const NikahGuidePage = lazy(() => import('./pages/NikahGuidePage'))
 const OnTheRoadPage = lazy(() => import('./pages/OnTheRoadPage'))
+const BedtimeRoutinePage = lazy(() => import('./pages/BedtimeRoutinePage'))
+const MorningRoutinePage = lazy(() => import('./pages/MorningRoutinePage'))
 const FocusPage = lazy(() => import('./pages/FocusPage'))
 const JariyahJournalPage = lazy(() => import('./pages/JariyahJournalPage'))
 // P3: gizli dua dostu, Həcc ailə izləyicisi, qəbir ziyarəti xəritəsi
 const SecretDuaFriendPage = lazy(() => import('./pages/SecretDuaFriendPage'))
 const HajjTrackerPage = lazy(() => import('./pages/HajjTrackerPage'))
 const GraveVisitsPage = lazy(() => import('./pages/GraveVisitsPage'))
+// R2: həftəlik ailə halqası, xəstəni ziyarət bələdçisi
+const FamilyHalaqaPage = lazy(() => import('./pages/FamilyHalaqaPage'))
+const SickVisitPage = lazy(() => import('./pages/SickVisitPage'))
 // P1: borc dəftəri, heyz/nifas təqvimi, sadə rejim, şəri ölçü vahidləri
 const DebtLedgerPage = lazy(() => import('./pages/DebtLedgerPage'))
 const HaidCalendarPage = lazy(() => import('./pages/HaidCalendarPage'))
+// R3: müsəlman səyyahın dəsti, 'Mənim ilim' çap kitabı
+const TravellerKitPage = lazy(() => import('./pages/TravellerKitPage'))
+const YearBookPage = lazy(() => import('./pages/YearBookPage'))
 const SimpleModePage = lazy(() => import('./pages/SimpleModePage'))
 const ShariaUnitsPage = lazy(() => import('./pages/ShariaUnitsPage'))
 const MushafPage = lazy(() => import('./pages/MushafPage'))
@@ -473,13 +481,19 @@ function AppInner() {
       case 'bereavement': return <LovedOneGuidePage setPage={navigate} />
       case 'nikahprep':  return <NikahGuidePage setPage={navigate} />
       case 'onroad':     return <OnTheRoadPage setPage={navigate} />
+      case 'bedtime':    return <BedtimeRoutinePage setPage={navigate} />
+      case 'waking':     return <MorningRoutinePage setPage={navigate} />
       case 'focus':      return <FocusPage setPage={navigate} />
       case 'jariyah':    return <JariyahJournalPage setPage={navigate} />
       case 'duafriend':  return <SecretDuaFriendPage />
       case 'hajjtracker': return <HajjTrackerPage />
       case 'gravevisit': return <GraveVisitsPage />
+      case 'halaqa':     return <FamilyHalaqaPage setPage={navigate} />
+      case 'sickvisit':  return <SickVisitPage setPage={navigate} />
       case 'debts':      return <DebtLedgerPage setPage={navigate} />
       case 'haid':       return <HaidCalendarPage setPage={navigate} />
+      case 'travelkit':  return <TravellerKitPage setPage={navigate} />
+      case 'yearbook':   return <YearBookPage setPage={navigate} />
       case 'simple':     return <SimpleModePage setPage={navigate} />
       case 'units':      return <ShariaUnitsPage setPage={navigate} />
       case 'mushaf':     return <MushafPage setPage={navigate} />

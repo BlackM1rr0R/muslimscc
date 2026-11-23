@@ -11,15 +11,16 @@ const srv = createRequire(import.meta.url)('../../server/personal.js')
 const mem = () => { const m = new Map(); return { getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => m.set(k, String(v)) } }
 
 describe('personalDates ≡ server/personal.js', () => {
-  it('ildönümü (miladi və hicri) və hövl — eyni tarix', () => {
-    const passed = ['2020-02-29', '2019-11-17', '2001-09-11', '2024-03-11', '1999-12-31', '2015-07-17', '2023-04-21']
+  it('hövl — eyni tarix', () => {
     const froms = ['2026-01-01', '2026-11-17', '2027-03-05', '2028-02-28']
-    for (const p of passed) for (const f of froms) for (const c of ['g', 'h']) {
-      expect(pd.nextAnniversary(p, c, f), `${p} ${c} ${f}`).toEqual(srv.nextAnniversary(p, c, f))
-    }
     for (const s of ['2026-01-10', '2025-03-01', '2026-11-17', '2024-08-31']) for (const f of froms) {
       expect(pd.hawlDue(s, f)).toBe(srv.hawlDue(s, f))
     }
+  })
+  // Vəfat ildönümü hesabı silinib (2026-11-23): sevdiklərim üçün xatırlatma vəfat tarixinə bağlı deyil
+  it('ildönümü funksiyası yoxdur (klient və server)', () => {
+    expect(pd.nextAnniversary).toBeUndefined()
+    expect(srv.nextAnniversary).toBeUndefined()
   })
 })
 

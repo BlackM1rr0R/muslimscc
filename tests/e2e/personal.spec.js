@@ -54,13 +54,20 @@ test('sevdiklərim: əlavə et → paylaşma keçidi; dəvət keçidi ilə ailə
   const sec = page.locator('#loved')
   await sec.getByLabel('Ad', { exact: true }).fill('Atam Həsən')
   await sec.getByLabel('Vəfat tarixi').fill('2018-12-20')
-  await sec.getByRole('button', { name: 'Hicri' }).click()
-  await sec.getByLabel('Hər Cümə də xatırlat').check()
+  // xatırlatma: hər Cümə (susmaya görə) | ayda bir (seçilmiş gün) | yox — vəfat tarixinə (ildönümü) bağlı deyil
+  const remind = sec.getByTestId('loved-remind')
+  await expect(remind.getByRole('button', { name: 'Hər Cümə' })).toHaveAttribute('aria-pressed', 'true')
+  await expect(sec.getByText(/ildönüm/i)).toHaveCount(0)
+  await remind.getByRole('button', { name: 'Ayda bir dəfə' }).click()
+  await sec.getByLabel('Ayın günü').selectOption('5')
   await sec.getByLabel('Anladım, razıyam').check()
   await sec.getByRole('button', { name: 'Əlavə et' }).click()
   await expect(sec.getByTestId('loved-list')).toContainText('Atam Həsən')
-  await expect(sec.getByTestId('loved-list')).toContainText('Növbəti ildönümü')
-  expect(api.bodies['POST /api/personal/loved']).toMatchObject({ name: 'Atam Həsən', passedOn: '2018-12-20', calendar: 'h', friday: true, consent: true })
+  await expect(sec.getByTestId('loved-list')).toContainText('Ayda bir (gün: 5)')
+  const lb = api.bodies['POST /api/personal/loved']
+  expect(lb).toMatchObject({ name: 'Atam Həsən', passedOn: '2018-12-20', remind: 'monthly', monthDay: 5, consent: true })
+  expect(lb.friday).toBeUndefined()
+  expect(lb.calendar).toBeUndefined()
   // mövcud mənbəli duaya keçid
   await expect(sec.getByRole('link', { name: /Mərhum üçün dua/ })).toHaveAttribute('href', '/learn/janazah#ls-prayer')
   await sec.getByRole('button', { name: 'Paylaşma keçidi yarat' }).click()
@@ -147,7 +154,7 @@ for (const theme of ['light', 'dark']) {
     const api = await fakePersonalApi(page, { consent: { letters: true, loved: true, zakat: true } })
     api.letters.push({ id: 90, body: 'x', deliverOn: '2030-01-01', kind: 'date', status: 'pending', createdAt: Date.UTC(2026, 10, 1), deliveredAt: null },
       { id: 91, body: 'y', deliverOn: '2026-11-01', kind: 'year', status: 'delivered', createdAt: Date.UTC(2025, 10, 1), deliveredAt: Date.UTC(2026, 10, 1) })
-    api.loved.push({ id: 92, name: 'Ana', relation: 'ana', passedOn: '2015-03-03', calendar: 'h', friday: true, note: 'qeyd', nextOn: null })
+    api.loved.push({ id: 92, name: 'Ana', relation: 'ana', passedOn: '2015-03-03', calendar: 'h', remind: 'monthly', monthDay: 12, friday: false, note: 'qeyd', nextOn: '2026-12-12' })
     api.zakat = { hawlStart: '2026-11-01', dueOn: '2027-10-21', amount: 120, currency: 'AZN' }
     await page.goto('/account')
     await expect(page.getByTestId('loved-list')).toBeVisible()

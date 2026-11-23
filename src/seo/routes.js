@@ -106,9 +106,14 @@ export const PAGES = [
   { key: 'qibla',        path: 'qibla',        priority: 0.85, changefreq: 'monthly' },
   // "Yolda" rejimi — maşın/səfər ekranı (Quran qiraəti, zikr, növbəti namaz, qiblə); alət səhifəsi
   { key: 'onroad',       path: 'on-the-road',  priority: 0.65, changefreq: 'monthly' },
+  // R3: müsəlman səyyahın dəsti — təyinatın qibləsi, namaz vaxtları, saat fərqi, keçidlər (şəxsi səfərlər yalnız klientdə)
+  { key: 'travelkit',    path: 'traveller-kit', priority: 0.65, changefreq: 'monthly' },
   // P1: sadə rejim (yaşlılar üçün iri ekran) və şəri ölçü vahidləri çeviricisi — alət səhifələri
   { key: 'simple',       path: 'simple',       priority: 0.6,  changefreq: 'monthly' },
   { key: 'units',        path: 'sharia-units', priority: 0.65, changefreq: 'monthly' },
+  // R1: yatmazdan əvvəl sünnə və səhər oyanışı — addım-addım ardıcıllıqlar (mətn Hisnul-Müslim/hədislərdən; irəliləyiş klientdə)
+  { key: 'bedtime',      path: 'bedtime-sunnah', priority: 0.7, changefreq: 'monthly' },
+  { key: 'waking',       path: 'morning-routine', priority: 0.7, changefreq: 'monthly' },
   { key: 'calendar',     path: 'calendar',     priority: 0.85, changefreq: 'daily'   },
   { key: 'hijri',        path: 'hijri-converter', priority: 0.80, changefreq: 'daily' },
   { key: 'prayerguide',  path: 'prayerguide',  priority: 0.85, changefreq: 'monthly' },
@@ -121,6 +126,8 @@ export const PAGES = [
   { key: 'newborn',      path: 'newborn-sunnah', priority: 0.75, changefreq: 'monthly' },
   { key: 'bereavement',  path: 'when-a-loved-one-dies', priority: 0.75, changefreq: 'monthly' },
   { key: 'nikahprep',    path: 'nikah-preparation', priority: 0.75, changefreq: 'monthly' },
+  // R2: xəstəni ziyarət bələdçisi (dərs + Hisn, mənbələri ilə; xatırlatmalar yalnız klientdə)
+  { key: 'sickvisit',    path: 'visiting-the-sick', priority: 0.75, changefreq: 'monthly' },
   { key: 'namecalligraphy', path: 'name-in-arabic', priority: 0.70, changefreq: 'monthly' },
   { key: 'babynames',    path: 'muslim-baby-names', priority: 0.75, changefreq: 'monthly' },
   { key: 'quiz',         path: 'quiz',         priority: 0.80, changefreq: 'monthly' },
@@ -179,9 +186,13 @@ export const PAGES = [
   { key: 'duafriend',     path: 'secret-dua-friend', noindex: true },
   { key: 'hajjtracker',   path: 'hajj-tracker',    noindex: true },
   { key: 'gravevisit',    path: 'grave-visits',    noindex: true },
+  // R2: həftəlik ailə halqası — dəst ISO həftəsinə görə klientdə yığılır (prerender-də yalnız giriş): indekslənmir
+  { key: 'halaqa',        path: 'family-halaqa',   noindex: true },
   // P1 — şəxsi dəftərlər (yalnız cihazda + E2E sinxronizasiya): borc dəftəri, heyz/nifas təqvimi (neytral ünvan)
   { key: 'debts',         path: 'debt-ledger',     noindex: true },
   { key: 'haid',          path: 'private-calendar', noindex: true },
+  // R3: 'Mənim ilim' çap kitabı — yalnız cihazdakı şəxsi qeydlərdən (prerender-də boş qabıq): indekslənmir
+  { key: 'yearbook',      path: 'my-year-book',     noindex: true },
 ]
 
 /** İndekslənməyən səhifə açarları (Seo.jsx → robots noindex). */

@@ -181,7 +181,7 @@ məlumatı (hesab qalır). Cədvəllər miqrasiyasızdır (`CREATE TABLE IF NOT 
 | Endpoint | Qeyd |
 |---|---|
 | `GET/POST /api/personal/letters`, `PATCH/DELETE /api/personal/letters/:id` | ≤50 gözləyən; PATCH yalnız `pending` |
-| `GET/POST /api/personal/loved`, `PATCH/DELETE /api/personal/loved/:id` | ≤50 nəfər |
+| `GET/POST /api/personal/loved`, `PATCH/DELETE /api/personal/loved/:id` | ≤50 nəfər; `{ name, relation?, passedOn? (istəyə bağlı, yalnız göstərmək üçün), note?, remind: friday/monthly/off, monthDay? (1–28) }`; köhnə klientin `friday` (boolean) sahəsi qəbul olunur |
 | `POST/DELETE /api/personal/loved/share` | POST — yeni keçid (köhnə işləmir, izləyənlər qalır) → `{ token }`; DELETE — keçid ləğv + bütün izləyənlər çıxarılır |
 | `DELETE /api/personal/loved/followers/:id` | sahib bir izləyəni çıxarır |
 | `POST /api/personal/follow/preview`, `POST /api/personal/follow`, `DELETE /api/personal/follow/:ownerId` | token gövdədə (URL-də yox); ≤20 siyahı izləmək, ≤30 izləyən |
@@ -198,9 +198,11 @@ həmin günün 09:00-ından sonra (gün bitənə qədər) göndərir. E-poçt ə
 mətn yad ünvana getməsin); push — hesaba bağlanmış cihazlara (Hesab səhifəsində "bu cihaza da göndər").
 İkiqat göndəriş yoxdur: sətir göndərişdən ƏVVƏL atomik tutulur ("sending"); proses göndəriş ortasında ölsə,
 həmin xatırlatma yenidən göndərilmir (15 dəq sonra "çatdırılıb" sayılır). Xəta → 5 cəhdə qədər, 5/15/45/135 dəq
-fasilə ilə; sonra `failed` (məktub hesab səhifəsində oxunur). Mərhumun ildönümü: miladi (29 fevral → 28 fevral)
-və ya hicri (ayın 30-u 29 günlük ayda → 29); sahib və izləyənlərin hər biri öz saat qurşağında. Cümə — həftədə bir
-məktubda bütün adlar. Zəkat — 7 gün əvvəl və həmin gün, sonra avtomatik növbəti hicri ilə keçir.
+fasilə ilə; sonra `failed` (məktub hesab səhifəsində oxunur). Sevdiklərim: **vəfat tarixinə bağlı (ildönümü) xatırlatma YOXDUR**
+(2026-11-23 — ildönümü məclisləri bidətdir, cənazə dərsi; duanı o günə bağlamırıq). Seçimlər: hər Cümə (həftədə bir
+məktubda bütün adlar) · ayda bir — istifadəçinin seçdiyi gün (1–28), sahib və izləyənlərin hər biri öz saat qurşağında ·
+yox. Rejim `personal_loved.friday` sütunundadır (0 yox, 1 Cümə, 100+gün ayda bir; sxem dəyişməyib). Köhnə ildönümü
+sətirləri (friday 0/1 + next_on) tick-də və siyahı oxunanda yerində "hər Cümə"yə çevrilir. Zəkat — 7 gün əvvəl və həmin gün, sonra avtomatik növbəti hicri ilə keçir.
 Məktubdakı "Mərhum üçün dua" keçidi saytın mövcud mənbəli duasına aparır (`/learn/janazah#ls-prayer`, Müslim 963) —
 yeni dini mətn yazılmayıb.
 
@@ -325,7 +327,7 @@ Sərbəst mətn yoxdur — yalnız çağırışın öz başlığı (`custom`, �
 
 ### Şəxsi təqvim axını (`server/calFeed.js`)
 - `cal_feeds`: tokenin yalnız SHA-256-ı (32 bayt), seçilmiş bölmələr, dil. Token bir dəfə göstərilir; "Yeni keçid" köhnəni öldürür.
-- `GET /api/cal/<token>.ics` — bütün-gün hadisələri (VALUE=DATE, VTIMEZONE lazım deyil): ildönümləri (adlarla), Cümə (RRULE),
+- `GET /api/cal/<token>.ics` — bütün-gün hadisələri (VALUE=DATE, VTIMEZONE lazım deyil): "ayda bir" dua xatırlatmaları (adlarla, RRULE MONTHLY), Cümə (RRULE),
   zəkat (VALARM −7 gün), məktubun açılış günü (yalnız başlıq), sünnə orucları (`CalSunnahFasts.jsx → fastStatus`-un surəti;
   Şəvval daxil deyil), çağırış günləri. `Cache-Control: private, max-age=1800`, `X-Robots-Tag: noindex`. Limit 300/dəq;
   idarə `/api/cal-feed` 30/dəq. nginx: `location ^~ /api/cal/` — `access_log off` (URL-in özü sirdir).

@@ -6,8 +6,8 @@
 //   onMessage(msg) qarmağı — açar yoxdursa "göndərilən" məktubu ona verir.
 // • Göndərən: noreply@muslims.cc (domen Resend-də təsdiqlənməlidir — docs/USER-ACCOUNTS.md).
 // • Şablonlar: verify | reset | exists — 5 dil (az/en/ru/tr/ar), qalanları en.
-//   Şəxsi xatırlatmalar (server/personal.js): letter | anniversary | friday | zakatSoon | zakatDue —
-//   mətndə {name}, {n}, {names}, {date}, {amount} yer tutucuları; məktubun özü (vars.body) sitat
+//   Şəxsi xatırlatmalar (server/personal.js): letter | lovedRemind | friday | zakatSoon | zakatDue —
+//   mətndə {name}, {names}, {date}, {amount} yer tutucuları; məktubun özü (vars.body) sitat
 //   kimi; vars.unsubUrl varsa — altda "abunəlikdən çıx" keçidi + List-Unsubscribe başlıqları.
 //   Hesab təhlükəsizliyi (server/security.js): newSignIn | securityChange | adminSignIn — {time},
 //   {device}, {place}, {event}; "details" sətirləri ayrıca blokda.
@@ -54,13 +54,14 @@ const T = {
     tr: { subject: 'Geleceğe mektup — Muslims.cc', intro: '{date} tarihinde kendinize bu mektubu yazmıştınız:', button: 'Mektuplarımı gör', note: 'Bu mektubu Muslims.cc hesabınızda kendiniz planladınız. Mektuplarınızı hesap sayfasında silebilirsiniz.' },
     ar: { subject: 'رسالة إلى نفسك في المستقبل — Muslims.cc', intro: 'في {date} كتبتَ لنفسك هذه الرسالة:', button: 'عرض رسائلي', note: 'جدولتَ هذه الرسالة بنفسك في حسابك على Muslims.cc. يمكنك حذف رسائلك من صفحة الحساب.' },
   },
-  // Vəfat ildönümü — dini mətn YOXDUR, yalnız xatırlatma; keçid saytdakı mənbəli duaya (cənazə dərsi, Müslim 963)
-  anniversary: {
-    az: { subject: '{name} — ildönümü', intro: 'Bu gün {name} dünyasını dəyişməsinin {n} ili tamam olur. Onu dualarınızda yad edin.', button: 'Mərhum üçün dua', note: 'Bu xatırlatmanı Muslims.cc hesabınızda "Sevdiklərim üçün dua" bölməsində qurmusunuz.', unsub: 'Bu xatırlatmaları e-poçtla almaq istəmirəm' },
-    en: { subject: '{name} — anniversary', intro: 'Today is the {n} anniversary of the passing of {name}. Remember them in your duas.', button: 'Dua for the deceased', note: 'You set up this reminder under "Prayers for loved ones" in your Muslims.cc account.', unsub: 'Stop these email reminders' },
-    ru: { subject: '{name} — годовщина', intro: 'Сегодня {n}-я годовщина ухода {name}. Вспомните его в своих дуа.', button: 'Дуа за умершего', note: 'Вы настроили это напоминание в разделе «Дуа за близких» аккаунта Muslims.cc.', unsub: 'Не присылать эти напоминания по почте' },
-    tr: { subject: '{name} — yıl dönümü', intro: 'Bugün {name} vefatının {n}. yıl dönümü. Onu dualarınızda anın.', button: 'Ölüye dua', note: 'Bu hatırlatmayı Muslims.cc hesabınızdaki "Sevdiklerim için dua" bölümünde kurdunuz.', unsub: 'Bu hatırlatmaları e-postayla almak istemiyorum' },
-    ar: { subject: '{name} — ذكرى الوفاة', intro: 'اليوم تمرّ الذكرى السنوية رقم {n} لوفاة {name}. اذكره في دعائك.', button: 'الدعاء للميت', note: 'أعددتَ هذا التذكير في قسم «الدعاء لأحبّتي» في حسابك على Muslims.cc.', unsub: 'إيقاف هذه التذكيرات بالبريد' },
+  // Sevdiklərim — "ayda bir" xatırlatma (istifadəçinin seçdiyi gün; vəfat tarixinə BAĞLI DEYİL — ildönümü
+  // məclisləri bidətdir). Dini mətn YOXDUR, yalnız xatırlatma; keçid saytdakı mənbəli duaya (cənazə dərsi, Müslim 963)
+  lovedRemind: {
+    az: { subject: '{name} üçün dua xatırlatması', intro: '{name} üçün dua etməyi unutmayın — bu, kiçik bir xatırlatmadır.', button: 'Mərhum üçün dua', note: 'Bu xatırlatmanı Muslims.cc hesabınızda "Sevdiklərim üçün dua" bölməsində qurmusunuz.', unsub: 'Bu xatırlatmaları e-poçtla almaq istəmirəm' },
+    en: { subject: 'A reminder to make dua for {name}', intro: 'A reminder to make dua for {name}.', button: 'Dua for the deceased', note: 'You set up this reminder under "Prayers for loved ones" in your Muslims.cc account.', unsub: 'Stop these email reminders' },
+    ru: { subject: 'Напоминание о дуа за {name}', intro: 'Напоминание сделать дуа за {name}.', button: 'Дуа за умершего', note: 'Вы настроили это напоминание в разделе «Дуа за близких» аккаунта Muslims.cc.', unsub: 'Не присылать эти напоминания по почте' },
+    tr: { subject: '{name} için dua hatırlatması', intro: '{name} için dua etmeniz için bir hatırlatma.', button: 'Ölüye dua', note: 'Bu hatırlatmayı Muslims.cc hesabınızdaki "Sevdiklerim için dua" bölümünde kurdunuz.', unsub: 'Bu hatırlatmaları e-postayla almak istemiyorum' },
+    ar: { subject: 'تذكير بالدعاء لـ{name}', intro: 'تذكير بالدعاء لـ{name}.', button: 'الدعاء للميت', note: 'أعددتَ هذا التذكير في قسم «الدعاء لأحبّتي» في حسابك على Muslims.cc.', unsub: 'إيقاف هذه التذكيرات بالبريد' },
   },
   friday: {
     az: { subject: 'Cümə — sevdikləriniz üçün dua', intro: 'Bu gün Cümədir. Sevdiklərinizi dualarınızda yad edin: {names}.', button: 'Mərhum üçün dua', note: 'Bu xatırlatmanı Muslims.cc hesabınızda "Sevdiklərim üçün dua" bölməsində qurmusunuz.', unsub: 'Bu xatırlatmaları e-poçtla almaq istəmirəm' },
@@ -121,17 +122,11 @@ const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&
 const pickLang = (lang) => (LANGS.includes(lang) ? lang : 'en')
 
 const URL_RE = /^https?:\/\/[^\s"'<>]+$/
-/** İngiliscə sıra sayı: 1st, 2nd, 3rd, 11th … */
-const ordinalEn = (n) => {
-  const a = n % 10, b = n % 100
-  return `${n}${a === 1 && b !== 11 ? 'st' : a === 2 && b !== 12 ? 'nd' : a === 3 && b !== 13 ? 'rd' : 'th'}`
-}
 /** "{name}" yer tutucuları; dəyişənlərdən idarə simvolları (başlıq inyeksiyası) atılır */
-function fill(str, vars, l) {
-  return String(str).replace(/\{(name|n|names|date|amount|time|device|place|event|prayers|pages|dhikr|fasts|wird)\}/g, (_, k) => {
-    let v = vars[k]
+function fill(str, vars) {
+  return String(str).replace(/\{(name|names|date|amount|time|device|place|event|prayers|pages|dhikr|fasts|wird)\}/g, (_, k) => {
+    const v = vars[k]
     if (v == null) return ''
-    if (k === 'n' && l === 'en') v = ordinalEn(Number(v))
     return String(v).replace(/\p{Cc}/gu, ' ').slice(0, 2000)
   })
 }
@@ -149,12 +144,12 @@ function render(kind, lang, vars = {}) {
   const safeUrl = URL_RE.test(String(vars.url || '')) ? String(vars.url) : ''
   const unsubUrl = URL_RE.test(String(vars.unsubUrl || '')) ? String(vars.unsubUrl) : ''
   const body = typeof vars.body === 'string' ? vars.body.slice(0, 8000) : ''
-  const intro = fill(t.intro, vars, l)
-  const amount = t.amount && vars.amount ? fill(t.amount, vars, l) : ''
+  const intro = fill(t.intro, vars)
+  const amount = t.amount && vars.amount ? fill(t.amount, vars) : ''
   // dropEmpty (həftəlik hesabat): dəyəri olmayan yer tutuculu sətir atılır
   const details = !t.details ? '' : t.dropEmpty
-    ? t.details.split('\n').filter((line) => [...line.matchAll(/\{(\w+)\}/g)].every((m) => vars[m[1]] != null && vars[m[1]] !== '')).map((line) => fill(line, vars, l)).join('\n')
-    : fill(t.details, vars, l)
+    ? t.details.split('\n').filter((line) => [...line.matchAll(/\{(\w+)\}/g)].every((m) => vars[m[1]] != null && vars[m[1]] !== '')).map((line) => fill(line, vars)).join('\n')
+    : fill(t.details, vars)
   const dir = l === 'ar' ? 'rtl' : 'ltr'
   const text = `${intro}\n\n` + (details ? `${details}\n\n` : '') + (body ? `${body}\n\n` : '') + (amount ? `${amount}\n\n` : '') +
     `${safeUrl}\n\n${t.note}\n\n— Muslims.cc` + (unsubUrl ? `\n\n${t.unsub}: ${unsubUrl}` : '')
@@ -170,7 +165,7 @@ function render(kind, lang, vars = {}) {
     `<p style="font-size:13px;color:#5b6b63;line-height:1.5;margin:0">${esc(t.note)}</p>` +
     (unsubUrl ? `<p style="font-size:12px;margin:16px 0 0"><a href="${esc(unsubUrl)}" style="color:#5b6b63">${esc(t.unsub)}</a></p>` : '') +
     `</div></body></html>`
-  const out = { subject: fill(t.subject, vars, l), text, html }
+  const out = { subject: fill(t.subject, vars), text, html }
   // RFC 8058: poçt proqramının "abunəlikdən çıx" düyməsi (POST, girişsiz)
   if (unsubUrl) out.headers = { 'List-Unsubscribe': `<${unsubUrl}>`, 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' }
   return out

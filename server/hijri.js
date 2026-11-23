@@ -2,7 +2,7 @@
 // tests/unit/server-hijri.test.js iki faylın eyni nəticə verdiyini yoxlayır.
 'use strict'
 // ═══════════════════════════════════════════════════════
-// Hicri ↔ miladi çevirmə — serverdə (server/personal.js: mərhumun hicri ildönümü, zəkat ili)
+// Hicri ↔ miladi çevirmə — serverdə (server/personal.js: zəkat ili)
 //
 // Miladi → hicri: Intl Ümmül-Qura təqvimi ('islamic-umalqura' — saytdakı ilə eyni mənbə;
 // Node-un rəsmi image-lərində tam ICU var). Bütün hesablar UTC günorta ilə aparılır.

@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════
 // Şəxsi xatırlatmalar — klient (server/personal.js, docs/USER-ACCOUNTS.md → "Şəxsi xatırlatmalar")
-// Gələcəyə məktub, sevdiklərim üçün dua (ildönümü, Cümə, ailə ilə paylaşma), zəkat ili.
+// Gələcəyə məktub, sevdiklərim üçün dua (hər Cümə / ayda bir, ailə ilə paylaşma), zəkat ili.
 // Bu məlumat SERVERDƏ ŞİFRƏSİZ saxlanır (vaxtında göndərmək üçün) — UI ilk istifadədə açıq razılıq alır.
 // Yüngül: yalnız userSession-in authFetch-i (cookie + X-Requested-With).
 // ═══════════════════════════════════════════════════════════

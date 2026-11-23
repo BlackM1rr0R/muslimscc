@@ -77,11 +77,17 @@ const P = {
   // Yolda rejimi (sükan), Quranla diqqət seansı (açıq kitab üstündə halqa-taymer)
   onroad: <><circle cx="12" cy="12" r="8.5" /><circle cx="12" cy="12" r="2.2" /><path d="M3.8 10.5c2.6-.9 5.3-1.3 8.2-1.3s5.6.4 8.2 1.3" /><path d="M10.4 13.6 7.6 20M13.6 13.6l2.8 6.4" /></>,
   focus: <><path d="M12 20.5c-1.6-1.2-4.3-2-8.5-2V8c4.2 0 6.9.8 8.5 2 1.6-1.2 4.3-2 8.5-2v10.5c-4.2 0-6.9.8-8.5 2z" /><path d="M12 10v10.5" /><circle cx="12" cy="4.6" r="2.6" /><path d="M12 3.4v1.2l.8.6" /></>,
+  // R1: yatmazdan əvvəl sünnə (yataq + hilal), səhər oyanışı (üfüqdən çıxan günəş + yuxarı ox)
+  bedtime: <><path d="M3 20.5v-7h18v7" /><path d="M3 17h18" /><path d="M6 13.5v-1.8A1.7 1.7 0 0 1 7.7 10h3.1a1.7 1.7 0 0 1 1.7 1.7v1.8" /><path d="M20.5 7.4A3.8 3.8 0 0 1 15.6 2.5a3.8 3.8 0 1 0 4.9 4.9z" /></>,
+  waking: <><path d="M2.5 20h19" /><path d="M6.5 20a5.5 5.5 0 0 1 11 0" /><path d="M3.6 16.2h1.8M18.6 16.2h1.8M5.8 11.4l1.3 1.3M18.2 11.4l-1.3 1.3" /><path d="M12 11.5V3M9 6l3-3 3 3" /></>,
   jariyah: <><path d="M12 21.5v-7" /><path d="M12 14.5c-3.6 0-6-2.3-6-5.2A5.4 5.4 0 0 1 12 4a5.4 5.4 0 0 1 6 5.3c0 2.9-2.4 5.2-6 5.2z" /><path d="M8.5 21.5h7" /><path d="m12 11.6-2-2M12 13l2.2-2.2" /></>,
   // P2: körpə (beşik + hilal), vəfat (torpaq + hilal), nikah (əqd sənədi + iki şahid xətti) — canlı təsviri yoxdur
   newborn: <><path d="M3.5 11h17a8.5 8.5 0 0 1-17 0z" /><path d="m8 18.6-1.5 2.4M16 18.6l1.5 2.4" /><path d="M15 2.8a3.6 3.6 0 1 0 4.6 4.6A2.9 2.9 0 0 1 15 2.8z" /></>,
   bereavement: <><path d="M3 20.5h18" /><path d="M6 20.5a6 6 0 0 1 12 0" /><path d="M12.5 3.5a3.8 3.8 0 1 0 4.8 4.8 3 3 0 0 1-4.8-4.8z" /></>,
   nikahprep: <><path d="M6 3h8.5L18 6.5V21H6z" /><path d="M14.5 3v3.5H18" /><path d="M9 10h6M9 13.5h6" /><path d="M9 17.5h2.2M12.8 17.5H15" /></>,
+  // R2: xəstəni ziyarət (ürək + nəbz xətti), ailə halqası (açıq kitab + dairəvi oturuş nöqtələri) — canlı təsviri yoxdur
+  sickvisit: <><path d="M12 20s-7.5-4.4-7.5-10A4.3 4.3 0 0 1 12 7.3 4.3 4.3 0 0 1 19.5 10c0 5.6-7.5 10-7.5 10z" /><path d="M6 12.5h3l1.5-2.5 2 4 1.5-1.5H18" /></>,
+  halaqa: <><path d="M12 9.5c-1.5-1-3.5-1.5-6-1.5v8c2.5 0 4.5.5 6 1.5 1.5-1 3.5-1.5 6-1.5V8c-2.5 0-4.5.5-6 1.5z" /><path d="M12 9.5v8" /><circle cx="12" cy="3.5" r="1.2" /><circle cx="4" cy="5.5" r="1.2" /><circle cx="20" cy="5.5" r="1.2" /><circle cx="4" cy="20.5" r="1.2" /><circle cx="20" cy="20.5" r="1.2" /></>,
   // P1: borc dəftəri (kitab + sətirlər), qadın təqvimi (təqvim + damla), sadə rejim (iri "A"), şəri ölçülər (ölçü qabı)
   debts: <><rect x="5" y="3" width="14" height="18" rx="2" /><path d="M9 3v18" /><path d="M12 8h4M12 12h4M12 16h2.5" /></>,
   haid: <><rect x="3.5" y="5" width="17" height="15.5" rx="2.5" /><path d="M3.5 10h17M8 3v4M16 3v4" /><path d="M12 12.6c1.3 1.5 2 2.6 2 3.4a2 2 0 0 1-4 0c0-.8.7-1.9 2-3.4z" /></>,
@@ -89,6 +95,9 @@ const P = {
   // P3: gizli dua dostu (iki açıq əl + ulduz), Həcc izləyicisi (Kəbə + mərhələ nöqtələri), qəbir xəritəsi (nişan + daş)
   duafriend: <><path d="M4 20.5v-6.2a2 2 0 0 1 4 0V18" /><path d="M20 20.5v-6.2a2 2 0 0 0-4 0V18" /><path d="M8 18h8" /><path d="m12 3.5 1.2 2.6 2.8.3-2.1 1.9.6 2.8-2.5-1.5-2.5 1.5.6-2.8-2.1-1.9 2.8-.3z" /></>,
   hajjtracker: <><path d="M6 6.5 12 4l6 2.5v7L12 16l-6-2.5z" /><path d="M6 9l6 2.5L18 9" /><circle cx="4.5" cy="20" r="1.3" /><circle cx="12" cy="20" r="1.3" /><circle cx="19.5" cy="20" r="1.3" /><path d="M5.8 20h4.9M13.3 20h4.9" /></>,
+  // R3: səyyahın dəsti (çamadan + qiblə oxu), 'Mənim ilim' kitabı (kitab + 8 guşəli ulduz)
+  travelkit: <><rect x="3.5" y="7.5" width="17" height="12.5" rx="2" /><path d="M9 7.5V5a1.5 1.5 0 0 1 1.5-1.5h3A1.5 1.5 0 0 1 15 5v2.5" /><path d="M12 17.5v-6M9.8 13.7 12 11.5l2.2 2.2" /></>,
+  yearbook: <><path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H19v15H6.5A1.5 1.5 0 0 0 5 19.5z" /><path d="M5 19.5A1.5 1.5 0 0 0 6.5 21H19v-3" /><path d="M12 6.6l1 1.9 2-.5-.5 2 1.9 1-1.9 1 .5 2-2-.5-1 1.9-1-1.9-2 .5.5-2-1.9-1 1.9-1-.5-2 2 .5z" /></>,
   gravevisit: <><path d="M12 13.5s-4.5-4-4.5-7.2a4.5 4.5 0 0 1 9 0c0 3.2-4.5 7.2-4.5 7.2z" /><circle cx="12" cy="6.4" r="1.5" /><path d="M8.5 21v-3.5a3.5 3.5 0 0 1 7 0V21" /><path d="M5 21h14" /></>,
   units: <><path d="M5 4h12l-1.2 15.2A2 2 0 0 1 13.8 21H8.2a2 2 0 0 1-2-1.8z" /><path d="M17 7h2.5v5h-2.9" /><path d="M8 9h3M8 12.5h4M8 16h3" /></>,
   charity: <><path d="M5 2.5v19l2-1 2 1 2-1 2 1 2-1 2 1 2-1v-19l-2 1-2-1-2 1-2-1-2 1-2-1-2 1z" /><path d="M12 15s-3.3-1.9-3.3-4.2A1.8 1.8 0 0 1 12 9.9a1.8 1.8 0 0 1 3.3.9C15.3 13.1 12 15 12 15z" /></>,
@@ -174,6 +183,8 @@ const P = {
   device: <><rect x="6.5" y="2.5" width="11" height="19" rx="2.5" /><path d="M10.5 18.5h3" /></>,
   mic: <><rect x="9" y="3" width="6" height="11" rx="3" /><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5v3.5" /></>,
   copy: <><rect x="8.5" y="8.5" width="12" height="12" rx="2.5" /><path d="M15.5 8.5v-2a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2" /></>,
+  // R2: çap (printer) — ailə halqasının çap görünüşü
+  print: <><path d="M7 8.5V3.5h10v5" /><rect x="3.5" y="8.5" width="17" height="8" rx="2" /><path d="M7 14h10v6.5H7z" /><path d="M17 11.5h.01" /></>,
   external: <><path d="M14 4.5h5.5V10M19.5 4.5 11 13" /><path d="M18 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4" /></>,
   clock: <><circle cx="12" cy="12" r="8.5" /><path d="M12 7.5V12l3 2" /></>,
   enter: <><path d="M19.5 5v6a3 3 0 0 1-3 3H5" /><path d="m9 10-4 4 4 4" /></>,

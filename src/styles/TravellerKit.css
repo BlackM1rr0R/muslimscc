@@ -1,0 +1,67 @@
+/* ══ Müsəlman səyyahın dəsti (/traveller-kit, pages/TravellerKitPage.jsx) ══
+   Məntiqi xassələr (RTL avtomatik), yalnız tokenlər (açıq/tünd), 360px-də bir sütun. Animasiya yoxdur. */
+.tk-wrap { display: grid; gap: var(--space-4, 16px); }
+.tk-pick { display: grid; gap: 10px; }
+.tk-h { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; font-size: 1.05rem; color: var(--text-strong); }
+.tk-muted { margin: 0; color: var(--text-secondary); }
+.tk-small { font-size: var(--step--1, .875rem); line-height: 1.5; }
+.tk-hint { margin: 0; display: flex; gap: 6px; align-items: flex-start; color: var(--text-secondary); font-size: var(--step--1, .875rem); }
+.tk-hint svg { flex: none; margin-top: 3px; }
+.tk-empty { margin: 0; padding: 18px; text-align: center; color: var(--text-secondary); border: 1px dashed var(--line-strong); border-radius: var(--radius-lg); }
+
+/* Təyinat sahəsi (combobox) */
+.tk-dest { position: relative; display: grid; gap: 6px; }
+.tk-dest__row { display: flex; flex-wrap: wrap; gap: 8px; }
+.tk-dest__row .ui-input { flex: 1 1 200px; min-width: 0; }
+.tk-dest__world { flex: none; }
+.tk-dest__st { margin: 0; min-height: 1.2em; color: var(--text-secondary); font-size: var(--step--1, .875rem); }
+.tk-dest__list { list-style: none; margin: 0; padding: 4px; display: grid; gap: 2px; border: 1px solid var(--line-strong); border-radius: var(--radius-md); background: var(--surface-1); max-height: 320px; overflow-y: auto; }
+.tk-dest__list[hidden] { display: none; }
+.tk-dest__list li { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 8px 10px; border-radius: var(--radius-sm); cursor: pointer; color: var(--text-body); }
+.tk-dest__list li small { margin-inline-start: auto; color: var(--text-secondary); }
+.tk-dest__list li.is-active, .tk-dest__list li:hover { background: var(--brand-soft); color: var(--text-strong); }
+
+/* Səfərlərim */
+.tk-trips { display: grid; gap: 8px; }
+.tk-trips__list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.tk-trip { display: inline-flex; align-items: center; gap: 2px; }
+.tk-trip__open { min-height: 40px; max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tk-trip__del { width: 40px; height: 40px; }
+
+/* Nəticə */
+.tk-result { display: grid; gap: var(--space-4, 16px); }
+.tk-result__head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+.tk-dest-name { margin: 0; font-size: clamp(1.3rem, 3.5vw, 1.8rem); color: var(--text-strong); overflow-wrap: anywhere; }
+.tk-dest-name:focus { outline: none; }
+.tk-dest-name:focus-visible { outline: 2px solid var(--brand); outline-offset: 4px; border-radius: 4px; }
+.tk-grid { display: grid; gap: var(--space-4, 16px); grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); }
+.tk-card { display: grid; gap: 8px; align-content: start; }
+.tk-card p { margin: 0; line-height: 1.55; }
+.tk-card > .ui-btn { justify-self: start; }
+@media (min-width: 720px) { .tk-card--wide { grid-column: 1 / -1; } }
+.tk-big { font-size: 1.15rem; font-weight: 600; color: var(--text-strong); }
+.tk-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.tk-date { display: inline-flex; align-items: center; gap: 8px; color: var(--text-secondary); font-size: var(--step--1, .875rem); }
+.tk-date .ui-input { width: auto; }
+
+.tk-times { margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 8px; }
+.tk-time { display: grid; gap: 2px; padding: 10px 12px; border-radius: var(--radius-md); background: var(--surface-2); }
+.tk-time dt { color: var(--text-secondary); font-size: var(--step--1, .875rem); }
+.tk-time dd { margin: 0; font-size: 1.2rem; font-weight: 600; color: var(--text-strong); }
+.tk-time.is-sun dd { color: var(--text-secondary); font-weight: 500; }
+
+.tk-qibla { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.tk-dial { width: 112px; height: 112px; flex: none; }
+.tk-dial__ring { fill: var(--surface-2); stroke: var(--line-strong); stroke-width: 1.5; }
+.tk-dial__tick { stroke: var(--text-tertiary); stroke-width: 1.5; }
+.tk-dial__n { fill: var(--text-secondary); font-size: 11px; font-weight: 700; }
+.tk-dial__arrow { stroke: var(--brand); stroke-width: 3; stroke-linecap: round; }
+.tk-dial__head { fill: var(--brand); }
+.tk-dial__hub { fill: var(--text-strong); }
+
+.tk-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.tk-usecity { justify-self: start; white-space: normal; text-align: start; height: auto; min-height: var(--ui-btn-h, 40px); }
+.tk-links { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; justify-items: start; }
+.tk-hist { margin: 0; padding-inline-start: 18px; display: grid; gap: 8px; line-height: 1.55; }
+.tk-refs { display: inline-flex; flex-wrap: wrap; gap: 4px 10px; }
+.ui-btn.tk-usecity, .tk-links .ui-btn, .tk-actions .ui-btn { white-space: normal; height: auto; min-height: 40px; }

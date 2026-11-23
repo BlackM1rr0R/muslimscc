@@ -44,6 +44,7 @@ const EXCLUDE_KEYS = new Set([
   'simple_mode_v1',   // sadə rejim və başlanğıc ekran seçimi (utils/simpleMode) — yalnız bu cihaz
   'loved_guide_v1',   // P2: vəfat bələdçisinin işarələri (utils/lifeGuides) — həssasdır, yalnız bu cihaz
   'nikah_prep_v1',    // P2: nikaha hazırlıq qeydləri (utils/lifeGuides) — şəxsidir, yalnız bu cihaz
+  'family_halaqa_v1', // R2: ailə halqasının işarələri (utils/familyHalaqa) — yalnız bu cihaz, xal/say yoxdur
 ])
 
 export function isBackupKey(key) {

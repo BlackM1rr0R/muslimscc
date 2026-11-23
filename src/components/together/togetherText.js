@@ -76,7 +76,7 @@ export const TG = {
     feed: {
       title: 'Təqvim axını', lead: 'Xatırlatmalarınızı Google, Apple və ya Outlook təqviminə əlavə edin. Yalnız seçdiyiniz bölmələr; keçid gizlidir.',
       cats: {
-        loved: 'Sevdiklərimin ildönümləri (adlar daxil)', friday: 'Hər Cümə: sevdikləri yad etmək', zakat: 'Zəkat ili',
+        loved: 'Sevdiklərim üçün aylıq dua xatırlatması (adlar daxil)', friday: 'Hər Cümə: sevdikləri yad etmək', zakat: 'Zəkat ili',
         letters: 'Gələcək özünə məktublar (yalnız başlıq, mətn yox)', fasts: 'Sünnə orucları (bazar ertəsi, cümə axşamı, ağ günlər, Ərəfə, Aşura)', challenges: 'Qrup çağırışlarım',
       },
       consent: 'Başa düşürəm ki, bu gizli keçidi bilən hər kəs bu hadisələri görə bilər. İstənilən vaxt ləğv edə bilərəm.',
@@ -164,7 +164,7 @@ export const TG = {
     feed: {
       title: 'Calendar feed', lead: 'Add your reminders to Google, Apple or Outlook calendar. Only the categories you choose; the link is secret.',
       cats: {
-        loved: 'Anniversaries of my loved ones (names included)', friday: 'Every Friday: remembering loved ones', zakat: 'Zakat year',
+        loved: 'Monthly dua reminders for my loved ones (names included)', friday: 'Every Friday: remembering loved ones', zakat: 'Zakat year',
         letters: 'Letters to my future self (title only, no text)', fasts: 'Sunnah fasts (Monday, Thursday, white days, Arafah, Ashura)', challenges: 'My group challenges',
       },
       consent: 'I understand that anyone who has this secret link can see these events. I can revoke it at any time.',
@@ -252,7 +252,7 @@ export const TG = {
     feed: {
       title: 'Календарная лента', lead: 'Добавьте свои напоминания в календарь Google, Apple или Outlook. Только выбранные разделы; ссылка секретная.',
       cats: {
-        loved: 'Годовщины близких (с именами)', friday: 'Каждая пятница: поминание близких', zakat: 'Год закята',
+        loved: 'Ежемесячные напоминания о дуа за близких (с именами)', friday: 'Каждая пятница: поминание близких', zakat: 'Год закята',
         letters: 'Письма себе в будущее (только заголовок, без текста)', fasts: 'Желательные посты (понедельник, четверг, белые дни, Арафа, Ашура)', challenges: 'Мои групповые челленджи',
       },
       consent: 'Я понимаю, что любой, у кого есть эта секретная ссылка, увидит эти события. Я могу отозвать её в любой момент.',
@@ -340,7 +340,7 @@ export const TG = {
     feed: {
       title: 'Takvim akışı', lead: 'Hatırlatmalarınızı Google, Apple veya Outlook takvimine ekleyin. Yalnızca seçtiğiniz bölümler; bağlantı gizlidir.',
       cats: {
-        loved: 'Sevdiklerimin yıl dönümleri (adlar dahil)', friday: 'Her Cuma: sevdiklerini anmak', zakat: 'Zekât yılı',
+        loved: 'Sevdiklerim için aylık dua hatırlatması (adlar dahil)', friday: 'Her Cuma: sevdiklerini anmak', zakat: 'Zekât yılı',
         letters: 'Geleceğe mektuplarım (yalnızca başlık, metin yok)', fasts: 'Sünnet oruçlar (pazartesi, perşembe, beyaz günler, Arefe, Aşure)', challenges: 'Grup meydan okumalarım',
       },
       consent: 'Bu gizli bağlantıya sahip herkesin bu etkinlikleri görebileceğini anlıyorum. İstediğim zaman iptal edebilirim.',
@@ -428,7 +428,7 @@ export const TG = {
     feed: {
       title: 'موجز التقويم', lead: 'أضف تذكيراتك إلى تقويم Google أو Apple أو Outlook. الأقسام التي تختارها فقط، والرابط سرّي.',
       cats: {
-        loved: 'ذكرى وفاة أحبّتي (مع الأسماء)', friday: 'كل جمعة: ذكر الأحبّة', zakat: 'حول الزكاة',
+        loved: 'تذكير شهري بالدعاء لأحبّتي (مع الأسماء)', friday: 'كل جمعة: ذكر الأحبّة', zakat: 'حول الزكاة',
         letters: 'رسائلي إلى نفسي في المستقبل (العنوان فقط، بلا نص)', fasts: 'صيام السنة (الاثنين، الخميس، الأيام البيض، عرفة، عاشوراء)', challenges: 'تحدياتي الجماعية',
       },
       consent: 'أفهم أن كل من لديه هذا الرابط السرّي يمكنه رؤية هذه الأحداث، ويمكنني إلغاؤه متى شئت.',

@@ -416,7 +416,8 @@ const PROPHETS_FOR_KIDS = [
 ]
 
 // Ünvanla açıla bilən bölmələr (?section=…)
-const DEEP_SECTIONS = new Set(['books', 'stories', 'surahs', 'duas', 'prophets', 'parents'])
+// R2: ailə halqasının uşaq fəaliyyəti də bölməyə birbaşa keçir (utils/familyHalaqa → HALAQA_KIDS)
+const DEEP_SECTIONS = new Set(['books', 'stories', 'surahs', 'duas', 'prophets', 'parents', 'names', 'manners', 'quiz', 'memory', 'crossword', 'wudu'])
 
 export default function KidsPage({ setPage }) {
   const { lang } = useLang()

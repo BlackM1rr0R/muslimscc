@@ -16,7 +16,7 @@ import {
   getZakatReminder, deleteZakatReminder,
   thisDeviceEndpoint, pushLinkStatus, setPushLink, wipePersonal, followLink, readFollowToken, browserTz,
 } from '../../api/personal'
-import { LETTER_KINDS, letterDeliverOn, localKey, nextAnniversary, loadZakatArchive, removeZakatArchive } from '../../utils/personalDates'
+import { LETTER_KINDS, letterDeliverOn, localKey, loadZakatArchive, removeZakatArchive } from '../../utils/personalDates'
 import { ConsentBox, ArchiveTable, usePersonalText, usePersonalAction, fmtKey, fmtHijriKey, fmtMs } from '../personal/PersonalUi'
 
 function Section({ icon, title, lead, id, anchor, children }) {
@@ -200,7 +200,11 @@ function LettersSection({ emailVerified }) {
 }
 
 // ═══ C2. Sevdiklərim üçün dua ═══
-const EMPTY_LOVED = { name: '', relation: '', passedOn: '', calendar: 'g', friday: false, note: '' }
+// Xatırlatma: hər Cümə | ayda bir (seçilmiş gün 1–28) | yox. Vəfat tarixinə BAĞLI (ildönümü) xatırlatma
+// YOXDUR — ildönümü məclisləri bidətdir (cənazə dərsi). Vəfat tarixi istəyə bağlıdır, yalnız göstərilir.
+const EMPTY_LOVED = { name: '', relation: '', passedOn: '', remind: 'friday', monthDay: 1, note: '' }
+const REMIND_KINDS = ['friday', 'monthly', 'off']
+const MONTH_DAYS = Array.from({ length: 28 }, (_, i) => i + 1)
 
 function LovedSection({ emailVerified }) {
   const { t, lang, siteLang } = usePersonalText()
@@ -240,18 +244,25 @@ function LovedSection({ emailVerified }) {
   const onSubmit = async (e) => {
     e.preventDefault()
     if (!form.name.trim()) { a.show('bad', t.err.name); return }
-    if (!form.passedOn || form.passedOn > today) { a.show('bad', t.err.date); return }
+    if (form.passedOn && form.passedOn > today) { a.show('bad', t.err.date); return }
     if (needConsent && !consent) { a.show('bad', t.consentNeed); return }
+    const body = {
+      name: form.name, relation: form.relation, passedOn: form.passedOn || null, note: form.note, remind: form.remind,
+      ...(form.remind === 'monthly' ? { monthDay: Number(form.monthDay) } : {}),
+    }
     const ok = await a.run(async () => {
-      if (editing) await updateLoved(editing, form)
-      else await createLoved(form, { lang, consent: needConsent ? consent : false })
+      if (editing) await updateLoved(editing, body)
+      else await createLoved(body, { lang, consent: needConsent ? consent : false })
       await reload()
     }, editing ? L.saved : L.added)
     if (ok) { setForm(EMPTY_LOVED); setEditing(null) }
   }
   const onEdit = (x) => {
     setEditing(x.id)
-    setForm({ name: x.name, relation: x.relation || '', passedOn: x.passedOn, calendar: x.calendar, friday: x.friday, note: x.note || '' })
+    setForm({
+      name: x.name, relation: x.relation || '', passedOn: x.passedOn || '', note: x.note || '',
+      remind: REMIND_KINDS.includes(x.remind) ? x.remind : 'friday', monthDay: x.monthDay || 1,
+    })
     document.getElementById('pr-loved-name')?.focus()
   }
   const onShare = () => a.run(async () => {
@@ -268,10 +279,8 @@ function LovedSection({ emailVerified }) {
     await reload()
   }, L.followed)
 
-  const nextText = (x) => {
-    const n = nextAnniversary(x.passedOn, x.calendar, today)
-    return n ? L.next(fmtKey(n.date, lang), n.n) : ''
-  }
+  const remindTag = (x) => (x.remind === 'monthly' ? L.monthlyTag(x.monthDay) : x.remind === 'off' ? L.remOff : L.fridayTag)
+  const nextText = (x) => (x.remind === 'monthly' && x.nextOn ? L.next(fmtKey(x.nextOn, lang)) : '')
 
   return (
     <Section icon="duajournal" title={L.title} lead={L.lead} id="acc-loved" anchor="loved">
@@ -310,26 +319,29 @@ function LovedSection({ emailVerified }) {
             <input id="pr-loved-date" type="date" className="ui-input pr-date" max={today} min="1900-01-01" value={form.passedOn} onChange={set('passedOn')} />
           </div>
           <div className="ui-field">
-            <span className="ui-field__label" id="pr-loved-cal">{L.calendar}</span>
-            <div className="pr-chips" role="group" aria-labelledby="pr-loved-cal">
-              {[['g', L.calG], ['h', L.calH]].map(([k, label]) => (
-                <button key={k} type="button" className="ui-chip" aria-pressed={form.calendar === k} onClick={() => setForm((f) => ({ ...f, calendar: k }))}>{label}</button>
+            <span className="ui-field__label" id="pr-loved-remind">{L.remind}</span>
+            <div className="pr-chips" role="group" aria-labelledby="pr-loved-remind" data-testid="loved-remind">
+              {[['friday', L.remFriday], ['monthly', L.remMonthly], ['off', L.remOff]].map(([k, label]) => (
+                <button key={k} type="button" className="ui-chip" aria-pressed={form.remind === k} onClick={() => setForm((f) => ({ ...f, remind: k }))}>{label}</button>
               ))}
             </div>
           </div>
+          {form.remind === 'monthly' && (
+            <div className="ui-field">
+              <label className="ui-field__label" htmlFor="pr-loved-day">{L.monthDay}</label>
+              <select id="pr-loved-day" className="ui-select" value={form.monthDay} onChange={(e) => setForm((f) => ({ ...f, monthDay: Number(e.target.value) }))}>
+                {MONTH_DAYS.map((d) => <option key={d} value={d}>{d}</option>)}
+              </select>
+            </div>
+          )}
         </div>
-        {form.passedOn && form.calendar === 'h' && <p className="pr-preview"><Icon name="moon" size={14} /> {fmtHijriKey(form.passedOn, lang)}</p>}
-        <label className="acc-check pr-toggle" htmlFor="pr-loved-fri">
-          <input id="pr-loved-fri" type="checkbox" checked={form.friday} onChange={set('friday')} />
-          <span>{L.friday}</span>
-        </label>
         <div className="ui-field">
           <label className="ui-field__label" htmlFor="pr-loved-note">{L.note}</label>
           <textarea id="pr-loved-note" className="ui-input" rows={2} dir="auto" maxLength={MAX_NOTE} value={form.note} onChange={set('note')} />
         </div>
         {needConsent && !editing && <ConsentBox t={t} checked={consent} onChange={setConsent} id="pr-loved-consent" />}
         <div className="acc-row">
-          <button type="submit" className="ui-btn ui-btn--primary" disabled={a.busy || !form.name.trim() || !form.passedOn || (needConsent && !editing && !consent)}>
+          <button type="submit" className="ui-btn ui-btn--primary" disabled={a.busy || !form.name.trim() || (needConsent && !editing && !consent)}>
             <Icon name={editing ? 'check' : 'plus'} className="ui-btn__icon" /> {a.busy ? t.busy : (editing ? t.save : L.add)}
           </button>
           {editing && <button type="button" className="ui-btn ui-btn--ghost" onClick={() => { setEditing(null); setForm(EMPTY_LOVED) }}>{t.cancel}</button>}
@@ -346,13 +358,14 @@ function LovedSection({ emailVerified }) {
                   <span className="ui-icon-tile ui-icon-tile--sm ui-icon-tile--neutral"><Icon name="duajournal" size={16} /></span>
                   <div className="acc-list__main">
                     <strong><bdi>{x.name}</bdi>{x.relation && <span className="pr-rel"> · <bdi>{x.relation}</bdi></span>}</strong>
-                    <span className="acc-list__meta">
-                      {fmtKey(x.passedOn, lang)}{x.calendar === 'h' && ` · ${fmtHijriKey(x.passedOn, lang)}`}
-                    </span>
-                    <span className="acc-list__meta">{nextText(x)}</span>
+                    {x.passedOn && (
+                      <span className="acc-list__meta">
+                        {fmtKey(x.passedOn, lang)}{x.calendar === 'h' && ` · ${fmtHijriKey(x.passedOn, lang)}`}
+                      </span>
+                    )}
+                    {nextText(x) && <span className="acc-list__meta">{nextText(x)}</span>}
                     <span className="pr-tags">
-                      {x.calendar === 'h' && <span className="ui-badge ui-badge--outline">{L.hijriTag}</span>}
-                      {x.friday && <span className="ui-badge ui-badge--outline">{L.fridayTag}</span>}
+                      <span className="ui-badge ui-badge--outline">{remindTag(x)}</span>
                     </span>
                     {x.note && <p className="pr-note" dir="auto">{x.note}</p>}
                   </div>
@@ -428,7 +441,7 @@ function LovedSection({ emailVerified }) {
                   </div>
                   <ul className="pr-followed__list">
                     {o.items.map((x) => (
-                      <li key={x.id}><bdi>{x.name}</bdi>{x.relation && <> · <bdi>{x.relation}</bdi></>} — {fmtKey(x.passedOn, lang)} <span className="acc-list__meta">{nextText(x)}</span></li>
+                      <li key={x.id}><bdi>{x.name}</bdi>{x.relation && <> · <bdi>{x.relation}</bdi></>} — <span className="acc-list__meta">{remindTag(x)}{nextText(x) && ` · ${nextText(x)}`}</span></li>
                     ))}
                   </ul>
                 </div>

@@ -4,7 +4,8 @@
 // • İstifadəçi axını açır: gizli token (32 bayt = 256 bit), bazada YALNIZ SHA-256; token bir dəfə
 //   göstərilir (itsə — "yenilə": köhnə URL dərhal işləməz), istənilən vaxt ləğv olunur.
 // • GET /api/cal/<token>.ics — GİRİŞSİZ (təqvim proqramları cookie göndərmir). Yalnız istifadəçinin
-//   SEÇDİYİ kateqoriyalar: mərhumların ildönümləri (+ Cümə), zəkat ili, gələcək məktubların açılış günü
+//   SEÇDİYİ kateqoriyalar: sevdiklərim üçün "ayda bir" dua xatırlatması (seçilmiş gün; vəfat tarixinə
+//   BAĞLI DEYİL — ildönümü hadisəsi yoxdur) (+ Cümə), zəkat ili, gələcək məktubların açılış günü
 //   (yalnız "Gələcək özünə məktub" — mətn YOX), sünnə orucları (saytın təqvimi ilə eyni qayda —
 //   src/components/calendar/CalSunnahFasts.jsx → fastStatus; Şəvvalın altı günü daxil deyil),
 //   qrup çağırışlarının günləri (server/challenges.js). Başqa şəxsi məlumat yoxdur.
@@ -26,7 +27,7 @@ const crypto = require('node:crypto')
 const express = require('express')
 const hijri = require('./hijri')
 const { icsEscape, foldLine } = require('./ics')
-const { nextAnniversary, hawlDue } = require('./personal')
+const { hawlDue, lovedMode, nextMonthDay } = require('./personal')
 const { templateLabel } = require('./challenges')
 
 const CATS = ['loved', 'friday', 'zakat', 'letters', 'fasts', 'challenges']
@@ -38,31 +39,31 @@ const FAST_AHEAD = 120
 
 const T = {
   az: {
-    cal: 'Muslims.cc — şəxsi təqvim', anniv: (name, n) => `${name} — ${n} il`, annivDesc: 'Bu gün ildönümüdür. Onu dualarınızda yad edin.',
+    cal: 'Muslims.cc — şəxsi təqvim', monthly: (name) => `${name} üçün dua`, monthlyDesc: (name) => `${name} üçün dua etməyi unutmayın — kiçik bir xatırlatma.`,
     friday: 'Cümə — sevdiklərinizi duada yad edin', zakat: 'Zəkat ili tamamlanır', zakatAlarm: 'Zəkat ilinə 7 gün qalıb',
     letter: 'Gələcək özünə məktub açılır', challenge: (s) => `Çağırış: ${s}`, fast: 'Sünnə orucu',
     kinds: { mon: 'bazar ertəsi', thu: 'cümə axşamı', bid: 'ağ günlər', tasua: 'Tasua', ashura: 'Aşura', arafah: 'Ərəfə günü' },
   },
   en: {
-    cal: 'Muslims.cc — my calendar', anniv: (name, n) => `${name} — ${n} ${n === 1 ? 'year' : 'years'}`, annivDesc: 'Today is the anniversary. Remember them in your duas.',
+    cal: 'Muslims.cc — my calendar', monthly: (name) => `Dua for ${name}`, monthlyDesc: (name) => `A reminder to make dua for ${name}.`,
     friday: 'Friday — remember your loved ones in dua', zakat: 'Zakat year completes', zakatAlarm: 'Your zakat year completes in 7 days',
     letter: 'A letter to your future self opens', challenge: (s) => `Challenge: ${s}`, fast: 'Sunnah fast',
     kinds: { mon: 'Monday', thu: 'Thursday', bid: 'white days', tasua: 'Tasu‘a', ashura: 'Ashura', arafah: 'Day of Arafah' },
   },
   ru: {
-    cal: 'Muslims.cc — мой календарь', anniv: (name, n) => `${name} — ${n}-я годовщина`, annivDesc: 'Сегодня годовщина. Вспомните их в своих дуа.',
+    cal: 'Muslims.cc — мой календарь', monthly: (name) => `Дуа за ${name}`, monthlyDesc: (name) => `Напоминание сделать дуа за ${name}.`,
     friday: 'Пятница — вспомните близких в дуа', zakat: 'Завершается год закята', zakatAlarm: 'До завершения года закята — 7 дней',
     letter: 'Открывается письмо себе в будущее', challenge: (s) => `Челлендж: ${s}`, fast: 'Желательный пост',
     kinds: { mon: 'понедельник', thu: 'четверг', bid: 'белые дни', tasua: 'Тасуа', ashura: 'Ашура', arafah: 'день Арафа' },
   },
   tr: {
-    cal: 'Muslims.cc — kişisel takvim', anniv: (name, n) => `${name} — ${n}. yıl`, annivDesc: 'Bugün yıl dönümü. Onu dualarınızda anın.',
+    cal: 'Muslims.cc — kişisel takvim', monthly: (name) => `${name} için dua`, monthlyDesc: (name) => `${name} için dua etmeniz için bir hatırlatma.`,
     friday: 'Cuma — sevdiklerinizi duada anın', zakat: 'Zekât yılı doluyor', zakatAlarm: 'Zekât yılınızın dolmasına 7 gün var',
     letter: 'Geleceğe mektup açılıyor', challenge: (s) => `Meydan okuma: ${s}`, fast: 'Sünnet oruç',
     kinds: { mon: 'pazartesi', thu: 'perşembe', bid: 'beyaz günler', tasua: 'Tasua', ashura: 'Aşure', arafah: 'Arefe günü' },
   },
   ar: {
-    cal: 'Muslims.cc — تقويمي', anniv: (name, n) => `${name} — ${n}`, annivDesc: 'اليوم ذكرى الوفاة. اذكره في دعائك.',
+    cal: 'Muslims.cc — تقويمي', monthly: (name) => `الدعاء لـ${name}`, monthlyDesc: (name) => `تذكير بالدعاء لـ${name}.`,
     friday: 'الجمعة — اذكر أحبّتك في الدعاء', zakat: 'يتمّ حول الزكاة', zakatAlarm: 'بقي ٧ أيام على تمام حول زكاتك',
     letter: 'تُفتح رسالتك إلى نفسك في المستقبل', challenge: (s) => `تحدٍّ: ${s}`, fast: 'صيام سنة',
     kinds: { mon: 'الاثنين', thu: 'الخميس', bid: 'الأيام البيض', tasua: 'تاسوعاء', ashura: 'عاشوراء', arafah: 'يوم عرفة' },
@@ -161,7 +162,7 @@ function createCalFeedRouter({ db, requireUser, challengesOf = () => [], publicO
   // Şəxsi xatırlatmaların cədvəlləri (server/personal.js) — yoxdursa boş
   const q = (sql) => { let s = null; return (...a) => { try { s = s || p(sql); return s.all(...a) } catch { return [] } } }
   const src = {
-    loved: q('SELECT id, name, passed_on, calendar, friday FROM personal_loved WHERE user_id = ? ORDER BY id LIMIT 50'),
+    loved: q('SELECT id, name, friday, next_on FROM personal_loved WHERE user_id = ? ORDER BY id LIMIT 50'),
     zakat: q('SELECT due_on FROM personal_zakat WHERE user_id = ?'),
     letters: q("SELECT id, deliver_on FROM personal_letters WHERE user_id = ? AND status IN ('pending','sending') ORDER BY deliver_on LIMIT 50"),
   }
@@ -181,18 +182,18 @@ function createCalFeedRouter({ db, requireUser, challengesOf = () => [], publicO
     const pre = lang === 'az' ? '' : `/${['en', 'ru', 'tr', 'ar'].includes(lang) ? lang : 'en'}`
     const events = []
     const loved = cats.loved || cats.friday ? src.loved(uid) : []
+    // "Ayda bir" — istifadəçinin seçdiyi gün (vəfat tarixinə bağlı deyil); aylıq təkrar
     if (cats.loved) {
       for (const l of loved) {
-        let cursor = from
-        for (let i = 0; i < 3; i++) {
-          const a = nextAnniversary(l.passed_on, l.calendar, cursor)
-          if (!a || a.date > until) break
-          events.push({ uid: uidOf('loved', l.id, a.date), date: a.date, summary: X.anniv(l.name, a.n), description: `${X.annivDesc}\n${publicOrigin}${pre}/learn/janazah#ls-prayer` })
-          cursor = addDays(a.date, 1)
-        }
+        const m = lovedMode(l)
+        if (m.remind !== 'monthly') continue
+        const d = nextMonthDay(m.monthDay, from)
+        if (!d) continue
+        events.push({ uid: uidOf('loved', l.id, 'monthly'), date: d, summary: X.monthly(l.name), rrule: `FREQ=MONTHLY;BYMONTHDAY=${m.monthDay}`,
+          description: `${X.monthlyDesc(l.name)}\n${publicOrigin}${pre}/learn/janazah#ls-prayer` })
       }
     }
-    if (cats.friday && loved.some((l) => l.friday === 1)) {
+    if (cats.friday && loved.some((l) => lovedMode(l).remind === 'friday')) {
       let d = addDays(today, -7)
       while (weekday(d) !== 5) d = addDays(d, 1)
       events.push({ uid: uidOf('friday'), date: d, summary: X.friday, rrule: 'FREQ=WEEKLY;BYDAY=FR' })

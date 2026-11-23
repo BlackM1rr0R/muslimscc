@@ -2,7 +2,7 @@
 // Şəxsi xatırlatmaların tarixləri — klient (önizləmə + məktubun çatdırılma günü)
 //
 // Hicri hesablar saytın öz modulu ilə (utils/hijri — Ümmül-Qura); server eyni alqoritmin
-// CommonJS surətini işlədir (server/hijri.js, server/personal.js → nextAnniversary, hawlDue).
+// CommonJS surətini işlədir (server/hijri.js, server/personal.js → hawlDue).
 // tests/unit/personal-dates.test.js iki tərəfin eyni tarix verdiyini yoxlayır.
 // ═══════════════════════════════════════════════════════
 import { gregorianToHijri, hijriToGregorian, hijriMonthLength, gDiffDays, gDaysInMonth, parseGKey, gKey, addGDays, fromLocalDate } from './hijri'
@@ -46,26 +46,6 @@ export function hawlDue(startKey, fromKey) {
     const day = Math.min(hS.day, hijriMonthLength(y, hS.month))
     const g = hijriToGregorian({ year: y, month: hS.month, day })
     if (g && gDiffDays(from, g) >= 0) return gKey(g)
-  }
-  return null
-}
-
-/** Növbəti ildönümü (miladi 'g' və ya hicri 'h'); n — neçənci il */
-export function nextAnniversary(passedKey, calendar, fromKey) {
-  const passed = parseGKey(passedKey), from = parseGKey(fromKey)
-  if (!passed || !from) return null
-  if (calendar === 'h') {
-    const hP = gregorianToHijri(passed), hF = gregorianToHijri(from)
-    for (let y = Math.max(hF.year - 1, hP.year + 1); y <= hF.year + 2; y++) {
-      const day = Math.min(hP.day, hijriMonthLength(y, hP.month))
-      const g = hijriToGregorian({ year: y, month: hP.month, day })
-      if (g && gDiffDays(from, g) >= 0) return { date: gKey(g), n: y - hP.year }
-    }
-    return null
-  }
-  for (let year = Math.max(from.year, passed.year + 1); year <= from.year + 2; year++) {
-    const g = { year, month: passed.month, day: Math.min(passed.day, gDaysInMonth(year, passed.month)) }
-    if (gDiffDays(from, g) >= 0) return { date: gKey(g), n: year - passed.year }
   }
   return null
 }

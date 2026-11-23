@@ -153,7 +153,7 @@ app.use('/api', require('./ummah').createUmmahRouter({ db }))
 // ─── Hilal müşahidələri (server/sightings.js) — 1°-lik xana, gündə bir qeyd; cədvəl miqrasiyasız ──
 app.use('/api/sightings', limit(60000, 30))
 app.use('/api', require('./sightings').createSightingsRouter({ db }))
-// ─── Şəxsi xatırlatmalar (server/personal.js): gələcəyə məktub, mərhumların ildönümü, zəkat ili ──
+// ─── Şəxsi xatırlatmalar (server/personal.js): gələcəyə məktub, sevdiklərim üçün dua (Cümə / ayda bir), zəkat ili ──
 // Hesaba bağlı, SERVERDƏ OXUNAN (istifadəçi razılığı ilə); cədvəllər miqrasiyasız, users(id) CASCADE.
 // Push üçün deliver() aşağıda (Web Push bölməsi) — funksiya bəyannaməsi, çağırış anında hazırdır.
 app.use('/api/personal', limit(60000, 60))

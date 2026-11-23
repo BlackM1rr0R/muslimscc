@@ -59,7 +59,8 @@ export async function fakePersonalApi(page, opts = {}) {
       }
       if (method === 'POST') {
         if (need('loved', body)) return bad(route, 'consent_required')
-        const it = { id: state.nextId++, name: body.name, relation: body.relation || '', passedOn: body.passedOn, calendar: body.calendar || 'g', friday: Boolean(body.friday), note: body.note || '', nextOn: null }
+        const remind = body.remind || 'friday', monthDay = remind === 'monthly' ? body.monthDay : null
+        const it = { id: state.nextId++, name: body.name, relation: body.relation || '', passedOn: body.passedOn || '', calendar: body.calendar || 'g', remind, monthDay, friday: remind === 'friday', note: body.note || '', nextOn: null }
         state.loved.push(it)
         return route.fulfill({ status: 201, json: { item: it } })
       }
@@ -72,7 +73,7 @@ export async function fakePersonalApi(page, opts = {}) {
         : bad(route, 'invalid_token', 404)
       if (method === 'POST') {
         if (need('loved', body)) return bad(route, 'consent_required')
-        state.following.push({ ownerId: 7, ownerLabel: 'Fatimə', since: Date.now(), items: [{ id: 501, name: 'Nənəm Zəhra', relation: '', passedOn: '2019-04-02', calendar: 'h', friday: false, nextOn: null }] })
+        state.following.push({ ownerId: 7, ownerLabel: 'Fatimə', since: Date.now(), items: [{ id: 501, name: 'Nənəm Zəhra', relation: '', passedOn: '2019-04-02', calendar: 'h', remind: 'friday', monthDay: null, friday: true, nextOn: null }] })
         return route.fulfill({ status: 201, json: { ok: true, ownerId: 7, ownerLabel: 'Fatimə' } })
       }
       state.following = []

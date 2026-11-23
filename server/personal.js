@@ -2,8 +2,10 @@
 // Şəxsi xatırlatmalar — hesaba bağlı, SERVERDƏ OXUNA BİLƏN (docs/USER-ACCOUNTS.md → "Şəxsi xatırlatmalar")
 //
 //   C1. Gələcək özünə məktub      — mətn + çatdırılma günü → həmin gün ~09:00 (istifadəçinin saat qurşağı)
-//   C2. Sevdiklərim üçün dua       — mərhumun adı, (yaxınlığı), vəfat tarixi → hər il ildönümü
-//                                   (miladi və ya hicri), istəyə bağlı hər Cümə; ailə ilə paylaşma
+//   C2. Sevdiklərim üçün dua       — mərhumun adı, (yaxınlığı), (vəfat tarixi — yalnız göstərmək üçün) →
+//                                   xatırlatma: hər Cümə | ayda bir (istifadəçinin seçdiyi gün, 1–28) | yox;
+//                                   ailə ilə paylaşma. VƏFAT TARİXİNƏ BAĞLI (ildönümü) XATIRLATMA YOXDUR —
+//                                   ildönümü məclisləri bidətdir (cənazə dərsi); duanı o günə bağlamırıq (2026-11-23).
 //   C3. Zəkat ili (hövl)            — başlanğıc günü → eyni hicri tarix gələn il; 7 gün əvvəl və həmin gün
 //
 // NİYƏ ŞİFRƏSİZ: hesabın qalan məlumatı uçdan-uca şifrəlidir (server oxuya bilmir). Bu üç xüsusiyyətdə
@@ -60,6 +62,15 @@ const LETTER_KINDS = ['date', 'year', 'ramadan', 'birthday', 'capsule']
 const FEATURES = ['letters', 'loved', 'zakat']
 const MAIL_LANGS = ['az', 'en', 'ru', 'tr', 'ar']
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
+// Sevdiklərim — xatırlatma rejimi personal_loved.friday sütununda (sxem dəyişmir, user_version yox):
+//   0 = yox · 1 = hər Cümə · 100+g = ayda bir, ayın g-ci günü (1–28; next_on — növbəti belə gün).
+// KÖHNƏ sətirlər (ildönümü rejimi: friday 0/1 + next_on = növbəti ildönümü) "hər Cümə" sayılır və
+// tick-də / siyahı oxunanda yerində çevrilir (friday = 1, next_on = NULL). Bax: lovedMode.
+const REMIND_MODES = ['friday', 'monthly', 'off']
+const MONTHLY_BASE = 100
+const MAX_MONTH_DAY = 28
+// "Hər Cümə" sayılan sətirlər (hələ çevrilməmiş köhnə ildönümü sətri də daxil)
+const FRIDAY_SQL = '(friday = 1 OR (friday = 0 AND next_on IS NOT NULL))'
 const TOKEN_RE = /^[A-Za-z0-9_-]{43}$/
 
 const SCHEMA = `
@@ -177,31 +188,22 @@ const addDaysKey = (key, n) => hijri.gKey(hijri.addGDays(hijri.parseGKey(key), n
 /** D gününün ən qərb saat qurşağında da bitdiyi an (UTC−12 → D+1 12:00 UTC) — sonra keçmiş sayılır */
 const dayOverEverywhere = (key) => Date.parse(key + 'T00:00:00Z') + 36 * 3600 * 1000
 
-/** Miladi ildönümü: from-dan (daxil) sonrakı ilk; 29 fevral → uzun olmayan ildə 28 fevral. n ≥ 1 */
-function nextGregorianAnniversary(passed, from) {
-  for (let year = Math.max(from.year, passed.year + 1); year <= from.year + 2; year++) {
-    const g = { year, month: passed.month, day: Math.min(passed.day, hijri.gDaysInMonth(year, passed.month)) }
-    if (hijri.gDiffDays(from, g) >= 0) return { g, n: year - passed.year }
-  }
-  return null
+/** Sətirin xatırlatma rejimi → { remind: 'friday'|'monthly'|'off', monthDay: 1–28 | null } */
+function lovedMode(r) {
+  const f = Number(r && r.friday) || 0
+  if (f > MONTHLY_BASE && f <= MONTHLY_BASE + MAX_MONTH_DAY) return { remind: 'monthly', monthDay: f - MONTHLY_BASE }
+  if (f === 1 || (f === 0 && r.next_on)) return { remind: 'friday', monthDay: null }   // köhnə ildönümü → Cümə
+  return { remind: 'off', monthDay: null }
 }
-/** Hicri ildönümü: vəfatın hicri tarixi hər hicri ildə; ayın 30-u 29 günlük ayda → 29 */
-function nextHijriAnniversary(passed, from) {
-  const hP = hijri.gregorianToHijri(passed)
-  const hF = hijri.gregorianToHijri(from)
-  for (let y = Math.max(hF.year - 1, hP.year + 1); y <= hF.year + 2; y++) {
-    const day = Math.min(hP.day, hijri.hijriMonthLength(y, hP.month))
-    const g = hijri.hijriToGregorian({ year: y, month: hP.month, day })
-    if (g && hijri.gDiffDays(from, g) >= 0) return { g, n: y - hP.year, h: { year: y, month: hP.month, day } }
-  }
-  return null
+/** Ayın day-ci günü (1–28): fromKey-dən (daxil) sonrakı ilk → 'YYYY-MM-DD' | null */
+function nextMonthDay(day, fromKey) {
+  const from = hijri.parseGKey(fromKey)
+  if (!from || !Number.isInteger(day) || day < 1 || day > MAX_MONTH_DAY) return null
+  let { year, month } = from
+  if (from.day > day) { month++; if (month > 12) { month = 1; year++ } }
+  return hijri.gKey({ year, month, day })
 }
-function nextAnniversary(passedKey, calendar, fromKey) {
-  const passed = hijri.parseGKey(passedKey), from = hijri.parseGKey(fromKey)
-  if (!passed || !from) return null
-  const r = calendar === 'h' ? nextHijriAnniversary(passed, from) : nextGregorianAnniversary(passed, from)
-  return r ? { date: hijri.gKey(r.g), n: r.n } : null
-}
+
 /**
  * Zəkat ili (hövl): başlanğıcın hicri tarixi bir (və ya bir neçə) hicri il sonra — from-dan
  * (daxil) sonrakı ilk. 30-cu gün 29 günlük ayda → 29.
@@ -308,8 +310,12 @@ function createPersonalStore(db, { secret: envSecret = '' } = {}) {
     lovedDelete: p('DELETE FROM personal_loved WHERE id = ? AND user_id = ?'),
     lovedDue: p('SELECT * FROM personal_loved WHERE next_on IS NOT NULL AND next_on <= ? ORDER BY next_on, id LIMIT 1000'),
     lovedSetNext: p('UPDATE personal_loved SET next_on = ? WHERE id = ?'),
-    lovedFridayOwners: p('SELECT DISTINCT user_id FROM personal_loved WHERE friday = 1'),
-    lovedFridayOf: p('SELECT id, name FROM personal_loved WHERE user_id = ? AND friday = 1 ORDER BY id LIMIT 30'),
+    // Köhnə ildönümü rejimi → hər Cümə (yerində, sxem dəyişmədən)
+    lovedMigrateAll: p('UPDATE personal_loved SET friday = 1, next_on = NULL WHERE friday IN (0, 1) AND next_on IS NOT NULL'),
+    lovedMigrateUser: p('UPDATE personal_loved SET friday = 1, next_on = NULL WHERE user_id = ? AND friday IN (0, 1) AND next_on IS NOT NULL'),
+    lovedMigrateOne: p('UPDATE personal_loved SET friday = 1, next_on = NULL WHERE id = ? AND friday IN (0, 1)'),
+    lovedFridayOwners: p(`SELECT DISTINCT user_id FROM personal_loved WHERE ${FRIDAY_SQL}`),
+    lovedFridayOf: p(`SELECT id, name FROM personal_loved WHERE user_id = ? AND ${FRIDAY_SQL} ORDER BY id LIMIT 30`),
 
     share: p('SELECT owner_id, created_at FROM personal_loved_shares WHERE owner_id = ?'),
     shareByHash: p('SELECT owner_id FROM personal_loved_shares WHERE token_hash = ?'),
@@ -327,7 +333,7 @@ function createPersonalStore(db, { secret: envSecret = '' } = {}) {
     unfollow: p('DELETE FROM personal_loved_followers WHERE owner_id = ? AND follower_id = ?'),
     dropFollowers: p('DELETE FROM personal_loved_followers WHERE owner_id = ?'),
     fridayFollowers: p(`SELECT DISTINCT f.follower_id AS user_id FROM personal_loved_followers f
-      WHERE EXISTS (SELECT 1 FROM personal_loved l WHERE l.user_id = f.owner_id AND l.friday = 1)`),
+      WHERE EXISTS (SELECT 1 FROM personal_loved l WHERE l.user_id = f.owner_id AND (l.friday = 1 OR (l.friday = 0 AND l.next_on IS NOT NULL)))`),
     followedOwners: p('SELECT owner_id FROM personal_loved_followers WHERE follower_id = ?'),
 
     zakat: p('SELECT * FROM personal_zakat WHERE user_id = ?'),
@@ -446,23 +452,23 @@ function verifyUnsub(secret, token, consentAtOf = null) {
 // ─── Push mətnləri (5 dil, qalanları en) ──────────────────────────────
 const PUSH_T = {
   az: { letter: 'Gələcək özünə məktub', letterBody: 'Keçmişdə yazdığınız məktubun açılış günüdür.',
-    anniv: (name, n) => `${name} — ${n} il`, annivBody: 'Bu gün ildönümüdür. Onu dualarınızda yad edin.',
+    monthly: 'Sevdikləriniz üçün dua', monthlyBody: (name) => `${name} üçün dua etməyi unutmayın — kiçik bir xatırlatma.`,
     friday: 'Cümə', fridayBody: (names) => `Sevdiklərinizi dualarınızda yad edin: ${names}`,
     zakatSoon: 'Zəkat ilinə 7 gün qalıb', zakatDue: 'Bu gün zəkat iliniz tamamlanır', zakatBody: 'Zəkatınızı hesablamaq üçün toxunun.' },
   en: { letter: 'A letter to your future self', letterBody: 'Today is the day your letter opens.',
-    anniv: (name, n) => `${name} — ${n} ${n === 1 ? 'year' : 'years'}`, annivBody: 'Today is the anniversary. Remember them in your duas.',
+    monthly: 'Dua for your loved ones', monthlyBody: (name) => `A reminder to make dua for ${name}.`,
     friday: 'Friday', fridayBody: (names) => `Remember your loved ones in your duas: ${names}`,
     zakatSoon: 'Your zakat year completes in 7 days', zakatDue: 'Your zakat year completes today', zakatBody: 'Tap to calculate your zakat.' },
   ru: { letter: 'Письмо себе в будущее', letterBody: 'Сегодня день, когда открывается ваше письмо.',
-    anniv: (name, n) => `${name} — ${n}-я годовщина`, annivBody: 'Сегодня годовщина. Вспомните их в своих дуа.',
+    monthly: 'Дуа за близких', monthlyBody: (name) => `Напоминание сделать дуа за ${name}.`,
     friday: 'Пятница', fridayBody: (names) => `Вспомните своих близких в дуа: ${names}`,
     zakatSoon: 'До завершения года закята — 7 дней', zakatDue: 'Сегодня завершается ваш год закята', zakatBody: 'Нажмите, чтобы рассчитать закят.' },
   tr: { letter: 'Geleceğe mektup', letterBody: 'Bugün mektubunuzun açılış günü.',
-    anniv: (name, n) => `${name} — ${n}. yıl`, annivBody: 'Bugün yıl dönümü. Onu dualarınızda anın.',
+    monthly: 'Sevdikleriniz için dua', monthlyBody: (name) => `${name} için dua etmeniz için bir hatırlatma.`,
     friday: 'Cuma', fridayBody: (names) => `Sevdiklerinizi dualarınızda anın: ${names}`,
     zakatSoon: 'Zekât yılınızın dolmasına 7 gün var', zakatDue: 'Zekât yılınız bugün doluyor', zakatBody: 'Zekâtınızı hesaplamak için dokunun.' },
   ar: { letter: 'رسالة إلى نفسك في المستقبل', letterBody: 'اليوم موعد فتح رسالتك.',
-    anniv: (name, n) => `${name} — ${n}`, annivBody: 'اليوم ذكرى الوفاة. اذكره في دعائك.',
+    monthly: 'الدعاء لأحبّتك', monthlyBody: (name) => `تذكير بالدعاء لـ${name}.`,
     friday: 'الجمعة', fridayBody: (names) => `اذكر أحبّتك في دعائك: ${names}`,
     zakatSoon: 'بقي ٧ أيام على تمام حول زكاتك', zakatDue: 'اليوم يتمّ حول زكاتك', zakatBody: 'اضغط لحساب زكاتك.' },
 }
@@ -519,7 +525,7 @@ function createScheduler({ store, mailer = null, pushSend = null, publicOrigin =
     webpush: { notification: { ...icons, tag }, link },
   })
 
-  /** Təkrarlanan xatırlatmanı (ildönümü, Cümə, zəkat) bir alıcıya bir dəfə göndər. */
+  /** Təkrarlanan xatırlatmanı (ayda bir, Cümə, zəkat) bir alıcıya bir dəfə göndər. */
   async function sendOnce(userId, key, now, send) {
     if (!st.sentClaim.run(userId, key, now).changes && !st.sentRetryClaim.run(now, userId, key, now).changes) return false
     let ok = false
@@ -561,17 +567,25 @@ function createScheduler({ store, mailer = null, pushSend = null, publicOrigin =
     }
   }
 
-  /** Alıcı: sahib + izləyənlər; hər biri öz saat qurşağında 09:00-da */
+  /**
+   * "Ayda bir" xatırlatma — istifadəçinin seçdiyi gün, vəfat tarixinə BAĞLI DEYİL.
+   * Alıcı: sahib + izləyənlər; hər biri öz saat qurşağında 09:00-da.
+   * Köhnə ildönümü sətirləri göndərilmir — "hər Cümə"yə çevrilir.
+   */
   async function loved(now) {
+    st.lovedMigrateAll.run()
     for (const row of st.lovedDue.all(isoUtc(now + DAY))) {
+      const m = lovedMode(row)
+      if (m.remind !== 'monthly') { st.lovedMigrateOne.run(row.id); continue }
       const D = row.next_on
       if (now >= dayOverEverywhere(D)) {
-        const nx = nextAnniversary(row.passed_on, row.calendar, addDaysKey(D, 1))
-        st.lovedSetNext.run(nx ? nx.date : null, row.id)
+        st.lovedSetNext.run(nextMonthDay(m.monthDay, addDaysKey(D, 1)), row.id)
         continue
       }
-      const ann = nextAnniversary(row.passed_on, row.calendar, D)
-      if (!ann || ann.date !== D) continue
+      if (Number(D.slice(8)) !== m.monthDay) {          // next_on seçilmiş günə uyğun deyil — düzəlt
+        st.lovedSetNext.run(nextMonthDay(m.monthDay, D), row.id)
+        continue
+      }
       const recipients = [row.user_id, ...st.followerIds.all(row.user_id).map((r) => r.follower_id)]
       for (const uid of recipients) {
         const prefs = store.prefs(uid)
@@ -581,13 +595,13 @@ function createScheduler({ store, mailer = null, pushSend = null, publicOrigin =
         const lang = prefs.lang
         const T = pushT(lang)
         const pre = langPrefix(lang)
-        await sendOnce(uid, `a:${row.id}:${D}`, now, () => deliver(user, {
+        await sendOnce(uid, `m:${row.id}:${D}`, now, () => deliver(user, {
           allowEmail: prefs.loved_email === 1,
-          mail: { kind: 'anniversary', lang, vars: {
-            url: `${publicOrigin}${pre}/learn/janazah#ls-prayer`, name: row.name, n: ann.n,
+          mail: { kind: 'lovedRemind', lang, vars: {
+            url: `${publicOrigin}${pre}/learn/janazah#ls-prayer`, name: row.name,
             unsubUrl: `${publicOrigin}/api/personal/unsubscribe?t=${unsubToken(store.secret(), uid, 'loved', prefs.consent_loved)}`,
           } },
-          push: pushMsg(T.anniv(row.name, ann.n), T.annivBody, `${pre}/learn/janazah#ls-prayer`, `loved-${row.id}`),
+          push: pushMsg(T.monthly, T.monthlyBody(row.name), `${pre}/learn/janazah#ls-prayer`, `loved-${row.id}`),
         }))
       }
     }
@@ -668,10 +682,15 @@ const letterOut = (r) => ({
   id: r.id, body: r.body, deliverOn: r.deliver_on, kind: r.kind,
   status: r.status === 'sending' ? 'pending' : r.status, createdAt: r.created_at, deliveredAt: r.delivered_at || null,
 })
-const lovedOut = (r, { withNote = true } = {}) => ({
-  id: r.id, name: r.name, relation: r.relation, passedOn: r.passed_on, calendar: r.calendar,
-  friday: r.friday === 1, ...(withNote ? { note: r.note } : {}), nextOn: r.next_on || null,
-})
+/** friday (boolean) — keşdəki köhnə klientlər üçün saxlanır: remind === 'friday' */
+const lovedOut = (r, { withNote = true } = {}) => {
+  const m = lovedMode(r)
+  return {
+    id: r.id, name: r.name, relation: r.relation, passedOn: r.passed_on, calendar: r.calendar,
+    remind: m.remind, monthDay: m.monthDay, friday: m.remind === 'friday',
+    ...(withNote ? { note: r.note } : {}), nextOn: m.remind === 'monthly' ? r.next_on || null : null,
+  }
+}
 const zakatOut = (z) => (z ? { hawlStart: z.hawl_start, dueOn: z.due_on, amount: z.amount, currency: z.currency || null } : null)
 
 /**
@@ -763,26 +782,44 @@ function createPersonalRouter(opts) {
   })
 
   // ── Sevdiklərim üçün dua ──
+  /**
+   * Xatırlatma: { remind: 'friday'|'monthly'|'off', monthDay?: 1–28 }. Köhnə klient yalnız friday
+   * (boolean) göndərir: yeni sətir → 'friday' (ildönümü rejimi yoxdur); redaktədə friday: true → 'friday',
+   * əks halda mövcud rejim qalır. Vəfat tarixi istəyə bağlıdır və heç nəyi planlaşdırmır.
+   */
   function lovedFields(req, res, tz, cur = null) {
-    const b = { ...(cur ? { name: cur.name, relation: cur.relation, passedOn: cur.passed_on, calendar: cur.calendar, friday: cur.friday === 1, note: cur.note } : {}), ...(req.body || {}) }
+    const cm = cur ? lovedMode(cur) : null
+    const b = { ...(cur ? { name: cur.name, relation: cur.relation, passedOn: cur.passed_on, calendar: cur.calendar, note: cur.note } : {}), ...(req.body || {}) }
     const name = cleanLine(b.name, MAX_NAME, { required: true })
     if (name == null) { err(res, 400, 'bad_name', 'Invalid name'); return null }
     const relation = cleanLine(b.relation, MAX_RELATION)
     if (relation == null) { err(res, 400, 'bad_request', 'Invalid relation'); return null }
     const note = cleanText(b.note, MAX_NOTE)
     if (note == null) { err(res, 400, 'bad_request', 'Invalid note'); return null }
-    const d = parseDate(b.passedOn)
-    if (!d || d.year < 1900 || b.passedOn > todayIn(tz)) { err(res, 400, 'bad_date', 'Invalid date'); return null }
+    let passedOn = ''
+    if (b.passedOn != null && b.passedOn !== '') {
+      const d = parseDate(b.passedOn)
+      if (!d || d.year < 1900 || b.passedOn > todayIn(tz)) { err(res, 400, 'bad_date', 'Invalid date'); return null }
+      passedOn = b.passedOn
+    }
     const calendar = b.calendar == null ? 'g' : (['g', 'h'].includes(b.calendar) ? b.calendar : null)
     if (!calendar) { err(res, 400, 'bad_request', 'Invalid calendar'); return null }
     if (b.friday != null && typeof b.friday !== 'boolean') { err(res, 400, 'bad_request', 'Invalid friday'); return null }
-    // Növbəti ildönümü — bu gündən (ən şərq saat qurşağı da daxil olsun deyə dünəndən) sonra
-    const nx = nextAnniversary(b.passedOn, calendar, addDaysKey(isoUtc(now()), -1))
-    return { name, relation, note, passedOn: b.passedOn, calendar, friday: b.friday ? 1 : 0, nextOn: nx ? nx.date : null }
+    if (b.remind != null && !REMIND_MODES.includes(b.remind)) { err(res, 400, 'bad_request', 'Invalid remind'); return null }
+    const okDay = (v) => Number.isInteger(v) && v >= 1 && v <= MAX_MONTH_DAY
+    if (b.monthDay != null && !okDay(b.monthDay)) { err(res, 400, 'bad_request', 'Invalid monthDay'); return null }
+    const remind = b.remind != null ? b.remind : (b.friday === true || !cm ? 'friday' : cm.remind)
+    const monthDay = remind === 'monthly' ? (b.monthDay != null ? b.monthDay : cm && cm.monthDay) : null
+    if (remind === 'monthly' && !okDay(monthDay)) { err(res, 400, 'bad_request', 'Invalid monthDay'); return null }
+    const code = remind === 'monthly' ? MONTHLY_BASE + monthDay : remind === 'friday' ? 1 : 0
+    // Ayda bir: istifadəçinin bu günündən (daxil) sonrakı ilk seçilmiş gün
+    const nextOn = remind === 'monthly' ? nextMonthDay(monthDay, todayIn(tz)) : null
+    return { name, relation, note, passedOn, calendar, friday: code, nextOn }
   }
 
   router.get('/personal/loved', auth, (req, res) => {
     const uid = req.user.id
+    st.lovedMigrateUser.run(uid)                 // köhnə ildönümü sətirləri → hər Cümə
     const share = st.share.get(uid)
     const prefs = store.prefs(uid)
     res.json({
@@ -963,7 +1000,7 @@ function createPersonalRouter(opts) {
     }).send(html)
   }
   const TXT = {
-    loved: 'Stop email reminders for your loved ones (anniversaries and Fridays)?',
+    loved: 'Stop email reminders for your loved ones?',
     zakat: 'Stop your zakat year reminder?',
     done: 'Done. You will not receive these reminders any more. You can turn them on again in your account.',
     bad: 'This link is invalid.',
@@ -1027,6 +1064,7 @@ module.exports = {
   lovedNamesOf, pushSubsForUser, prefLangOf,
   MAX_LETTER, MAX_PENDING_LETTERS, MAX_LOVED, MAX_FOLLOWERS, MAX_FOLLOWING, SEND_HOUR, MAX_ATTEMPTS,
   createPersonalStore, createPersonalRouter, createScheduler,
-  validTz, localNow, dayState, nextAnniversary, nextGregorianAnniversary, nextHijriAnniversary, hawlDue,
+  validTz, localNow, dayState, hawlDue,
+  lovedMode, nextMonthDay, REMIND_MODES, MAX_MONTH_DAY,
   unsubToken, verifyUnsub, personLabel, cleanText, cleanLine,
 }

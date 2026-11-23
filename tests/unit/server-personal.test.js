@@ -1,6 +1,7 @@
 // Server: şəxsi xatırlatmalar (server/personal.js) — giriş, CSRF, razılıq, yoxlama, həddlər,
 // paylaşma tokeni (izlə / ləğv et), abunəlikdən çıxma tokeni, hesab silinəndə CASCADE,
-// planlayıcı (saat qurşağı, ikiqat göndəriş yoxdur, təkrar cəhd), hicri ildönümü və hövl, şablonlar.
+// planlayıcı (saat qurşağı, ikiqat göndəriş yoxdur, təkrar cəhd), sevdiklərim: hər Cümə / ayda bir — ildönümü
+// xatırlatması YOXDUR (köhnə sətirlər Cüməyə çevrilir), hövl, şablonlar.
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { require, express, listen } from './server-helpers.js'
 import * as siteHijri from '../../src/utils/hijri.js'
@@ -116,9 +117,13 @@ describe('personal HTTP', () => {
     const r = await add({})
     expect(r.status).toBe(201)
     const { item } = await r.json()
-    expect(item).toMatchObject({ name: 'Ana', calendar: 'h', friday: true, note: 'şəxsi qeyd', nextOn: personal.nextAnniversary('2020-05-24', 'h', '2026-11-16').date })
+    // köhnə klient (calendar + friday) → "hər Cümə"; vəfat tarixi heç nəyi planlaşdırmır
+    expect(item).toMatchObject({ name: 'Ana', calendar: 'h', remind: 'friday', monthDay: null, friday: true, note: 'şəxsi qeyd', nextOn: null })
     for (const [b, code] of [[{ name: '' }, 'bad_name'], [{ name: 'x'.repeat(81) }, 'bad_name'], [{ passedOn: '2027-01-01' }, 'bad_date'],
-      [{ passedOn: '1800-01-01' }, 'bad_date'], [{ calendar: 'x' }, 'bad_request'], [{ friday: 'yes' }, 'bad_request'], [{ note: 'x'.repeat(501) }, 'bad_request']]) {
+      [{ passedOn: '1800-01-01' }, 'bad_date'], [{ passedOn: 20200524 }, 'bad_date'], [{ calendar: 'x' }, 'bad_request'], [{ friday: 'yes' }, 'bad_request'],
+      [{ note: 'x'.repeat(501) }, 'bad_request'], [{ remind: 'anniversary' }, 'bad_request'], [{ remind: 'monthly' }, 'bad_request'],
+      [{ remind: 'monthly', monthDay: 29 }, 'bad_request'], [{ remind: 'monthly', monthDay: 0 }, 'bad_request'], [{ remind: 'monthly', monthDay: '5' }, 'bad_request'],
+      [{ remind: 'monthly', monthDay: 2.5 }, 'bad_request'], [{ remind: 'friday', monthDay: 40 }, 'bad_request']]) {
       const x = await add(b)
       expect(x.status, JSON.stringify(b)).toBe(400)
       expect((await x.json()).code).toBe(code)
@@ -154,8 +159,31 @@ describe('personal HTTP', () => {
     const fv2 = await (await call('/api/personal/loved', { method: 'GET', cookie: fam.cookie, headers: {} })).json()
     expect(fv2.following).toEqual([])
     // düzəliş
-    const p = await call(`/api/personal/loved/${item.id}`, { method: 'PATCH', cookie: owner.cookie, body: { calendar: 'g', friday: false } })
-    expect((await p.json()).item).toMatchObject({ calendar: 'g', friday: false, nextOn: '2027-05-24' })
+    const patch = async (body) => (await (await call(`/api/personal/loved/${item.id}`, { method: 'PATCH', cookie: owner.cookie, body })).json()).item
+    const fridayCol = () => db.raw.prepare('SELECT friday, next_on FROM personal_loved WHERE id = ?').get(item.id)
+    // köhnə klientin redaktəsi (friday: false) — rejim qalır, ildönümü planlaşdırılmır
+    expect(await patch({ calendar: 'g', friday: false })).toMatchObject({ calendar: 'g', remind: 'friday', friday: true, nextOn: null })
+    // ayda bir: Bakı 2026-11-17 → ayın 20-si = 2026-11-20; 5-i = 2026-12-05; 17-si = bu gün
+    expect(await patch({ remind: 'monthly', monthDay: 20 })).toMatchObject({ remind: 'monthly', monthDay: 20, friday: false, nextOn: '2026-11-20' })
+    expect(fridayCol()).toEqual({ friday: 120, next_on: '2026-11-20' })
+    expect(await patch({ monthDay: 5 })).toMatchObject({ remind: 'monthly', monthDay: 5, nextOn: '2026-12-05' })
+    expect(await patch({ monthDay: 17 })).toMatchObject({ remind: 'monthly', monthDay: 17, nextOn: '2026-11-17' })
+    expect(await patch({ name: 'Anam', friday: false })).toMatchObject({ name: 'Anam', remind: 'monthly', monthDay: 17 })   // köhnə klient
+    expect(await patch({ friday: true })).toMatchObject({ remind: 'friday', monthDay: null, nextOn: null })
+    expect(fridayCol()).toEqual({ friday: 1, next_on: null })
+    expect(await patch({ remind: 'off' })).toMatchObject({ remind: 'off', friday: false, nextOn: null })
+    expect(fridayCol()).toEqual({ friday: 0, next_on: null })
+    // vəfat tarixi istəyə bağlıdır və silinə bilər
+    expect(await patch({ passedOn: null })).toMatchObject({ passedOn: '', remind: 'off' })
+    const noDate = await add({ name: 'Baba', passedOn: undefined, calendar: undefined, friday: undefined, remind: 'monthly', monthDay: 1 })
+    expect(noDate.status).toBe(201)
+    expect((await noDate.json()).item).toMatchObject({ name: 'Baba', passedOn: '', remind: 'monthly', monthDay: 1, nextOn: '2026-12-01' })
+    // köhnə ildönümü sətri (friday 0 + next_on) — siyahı oxunanda yerində "hər Cümə"yə çevrilir
+    const legacy = Number(db.raw.prepare(`INSERT INTO personal_loved (user_id, name, relation, passed_on, calendar, friday, note, next_on, created_at, updated_at)
+      VALUES (?, 'Köhnə', '', '2018-12-20', 'g', 0, '', '2026-12-20', 1, 1)`).run(owner.id).lastInsertRowid)
+    const lv = await (await call('/api/personal/loved', { method: 'GET', cookie: owner.cookie, headers: {} })).json()
+    expect(lv.items.find((x) => x.id === legacy)).toMatchObject({ remind: 'friday', friday: true, nextOn: null, passedOn: '2018-12-20' })
+    expect(db.raw.prepare('SELECT friday, next_on FROM personal_loved WHERE id = ?').get(legacy)).toEqual({ friday: 1, next_on: null })
   })
 
   it('zəkat: hövl tarixi hicri ilə; məbləğ yalnız istəyə görə', async () => {
@@ -295,22 +323,24 @@ describe('personal HTTP', () => {
 
 // ─── Saf hesablar ───
 describe('tarix hesabları', () => {
-  it('miladi ildönümü: 29 fevral, eyni gün, n', () => {
-    expect(personal.nextAnniversary('2020-02-29', 'g', '2026-11-17')).toEqual({ date: '2027-02-28', n: 7 })
-    expect(personal.nextAnniversary('2020-02-29', 'g', '2027-12-01')).toEqual({ date: '2028-02-29', n: 8 })
-    expect(personal.nextAnniversary('2019-11-17', 'g', '2026-11-17')).toEqual({ date: '2026-11-17', n: 7 })
-    expect(personal.nextAnniversary('2026-11-17', 'g', '2026-11-17')).toEqual({ date: '2027-11-17', n: 1 })
+  it('ayda bir: növbəti seçilmiş gün (bu gün daxil), il keçidi; 1–28 xaricində null', () => {
+    expect(personal.nextMonthDay(20, '2026-11-17')).toBe('2026-11-20')
+    expect(personal.nextMonthDay(17, '2026-11-17')).toBe('2026-11-17')
+    expect(personal.nextMonthDay(5, '2026-11-17')).toBe('2026-12-05')
+    expect(personal.nextMonthDay(1, '2026-12-31')).toBe('2027-01-01')
+    expect(personal.nextMonthDay(28, '2027-02-28')).toBe('2027-02-28')
+    for (const d of [0, 29, 31, 1.5, '5', null]) expect(personal.nextMonthDay(d, '2026-11-17')).toBeNull()
+    expect(personal.nextMonthDay(5, 'x')).toBeNull()
   })
-  it('hicri ildönümü: saytın hicri modulu ilə eyni gün', () => {
-    for (const passed of ['2020-05-24', '2001-09-11', '2024-03-11', '1999-12-31']) {
-      const r = personal.nextAnniversary(passed, 'h', '2026-11-17')
-      const hp = siteHijri.gregorianToHijri(siteHijri.parseGKey(passed))
-      const hr = siteHijri.gregorianToHijri(siteHijri.parseGKey(r.date))
-      expect(hr.month).toBe(hp.month)
-      expect(hr.day === hp.day || (hp.day === 30 && hr.day === 29)).toBe(true)
-      expect(r.n).toBe(hr.year - hp.year)
-      expect(r.date >= '2026-11-17').toBe(true)
-    }
+  it('xatırlatma rejimi: 0 yox, 1 Cümə, 100+g ayda bir; köhnə ildönümü sətri → Cümə', () => {
+    expect(personal.lovedMode({ friday: 0, next_on: null })).toEqual({ remind: 'off', monthDay: null })
+    expect(personal.lovedMode({ friday: 1, next_on: null })).toEqual({ remind: 'friday', monthDay: null })
+    expect(personal.lovedMode({ friday: 0, next_on: '2026-12-20' })).toEqual({ remind: 'friday', monthDay: null })
+    expect(personal.lovedMode({ friday: 1, next_on: '2026-12-20' })).toEqual({ remind: 'friday', monthDay: null })
+    expect(personal.lovedMode({ friday: 101, next_on: '2026-12-01' })).toEqual({ remind: 'monthly', monthDay: 1 })
+    expect(personal.lovedMode({ friday: 128, next_on: '2026-12-28' })).toEqual({ remind: 'monthly', monthDay: 28 })
+    expect(personal.lovedMode({ friday: 129, next_on: null })).toEqual({ remind: 'off', monthDay: null })
+    expect(personal.nextAnniversary).toBeUndefined()
   })
   it('hövl: bir hicri il (354/355 gün)', () => {
     for (const s of ['2026-01-10', '2026-06-01', '2026-11-17']) {
@@ -409,7 +439,23 @@ describe('planlayıcı', () => {
     expect(letterRow(st).status).toBe('delivered')
   })
 
-  it('ildönümü: sahibə və izləyənə öz saat qurşağında bir dəfə; unsub keçidi; sonra gələn ilə keçir', async () => {
+  it('köhnə ildönümü sətri: ildönümündə HEÇ NƏ göndərilmir, tick-də "hər Cümə"yə çevrilir', async () => {
+    const got = []
+    const s = personal.createScheduler({ store, mailer: createMailer({ apiKey: '', onMessage: (m) => got.push(m) }), log: { error() {} } })
+    const uid = mkUser('legacy@example.com')
+    store.touchPrefs(uid, { tz: 'Asia/Baku', lang: 'az', consent: 'loved' })
+    const lid = Number(db.raw.prepare(`INSERT INTO personal_loved (user_id, name, relation, passed_on, calendar, friday, note, next_on, created_at, updated_at) VALUES (?, 'Köhnə', '', '2018-12-20', 'g', 0, '', '2026-12-20', 1, 1)`).run(uid).lastInsertRowid)
+    await s.tick(Date.UTC(2026, 11, 20, 5, 0))           // ildönümü günü, Bakı 09:00 (bazar)
+    await s.tick(Date.UTC(2026, 11, 20, 6, 0))
+    expect(got).toHaveLength(0)
+    expect(db.raw.prepare('SELECT friday, next_on FROM personal_loved WHERE id = ?').get(lid)).toEqual({ friday: 1, next_on: null })
+    await s.tick(Date.UTC(2026, 11, 25, 6, 0))           // Cümə, Bakı 10:00
+    expect(got.map((m) => [m.to, m.kind])).toEqual([['legacy@example.com', 'friday']])
+    expect(got[0].text).toContain('Köhnə')
+    expect(got[0].text).not.toMatch(/ildönüm|il tamam/)
+  })
+
+  it('ayda bir: sahibə və izləyənə öz saat qurşağında seçilmiş gün bir dəfə; unsub keçidi; sonra gələn aya keçir', async () => {
     const got = []
     const pushes = []
     const ep = 'https://fcm.googleapis.com/fcm/send/p1'
@@ -419,26 +465,29 @@ describe('planlayıcı', () => {
       store, mailer: createMailer({ apiKey: '', onMessage: (m) => got.push(m) }), log: { error() {} },
       pushSend: async (subs, msg) => { pushes.push({ subs, msg }); return { successCount: subs.length } },
     })
-    const nx = personal.nextAnniversary('2018-12-20', 'g', '2026-12-01')
-    const lid = Number(db.raw.prepare(`INSERT INTO personal_loved (user_id, name, relation, passed_on, calendar, friday, note, next_on, created_at, updated_at) VALUES (?, 'Həsən', '', '2018-12-20', 'g', 0, '', ?, 1, 1)`).run(ids.baku, nx.date).lastInsertRowid)
+    // ayın 20-si (friday = 120); vəfat tarixi başqa gündür və heç nəyi planlaşdırmır
+    const lid = Number(db.raw.prepare(`INSERT INTO personal_loved (user_id, name, relation, passed_on, calendar, friday, note, next_on, created_at, updated_at) VALUES (?, 'Həsən', '', '2018-12-09', 'g', 120, '', '2026-12-20', 1, 1)`).run(ids.baku).lastInsertRowid)
     db.raw.prepare('INSERT INTO personal_loved_followers (owner_id, follower_id, created_at) VALUES (?, ?, 1)').run(ids.baku, ids.ny)
     await s.tick(Date.UTC(2026, 11, 20, 5, 0))           // Bakı 09:00
     await s.tick(Date.UTC(2026, 11, 20, 6, 0))
     expect(got.map((m) => m.to)).toEqual(['baku@example.com'])
-    expect(got[0].kind).toBe('anniversary')
-    expect(got[0].text).toContain('Həsən')
-    expect(got[0].text).toContain('8 ili')
+    expect(got[0].kind).toBe('lovedRemind')
+    expect(got[0].text).toContain('Həsən üçün dua')
+    expect(got[0].text).not.toMatch(/ildönüm|il tamam|\b8\b/)
     expect(got[0].headers['List-Unsubscribe']).toMatch(/\/api\/personal\/unsubscribe\?t=\d+\.loved\./)
     await s.tick(Date.UTC(2026, 11, 20, 14, 0))          // NY 09:00
     await s.tick(Date.UTC(2026, 11, 20, 15, 0))
     expect(got.map((m) => m.to)).toEqual(['baku@example.com', 'ny@example.com'])
-    expect(got[1].subject).toBe('Həsən — anniversary')
-    expect(got[1].text).toContain('8th anniversary')
+    expect(got[1].subject).toBe('A reminder to make dua for Həsən')
+    expect(got[1].text).toContain('A reminder to make dua for Həsən.')
+    expect(got[1].text).not.toMatch(/anniversary/i)
     expect(pushes).toHaveLength(1)
     expect(pushes[0].subs[0].endpoint).toBe(ep)
+    expect(pushes[0].msg.notification).toEqual({ title: 'Dua for your loved ones', body: 'A reminder to make dua for Həsən.' })
     // e-poçt sönülü (unsubscribe) — yalnız push
-    await s.tick(Date.UTC(2026, 11, 22, 0, 0))           // gün hər yerdə bitib → növbəti il
-    expect(db.raw.prepare('SELECT next_on FROM personal_loved WHERE id = ?').get(lid).next_on).toBe('2027-12-20')
+    await s.tick(Date.UTC(2026, 11, 22, 0, 0))           // gün hər yerdə bitib → növbəti ay
+    expect(db.raw.prepare('SELECT friday, next_on FROM personal_loved WHERE id = ?').get(lid)).toEqual({ friday: 120, next_on: '2027-01-20' })
+    expect(got).toHaveLength(2)
   })
 
   it('Cümə: siyahı bir məktubda, həftədə bir dəfə; e-poçt sönülüdürsə göndərilmir', async () => {
@@ -454,6 +503,7 @@ describe('planlayıcı', () => {
     expect(baku).toHaveLength(1)
     expect(baku[0].kind).toBe('friday')
     expect(baku[0].text).toContain('Zeynəb, Musa')
+    expect(baku[0].text).not.toContain('Həsən')                 // "ayda bir" sətri Cüməyə düşmür
     store.setLovedEmail(ids.ny, false)
     await s.tick(Date.UTC(2026, 11, 25, 15, 0))          // NY Cümə 10:00 — izləyən, amma e-poçt sönülü
     expect(got.filter((m) => m.to === 'ny@example.com')).toHaveLength(0)
@@ -484,7 +534,7 @@ describe('planlayıcı', () => {
 
 describe('e-poçt şablonları: 5 dil', () => {
   const vars = { url: 'https://muslims.cc/x', name: 'Ali <script>', n: 2, names: 'A, B', date: '1 Jan', amount: '10 USD', body: 'Mətn <b>', unsubUrl: 'https://muslims.cc/api/personal/unsubscribe?t=1.loved.abc' }
-  for (const kind of ['letter', 'anniversary', 'friday', 'zakatSoon', 'zakatDue']) {
+  for (const kind of ['letter', 'lovedRemind', 'friday', 'zakatSoon', 'zakatDue']) {
     it(kind, () => {
       const seen = new Set()
       for (const lang of ['az', 'en', 'ru', 'tr', 'ar']) {

@@ -91,8 +91,11 @@ describe('cal feed HTTP', () => {
   it('ICS: CRLF, qatlama ≤75 oktet, escape, bütün-gün, VALARM, RRULE, məktub mətni YOX', async () => {
     const u = await A.signup()
     const t = Date.now()
+    // ayda bir, ayın 25-i (friday = 100 + 25); vəfat tarixi heç bir hadisə yaratmır
+    ins(`INSERT INTO personal_loved (user_id, name, relation, passed_on, calendar, friday, note, next_on, created_at, updated_at)
+      VALUES (?, ?, '', '2020-11-18', 'g', 125, 'gizli qeyd', '2026-11-25', ?, ?)`, u.id, 'Əli, oğlu; "Böyük" \\ ata\nyeni sətir', t, t)
     ins(`INSERT INTO personal_loved (user_id, name, relation, passed_on, calendar, friday, note, created_at, updated_at)
-      VALUES (?, ?, '', '2020-11-25', 'g', 1, 'gizli qeyd', ?, ?)`, u.id, 'Əli, oğlu; "Böyük" \\ ata\nyeni sətir', t, t)
+      VALUES (?, 'Ana', '', '', 'g', 1, '', ?, ?)`, u.id, t, t)
     ins(`INSERT INTO personal_zakat (user_id, hawl_start, due_on, created_at, updated_at) VALUES (?, '2025-12-01', '2026-12-01', ?, ?)`, u.id, t, t)
     ins(`INSERT INTO personal_letters (user_id, body, deliver_on, kind, tz, lang, status, created_at, updated_at)
       VALUES (?, 'ÇOX GİZLİ MƏKTUB MƏTNİ', '2027-01-05', 'date', 'UTC', 'en', 'pending', ?, ?)`, u.id, t, t)
@@ -113,8 +116,11 @@ describe('cal feed HTTP', () => {
     expect(ul.filter((l) => l === 'BEGIN:VALARM').length).toBe(ul.filter((l) => l === 'END:VALARM').length)
     expect(ul).toContain('X-WR-CALNAME:Muslims.cc — my calendar')
     // escape: , ; \ və sətir sonu
-    expect(unfolded).toContain('SUMMARY:Əli\\, oğlu\\; "Böyük" \\\\ ata\\nyeni sətir — 6 years')
-    expect(unfolded).toContain('DTSTART;VALUE=DATE:20261125\r\nDTEND;VALUE=DATE:20261126')
+    expect(unfolded).toContain('SUMMARY:Dua for Əli\\, oğlu\\; "Böyük" \\\\ ata\\nyeni sətir')
+    expect(unfolded).toContain('DTSTART;VALUE=DATE:20261025\r\nDTEND;VALUE=DATE:20261026')
+    expect(unfolded).toContain('RRULE:FREQ=MONTHLY;BYMONTHDAY=25')
+    expect(unfolded).not.toContain('DTSTART;VALUE=DATE:20261118')        // vəfat tarixinin ildönümü YOX
+    expect(unfolded).not.toMatch(/anniversary/i)
     expect(unfolded).not.toContain('gizli qeyd')
     // Cümə — həftəlik təkrar
     expect(unfolded).toMatch(/SUMMARY:Friday — remember your loved ones in dua\r\nRRULE:FREQ=WEEKLY;BYDAY=FR/)
@@ -136,22 +142,30 @@ describe('cal feed HTTP', () => {
     expect(new Set(ul.filter((x) => x.startsWith('UID:'))).size).toBe(ul.filter((x) => x.startsWith('UID:')).length)
   })
 
-  it('yalnız seçilmiş kateqoriyalar; Cümə yalnız friday=1 olanda; dil', async () => {
+  it('yalnız seçilmiş kateqoriyalar; Cümə yalnız "hər Cümə" olanda; dil; köhnə ildönümü sətri → Cümə', async () => {
     const u = await A.signup()
     const t = Date.now()
-    ins(`INSERT INTO personal_loved (user_id, name, passed_on, calendar, friday, created_at, updated_at) VALUES (?, 'Nənə', '2019-03-01', 'h', 0, ?, ?)`, u.id, t, t)
+    ins(`INSERT INTO personal_loved (user_id, name, passed_on, calendar, friday, next_on, created_at, updated_at) VALUES (?, 'Nənə', '2019-03-01', 'h', 103, '2026-12-03', ?, ?)`, u.id, t, t)
+    ins(`INSERT INTO personal_loved (user_id, name, passed_on, calendar, friday, created_at, updated_at) VALUES (?, 'Baba', '2019-03-01', 'g', 0, ?, ?)`, u.id, t, t)
     ins(`INSERT INTO personal_zakat (user_id, hawl_start, due_on, created_at, updated_at) VALUES (?, '2025-12-01', '2026-12-01', ?, ?)`, u.id, t, t)
     const { token } = await json(await enable(u, { cats: { loved: true, friday: true, fasts: true }, lang: 'az' }))
     const body = (await (await feed(token)).text()).replace(/\r\n /g, '')
-    expect(body).toContain('SUMMARY:Nənə — ')
-    expect(body).not.toContain('RRULE')            // friday=1 olan yoxdur
+    expect(body).toContain('SUMMARY:Nənə üçün dua')
+    expect(body).not.toContain('Baba')             // xatırlatma yoxdur
+    expect(body).not.toContain('BYDAY=FR')         // "hər Cümə" olan yoxdur
     expect(body).not.toContain('Zəkat')
     expect(body).toContain('X-WR-CALNAME:Muslims.cc — şəxsi təqvim')
     expect(body).toMatch(/SUMMARY:Sünnə orucu — (bazar ertəsi|cümə axşamı|ağ günlər)/)
-    // hicri ildönümü: növbəti 400 gündə ən azı bir dəfə
-    const ann = router.eventsFor(u.id, { loved: true }, 'en', clock)
-    expect(ann.length).toBeGreaterThanOrEqual(1)
-    expect(ann[0].summary).toMatch(/^Nənə — \d+ years?$/)
+    // ayda bir: bir təkrarlanan hadisə, ayın 3-ü
+    const ev = router.eventsFor(u.id, { loved: true }, 'en', clock)
+    expect(ev).toHaveLength(1)
+    expect(ev[0]).toMatchObject({ summary: 'Dua for Nənə', date: '2026-11-03', rrule: 'FREQ=MONTHLY;BYMONTHDAY=3' })
+    expect(ev[0].description).toContain('A reminder to make dua for Nənə.')
+    // köhnə ildönümü sətri (friday 0 + next_on) — ildönümü hadisəsi yox, "hər Cümə" sayılır
+    ins(`INSERT INTO personal_loved (user_id, name, passed_on, calendar, friday, next_on, created_at, updated_at) VALUES (?, 'Köhnə', '2018-12-20', 'g', 0, '2026-12-20', ?, ?)`, u.id, t, t)
+    const ev2 = router.eventsFor(u.id, { loved: true, friday: true }, 'en', clock)
+    expect(ev2.map((e) => e.rrule)).toEqual(['FREQ=MONTHLY;BYMONTHDAY=3', 'FREQ=WEEKLY;BYDAY=FR'])
+    expect(JSON.stringify(ev2)).not.toContain('Köhnə')
   })
 
   it('sünnə orucları: server surəti saytın təqviminin fastStatus-u ilə eynidir (800 gün)', () => {

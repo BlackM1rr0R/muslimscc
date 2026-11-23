@@ -31,6 +31,9 @@ import { sanitizeNewborn, NEWBORN_KEY } from './lifeGuides'
 import { mergeLedger, DEBT_KEY } from './debtLedger'
 import { mergeHaid, HAID_KEY } from './haidLog'
 import { sanitizeGraves, GRAVES_KEY } from './graveVisits'
+import { mergeTrips, TRIPS_KEY } from './travelTrips'
+import { sanitizeVisits as sanitizeSickVisits, SICK_KEY } from './sickVisits'
+import { mergeRoutine, ROUTINE_KEY } from './sleepRoutine'
 
 export const CONFLICT = Symbol('conflict')
 
@@ -309,12 +312,24 @@ export const MERGERS = {
     const out = sanitizeGraves({ l })
     return out.l.length ? out : undefined
   }, { ok: isObj }),
+  // R2: xəstəni ziyarət xatırlatmaları — qeyd üzrə 3 tərəfli (silinmə də keçir); eyni qeyd iki cihazda — təzəsi (u)
+  [SICK_KEY]: json((L, R, B) => {
+    const pick = (o) => sanitizeSickVisits(o).l
+    const l = idList((a, b) => ((Number(b.u) || 0) > (Number(a.u) || 0) ? b : a))(pick(L), pick(R), B === undefined ? undefined : pick(B))
+    if (l === CONFLICT) return CONFLICT
+    const out = sanitizeSickVisits({ l })
+    return out.l.length ? out : undefined
+  }, { ok: isObj }),
+  // R3: səyyahın "Səfərlərim" siyahısı — id üzrə 3 tərəfli (silinmə də keçir); eyni səfər — təzəsi (u) (utils/travelTrips)
+  [TRIPS_KEY]: json((L, R, B) => mergeTrips(L, R, B) || undefined, { ok: isObj }),
   // ── P1 ──
   // Borc dəftəri — qeyd üzrə 3 tərəfli (silinmə də keçir); eyni qeyd iki cihazda: sahələr — təzəsi (u),
   // qismən qaytarmalar — id üzrə 3 tərəfli birlik (utils/debtLedger)
   [DEBT_KEY]: json((L, R, B) => mergeLedger(L, R, B), { ok: isObj }),
   // Heyz/nifas təqvimi — qeyd üzrə 3 tərəfli, eyni qeyd — təzəsi; neytral başlıq — sonra dəyişdirilən (utils/haidLog)
   [HAID_KEY]: json((L, R, B) => mergeHaid(L, R, B), { ok: isObj }),
+  // R1: yatma/oyanış ardıcıllığı — eyni gün: addımların birliyi, fərqli gün: təzəsi; saat və rəng — bu cihazınkı
+  [ROUTINE_KEY]: json((L, R) => mergeRoutine(L, R), { ok: isObj }),
   // Günün bitən seansları { gün: say } — gün üzrə sayğac (iki cihazın artımı toplanır), son 14 gün
   [FOCUS_DONE_KEY]: json((L, R, B) => {
     const Lm = sanitizeDone(L), Rm = sanitizeDone(R), Bm = B === undefined ? null : sanitizeDone(B)

@@ -1,0 +1,54 @@
+/* ══════════════════════════════════════════════════════
+   Həftəlik ailə halqası (/family-halaqa) və xəstəni ziyarət (/visiting-the-sick).
+   LifeGuides.css (.lg-*) və LessonsPage.css (.ls-*) üzərində; yalnız semantik tokenlər (açıq/qaranlıq),
+   məntiqi xassələr (RTL), 360px. Hərəkət yoxdur (prefers-reduced-motion problemi yaranmır).
+   ══════════════════════════════════════════════════════ */
+.hq-wait { margin: 0; color: var(--text-tertiary); font-size: var(--step--1); }
+.hq-note { margin: var(--space-3) 0 0; color: var(--text-tertiary); font-size: var(--step--1); line-height: 1.5; }
+
+/* Həftə zolağı */
+.hq-bar { display: flex; flex-direction: column; gap: var(--space-3); margin-bottom: var(--space-4); }
+.hq-week__title { margin: 0; font-family: var(--font-heading); font-size: var(--step-2); color: var(--text-strong); }
+.hq-week__range { margin: 2px 0 0; color: var(--text-secondary); font-size: var(--step--1); }
+.hq-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.hq-row .ui-btn { white-space: normal; text-align: start; height: auto; min-height: var(--ui-btn-h, 40px); padding-block: 6px; }
+
+/* Dəst kartları */
+.hq-kit { display: flex; flex-direction: column; gap: var(--space-4); margin-bottom: var(--space-4); min-width: 0; }
+.hq-print-title { display: none; }
+.hq-page .hq-card { display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-4); margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.hq-card__title { display: flex; gap: 8px; align-items: center; margin: 0; font-size: var(--step-1); color: var(--text-strong); }
+.hq-card__title svg { flex-shrink: 0; color: var(--brand); }
+.hq-ar { margin: 0; font-size: var(--step-2); line-height: 2; color: var(--text-strong); text-align: start; }
+.hq-tr { margin: 0; color: var(--text-body); line-height: 1.6; }
+.hq-src { margin: 0; color: var(--text-secondary); font-size: var(--step--1); }
+.hq-src cite { font-style: normal; }
+.hq-more { margin: 0; font-size: var(--step--1); }
+.hq-qs { display: flex; flex-direction: column; gap: var(--space-2); margin: 0; padding-inline-start: 1.25em; line-height: 1.5; }
+.hq-q__note { display: block; color: var(--text-tertiary); font-size: var(--step--2); }
+.hq-share { flex-wrap: nowrap; }
+.hq-link { flex: 1; min-width: 0; }
+@media (max-width: 420px) { .hq-share { flex-wrap: wrap; } .hq-link { flex-basis: 100%; } }
+
+/* Xəstəni ziyarət */
+.sv-list { display: flex; flex-direction: column; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
+.sv-item { display: flex; flex-direction: column; gap: 6px; padding: var(--space-3); border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--surface-1); min-width: 0; }
+.sv-item.is-today { border-color: var(--brand-line); }
+.sv-item.is-done { opacity: .8; }
+.sv-item__head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 10px; }
+.sv-item__name { color: var(--text-strong); font-weight: 600; }
+.sv-item__date { color: var(--text-secondary); font-size: var(--step--1); }
+.sv-item__note { margin: 0; color: var(--text-body); font-size: var(--step--1); white-space: pre-wrap; }
+.sv-form { display: flex; flex-direction: column; gap: var(--space-3); }
+.sv-section + .sv-section { margin-top: var(--space-5); }
+
+/* Çap: yalnız dəst (keçidlər, düymələr, hero və saytın qalan hissəsi gizli) */
+@media print {
+  body * { visibility: hidden !important; }
+  .hq-kit, .hq-kit * { visibility: visible !important; }
+  .hq-kit { position: absolute !important; inset-inline: 0; top: 0; margin: 0; padding: 0 12mm; gap: 10px; }
+  .hq-kit .hq-noprint { display: none !important; }
+  .hq-print-title { display: block; margin: 0 0 4px; font-size: 16pt; }
+  .hq-page .hq-card { box-shadow: none !important; border: 1px solid #999 !important; background: #fff !important; color: #000 !important; break-inside: avoid; }
+  .hq-kit * { color: #000 !important; }
+}

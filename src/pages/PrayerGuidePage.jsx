@@ -381,6 +381,10 @@ export default function PrayerGuidePage({ setPage }) {
   ]
   const modeIdx = Math.max(0, MODES.findIndex(m => m.key === mode))
   const switchMode = (m) => { setDir(''); setMode(m); setPrayerKey(null); setStep(0); setWuduStep(0) }
+  // /prayerguide#wudu — dəstəmaz rejimi ilə açılır (məs. "Yatmazdan əvvəl sünnə"dən); mount-dan sonra, prerender dəyişmir
+  useEffect(() => {
+    if (location.hash === '#wudu') { setMode('wudu'); setPrayerKey(null); setWuduStep(0) }
+  }, [location.hash])
 
   const wudu = wuduStep < WUDU.length ? WUDU[wuduStep] : null
   const wuduSeq = WUDU.map(() => ({ rakat: 0 }))
