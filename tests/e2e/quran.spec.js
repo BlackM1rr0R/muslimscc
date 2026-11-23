@@ -159,7 +159,12 @@ test('köhnə əlfəcin (ayəsiz) surəni əvvəldən açır', async ({ page }) 
   await expect(cont).toContainText('Bəqərə')
   await expect(cont).not.toContainText('ayə')
   await cont.click()
-  await expect(page.locator('#ayah-1')).toBeInViewport()
+  // "Əvvəldən" = səhifənin yuxarısı. Surənin başlığı (statistika, nazil olma sırası, ritm kartları — 846dba5)
+  // hündürdür, böyük ekranda 1-ci ayə ilk kadrda görünməyə bilər; ona görə ayənin özünü deyil, sürüşməni yoxlayırıq
+  await expect(page.locator('#ayah-1')).toBeAttached()
+  await expect(page.locator('.reader-toolbar')).toBeInViewport()
+  await expect.poll(() => page.evaluate(() => window.scrollY), { message: 'surə yuxarıdan açılmalıdır' }).toBeLessThan(50)
+  await expect(page.locator('#ayah-1.is-target')).toHaveCount(0)
   await expect(page).toHaveURL(/\/quran\/2-al-baqara$/)
 })
 

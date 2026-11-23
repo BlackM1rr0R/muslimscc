@@ -30,6 +30,8 @@ import HeroGreeting from '../components/home/HeroGreeting'
 import { HADITH_COUNT } from '../data/siteStats'
 import { lazyWhenIdle, whenIdle } from '../utils/idle'
 import { readLayout, visibleIds, LAYOUT_EVENT, LAYOUT_KEY } from '../utils/homeLayout'
+// Sadə rejim başlanğıc ekran kimi seçilibsə — ilk açılışda /simple (heç nə render etmir)
+import SimpleStart from '../components/simple/SimpleStart'
 
 // PERFORMANS: hero-dan aşağıdakı bölmələr .ui-cv (ui.css → content-visibility:
 // auto) alır — ekrandan uzaq olanda brauzer onların style/layout/paint işini
@@ -946,6 +948,7 @@ export default function HomePage({ setPage }) {
 
   return (
     <div className="hp-root">
+      <SimpleStart lang={lang} />
 
       {/* Zolaq + hero + "Əsas" sırası eyni fonda */}
       <div className="hp-top">

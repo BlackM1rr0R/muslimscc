@@ -106,6 +106,9 @@ export const PAGES = [
   { key: 'qibla',        path: 'qibla',        priority: 0.85, changefreq: 'monthly' },
   // "Yolda" rejimi — maşın/səfər ekranı (Quran qiraəti, zikr, növbəti namaz, qiblə); alət səhifəsi
   { key: 'onroad',       path: 'on-the-road',  priority: 0.65, changefreq: 'monthly' },
+  // P1: sadə rejim (yaşlılar üçün iri ekran) və şəri ölçü vahidləri çeviricisi — alət səhifələri
+  { key: 'simple',       path: 'simple',       priority: 0.6,  changefreq: 'monthly' },
+  { key: 'units',        path: 'sharia-units', priority: 0.65, changefreq: 'monthly' },
   { key: 'calendar',     path: 'calendar',     priority: 0.85, changefreq: 'daily'   },
   { key: 'hijri',        path: 'hijri-converter', priority: 0.80, changefreq: 'daily' },
   { key: 'prayerguide',  path: 'prayerguide',  priority: 0.85, changefreq: 'monthly' },
@@ -114,6 +117,10 @@ export const PAGES = [
   { key: 'arabic',       path: 'learn-arabic', priority: 0.80, changefreq: 'monthly' },
   // C dəstəsi: yeni müsəlmanın yolu — saytın mövcud alətlərini sıralayan bələdçi (irəliləyiş yalnız klientdə)
   { key: 'newmuslim',    path: 'new-muslim',   priority: 0.80, changefreq: 'monthly' },
+  // P2: həyat bələdçiləri — məzmun saytın dərslərindən (aqiqah, janazah, wasiyyah, nikah), qeydlər yalnız klientdə
+  { key: 'newborn',      path: 'newborn-sunnah', priority: 0.75, changefreq: 'monthly' },
+  { key: 'bereavement',  path: 'when-a-loved-one-dies', priority: 0.75, changefreq: 'monthly' },
+  { key: 'nikahprep',    path: 'nikah-preparation', priority: 0.75, changefreq: 'monthly' },
   { key: 'namecalligraphy', path: 'name-in-arabic', priority: 0.70, changefreq: 'monthly' },
   { key: 'babynames',    path: 'muslim-baby-names', priority: 0.75, changefreq: 'monthly' },
   { key: 'quiz',         path: 'quiz',         priority: 0.80, changefreq: 'monthly' },
@@ -168,6 +175,13 @@ export const PAGES = [
   { key: 'publicprofile', path: 'u',              noindex: true },
   // C dəstəsi — şəxsi gündəlik (yalnız cihazda + E2E sinxronizasiya): indekslənmir
   { key: 'jariyah',       path: 'sadaqah-jariyah', noindex: true },
+  // P3 — gizli dua dostu (girişli), Həcc ailə izləyicisi (gizli keçid #h=… fraqmentdə), şəxsi qəbir xəritəsi (yalnız cihazda)
+  { key: 'duafriend',     path: 'secret-dua-friend', noindex: true },
+  { key: 'hajjtracker',   path: 'hajj-tracker',    noindex: true },
+  { key: 'gravevisit',    path: 'grave-visits',    noindex: true },
+  // P1 — şəxsi dəftərlər (yalnız cihazda + E2E sinxronizasiya): borc dəftəri, heyz/nifas təqvimi (neytral ünvan)
+  { key: 'debts',         path: 'debt-ledger',     noindex: true },
+  { key: 'haid',          path: 'private-calendar', noindex: true },
 ]
 
 /** İndekslənməyən səhifə açarları (Seo.jsx → robots noindex). */

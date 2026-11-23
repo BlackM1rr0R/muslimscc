@@ -10,12 +10,12 @@ import { pickMeta } from '../src/seo/meta.js'
 // Bölmələr — qruplar (key-lər routes.js PAGES-dən). Siyahıda olmayan indekslənən səhifə "Other"-ə düşür.
 const GROUPS = [
   ['Quran', ['quran', 'mushaf', 'quranroots', 'quranmeaning', 'focus', 'hifz', 'qurangame']],
-  ['Prayer', ['prayer', 'qibla', 'onroad', 'prayerguide', 'tracker', 'qada', 'jamaat', 'mosques', 'mosquetv', 'widget']],
+  ['Prayer', ['prayer', 'qibla', 'onroad', 'simple', 'prayerguide', 'tracker', 'qada', 'jamaat', 'mosques', 'mosquetv', 'widget']],
   ['Hadith', ['hadith', 'nawawi40', 'hadithbooks', 'hadeethenc']],
   ['Dua and dhikr', ['duas', 'hisn', 'dhikr', 'names', 'duajournal']],
   ['Calendar, fasting and Hajj', ['calendar', 'hijri', 'ramadan', 'hajjguide', 'holyplaces']],
   ['Learning', ['learn', 'newmuslim', 'arabic', 'glossary', 'fatwa', 'history', 'sahaba', 'scholars', 'kids', 'quiz', 'books', 'videos']],
-  ['Calculators and tools', ['zakat', 'inheritance', 'halalcheck', 'charity', 'babynames', 'namecalligraphy', 'quotes', 'dailytracker', 'muhasabah']],
+  ['Calculators and tools', ['zakat', 'units', 'inheritance', 'halalcheck', 'charity', 'babynames', 'namecalligraphy', 'quotes', 'dailytracker', 'muhasabah']],
 ]
 const SKIP = new Set(['home', 'privacy', 'terms', 'licenses', 'analytics', 'group', 'aichat', 'donate', 'announcements'])
 

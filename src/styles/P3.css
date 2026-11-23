@@ -1,0 +1,71 @@
+/* P3: gizli dua dostu, Həcc ailə izləyicisi, qəbir ziyarəti xəritəsi — məntiqi xassələr (RTL), 360px */
+.p3-page .acc-section { display: grid; gap: var(--space-3, 12px); }
+.p3-list { margin: 0; padding-inline-start: 1.2em; display: grid; gap: 6px; color: var(--text-body); font-size: var(--step--1); line-height: 1.55; }
+.p3-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.p3-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.p3-confirm { gap: 8px; }
+.p3-big { min-height: 48px; white-space: normal; text-align: start; line-height: 1.3; max-width: 100%; }
+.p3-done { margin: 0; display: flex; gap: 8px; align-items: flex-start; padding: 10px 12px; border-radius: var(--radius-md, 12px); background: var(--brand-soft); color: var(--text-strong); font-size: var(--step--1); line-height: 1.5; }
+.p3-done svg { flex: none; margin-block-start: 2px; color: var(--brand); }
+.p3-inbox { border-inline-start: 3px solid var(--brand); }
+.p3-inbox .acc-section__title svg { color: var(--brand); vertical-align: -3px; }
+
+/* Hisn maddələri */
+.p3-hisn { display: grid; gap: 12px; }
+.p3-hisn__ch { display: grid; gap: 8px; padding: 12px; border-radius: var(--radius-md, 12px); background: var(--surface-2); }
+.p3-hisn__title { margin: 0; font-size: var(--step--1); color: var(--text-strong); }
+.p3-hisn__item { display: grid; gap: 6px; }
+.p3-hisn__ar { margin: 0; font-family: var(--font-arabic, inherit); font-size: 1.3rem; line-height: 2; color: var(--text-strong); text-align: start; overflow-wrap: anywhere; }
+.p3-hisn__tr { margin: 0; color: var(--text-body); line-height: 1.6; }
+.p3-hisn__src { color: var(--text-tertiary); line-height: 1.5; }
+.p3-hisn__open { font-size: var(--step--1); color: var(--brand); justify-self: start; }
+
+/* Həcc */
+.p3-dua { display: grid; gap: 8px; }
+.p3-dua__h { margin: 0; display: flex; align-items: center; gap: 6px; font-size: 1rem; color: var(--text-strong); }
+.p3-view { display: grid; gap: 10px; padding-block: 4px; }
+.p3-view + .p3-view { border-block-start: 1px solid var(--line); padding-block-start: 14px; }
+.p3-view__who { margin: 0; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; color: var(--text-secondary); font-size: var(--step--1); }
+.p3-view__cur { margin: 0; display: grid; gap: 2px; }
+.p3-view__cur strong { font-size: var(--step-1, 1.2rem); color: var(--text-strong); }
+.p3-paused { margin: 0; display: flex; align-items: center; gap: 6px; padding: 8px 12px; border-radius: var(--radius-md, 12px); background: var(--surface-2); color: var(--text-secondary); }
+.p3-steps, .p3-stage-btns { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.p3-step { display: flex; align-items: center; gap: 10px; color: var(--text-tertiary); font-size: var(--step--1); }
+.p3-step.is-done { color: var(--text-secondary); }
+.p3-step.is-current { color: var(--text-strong); font-weight: 700; }
+.p3-step__dot { flex: none; inline-size: 18px; block-size: 18px; border-radius: 50%; border: 2px solid var(--line); display: inline-grid; place-items: center; color: var(--surface-1); }
+.p3-step.is-done .p3-step__dot { background: var(--text-tertiary); border-color: var(--text-tertiary); }
+.p3-step.is-current .p3-step__dot, .p3-stage-btn.is-current .p3-step__dot { background: var(--brand); border-color: var(--brand); }
+.p3-stage-btn {
+  inline-size: 100%; min-block-size: 44px; display: flex; align-items: center; gap: 10px; padding: 8px 12px;
+  border-radius: var(--radius-md, 12px); border: 1px solid var(--line); background: var(--surface-1); color: var(--text-body);
+  font: inherit; text-align: start; cursor: pointer;
+}
+.p3-stage-btn:hover { border-color: var(--brand); }
+.p3-stage-btn:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.p3-stage-btn.is-current { border-color: var(--brand); background: var(--brand-soft); color: var(--text-strong); font-weight: 700; }
+.p3-stage-btn:disabled { opacity: .7; cursor: progress; }
+.p3-link { display: grid; gap: 8px; }
+.p3-link__row { display: flex; gap: 8px; flex-wrap: wrap; }
+.p3-link__row .ui-input { flex: 1 1 200px; min-inline-size: 0; font-size: var(--step--1); }
+.p3-live { display: flex; align-items: center; gap: 6px; }
+.p3-live__dot { inline-size: 8px; block-size: 8px; border-radius: 50%; background: var(--ok, #2e9d5b); }
+@media (prefers-reduced-motion: no-preference) {
+  .p3-live__dot { animation: p3-pulse 2s ease-in-out infinite; }
+}
+@keyframes p3-pulse { 50% { opacity: .35; } }
+
+/* Qəbirlər */
+.p3-map { inline-size: 100%; block-size: auto; max-block-size: 260px; display: block; }
+.p3-map__bg { fill: var(--surface-2); stroke: var(--line); }
+.p3-map__pin circle { fill: var(--brand); stroke: var(--surface-1); stroke-width: 2; cursor: pointer; }
+.p3-map__pin.is-sel circle { fill: var(--text-strong); }
+.p3-map__you circle { fill: var(--ok, #2e9d5b); }
+.p3-map__you .p3-map__halo { fill: none; stroke: var(--ok, #2e9d5b); stroke-width: 2; opacity: .5; }
+.p3-graves { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.p3-grave { display: grid; gap: 6px; padding: 10px 12px; border-radius: var(--radius-md, 12px); border: 1px solid var(--line); }
+.p3-grave.is-sel { border-color: var(--brand); }
+.p3-grave__main { display: grid; gap: 2px; min-inline-size: 0; overflow-wrap: anywhere; }
+.p3-form { display: grid; gap: 10px; }
+.p3-here { margin-block-start: 6px; justify-self: start; }
+.p3-near { border-inline-start: 3px solid var(--brand); }

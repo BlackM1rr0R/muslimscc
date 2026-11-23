@@ -25,7 +25,8 @@ if (!OPENROUTER_KEY) { console.error('FATAL: env dəyişəni yoxdur → OPENROUT
 for (const m of ['./auth', './users', './security', './syncKeys', './mailer', './analytics', './csp', './clientErrors', './ummah', './sightings', './content', './feedback', './groups', './sync', './ics', './push',
   './prompts', './ai-utils', './prayer-utils', './daily-ayah', './checkin', './fasting', './reminders', './prayCalc', './eclipse', './eclipse-lib', './daily-hadith', './daily-hadith-data', './personal', './hijri',
   './readTogether', './family', './hifzTest', './globalKhatm', './challenges', './classes', './familyRamadan', './calFeed',
-  './communityKit', './publicProfile', './familyDua', './duaWall', './mosqueRep', './weekly', './ipKey', './pushClaims', './quranMeaning']) require(m)
+  './communityKit', './publicProfile', './familyDua', './duaWall', './mosqueRep', './weekly', './ipKey', './pushClaims', './quranMeaning',
+  './duaFriend', './hajjJourney']) require(m)
 // Paket asılılıqları da (server/package.json → npm ci) — image-də yoxdursa bazadan ƏVVƏL çöksün
 for (const m of ['@simplewebauthn/server']) require(m)
 
@@ -113,7 +114,8 @@ app.use('/api', require('./security').createSecurityRouter({
   security, usersStore, requireUser: usersRouter.requireUser, mailer, publicOrigin: PUBLIC_ORIGIN,
   sources: { personal: () => personalRouter.store, family: () => familyRouter, hifzTests: () => hifzTestRouter, sync: syncKeysStore, readTogether: () => readTogetherRouter, globalKhatm: () => khatmRouter,
     challenges: () => challengesRouter, classes: () => classesRouter, familyRamadan: () => familyRamadanRouter, calFeed: () => calFeedRouter,
-    publicProfile: () => publicProfileRouter, familyDuas: () => familyDuaRouter, duaWall: () => duaWallRouter, mosqueRep: () => mosqueRepRouter, weekly: () => weeklyRouter },
+    publicProfile: () => publicProfileRouter, familyDuas: () => familyDuaRouter, duaWall: () => duaWallRouter, mosqueRep: () => mosqueRepRouter, weekly: () => weeklyRouter,
+    duaFriend: () => duaFriendRouter, hajjJourney: () => hajjJourneyRouter },
 }))
 setInterval(() => security.purge(), 3600e3).unref()
 app.use('/api', syncKeysLib.createSyncKeysRouter({
@@ -250,6 +252,25 @@ setInterval(() => {
     try { r.purge() } catch (e) { console.error('community purge:', e && e.message) }
   }
 }, 3600e3).unref()
+
+// ─── P3: gizli dua dostu + Həcc ailə izləyicisi — cədvəllər miqrasiyasız, users(id) CASCADE ──
+// Gizli dua dostu (server/duaFriend.js) — kimlik heç vaxt açılmır, sərbəst mətn yoxdur; cütləmə saatlıq, push gecikmə ilə
+app.use('/api/dua-friend', limit(60000, 30))
+const duaFriendRouter = require('./duaFriend').createDuaFriendRouter({
+  db, requireUser: usersRouter.requireUser, icons: require('./push').DEFAULT_ICONS,
+  pushSubsOf: (uid) => personalLib.pushSubsForUser(db, uid),
+  pushSend: (subs, msg, label) => (webPush.enabled ? deliver(subs.map((sub) => ({ sub })), msg, label) : Promise.resolve({ successCount: 0, disabled: true })),
+})
+app.use('/api', duaFriendRouter)
+// Həcc ailə izləyicisi (server/hajjJourney.js) — family.js-dən SONRA; YER YOXDUR; polling + ETag; 30 gündən sonra silinir
+app.use('/api/hajj-journey', limit(60000, 60))
+const hajjJourneyRouter = require('./hajjJourney').createHajjJourneyRouter({ db, requireUser: usersRouter.requireUser, allowedOrigins: ALLOWED })
+app.use('/api', hajjJourneyRouter)
+setInterval(() => {
+  try { duaFriendRouter.pairTick() } catch (e) { console.error('dua friend pair:', e && e.message) }
+  try { hajjJourneyRouter.purge() } catch (e) { console.error('hajj journey purge:', e && e.message) }
+}, 3600e3).unref()
+setTimeout(() => { try { duaFriendRouter.pairTick() } catch (e) { console.error('dua friend pair:', e && e.message) } }, 30e3).unref()
 
 // ─── CSP pozuntu hesabatları (server/csp.js) — Report-Only rejimi; yaddaşda birləşdirilir ──
 app.use('/api/csp-report', limit(60000, 60))
@@ -977,6 +998,7 @@ setInterval(() => { personalRouter.scheduler.tick().catch((e) => console.error('
 setInterval(() => { challengesRouter.tick().catch((e) => console.error('challenge tick:', e && e.message)) }, 60000).unref()
 // Həftəlik hesabat (server/weekly.js) — dəqiqədə bir; istifadəçinin seçdiyi gün, öz saat qurşağında 09:00-dan sonra
 setInterval(() => { weeklyRouter.tick().catch((e) => console.error('weekly tick:', e && e.message)) }, 60000).unref()
+setInterval(() => { duaFriendRouter.tick().catch((e) => console.error('dua friend tick:', e && e.message)) }, 5 * 60000).unref()
 
 // ─── Son xəta emalçısı: həmişə JSON, stack/fayl yolu YOX (pis JSON, böyük gövdə, gözlənilməz xəta) ──
 // eslint-disable-next-line no-unused-vars

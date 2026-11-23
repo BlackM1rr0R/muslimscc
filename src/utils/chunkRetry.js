@@ -28,25 +28,41 @@ function reloadedRecently() {
   } catch { return true } // yaddaş bağlıdır — döngü riskinə getmə
 }
 
+// Son "offline" hadisəsinin vaxtı. Bağlantı qısa müddət gedib-gələndə oflayn ikən başlamış
+// import()-ların xətası bəzən navigator.onLine artıq true olandan SONRA çatır — onda bu, köhnə
+// deploy deyil, sadəcə şəbəkə kəsintisidir (yeniləmə açıq təfsiri, oxucu yerini itirərdi).
+const OFFLINE_GRACE = 10_000
+let offlineAt = 0
+if (typeof window !== 'undefined') {
+  window.addEventListener('offline', () => { offlineAt = Date.now() })
+}
+
 /**
  * import() fabrikini bürü: chunk xətasında bir dəfə location.reload().
  * Yeniləmə gedərkən vəd həll olunmur (köhnə ekran qalır, xəta kartı yanıb-sönmür).
  */
 export function withChunkRetry(factory) {
-  return () => factory().catch((err) => {
-    // İnternet yoxdursa yeniləmə köhnə fayl problemi deyil — səhifəni yeniləmək
-    // oxucunun yerini (Quran, pleyer) itirər və oflayn səhifə açar. Bağlantı
-    // qayıdanda modulu sakitcə bir də yüklə.
-    if (typeof window !== 'undefined' && isChunkLoadError(err) && navigator.onLine === false) {
-      return new Promise((resolve, reject) => {
-        window.addEventListener('online', () => { factory().then(resolve, reject) }, { once: true })
-      })
-    }
-    if (typeof window !== 'undefined' && isChunkLoadError(err) && !reloadedRecently()) {
-      try { sessionStorage.setItem(RELOAD_KEY, String(Date.now())) } catch { /* yaddaş bağlıdır */ }
-      window.location.reload()
-      return new Promise(() => {})
-    }
-    throw err
-  })
+  return () => {
+    const startedOffline = typeof navigator !== 'undefined' && navigator.onLine === false
+    return factory().catch((err) => {
+      if (typeof window === 'undefined' || !isChunkLoadError(err)) throw err
+      // İnternet yoxdursa yeniləmə köhnə fayl problemi deyil — səhifəni yeniləmək
+      // oxucunun yerini (Quran, pleyer) itirər və oflayn səhifə açar. Bağlantı
+      // qayıdanda modulu sakitcə bir də yüklə.
+      if (navigator.onLine === false) {
+        return new Promise((resolve, reject) => {
+          window.addEventListener('online', () => { factory().then(resolve, reject) }, { once: true })
+        })
+      }
+      // Bağlantı indicə qayıdıb (import oflayn başlamışdı və ya bu arada kəsinti olub) —
+      // yeniləmə yox, oflayn halındakı kimi modulu sakitcə bir də yüklə
+      if (startedOffline || (offlineAt && Date.now() - offlineAt < OFFLINE_GRACE)) return factory()
+      if (!reloadedRecently()) {
+        try { sessionStorage.setItem(RELOAD_KEY, String(Date.now())) } catch { /* yaddaş bağlıdır */ }
+        window.location.reload()
+        return new Promise(() => {})
+      }
+      throw err
+    })
+  }
 }

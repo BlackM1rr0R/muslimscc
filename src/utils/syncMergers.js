@@ -27,6 +27,10 @@ import { sanitizeJariyah, JARIYAH_KEY } from './jariyahJournal'
 import { sanitizePath, PATH_KEY } from './newMuslimPath'
 import { sanitizeFocusPrefs, sanitizeDone, FOCUS_PREFS_KEY, FOCUS_DONE_KEY } from './focusStore'
 import { sanitizeRoad, ROAD_KEY } from './roadMode'
+import { sanitizeNewborn, NEWBORN_KEY } from './lifeGuides'
+import { mergeLedger, DEBT_KEY } from './debtLedger'
+import { mergeHaid, HAID_KEY } from './haidLog'
+import { sanitizeGraves, GRAVES_KEY } from './graveVisits'
 
 export const CONFLICT = Symbol('conflict')
 
@@ -288,6 +292,29 @@ export const MERGERS = {
   // Ayarlar (dəqiqələr, ayə seçimi; yolda: xatırlatma, səs, son surə) — tərcih: hər iki cihaz dəyişibsə bu cihazınkı
   [FOCUS_PREFS_KEY]: json((L, R) => sanitizeFocusPrefs(L ?? R), { ok: isObj }),
   [ROAD_KEY]: json((L, R) => sanitizeRoad(L ?? R), { ok: isObj }),
+  // P2: körpənin Sünnə planı — işarələr addım üzrə 3 tərəfli (götürülməsi də keçir; iki cihazda — ən erkən gün);
+  // doğum günü və "gecə" — bir tərəf dəyişibsə o, hər ikisi dəyişibsə bu cihazınkı
+  [NEWBORN_KEY]: json((L, R, B) => {
+    const l = sanitizeNewborn(L), r = sanitizeNewborn(R), b = B === undefined ? null : sanitizeNewborn(B)
+    const d = mergeMap3(l.d, r.d, b ? b.d : {}, (x, y) => (x < y ? x : y))
+    const f = mergeMap3({ b: l.b, n: l.n }, { b: r.b, n: r.n }, b ? { b: b.b, n: b.n } : {}, (x) => x)
+    const out = sanitizeNewborn({ d, b: f.b, n: f.n })
+    return Object.keys(out.d).length || out.b || out.n ? out : undefined
+  }, { ok: isObj }),
+  // P3: qəbir ziyarəti xəritəsi — nöqtə üzrə 3 tərəfli (silinmə də keçir); eyni nöqtə iki cihazda dəyişibsə — təzəsi (u)
+  [GRAVES_KEY]: json((L, R, B) => {
+    const pick = (o) => sanitizeGraves(o).l
+    const l = idList((a, b) => ((Number(b.u) || 0) > (Number(a.u) || 0) ? b : a))(pick(L), pick(R), B === undefined ? undefined : pick(B))
+    if (l === CONFLICT) return CONFLICT
+    const out = sanitizeGraves({ l })
+    return out.l.length ? out : undefined
+  }, { ok: isObj }),
+  // ── P1 ──
+  // Borc dəftəri — qeyd üzrə 3 tərəfli (silinmə də keçir); eyni qeyd iki cihazda: sahələr — təzəsi (u),
+  // qismən qaytarmalar — id üzrə 3 tərəfli birlik (utils/debtLedger)
+  [DEBT_KEY]: json((L, R, B) => mergeLedger(L, R, B), { ok: isObj }),
+  // Heyz/nifas təqvimi — qeyd üzrə 3 tərəfli, eyni qeyd — təzəsi; neytral başlıq — sonra dəyişdirilən (utils/haidLog)
+  [HAID_KEY]: json((L, R, B) => mergeHaid(L, R, B), { ok: isObj }),
   // Günün bitən seansları { gün: say } — gün üzrə sayğac (iki cihazın artımı toplanır), son 14 gün
   [FOCUS_DONE_KEY]: json((L, R, B) => {
     const Lm = sanitizeDone(L), Rm = sanitizeDone(R), Bm = B === undefined ? null : sanitizeDone(B)

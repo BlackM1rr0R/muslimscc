@@ -211,6 +211,9 @@ test('uşaq rejimi: 3 səhv PIN-dən sonra gözləmə', async ({ page }) => {
     await expect(dlg.getByTestId('kid-pin-input')).toBeEnabled({ timeout: 15_000 })
     await dlg.getByTestId('kid-pin-input').fill(p)
     await dlg.getByTestId('kid-pin-submit').click()
+    // Yoxlama bitəndə sahə təmizlənir (setPin('')). Əvvəlki cəhdin xəta mətni ekranda qaldığından yalnız mətnə
+    // baxmaq kifayət deyil: yoxlama gedərkən yeni PIN yazılsa, nəticə onu silir və düymə bağlı qalır
+    await expect(dlg.getByTestId('kid-pin-input')).toHaveValue('', { timeout: 15_000 })
     await expect(dlg.getByTestId('kid-pin-error')).toContainText(/PIN səhvdir|gözləyin/)
   }
   await expect(dlg.getByTestId('kid-pin-error')).toContainText('saniyə gözləyin', { timeout: 15_000 })

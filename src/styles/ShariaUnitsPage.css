@@ -1,0 +1,53 @@
+/* ══════════════════════════════════════════════════════
+   Şəri ölçü vahidləri (/sharia-units) — P1
+   Yalnız semantik tokenlər (açıq/tünd), məntiqi xassələr (RTL), 360px. Animasiya yoxdur.
+   ══════════════════════════════════════════════════════ */
+.shu-hero .breadcrumb, .shu-hero .bc-list { justify-content: flex-start; }
+.shu-main { display: flex; flex-direction: column; gap: var(--space-5); }
+.shu-page .shu-form { display: flex; flex-direction: column; gap: var(--space-4); padding: var(--card-pad); }
+.shu-form .ui-title { margin: 0; }
+.shu-form__grid { display: grid; gap: var(--space-3); }
+@media (min-width: 600px) { .shu-form__grid { grid-template-columns: minmax(0, 1fr) minmax(0, 160px); } }
+.shu-form .ui-input { width: 100%; }
+.shu-bad { margin: 0; color: var(--bad); font-size: var(--step--1); }
+
+.shu-result { display: flex; flex-direction: column; gap: var(--space-3); padding-top: var(--space-3); border-top: 1px solid var(--border); }
+.shu-result__head { margin: 0; font-family: var(--font-arabic, 'Amiri', serif); font-size: clamp(1.6rem, 6vw, 2.2rem); line-height: 1.5; color: var(--brand); text-align: start; }
+.shu-rows { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-2); }
+.shu-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; }
+.shu-row__val { font-size: clamp(1.6rem, 6vw, 2.2rem); font-weight: 800; color: var(--text-strong); line-height: 1.15; }
+.shu-row__of { color: var(--text-body); font-weight: 600; }
+.shu-row__range { flex-basis: 100%; color: var(--text-tertiary); font-size: var(--step--1); }
+.shu-badge { font-size: var(--step--2, .75rem); font-weight: 700; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--border); color: var(--text-body); background: var(--surface-2, transparent); }
+.shu-badge--site { color: var(--brand-strong, var(--brand)); border-color: var(--brand-line, var(--brand)); background: var(--brand-soft, transparent); }
+.shu-badge--estimate { color: var(--warn-text, var(--text-strong)); border-color: var(--warn, var(--border)); }
+
+.shu-cmp { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; color: var(--text-body); }
+.shu-cmp__label { font-weight: 700; color: var(--text-strong); }
+.shu-vis { display: inline-flex; flex-wrap: wrap; gap: 4px; align-items: flex-end; }
+.shu-vis__item { --f: 1; display: inline-block; width: calc(18px * var(--f)); height: 22px; border-radius: 4px; background: var(--brand-soft, #d9efe6); box-shadow: inset 0 0 0 2px var(--brand, #0b6b4a); }
+.shu-vis[data-kind="bottle"] .shu-vis__item { width: calc(12px * var(--f)); height: 28px; border-radius: 5px 5px 3px 3px; }
+.shu-vis[data-kind="forearm"] .shu-vis__item { width: calc(34px * var(--f)); height: 10px; border-radius: 6px; }
+.shu-vis__more { font-weight: 800; color: var(--brand); }
+
+.shu-note { margin: 0; color: var(--text-body); line-height: 1.6; font-size: var(--step--1); }
+.shu-open { align-self: flex-start; display: inline-flex; align-items: center; gap: 4px; padding-block: 6px; }
+.shu-caution { margin: 0; display: flex; gap: 8px; align-items: flex-start; color: var(--text-body); font-size: var(--step--1); line-height: 1.55; }
+.shu-caution svg { flex-shrink: 0; margin-top: 3px; color: var(--warn, var(--brand)); }
+
+.shu-table-wrap { display: flex; flex-direction: column; gap: var(--space-3); }
+.shu-table-wrap > .ui-title { margin: 0; }
+.shu-table-scroll { overflow-x: auto; }
+.shu-table { width: 100%; border-collapse: collapse; font-size: var(--step--1); }
+.shu-table th, .shu-table td { padding: 8px 10px; border-bottom: 1px solid var(--border); text-align: start; vertical-align: top; }
+.shu-table thead th { color: var(--text-tertiary); font-weight: 700; }
+.shu-table tbody th { color: var(--text-strong); font-weight: 700; }
+.shu-table td { color: var(--text-body); }
+.shu-table__ar { display: block; font-family: var(--font-arabic, 'Amiri', serif); font-weight: 400; color: var(--text-tertiary); }
+@media (max-width: 480px) {
+  .shu-table, .shu-table thead, .shu-table tbody, .shu-table tr, .shu-table th, .shu-table td { display: block; }
+  .shu-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .shu-table tr { padding: 8px 0; border-bottom: 1px solid var(--border); }
+  .shu-table th, .shu-table td { border: 0; padding: 2px 0; }
+}
+.shu-related-title { margin: var(--space-4) 0 0; }

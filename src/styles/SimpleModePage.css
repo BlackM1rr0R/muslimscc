@@ -1,0 +1,62 @@
+/* ══════════════════════════════════════════════════════
+   Sadə rejim (/simple) — çox iri yazı, yüksək kontrast, 3 iri düymə.
+   "Yolda" rejiminin .road-* siniflərini işlədir (styles/OnTheRoadPage.css), rəngləri isə saytın
+   mövzusuna uyğun verir: açıq mövzuda ağ fon + qara yazı, tünddə — qara fon + ağ yazı (hər ikisi
+   WCAG AAA-ya yaxın). Məntiqi xassələr (RTL), 360px. Animasiya yoxdur.
+   ══════════════════════════════════════════════════════ */
+.smp-hero { padding-block: 20px 4px; }
+.smp-hero .breadcrumb, .smp-hero .bc-list { justify-content: flex-start; }
+.smp-title { margin: 8px 0 6px; font-size: clamp(2.2rem, 9vw, 3.4rem); line-height: 1.1; color: var(--text-strong); }
+.smp-lead { margin: 0; font-size: clamp(1.25rem, 4.6vw, 1.6rem); line-height: 1.45; color: var(--text-body); font-weight: 600; }
+
+.road-screen.smp-screen {
+  --rd-bg: #ffffff; --rd-panel: #f3f4f3; --rd-line: #3d4440; --rd-text: #000000; --rd-muted: #1f2421;
+  --rd-accent: #0b5a3c; --rd-on-accent: #ffffff; --rd-go: #0b5a3c; --rd-warn-bg: #fff4cc; --rd-warn: #3d2a00;
+  border: 3px solid var(--rd-line);
+  font-size: 1.35rem;
+}
+[data-theme="dark"] .road-screen.smp-screen {
+  --rd-bg: #000000; --rd-panel: #121614; --rd-line: #c9d1cc; --rd-text: #ffffff; --rd-muted: #e6ebe8;
+  --rd-accent: #ffd166; --rd-on-accent: #1a1300; --rd-go: #7ef0d6; --rd-warn-bg: #3a2a00; --rd-warn: #ffe08a;
+}
+
+.smp-tiles { list-style: none; margin: 0; padding: 0; display: grid; gap: 16px; }
+.smp-tile {
+  width: 100%; --tap: 160px; min-height: var(--tap);
+  display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 10px;
+  padding: 18px 20px; border-radius: 22px;
+  background: var(--rd-panel); color: var(--rd-text);
+  border: 3px solid var(--rd-line);
+  font: inherit; text-align: start; cursor: pointer;
+}
+.smp-tile:hover { border-color: var(--rd-accent); }
+.smp-tile:focus-visible { outline: 5px solid var(--rd-accent); outline-offset: 3px; }
+.smp-tile__head { display: flex; align-items: center; gap: 14px; font-size: clamp(1.6rem, 7vw, 2.3rem); font-weight: 800; line-height: 1.15; }
+.smp-tile__head svg { flex-shrink: 0; color: var(--rd-accent); }
+.smp-tile__body { display: flex; flex-direction: column; gap: 4px; }
+.smp-tile__big { font-size: clamp(1.5rem, 6.5vw, 2.2rem); font-weight: 700; }
+.smp-tile__big b { font-size: 1.25em; }
+.smp-tile__count {
+  font-size: clamp(2.4rem, 13vw, 4.6rem); font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums;
+  direction: ltr; unicode-bidi: isolate; color: var(--rd-accent);
+}
+.smp-tile__sub { font-size: clamp(1.25rem, 5vw, 1.6rem); font-weight: 600; color: var(--rd-muted); overflow-wrap: anywhere; }
+
+.smp-settings .road-btn { font-size: 1.3rem; }
+.smp-full { text-decoration: none; }
+.smp-screen .road-hint { font-size: 1.2rem; }
+.smp-screen .road-sub { font-size: 1.3rem; }
+
+/* Daha iri yazı */
+.smp--xl .smp-lead { font-size: clamp(1.5rem, 6vw, 2rem); }
+.smp--xl .road-screen.smp-screen { font-size: 1.6rem; }
+.smp--xl .smp-tile__head { font-size: clamp(2rem, 9vw, 2.9rem); }
+.smp--xl .smp-tile__sub, .smp--xl .smp-tile__big { font-size: clamp(1.6rem, 7vw, 2.4rem); }
+.smp--xl .road-btn { font-size: 1.5rem; }
+.smp--xl .smp-screen .road-hint, .smp--xl .smp-screen .road-sub { font-size: 1.45rem; }
+.smp--xl .road-big-line { font-size: clamp(1.6rem, 6.5vw, 2.3rem); }
+
+@media (min-width: 900px) {
+  .smp-tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .smp-tile { --tap: 240px; }
+}

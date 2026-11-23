@@ -146,9 +146,22 @@ const QuranRootsPage = lazy(() => import('./pages/QuranRootsPage'))
 // C dəstəsi: Quranda məna ilə axtarış, yeni müsəlmanın yolu, sədəqeyi-cariyə gündəliyi
 const QuranMeaningPage = lazy(() => import('./pages/QuranMeaningPage'))
 const NewMuslimPathPage = lazy(() => import('./pages/NewMuslimPathPage'))
+// P2: həyat bələdçiləri (körpə, vəfat, nikah)
+const NewbornGuidePage = lazy(() => import('./pages/NewbornGuidePage'))
+const LovedOneGuidePage = lazy(() => import('./pages/LovedOneGuidePage'))
+const NikahGuidePage = lazy(() => import('./pages/NikahGuidePage'))
 const OnTheRoadPage = lazy(() => import('./pages/OnTheRoadPage'))
 const FocusPage = lazy(() => import('./pages/FocusPage'))
 const JariyahJournalPage = lazy(() => import('./pages/JariyahJournalPage'))
+// P3: gizli dua dostu, Həcc ailə izləyicisi, qəbir ziyarəti xəritəsi
+const SecretDuaFriendPage = lazy(() => import('./pages/SecretDuaFriendPage'))
+const HajjTrackerPage = lazy(() => import('./pages/HajjTrackerPage'))
+const GraveVisitsPage = lazy(() => import('./pages/GraveVisitsPage'))
+// P1: borc dəftəri, heyz/nifas təqvimi, sadə rejim, şəri ölçü vahidləri
+const DebtLedgerPage = lazy(() => import('./pages/DebtLedgerPage'))
+const HaidCalendarPage = lazy(() => import('./pages/HaidCalendarPage'))
+const SimpleModePage = lazy(() => import('./pages/SimpleModePage'))
+const ShariaUnitsPage = lazy(() => import('./pages/ShariaUnitsPage'))
 const MushafPage = lazy(() => import('./pages/MushafPage'))
 const HijriPage = lazy(() => import('./pages/HijriPage'))
 const QadaPage = lazy(() => import('./pages/QadaPage'))
@@ -197,6 +210,8 @@ const AzanMoment = lazy(lazyWhenIdle(() => import('./components/AzanMoment')))
 const SelectShare = lazy(lazyWhenIdle(() => import('./components/SelectShare')))
 // v5.8: bayram günlərində bayram görünüşü (utils/eid)
 const EidMode = lazy(lazyWhenIdle(() => import('./components/EidMode')))
+// P3: "Kimsə sizin üçün dua etdi" — yalnız gizli dua dostuna qoşulan cihazda serverə soruşur
+const DuaFriendNotice = lazy(lazyWhenIdle(() => import('./components/p3/DuaFriendNotice')))
 // "Səhv bildir" — bütün sayt üçün tək dialoq (düymələr yalnız hadisə göndərir)
 const ReportErrorHost = lazy(lazyWhenIdle(() => import('./components/ReportErrorButton').then(m => ({ default: m.ReportErrorHost }))))
 
@@ -454,9 +469,19 @@ function AppInner() {
       case 'quranroots': return <QuranRootsPage setPage={navigate} />
       case 'quranmeaning': return <QuranMeaningPage setPage={navigate} />
       case 'newmuslim':  return <NewMuslimPathPage setPage={navigate} />
+      case 'newborn':    return <NewbornGuidePage setPage={navigate} />
+      case 'bereavement': return <LovedOneGuidePage setPage={navigate} />
+      case 'nikahprep':  return <NikahGuidePage setPage={navigate} />
       case 'onroad':     return <OnTheRoadPage setPage={navigate} />
       case 'focus':      return <FocusPage setPage={navigate} />
       case 'jariyah':    return <JariyahJournalPage setPage={navigate} />
+      case 'duafriend':  return <SecretDuaFriendPage />
+      case 'hajjtracker': return <HajjTrackerPage />
+      case 'gravevisit': return <GraveVisitsPage />
+      case 'debts':      return <DebtLedgerPage setPage={navigate} />
+      case 'haid':       return <HaidCalendarPage setPage={navigate} />
+      case 'simple':     return <SimpleModePage setPage={navigate} />
+      case 'units':      return <ShariaUnitsPage setPage={navigate} />
       case 'mushaf':     return <MushafPage setPage={navigate} />
       case 'hijri':      return <HijriPage setPage={navigate} />
       case 'qada':       return <QadaPage setPage={navigate} />
@@ -590,6 +615,7 @@ function AppInner() {
         <AzanMoment />
         <SelectShare />
         <EidMode />
+        <DuaFriendNotice />
       </Suspense>
     </>
   )

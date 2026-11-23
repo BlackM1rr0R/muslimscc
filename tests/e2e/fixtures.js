@@ -65,7 +65,7 @@ const IGNORED = [
   //   hesab (server/users.js, security.js) · D (read-together, family, hifz-tests) · I (challenges, classes, cal-feed)
   //   · K (profile, u, dua-wall, mosque-rep, mosques, weekly) · qrup otaqları (groups)
   /Failed to load resource: the server responded with a status of 40[0-9]\b.*\/api\/(auth\/|personal\/|admin\/(users|role-audit|2fa))/i,
-  /Failed to load resource: the server responded with a status of 40[13469]\b.*\/api\/(read-together|family|hifz-tests|challenges|classes|cal-feed|profile|u|dua-wall|mosque-rep|mosques|weekly|groups)(\/|\?|$)/i,
+  /Failed to load resource: the server responded with a status of 40[13469]\b.*\/api\/(read-together|family|hifz-tests|challenges|classes|cal-feed|profile|u|dua-wall|mosque-rep|mosques|weekly|groups|dua-friend|hajj-journey)(\/|\?|$)/i,
 ]
 
 // Öz API-miz: yerli preview (127.0.0.1 / localhost) və ya VITE_API_URL (https://muslims.cc — AI çatı) üzərində /api/…
@@ -244,6 +244,16 @@ export const test = base.extend({
       if (get && pathname === '/api/mosques/verified') return route.fulfill({ json: { mosques: {} } })
       if (get && pathname === '/api/mosque-rep') return route.fulfill({ status: 403, json: { error: 'No mosque', code: 'no_mosque' } })
       if (get && /^\/api\/(u|mosques)\//.test(pathname)) return route.fulfill({ status: 404, json: { error: 'Not found', code: 'not_found' } })
+      return route.fulfill({ status: 401, json: { error: 'unauthenticated', code: 'unauthenticated' } })
+    })
+    // P3 (server/duaFriend.js, hajjJourney.js) — susmaya görə qoşulmayıb / səfər yoxdur; gizli keçid → 404
+    await page.route((u) => /^\/api\/(dua-friend|hajj-journey)(\/|$)/.test(u.pathname), (route) => {
+      const { pathname } = new URL(route.request().url())
+      const get = route.request().method() === 'GET'
+      if (get && pathname === '/api/dua-friend') return route.fulfill({ json: { joined: false, verified: true, pair: null, inbox: [], roundDays: 30 } })
+      if (get && pathname === '/api/hajj-journey') return route.fulfill({ json: { journey: null, stages: {}, inCircle: false } })
+      if (get && pathname === '/api/hajj-journey/family') return route.fulfill({ json: { inCircle: false, journeys: [] } })
+      if (pathname === '/api/hajj-journey/view') return route.fulfill({ status: 404, json: { error: 'Invalid link', code: 'invalid_token' } })
       return route.fulfill({ status: 401, json: { error: 'unauthenticated', code: 'unauthenticated' } })
     })
     // Ümmətin Canlı Xətmi (server/globalKhatm.js) — susmaya görə boş dövr; ictimai SSE bir "hello" göndərib

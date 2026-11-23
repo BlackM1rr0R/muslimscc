@@ -35,6 +35,8 @@ import { pickUi } from '../utils/uiText'
 const Kaaba3D = lazy(() => import('../components/media/Kaaba3D'))
 const MakkahLive = lazy(() => import('../components/media/MakkahLive'))
 const NabawiUmbrellas = lazy(() => import('../components/NabawiUmbrellas'))
+// P4: Kəbənin tarixi — zaman səyahəti (SVG sxem, mərhələlər, hər faktın mənbəsi)
+const KaabaHistory = lazy(() => import('../components/media/KaabaHistory'))
 
 const SAHIH = { az: 'səhih (əl-Albani)', en: 'sahih (al-Albani)', ru: 'достоверный (аль-Альбани)', ar: 'صحيح (الألباني)', tr: 'sahih (Elbânî)' }
 
@@ -447,6 +449,11 @@ export function HolyPlacesPage({ setPage }) {
             <Suspense fallback={<div className="ui-card" style={{ minHeight: 520 }} />}>
               <MakkahLive lang={lk} />
               <Kaaba3D lang={lk} />
+            </Suspense>
+          </DeferRender>
+          <DeferRender height="900px" idle={false} rootMargin="400px 0px">
+            <Suspense fallback={<div className="ui-card" style={{ minHeight: 900 }} />}>
+              <KaabaHistory lang={lk} />
             </Suspense>
           </DeferRender>
           {/* v7.3: Məscidün-Nəbəvinin çətirləri — Mədinədə günəşlə açılıb bağlanır (günbəz yoxdur) */}
