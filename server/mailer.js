@@ -13,6 +13,7 @@
 //   {device}, {place}, {event}; "details" sətirləri ayrıca blokda.
 //   Həftəlik hesabat (server/weekly.js): weekly — {date}, {prayers}, {pages}, {dhikr}, {fasts}, {wird}.
 //   Xoş gəldin (server/welcome.js): welcome — ayrıca zəngin HTML (renderWelcome), dil 'bi' = en + ar.
+//   Admin məktubu (server/mailCampaigns.js): renderCampaign — düz mətn + **qalın** + https keçidləri, imtina altlığı.
 //   Mətn + sadə HTML; dəyişənlər HTML-escape olunur. Logda alıcı ünvanı və
 //   token YOXDUR (yalnız şablon adı və HTTP statusu).
 // ═══════════════════════════════════════════════════════════════════════
@@ -366,6 +367,135 @@ function renderWelcome(lang, vars = {}) {
   return { subject, text, html }
 }
 
+// ═══════════════════════════════════════════════════════════════════════
+// Admin məktubu (server/mailCampaigns.js) — renderCampaign(lang, vars)
+//   vars: { subject, body, ctaLabel?, ctaUrl?, header: 'gif'|'text', unsubUrl, origin?, test? }
+//   Gövdə — DÜZ MƏTN + sadə işarələmə: boş sətir = abzas, sətir sonu = <br>, **qalın**,
+//   [mətn](https://…) və çılpaq https://… keçidləri. Formadan gələn HTML HEÇ VAXT keçmir —
+//   hər şey əvvəlcə escape olunur, işarələmə sonra tətbiq edilir. Yalnız https keçidləri
+//   (istifadəçi adı/şifrəli URL — yox). Altlıq: "hesabınız olduğu üçün" + bir kliklə imtina
+//   (List-Unsubscribe + List-Unsubscribe-Post başlıqları).
+// ═══════════════════════════════════════════════════════════════════════
+const CAMPAIGN_FOOT = {
+  az: { reason: 'Bu məktubu Muslims.cc hesabınız olduğu üçün alırsınız.', unsub: 'Bu cür məktublardan imtina et' },
+  en: { reason: 'You receive this because you have a Muslims.cc account.', unsub: 'Unsubscribe from these emails' },
+  ru: { reason: 'Вы получили это письмо, потому что у вас есть аккаунт Muslims.cc.', unsub: 'Отписаться от таких писем' },
+  tr: { reason: 'Bu e-postayı Muslims.cc hesabınız olduğu için alıyorsunuz.', unsub: 'Bu tür e-postalardan çık' },
+  ar: { reason: 'تصلك هذه الرسالة لأن لديك حسابًا في Muslims.cc.', unsub: 'إلغاء الاشتراك في هذه الرسائل' },
+}
+// İdarə simvolları (\n-dən başqa) və bidi-override simvolları atılır (saxtakarlıq / başlıq inyeksiyası)
+const cleanText = (s) => String(s == null ? '' : s).replace(/\r\n?/g, '\n').replace(/[‪-‮⁦-⁩]/g, '').replace(/[^\P{Cc}\n]/gu, ' ')
+const cleanLine = (s) => cleanText(s).replace(/\s+/g, ' ').trim()
+
+/** Yalnız https, istifadəçi adı/şifrəsiz, ≤ 500 simvol → normal URL | '' */
+function safeHttpsUrl(u) {
+  if (typeof u !== 'string' || u.length > 500 || !/^https:\/\//i.test(u)) return ''
+  try {
+    const x = new URL(u)
+    if (x.protocol !== 'https:' || x.username || x.password || !x.hostname) return ''
+    return x.href
+  } catch { return '' }
+}
+
+const LINK_RE = /\[([^\]\n]{1,200})\]\((https:\/\/[^\s()<>"']{1,500})\)|(https:\/\/[^\s<>"'()]{1,500})/g
+const boldHtml = (t) => esc(t).replace(/\*\*([^*\n]{1,500}?)\*\*/g, '<strong>$1</strong>')
+
+function inlineHtml(s) {
+  let out = '', last = 0
+  for (const m of s.matchAll(LINK_RE)) {
+    out += boldHtml(s.slice(last, m.index))
+    let raw = m[1] ? m[2] : m[3], tail = ''
+    if (!m[1]) { const t = /[.,;:!?]+$/.exec(raw); if (t) { tail = t[0]; raw = raw.slice(0, -tail.length) } }
+    const href = safeHttpsUrl(raw)
+    const label = m[1] || raw
+    out += href ? `<a href="${esc(href)}" target="_blank" class="mcc-link" style="color:${C.brand};text-decoration:underline">${boldHtml(label)}</a>` : boldHtml(m[1] ? m[0] : raw)
+    out += boldHtml(tail)
+    last = m.index + m[0].length
+  }
+  return out + boldHtml(s.slice(last))
+}
+
+/** Düz mətn → abzaslar (sətirlər massivi) */
+const paragraphs = (body) => cleanText(body).split(/\n[ \t]*\n+/).map((p) => p.replace(/^\n+|\n+$/g, '')).filter((p) => p.trim())
+
+/** Gövdə → { html, text } (təhlükəsiz) */
+function formatCampaignBody(body) {
+  const paras = paragraphs(String(body || '').slice(0, 10000))
+  const html = paras.map((p) => p.split('\n').map(inlineHtml).join('<br>'))
+  const text = paras.map((p) => p
+    .replace(/\[([^\]\n]{1,200})\]\((https:\/\/[^\s()<>"']{1,500})\)/g, (_, l, u) => (safeHttpsUrl(u) ? `${l} (${u})` : `${l}`))
+    .replace(/\*\*([^*\n]{1,500}?)\*\*/g, '$1'))
+  return { html, text }
+}
+
+function renderCampaign(lang, vars = {}) {
+  const l = pickLang(lang)
+  const rtl = l === 'ar'
+  const dir = rtl ? 'rtl' : 'ltr'
+  const align = rtl ? 'right' : 'left'
+  const font = rtl ? FONT_AR : FONT
+  const origin = ORIGIN_RE.test(String(vars.origin || '')) ? String(vars.origin).replace(/\/+$/, '') : 'https://muslims.cc'
+  const home = `${origin}${l === 'az' ? '' : '/' + l}`
+  const f = CAMPAIGN_FOOT[l]
+  const subject = (vars.test ? '[Test] ' : '') + cleanLine(vars.subject).slice(0, 150)
+  const body = formatCampaignBody(vars.body)
+  const ctaLabel = cleanLine(vars.ctaLabel).slice(0, 60)
+  const ctaUrl = ctaLabel ? safeHttpsUrl(String(vars.ctaUrl || '')) : ''
+  const unsubUrl = URL_RE.test(String(vars.unsubUrl || '')) ? String(vars.unsubUrl) : ''
+  const pre = body.text.join(' ').replace(/\s+/g, ' ').slice(0, 140)
+  const header = vars.header === 'text'
+    ? `<tr><td style="padding:26px 28px;background:${C.head};text-align:center;font-family:${FONT}" bgcolor="${C.head}">` +
+      `<a href="${esc(home)}" target="_blank" style="color:#e8c16a;text-decoration:none;font-size:26px;font-weight:700;letter-spacing:0.02em">Muslims.cc</a></td></tr>`
+    : `<tr><td style="padding:0;background:${C.head};line-height:0;font-size:0" bgcolor="${C.head}">` +
+      `<a href="${esc(home)}" target="_blank"><img src="${esc(origin + WELCOME_IMG)}" width="600" height="220" alt="${esc(WELCOME[l].alt)}" style="display:block;width:100%;max-width:600px;height:auto;border:0;background:${C.head};color:#e8c16a;font-family:${FONT};font-size:22px;line-height:1.3"></a></td></tr>`
+  const paras = body.html.map((h) => `<p class="mcc-ink" style="margin:0 0 16px;font-size:16px;line-height:1.65;color:${C.ink}">${h}</p>`).join('')
+  const cta = ctaUrl
+    ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="${align}" style="margin:8px 0 8px"><tr>` +
+      `<td bgcolor="${C.brand}" style="border-radius:8px;background:${C.brand}">` +
+      `<a href="${esc(ctaUrl)}" target="_blank" style="display:inline-block;padding:12px 22px;font-family:${font};font-size:15px;font-weight:700;line-height:1.2;color:#ffffff;text-decoration:none;border-radius:8px">${esc(ctaLabel)}&nbsp;${rtl ? '&larr;' : '&rarr;'}</a>` +
+      `</td></tr></table>`
+    : ''
+  const html = '<!doctype html>' +
+    `<html lang="${l}" dir="${dir}" xmlns="http://www.w3.org/1999/xhtml"><head>` +
+    '<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">' +
+    '<meta name="color-scheme" content="light dark"><meta name="supported-color-schemes" content="light dark">' +
+    `<title>${esc(subject)}</title>` +
+    '<style>:root{color-scheme:light dark;supported-color-schemes:light dark}' +
+    'body{margin:0;padding:0;-webkit-text-size-adjust:100%}img{border:0;outline:none;text-decoration:none}' +
+    '@media (prefers-color-scheme: dark){' +
+    '.mcc-page{background:#0c1512!important}.mcc-card{background:#12211b!important}' +
+    '.mcc-ink{color:#eef3ef!important}.mcc-muted{color:#b5c4bb!important}.mcc-link{color:#7fd3b0!important}' +
+    '.mcc-line{border-color:#264238!important}}' +
+    '[data-ogsc] .mcc-ink{color:#eef3ef!important}[data-ogsc] .mcc-muted{color:#b5c4bb!important}[data-ogsc] .mcc-link{color:#7fd3b0!important}' +
+    '</style></head>' +
+    `<body class="mcc-page" style="margin:0;padding:0;background:${C.page}">` +
+    `<div style="display:none;max-height:0;overflow:hidden;mso-hide:all;font-size:1px;line-height:1px;color:${C.page};opacity:0">${esc(pre)}</div>` +
+    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="mcc-page" style="background:${C.page}"><tr><td align="center" style="padding:16px 8px">` +
+    '<!--[if mso]><table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0"><tr><td><![endif]-->' +
+    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="mcc-card" style="width:100%;max-width:600px;background:${C.card};border-radius:14px;overflow:hidden">` +
+    header +
+    `<tr><td dir="${dir}" lang="${l}" style="padding:28px 28px 12px;text-align:${align};font-family:${font}">` +
+    `<h1 class="mcc-ink" style="margin:0 0 16px;font-size:22px;line-height:1.35;font-weight:700;color:${C.ink}">${esc(cleanLine(vars.subject).slice(0, 150))}</h1>` +
+    paras + cta +
+    `</td></tr>` +
+    `<tr><td style="padding:0 28px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td class="mcc-line" style="border-top:1px solid ${C.line};font-size:0;line-height:0;height:1px">&nbsp;</td></tr></table></td></tr>` +
+    `<tr><td dir="${dir}" style="padding:14px 28px 22px;text-align:${align};font-family:${font}">` +
+    `<p class="mcc-muted" style="margin:0 0 6px;font-size:13px;line-height:1.5;color:${C.muted}">${esc(f.reason)}</p>` +
+    (unsubUrl ? `<p style="margin:0;font-size:13px;line-height:1.5"><a href="${esc(unsubUrl)}" target="_blank" class="mcc-muted" style="color:${C.muted};text-decoration:underline">${esc(f.unsub)}</a></p>` : '') +
+    `</td></tr>` +
+    `<tr><td style="padding:14px 28px 18px;background:${C.head};text-align:center;font-family:${FONT};font-size:13px;line-height:1.5" bgcolor="${C.head}">` +
+    `<a href="${esc(home)}" target="_blank" style="color:#e8c16a;text-decoration:none;font-weight:700">Muslims.cc</a></td></tr>` +
+    '</table>' +
+    '<!--[if mso]></td></tr></table><![endif]-->' +
+    '</td></tr></table></body></html>'
+  const text = `${cleanLine(vars.subject).slice(0, 150)}\n\n${body.text.join('\n\n')}` +
+    (ctaUrl ? `\n\n${ctaLabel}: ${ctaUrl}` : '') +
+    `\n\n— Muslims.cc\n${home}\n\n${f.reason}` + (unsubUrl ? `\n${f.unsub}: ${unsubUrl}` : '')
+  const out = { subject, text, html }
+  if (unsubUrl) out.headers = { 'List-Unsubscribe': `<${unsubUrl}>`, 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' }
+  return out
+}
+
 /**
  * opts.apiKey   — RESEND_API_KEY (yoxdursa göndəriş sönülüdür)
  * opts.from     — göndərən (susmaya görə noreply@muslims.cc)
@@ -408,4 +538,4 @@ function createMailer({ apiKey = process.env.RESEND_API_KEY, from = DEFAULT_FROM
   }
 }
 
-module.exports = { createMailer, render, renderWelcome, LANGS, RESEND_URL, WELCOME_IMG }
+module.exports = { createMailer, render, renderWelcome, renderCampaign, formatCampaignBody, safeHttpsUrl, LANGS, RESEND_URL, WELCOME_IMG }

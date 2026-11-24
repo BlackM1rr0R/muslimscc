@@ -26,7 +26,7 @@ for (const m of ['./auth', './users', './security', './syncKeys', './mailer', '.
   './prompts', './ai-utils', './prayer-utils', './daily-ayah', './checkin', './fasting', './reminders', './prayCalc', './eclipse', './eclipse-lib', './daily-hadith', './daily-hadith-data', './personal', './hijri',
   './readTogether', './family', './hifzTest', './globalKhatm', './challenges', './classes', './familyRamadan', './calFeed',
   './communityKit', './publicProfile', './familyDua', './duaWall', './mosqueRep', './weekly', './ipKey', './pushClaims', './quranMeaning',
-  './duaFriend', './hajjJourney', './welcome']) require(m)
+  './duaFriend', './hajjJourney', './welcome', './mailCampaigns']) require(m)
 // Paket asılılıqları da (server/package.json → npm ci) — image-də yoxdursa bazadan ƏVVƏL çöksün
 for (const m of ['@simplewebauthn/server']) require(m)
 
@@ -63,7 +63,9 @@ app.use('/api/quran-meaning', limit(60000, 6), limit(3600e3, 40))
 app.use('/api/send-notification', limit(60000, 5))
 // Admin məzmun yazıları (məs. SeedManager 50 sənədi ardıcıl yazır) — daha geniş limit
 app.use(/^\/api\/admin\/(content|singletons)(\/|$)/, limit(60000, 300))
-app.use(/^\/api\/admin(?!\/(content|singletons)(\/|$))/, limit(60000, 30))
+// Baş adminin məktub bölməsi (server/mailCampaigns.js) — irəliləyiş sorğusu (polling) üçün ayrıca limit
+app.use(/^\/api\/admin(?!\/(content|singletons|mail)(\/|$))/, limit(60000, 30))
+app.use('/api/admin/mail', limit(60000, 90))
 app.use('/api/content', limit(60000, 300))
 app.use('/api/singletons', limit(60000, 300))
 app.use('/api/push', limit(60000, 30))
@@ -119,7 +121,7 @@ app.use('/api', require('./security').createSecurityRouter({
   sources: { personal: () => personalRouter.store, family: () => familyRouter, hifzTests: () => hifzTestRouter, sync: syncKeysStore, readTogether: () => readTogetherRouter, globalKhatm: () => khatmRouter,
     challenges: () => challengesRouter, classes: () => classesRouter, familyRamadan: () => familyRamadanRouter, calFeed: () => calFeedRouter,
     publicProfile: () => publicProfileRouter, familyDuas: () => familyDuaRouter, duaWall: () => duaWallRouter, mosqueRep: () => mosqueRepRouter, weekly: () => weeklyRouter,
-    duaFriend: () => duaFriendRouter, hajjJourney: () => hajjJourneyRouter, welcome },
+    duaFriend: () => duaFriendRouter, hajjJourney: () => hajjJourneyRouter, welcome, mailCampaigns: () => mailCampaignsRouter },
 }))
 setInterval(() => security.purge(), 3600e3).unref()
 app.use('/api', syncKeysLib.createSyncKeysRouter({
@@ -251,8 +253,15 @@ const weeklyRouter = require('./weekly').createWeeklyRouter({
   db, requireUser: usersRouter.requireUser, mailer, publicOrigin: PUBLIC_ORIGIN, secret: () => personalRouter.store.secret(),
 })
 app.use('/api', weeklyRouter)
+// Baş adminin istifadəçilərə məktubu (server/mailCampaigns.js) — yalnız superadmin; növbə ≥ 700 ms, saatda ≤ 300;
+// imtina (email_optout) HMAC keçidi ilə (personal.js sirri, ayrıca "news" sahəsi)
+app.use('/api/mail', limit(60000, 30))
+const mailCampaignsRouter = require('./mailCampaigns').createMailCampaignsRouter({
+  db, requireAdmin, adminRoleOf: usersStore.adminRole, mailer, publicOrigin: PUBLIC_ORIGIN, secret: () => personalRouter.store.secret(),
+})
+app.use('/api', mailCampaignsRouter)
 setInterval(() => {
-  for (const r of [publicProfileRouter, familyDuaRouter, duaWallRouter, mosqueRepRouter, weeklyRouter]) {
+  for (const r of [publicProfileRouter, familyDuaRouter, duaWallRouter, mosqueRepRouter, weeklyRouter, mailCampaignsRouter]) {
     try { r.purge() } catch (e) { console.error('community purge:', e && e.message) }
   }
 }, 3600e3).unref()
@@ -1003,6 +1012,8 @@ setInterval(() => { challengesRouter.tick().catch((e) => console.error('challeng
 // Həftəlik hesabat (server/weekly.js) — dəqiqədə bir; istifadəçinin seçdiyi gün, öz saat qurşağında 09:00-dan sonra
 setInterval(() => { weeklyRouter.tick().catch((e) => console.error('weekly tick:', e && e.message)) }, 60000).unref()
 setInterval(() => { duaFriendRouter.tick().catch((e) => console.error('dua friend tick:', e && e.message)) }, 5 * 60000).unref()
+// Admin məktubları (server/mailCampaigns.js) — 5 saniyədə bir növbəyə baxır; tick özü məktublar arası ≥ 700 ms gözləyir
+setInterval(() => { mailCampaignsRouter.tick().catch((e) => console.error('campaign tick:', e && e.message)) }, 5000).unref()
 
 // ─── Son xəta emalçısı: həmişə JSON, stack/fayl yolu YOX (pis JSON, böyük gövdə, gözlənilməz xəta) ──
 // eslint-disable-next-line no-unused-vars

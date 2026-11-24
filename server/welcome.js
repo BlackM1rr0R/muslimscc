@@ -183,4 +183,4 @@ function createWelcome(opts) {
   }
 }
 
-module.exports = { createWelcome, createWelcomeStore, siteLang, mailLangOf, SITE_LANGS, DAY }
+module.exports = { createWelcome, createWelcomeStore, siteLang, mailLangOf, SITE_LANGS, DAY, SCHEMA }

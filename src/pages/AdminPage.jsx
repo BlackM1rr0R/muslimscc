@@ -33,6 +33,8 @@ import AnalyticsManager from '../components/admin/AnalyticsManager'
 import UserManager from '../components/admin/UserManager'
 // K: icma moderasiyası (dua divarı, qadağan sözlər, profil şikayətləri, məscidlər) — panel rolu editor+
 const CommunityModeration = lazy(() => import('../components/admin/CommunityModeration'))
+// İstifadəçilərə məktub — yalnız baş admin (server/mailCampaigns.js)
+const MailComposer = lazy(() => import('../components/admin/MailComposer'))
 import { AUTH_TEXT } from '../components/account/authText'
 import { AdminEmpty, AdminAlert } from '../components/admin/AdminUi'
 import Icon, { BrandMark } from '../components/Icon'
@@ -40,11 +42,11 @@ import '../styles/AdminPage.css'
 import { pickUi } from '../utils/uiText'
 
 const LABELS = {
-  az: { moderation:'Dua divarına nəzarət', users:'İstifadəçilər', roleLabel:'Panel rolu', checking:'Giriş yoxlanılır...', account:'Hesab və şifrə', dashboard:'İdarə paneli', content:'MƏZMUN', videos:'Videolar', books:'Kitablar', hadiths:'Hədislər', duas:'Dualar', quotes:'Sitatlar', announcements:'Elanlar', events:'Hadisələr', daily:'Günün məzmunu', customization:'FƏRDİLƏŞDİRMƏ', hero:'Ana səhifə lövhəsi', system:'SİSTEM', settings:'Parametrlər', analytics:'Sayt statistikası', feedback:'Səhv bildirişləri', stats:'Statistika', backup:'Ehtiyat nüsxə və bərpa', seed:'İlkin məlumatlar', pushNotif:'Anlıq bildirişlər', logout:'Çıxış', adminPanel:'Admin paneli', sections:'Admin bölmələri', dark:'Qaranlıq rejim', light:'İşıqlı rejim' },
-  en: { moderation:'Dua wall moderation', users:'Users', roleLabel:'Panel role', checking:'Checking sign-in...', account:'Account & password', dashboard:'Dashboard', content:'CONTENT', videos:'Videos', books:'Books', hadiths:'Hadiths', duas:'Duas', quotes:'Quotes', announcements:'Announcements', events:'Events', daily:'Daily Content', customization:'CUSTOMIZATION', hero:'Hero banner', system:'SYSTEM', settings:'Settings', analytics:'Site analytics', feedback:'Error reports', stats:'Statistics', backup:'Backup & Restore', seed:'Seed Data', pushNotif:'Push Notifications', logout:'Log out', adminPanel:'Admin Panel', sections:'Admin sections', dark:'Dark mode', light:'Light mode' },
-  ru: { moderation:'Модерация стены дуа', users:'Пользователи', roleLabel:'Роль в панели', checking:'Проверка входа...', account:'Аккаунт и пароль', dashboard:'Главная', content:'КОНТЕНТ', videos:'Видео', books:'Книги', hadiths:'Хадисы', duas:'Дуа', quotes:'Цитаты', announcements:'Объявления', events:'События', daily:'Контент дня', customization:'НАСТРОЙКА', hero:'Главный баннер', system:'СИСТЕМА', settings:'Настройки', analytics:'Статистика сайта', feedback:'Сообщения об ошибках', stats:'Статистика', backup:'Резервная копия', seed:'Начальные данные', pushNotif:'Мгновенные уведомления', logout:'Выход', adminPanel:'Админ-панель', sections:'Разделы админки', dark:'Тёмная тема', light:'Светлая тема' },
-  ar: { moderation:'الإشراف على جدار الدعاء', users:'المستخدمون', roleLabel:'الدور في اللوحة', checking:'جارٍ التحقق من تسجيل الدخول...', account:'الحساب وكلمة المرور', dashboard:'لوحة التحكم', content:'المحتوى', videos:'الفيديوهات', books:'الكتب', hadiths:'الأحاديث', duas:'الأدعية', quotes:'الاقتباسات', announcements:'الإعلانات', events:'الأحداث', daily:'محتوى اليوم', customization:'التخصيص', hero:'بانر رئيسي', system:'النظام', settings:'الإعدادات', analytics:'إحصائيات الموقع', feedback:'بلاغات الأخطاء', stats:'الإحصائيات', backup:'النسخ الاحتياطي', seed:'البيانات الأولية', pushNotif:'الإشعارات', logout:'خروج', adminPanel:'لوحة الإدارة', sections:'أقسام الإدارة', dark:'الوضع الداكن', light:'الوضع الفاتح' },
-  tr: { moderation:'Dua duvarı moderasyonu', users:'Kullanıcılar', roleLabel:'Panel rolü', checking:'Giriş kontrol ediliyor...', account:'Hesap ve şifre', dashboard:'Yönetim Paneli', content:'İÇERİK', videos:'Videolar', books:'Kitaplar', hadiths:'Hadisler', duas:'Dualar', quotes:'Alıntılar', announcements:'Duyurular', events:'Olaylar', daily:'Günün İçeriği', customization:'KİŞİSELLEŞTİRME', hero:'Ana afiş', system:'SİSTEM', settings:'Ayarlar', analytics:'Site istatistikleri', feedback:'Hata bildirimleri', stats:'İstatistik', backup:'Yedekleme ve geri yükleme', seed:'Başlangıç verileri', pushNotif:'Anlık bildirimler', logout:'Çıkış', adminPanel:'Yönetim paneli', sections:'Yönetim bölümleri', dark:'Karanlık mod', light:'Aydınlık mod' },
+  az: { mail:'E-poçt göndər', moderation:'Dua divarına nəzarət', users:'İstifadəçilər', roleLabel:'Panel rolu', checking:'Giriş yoxlanılır...', account:'Hesab və şifrə', dashboard:'İdarə paneli', content:'MƏZMUN', videos:'Videolar', books:'Kitablar', hadiths:'Hədislər', duas:'Dualar', quotes:'Sitatlar', announcements:'Elanlar', events:'Hadisələr', daily:'Günün məzmunu', customization:'FƏRDİLƏŞDİRMƏ', hero:'Ana səhifə lövhəsi', system:'SİSTEM', settings:'Parametrlər', analytics:'Sayt statistikası', feedback:'Səhv bildirişləri', stats:'Statistika', backup:'Ehtiyat nüsxə və bərpa', seed:'İlkin məlumatlar', pushNotif:'Anlıq bildirişlər', logout:'Çıxış', adminPanel:'Admin paneli', sections:'Admin bölmələri', dark:'Qaranlıq rejim', light:'İşıqlı rejim' },
+  en: { mail:'Send email', moderation:'Dua wall moderation', users:'Users', roleLabel:'Panel role', checking:'Checking sign-in...', account:'Account & password', dashboard:'Dashboard', content:'CONTENT', videos:'Videos', books:'Books', hadiths:'Hadiths', duas:'Duas', quotes:'Quotes', announcements:'Announcements', events:'Events', daily:'Daily Content', customization:'CUSTOMIZATION', hero:'Hero banner', system:'SYSTEM', settings:'Settings', analytics:'Site analytics', feedback:'Error reports', stats:'Statistics', backup:'Backup & Restore', seed:'Seed Data', pushNotif:'Push Notifications', logout:'Log out', adminPanel:'Admin Panel', sections:'Admin sections', dark:'Dark mode', light:'Light mode' },
+  ru: { mail:'Отправить письмо', moderation:'Модерация стены дуа', users:'Пользователи', roleLabel:'Роль в панели', checking:'Проверка входа...', account:'Аккаунт и пароль', dashboard:'Главная', content:'КОНТЕНТ', videos:'Видео', books:'Книги', hadiths:'Хадисы', duas:'Дуа', quotes:'Цитаты', announcements:'Объявления', events:'События', daily:'Контент дня', customization:'НАСТРОЙКА', hero:'Главный баннер', system:'СИСТЕМА', settings:'Настройки', analytics:'Статистика сайта', feedback:'Сообщения об ошибках', stats:'Статистика', backup:'Резервная копия', seed:'Начальные данные', pushNotif:'Мгновенные уведомления', logout:'Выход', adminPanel:'Админ-панель', sections:'Разделы админки', dark:'Тёмная тема', light:'Светлая тема' },
+  ar: { mail:'إرسال بريد', moderation:'الإشراف على جدار الدعاء', users:'المستخدمون', roleLabel:'الدور في اللوحة', checking:'جارٍ التحقق من تسجيل الدخول...', account:'الحساب وكلمة المرور', dashboard:'لوحة التحكم', content:'المحتوى', videos:'الفيديوهات', books:'الكتب', hadiths:'الأحاديث', duas:'الأدعية', quotes:'الاقتباسات', announcements:'الإعلانات', events:'الأحداث', daily:'محتوى اليوم', customization:'التخصيص', hero:'بانر رئيسي', system:'النظام', settings:'الإعدادات', analytics:'إحصائيات الموقع', feedback:'بلاغات الأخطاء', stats:'الإحصائيات', backup:'النسخ الاحتياطي', seed:'البيانات الأولية', pushNotif:'الإشعارات', logout:'خروج', adminPanel:'لوحة الإدارة', sections:'أقسام الإدارة', dark:'الوضع الداكن', light:'الوضع الفاتح' },
+  tr: { mail:'E-posta gönder', moderation:'Dua duvarı moderasyonu', users:'Kullanıcılar', roleLabel:'Panel rolü', checking:'Giriş kontrol ediliyor...', account:'Hesap ve şifre', dashboard:'Yönetim Paneli', content:'İÇERİK', videos:'Videolar', books:'Kitaplar', hadiths:'Hadisler', duas:'Dualar', quotes:'Alıntılar', announcements:'Duyurular', events:'Olaylar', daily:'Günün İçeriği', customization:'KİŞİSELLEŞTİRME', hero:'Ana afiş', system:'SİSTEM', settings:'Ayarlar', analytics:'Site istatistikleri', feedback:'Hata bildirimleri', stats:'İstatistik', backup:'Yedekleme ve geri yükleme', seed:'Başlangıç verileri', pushNotif:'Anlık bildirimler', logout:'Çıkış', adminPanel:'Yönetim paneli', sections:'Yönetim bölümleri', dark:'Karanlık mod', light:'Aydınlık mod' },
 }
 
 // Baş admin üçün güclü tövsiyə: iki addımlı yoxlama açılana qədər hər bölmənin üstündə (server/security.js)
@@ -95,6 +97,8 @@ const NAV_GROUPS = [
       { key:'seed',   icon:'leaf', labelKey:'seed', noCount:true },
       // Saytın istifadəçiləri və rolları — yalnız admin / superadmin (server/users.js)
       { key:'users', icon:'user', labelKey:'users', noCount:true, minRole:'admin' },
+      // İstifadəçilərə məktub — yalnız baş admin (server də yoxlayır)
+      { key:'mail', icon:'mail', labelKey:'mail', noCount:true, minRole:'superadmin' },
       { key:'account', icon:'shield', labelKey:'account', noCount:true },
     ],
   },
@@ -126,7 +130,11 @@ export default function AdminPage({ setPage }) {
   const isAdmin = authStatus === 'admin' && !account.mustChangePassword
   // İstifadəçi idarəsi yalnız admin və superadmin üçün (editor görmür)
   const canUsers = account.role === 'admin' || account.role === 'superadmin'
-  const navGroups = NAV_GROUPS.map(g => ({ ...g, items: g.items.filter(it => !it.minRole || canUsers) }))
+  const canMail = account.role === 'superadmin'
+  const navGroups = NAV_GROUPS.map(g => ({ ...g, items: g.items.filter(it => !it.minRole || (it.minRole === 'superadmin' ? canMail : canUsers)) }))
+  // "İstifadəçilər" bölməsində seçilənlər → "E-poçt göndər" bölməsinə ötürülür ({ id, email }[])
+  const [mailTargets, setMailTargets] = useState([])
+  const composeTo = (list) => { setMailTargets(list); setActiveTab('mail'); window.scrollTo({ top: 0, behavior: 'smooth' }) }
   const roleNames = pickUi(AUTH_TEXT, lang).roles
 
   useEffect(() => {
@@ -166,7 +174,8 @@ export default function AdminPage({ setPage }) {
       case 'analytics':     return <AnalyticsManager />
       case 'backup':        return <BackupManager />
       case 'seed':          return <SeedManager />
-      case 'users':         return canUsers ? <UserManager actorRole={account.role} actorEmail={account.email} /> : <DashboardOverview counts={counts} setActiveTab={setActiveTab} />
+      case 'users':         return canUsers ? <UserManager actorRole={account.role} actorEmail={account.email} onCompose={canMail ? composeTo : undefined} /> : <DashboardOverview counts={counts} setActiveTab={setActiveTab} />
+      case 'mail':          return canMail ? <Suspense fallback={<AdminEmpty icon="mail" busy>{l.checking}</AdminEmpty>}><MailComposer targets={mailTargets} onClearTargets={() => setMailTargets([])} /></Suspense> : <DashboardOverview counts={counts} setActiveTab={setActiveTab} />
       case 'account':       return <AccountManager email={account.email} twoFactor={account.twoFactor} onTwoFactor={(on) => setAccount(a => ({ ...a, twoFactor: on }))} />
       default:              return <DashboardOverview counts={counts} setActiveTab={setActiveTab} />
     }

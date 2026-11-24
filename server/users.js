@@ -29,6 +29,9 @@
 const crypto = require('node:crypto')
 const express = require('express')
 const auth = require('./auth')
+// Admin siyahısı üçün sayt dili / xoş gəldin / imtina cədvəlləri — eyni sxem mənbəyi (miqrasiyasız)
+const { SCHEMA: WELCOME_SCHEMA } = require('./welcome')
+const { OPTOUT_SCHEMA } = require('./mailCampaigns')
 
 const USER_COOKIE = '__Host-mcc_user'
 const SESSION_TTL_MS = 30 * 24 * 3600 * 1000
@@ -42,6 +45,18 @@ const MAX_PASSKEYS = 20
 const MAX_SESSIONS = 50
 const MAX_NAME = 60
 const PAGE_SIZE = 50
+// Admin istifadəçi siyahısı — sıralama sütunları (allowlist; SQL-ə yalnız bunlar düşür)
+const ADMIN_SORT = {
+  id: 'u.id', created: 'u.created_at', lastLogin: 'COALESCE(u.last_login_at, 0)', email: 'u.email COLLATE NOCASE',
+  name: 'u.display_name COLLATE NOCASE', lang: "COALESCE(up.lang, '')",
+}
+const ADMIN_COLS = `u.id, u.email, u.email_verified, u.display_name, u.role, u.mosque_id, u.disabled, u.created_at, u.last_login_at,
+  up.lang AS site_lang, ws.sent_at AS welcome_at, o.at AS optout_at`
+const ADMIN_FROM = `FROM users u LEFT JOIN user_prefs up ON up.user_id = u.id LEFT JOIN welcome_sent ws ON ws.user_id = u.id
+  LEFT JOIN email_optout o ON o.user_id = u.id`
+const ADMIN_WHERE = `WHERE (? = '' OR u.email LIKE ? ESCAPE '\\' OR u.display_name LIKE ? ESCAPE '\\')
+  AND (? IS NULL OR u.email_verified = ?)
+  AND (? = '' OR (? = 'none' AND up.lang IS NULL) OR up.lang = ?)`
 
 const ROLES = ['user', 'mosque_rep', 'editor', 'admin', 'superadmin']
 const ADMIN_PANEL_ROLES = ['editor', 'admin', 'superadmin']
@@ -172,6 +187,8 @@ const userHandle = (userId) => crypto.createHash('sha256').update(`muslims.cc/we
 function createUsersStore(db) {
   const raw = db.raw || db
   raw.exec(SCHEMA)
+  raw.exec(WELCOME_SCHEMA)
+  raw.exec(OPTOUT_SCHEMA)
   const tx = db.tx || ((fn) => fn())
   const p = (sql) => raw.prepare(sql)
   const st = {
@@ -186,9 +203,6 @@ function createUsersStore(db) {
     setDisabled: p('UPDATE users SET disabled = ?, updated_at = ? WHERE id = ?'),
     touchLogin: p('UPDATE users SET last_login_at = ? WHERE id = ?'),
     del: p('DELETE FROM users WHERE id = ?'),
-    count: p(`SELECT COUNT(*) AS n FROM users WHERE (? = '' OR email LIKE ? ESCAPE '\\' OR display_name LIKE ? ESCAPE '\\')`),
-    list: p(`SELECT id, email, email_verified, display_name, role, mosque_id, disabled, created_at, last_login_at FROM users
-      WHERE (? = '' OR email LIKE ? ESCAPE '\\' OR display_name LIKE ? ESCAPE '\\') ORDER BY id DESC LIMIT ? OFFSET ?`),
 
     newSession: p('INSERT INTO user_sessions (id_hash, user_id, expires_at, created_at, ua) VALUES (?, ?, ?, ?, ?)'),
     session: p(`SELECT s.id_hash, s.user_id, s.expires_at, u.* FROM user_sessions s JOIN users u ON u.id = s.user_id WHERE s.id_hash = ?`),
@@ -233,7 +247,14 @@ function createUsersStore(db) {
     adminRole: p('SELECT role FROM admin_roles WHERE admin_id = ?'),
     setAdminRole: p('INSERT INTO admin_roles (admin_id, role) VALUES (?, ?) ON CONFLICT(admin_id) DO UPDATE SET role = excluded.role'),
     adminByEmail: p('SELECT id, email FROM admins WHERE email = ?'),
+    extras: p(`SELECT up.lang AS site_lang, ws.sent_at AS welcome_at, o.at AS optout_at ${ADMIN_FROM} WHERE u.id = ?`),
+    adminCount: p(`SELECT COUNT(*) AS n ${ADMIN_FROM} ${ADMIN_WHERE}`),
+    facets: p(`SELECT COUNT(*) AS users, SUM(u.email_verified = 1) AS verified, COUNT(o.user_id) AS opted_out
+      FROM users u LEFT JOIN email_optout o ON o.user_id = u.id`),
+    langFacets: p(`SELECT up.lang AS lang, COUNT(*) AS n FROM users u LEFT JOIN user_prefs up ON up.user_id = u.id
+      GROUP BY up.lang ORDER BY n DESC, lang LIMIT 60`),
   }
+  const listCache = new Map()
   const sha = auth.sha256
   const newRandom = () => crypto.randomBytes(32).toString('base64url')
   const audit = (actorKind, actorId, targetKind, targetId, action, oldRole, newRole, now) =>
@@ -393,19 +414,42 @@ function createUsersStore(db) {
         sessions: st.sessionsOf.all(id, now).map((x) => ({ label: x.ua || '', createdAt: x.created_at, lastSeenAt: x.expires_at - SESSION_TTL_MS, current: x.id_hash === currentHash })),
       }
     },
-    listUsers({ q = '', page = 1 } = {}) {
+    /**
+     * Admin siyahısı: q (e-poçt/ad), verified ('1'|'0'), lang (sayt dili | 'none'), sort (ADMIN_SORT), dir ('asc'|'desc').
+     * Köhnə klient yalnız q + page göndərir — nəticə əvvəlki kimidir (id DESC), əlavə sahələr artıq gəlir.
+     */
+    listUsers({ q = '', page = 1, verified = '', lang = '', sort = '', dir = '' } = {}) {
       const term = typeof q === 'string' ? q.trim().slice(0, 100) : ''
       const like = '%' + term.replace(/[\\%_]/g, (c) => '\\' + c) + '%'
       const pg = Math.max(1, Math.min(10000, Math.floor(Number(page)) || 1))
-      const rows = st.list.all(term, like, like, PAGE_SIZE, (pg - 1) * PAGE_SIZE)
+      const ver = verified === '1' || verified === 1 || verified === true ? 1 : verified === '0' || verified === 0 || verified === false ? 0 : null
+      const lg = lang === 'none' || (typeof lang === 'string' && /^[a-z]{2,3}$/.test(lang)) ? lang : ''
+      const col = Object.hasOwn(ADMIN_SORT, sort) ? sort : 'id'
+      const d = dir === 'asc' ? 'ASC' : dir === 'desc' ? 'DESC' : (col === 'email' || col === 'name' || col === 'lang' ? 'ASC' : 'DESC')
+      const key = `${col}:${d}`
+      if (!listCache.has(key)) listCache.set(key, p(`SELECT ${ADMIN_COLS} ${ADMIN_FROM} ${ADMIN_WHERE} ORDER BY ${ADMIN_SORT[col]} ${d}, u.id ${d} LIMIT ? OFFSET ?`))
+      const args = [term, like, like, ver, ver, lg, lg, lg]
+      const rows = listCache.get(key).all(...args, PAGE_SIZE, (pg - 1) * PAGE_SIZE)
+      const f = st.facets.get() || {}
       return {
-        page: pg, pageSize: PAGE_SIZE, total: st.count.get(term, like, like).n,
+        page: pg, pageSize: PAGE_SIZE, total: st.adminCount.get(...args).n,
+        sort: col, dir: d.toLowerCase(),
+        facets: {
+          users: f.users || 0, verified: f.verified || 0, unverified: (f.users || 0) - (f.verified || 0), optedOut: f.opted_out || 0,
+          langs: st.langFacets.all().map((r) => ({ lang: r.lang || 'none', n: r.n })),
+        },
         users: rows.map((u) => ({
           id: u.id, email: u.email, emailVerified: u.email_verified === 1, displayName: u.display_name,
           role: u.role, mosqueId: u.mosque_id || null, disabled: u.disabled === 1,
           createdAt: u.created_at, lastLoginAt: u.last_login_at ?? null,
+          siteLang: u.site_lang || null, welcomeSentAt: u.welcome_at ?? null, emailOptOut: u.optout_at != null,
         })),
       }
+    },
+    /** Rol/blok dəyişəndən sonra kartdakı əlavə sahələr itməsin */
+    adminExtras(id) {
+      const r = st.extras.get(id) || {}
+      return { siteLang: r.site_lang || null, welcomeSentAt: r.welcome_at ?? null, emailOptOut: r.optout_at != null }
     },
     listAudit({ page = 1 } = {}) {
       const pg = Math.max(1, Math.min(10000, Math.floor(Number(page)) || 1))
@@ -1024,10 +1068,13 @@ function createUsersRouter(opts) {
     const adminView = (u) => ({
       id: u.id, email: u.email, emailVerified: u.email_verified === 1, displayName: u.display_name, role: u.role,
       mosqueId: u.mosque_id || null, disabled: u.disabled === 1, createdAt: u.created_at, lastLoginAt: u.last_login_at ?? null,
+      ...store.adminExtras(u.id),
     })
 
     router.get('/admin/users', requireAdmin, adminRole('admin'), (req, res) => {
-      res.json(store.listUsers({ q: req.query.q, page: req.query.page }))
+      const qs = req.query
+      const str = (v) => (typeof v === 'string' ? v : '')
+      res.json(store.listUsers({ q: str(qs.q), page: qs.page, verified: str(qs.verified), lang: str(qs.lang), sort: str(qs.sort), dir: str(qs.dir) }))
     })
     router.post('/admin/users/:id/role', requireAdmin, adminRole('admin'), json, (req, res) => {
       const id = userIdParam(req)

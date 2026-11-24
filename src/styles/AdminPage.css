@@ -1429,6 +1429,35 @@ button.admin-stat-card:active { transform: scale(0.98); }
 .admin-user__ro { display: flex; align-items: center; gap: 6px; margin: 0; color: var(--text-tertiary); font-size: 13px; }
 .admin-users-pager { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 16px 0; color: var(--text-secondary); font-size: 14px; }
 .admin-users-audit { margin-top: 28px; }
+/* Filtrlər + məktub üçün seçim (yalnız baş admin) */
+.admin-users-filters { display: flex; flex-wrap: wrap; gap: 10px 12px; margin: 0 0 14px; }
+.admin-users-filters .ui-field { flex: 1 1 170px; min-width: 0; }
+.admin-users-pickbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 14px; padding: 10px 12px; border-radius: var(--radius-md); background: var(--surface-2); color: var(--text-secondary); font-size: 14px; }
+.admin-users-pickbar > .ui-num { margin-inline-end: auto; font-weight: 600; color: var(--text-strong); }
+.admin-user__pick { display: inline-flex; align-items: center; gap: 10px; cursor: pointer; min-width: 0; }
+.admin-user__pick input { width: 20px; height: 20px; flex: none; accent-color: var(--brand); }
+.admin-user__pick input:disabled { cursor: not-allowed; }
+
+/* ══ İstifadəçilərə məktub (MailComposer) ══ */
+.admin-mail .admin-section { margin-top: 18px; }
+.admin-mail .ui-segmented { margin-bottom: 12px; }
+.admin-mail__targets { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 10px; }
+.admin-mail__langrow { margin-top: 4px; }
+.admin-mail__include { margin: 0; padding: 0; border: 0; }
+.admin-mail__chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.admin-mail__chip { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 12px; border: 1px solid var(--line); border-radius: var(--radius-md); font-weight: 600; font-size: 14px; cursor: pointer; }
+.admin-mail__chip input { width: 18px; height: 18px; accent-color: var(--brand); }
+.admin-mail__body { min-height: 220px; font-family: inherit; line-height: 1.6; }
+.admin-mail__subject { margin: 0 0 8px; color: var(--text-strong); font-weight: 600; overflow-wrap: anywhere; }
+.admin-mail__frame { display: block; width: 100%; height: 640px; max-height: 80vh; border: 1px solid var(--line); border-radius: var(--radius-md); background: #eef2ee; }
+.admin-mail__actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+.admin-mail__confirm { margin-top: 16px; padding: 18px; border-inline-start: 4px solid var(--brand); }
+.admin-mail__confirm-title { margin: 0 0 8px; font-size: var(--step-1, 18px); color: var(--text-strong); }
+.admin-mail__count { margin: 0 0 8px; font-size: 16px; color: var(--text-strong); }
+.admin-mail__history { margin-top: 28px; }
+.admin-mail__campaign { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; }
+.admin-mail__progress { display: block; width: 100%; height: 8px; margin: 8px 0 6px; accent-color: var(--brand); }
+.admin-mail__stats { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; font-size: 13px; color: var(--text-secondary); }
 .admin-audit { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--line); }
 .admin-audit li { display: grid; grid-template-columns: minmax(130px, auto) 1fr auto; gap: 4px 14px; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
 .admin-audit__when, .admin-audit__who { color: var(--text-tertiary); font-size: 13px; }

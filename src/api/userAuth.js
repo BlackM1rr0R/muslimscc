@@ -274,12 +274,25 @@ export const getDataSummary = () => authFetch('/api/auth/data-summary')
 export const exportAccount = () => authFetch('/api/auth/export')
 
 // ── Admin paneli: istifadəçilər (admin / superadmin) ──
-export function adminListUsers({ q = '', page = 1 } = {}) {
+// verified: '' | '1' | '0'; lang: '' | sayt dili | 'none'; sort: id|created|lastLogin|email|name|lang; dir: ''|asc|desc
+export function adminListUsers({ q = '', page = 1, verified = '', lang = '', sort = '', dir = '' } = {}) {
   const p = new URLSearchParams()
   if (q) p.set('q', q)
   p.set('page', String(page))
+  if (verified) p.set('verified', verified)
+  if (lang) p.set('lang', lang)
+  if (sort) p.set('sort', sort)
+  if (dir) p.set('dir', dir)
   return authFetch(`/api/admin/users?${p}`)
 }
+
+// ── Admin paneli: istifadəçilərə məktub (yalnız baş admin; server/mailCampaigns.js) ──
+export const adminMailPreview = (content, lang) => post('/api/admin/mail/preview', { content, lang })
+export const adminMailTest = (content) => post('/api/admin/mail/test', { content })
+export const adminMailAudience = (recipients, content) => post('/api/admin/mail/audience', content ? { recipients, content } : { recipients })
+export const adminMailCreate = ({ content, recipients, confirmCount, requestId }) => post('/api/admin/mail/campaigns', { content, recipients, confirmCount, requestId })
+export const adminMailCampaigns = () => authFetch('/api/admin/mail/campaigns')
+export const adminMailCancel = (id) => post(`/api/admin/mail/campaigns/${encodeURIComponent(id)}/cancel`)
 export const adminSetRole = (id, role, mosqueId) =>
   post(`/api/admin/users/${encodeURIComponent(id)}/role`, role === 'mosque_rep' ? { role, mosqueId } : { role })
 export const adminSetDisabled = (id, disabled) => post(`/api/admin/users/${encodeURIComponent(id)}/disable`, { disabled })
