@@ -12,7 +12,7 @@ import { brandName } from '../config/brand'
 import { T } from '../data/i18n'
 // PERFORMANS: bütöv data/hadiths.js (5 dil) əvəzinə yalnız cari dilin
 // build-zamanı hazırlanmış təkrarsız siyahısı (utils/hadithData.js)
-import { useHadithData, loadHadithKeys } from '../utils/hadithData'
+import { useHadithData, loadHadithData, loadHadithKeys } from '../utils/hadithData'
 import { whenIdle } from '../utils/idle'
 import { localizeSource } from '../utils/sourceNames'
 import { customHadithKeyHashes, dedupeList } from '../utils/uniqueHadiths'
@@ -525,7 +525,64 @@ function HadithAbout({ u, lang, list }) {
   )
 }
 
+// ── Hero + siyahı (PERFORMANS, 2026-11-24) ──
+// Cari dilin hədis modulu (~110 KB gzip) əvvəl səhifə chunk-ı ilə birlikdə gözlənilirdi (prerender
+// HTML-i onu modulepreload ilə yükləyirdi): /hadith və /hadith/<id> açılışında hero belə məlumat
+// gələnə qədər görünmürdü. İndi İLK AÇILIŞDA hero dərhal çəkilir, məlumat ondan sonra yüklənir və
+// siyahı öz Suspense-i ilə gəlir (hero məlumatdan asılı deyil: rəqəmlər sabitdir).
+// SPA naviqasiyasında davranış əvvəlki kimidir: məlumat hazır olana qədər köhnə səhifə qalır
+// (startTransition) — səhifə bütöv dəyişir.
+function HadithHero({ lang }) {
+  const t = pickUi(T, lang)?.hadith || T.az.hadith
+  const cats = CATS_MAP[lang] || CATS_EN
+  const u = pickUi(UI_LABELS, lang, 'en')
+  return (
+    <header className="ui-page-hero hadith-hero">
+      <HeroOrnament />
+      <div className="ui-pattern ui-pattern--fade" aria-hidden="true"></div>
+      <div className="ui-container">
+        <span className="ui-eyebrow">{u.eyebrow}</span>
+        <h1 className="ui-display">{t.title}</h1>
+        {/* Ərəbcədə başlığın özü ərəbcədir — bəzək sətri təkrarlanmasın */}
+        {lang !== 'ar' && <p className="hadith-hero__ar ui-arabic" lang="ar" dir="rtl" aria-hidden="true">كُتُبُ الحَدِيث</p>}
+        <p className="ui-lead">{u.lead}</p>
+        <p className="ui-page-hero__how"><Icon name="info" size={16} /> {u.how}</p>
+        <ul className="ui-page-hero__stats">
+          <li><b className="ui-num"><bdi dir="ltr"><NumberTicker value={HADITH_COUNT} lang={lang} suffix="+" /></bdi></b><span>{u.statHadith}</span></li>
+          <li><b className="ui-num"><NumberTicker value={cats.length - 1} lang={lang} delay={0.08} /></b><span>{u.statTopics}</span></li>
+          <li><b className="ui-num"><NumberTicker value={BOOKS.length} lang={lang} delay={0.16} /></b><span>{u.statBooks}</span></li>
+        </ul>
+      </div>
+    </header>
+  )
+}
+
+/** Siyahı gələnə qədər — görünən sahə hündürlüyündə yer (footer yuxarıdan "tullanmasın", CLS yox). */
+function HadithBodyWait() {
+  return (
+    <div className="spinner-wrap" role="status" aria-live="polite" style={{ minHeight: '60vh' }}>
+      <div className="spinner" />
+    </div>
+  )
+}
+
 export default function HadithPage({ setPage }) {
+  const { lang } = useLang()
+  // react-router-in ilk (açılış) ünvanının açarı "default"-dur; sonrakı keçidlərin açarı təsadüfidir
+  const landing = useLocation().key === 'default'
+  if (!landing) useHadithData(lang) // eslint-disable-line react-hooks/rules-of-hooks -- şərt bir render boyu sabitdir: SPA keçidi — əvvəlki kimi bütöv gözlə
+  else loadHadithData(lang).catch(() => {}) // açılış: yükləməni dərhal başlat (siyahı aşağıda gözləyir)
+  return (
+    <>
+      <HadithHero lang={lang} />
+      <Suspense fallback={<HadithBodyWait />}>
+        <HadithBody setPage={setPage} />
+      </Suspense>
+    </>
+  )
+}
+
+function HadithBody({ setPage }) {
   const { lang } = useLang()
   const t = pickUi(T, lang)?.hadith || T.az.hadith
   const cats = CATS_MAP[lang] || CATS_EN
@@ -754,24 +811,6 @@ export default function HadithPage({ setPage }) {
 
   return (
     <>
-      <header className="ui-page-hero hadith-hero">
-        <HeroOrnament />
-        <div className="ui-pattern ui-pattern--fade" aria-hidden="true"></div>
-        <div className="ui-container">
-          <span className="ui-eyebrow">{u.eyebrow}</span>
-          <h1 className="ui-display">{t.title}</h1>
-          {/* Ərəbcədə başlığın özü ərəbcədir — bəzək sətri təkrarlanmasın */}
-          {lang !== 'ar' && <p className="hadith-hero__ar ui-arabic" lang="ar" dir="rtl" aria-hidden="true">كُتُبُ الحَدِيث</p>}
-          <p className="ui-lead">{u.lead}</p>
-          <p className="ui-page-hero__how"><Icon name="info" size={16} /> {u.how}</p>
-          <ul className="ui-page-hero__stats">
-            <li><b className="ui-num"><bdi dir="ltr"><NumberTicker value={HADITH_COUNT} lang={lang} suffix="+" /></bdi></b><span>{u.statHadith}</span></li>
-            <li><b className="ui-num"><NumberTicker value={cats.length - 1} lang={lang} delay={0.08} /></b><span>{u.statTopics}</span></li>
-            <li><b className="ui-num"><NumberTicker value={BOOKS.length} lang={lang} delay={0.16} /></b><span>{u.statBooks}</span></li>
-          </ul>
-        </div>
-      </header>
-
       <HadithAbout u={u} lang={lang} list={staticList} />
 
       <DeferRender height="700px" idle={false} rootMargin="300px 0px">

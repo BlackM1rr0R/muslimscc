@@ -5,6 +5,7 @@
 // (src/seo/detailLoaders.js; səbəb: src/seo/detailSources.js).
 // ═══════════════════════════════════════════════════════
 
+import fs from 'node:fs'
 import { setDetailSource } from './detailSources.js'
 import { setGlossarySource } from './glossarySource.js'
 import { HADITHS } from '../data/hadiths.js'
@@ -23,5 +24,7 @@ setDetailSource('scholars', { scholarBySlug, lifeSpan })
 setDetailSource('learn', { lessonBySlug, CAT_BY_KEY })
 setGlossarySource(GLOSSARY_BY_ID)
 setDetailSource('glossaryNames', { glossaryName, glossaryGloss })
+// Hisnul-Müslim (yalnız ərəbcə fayl — /ar/hisnul-muslim/<fəsil>-<bənd>); brauzerdə /data/hisn/ar.json
+setDetailSource('hisn', { chapters: JSON.parse(fs.readFileSync(new URL('../../public/data/hisn/ar.json', import.meta.url), 'utf8')).chapters })
 
 export * from './detail.js'

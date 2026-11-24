@@ -15,6 +15,7 @@ import {
 } from '../utils/promptCoordinator'
 import '../styles/InstallBanner.css'
 import { pickUi } from '../utils/uiText'
+import { INSTALLABLE_EVENT, markInstalled, isInstalled, getSavedPrompt, clearSavedPrompt } from '../utils/installPrompt'
 
 // ═══════════════════════════════════════════════════════
 // PWA quraşdırma dəvəti ("Ana ekrana əlavə et")
@@ -49,39 +50,15 @@ const LABELS = {
 }
 
 const DISMISS_KEY = 'install_dismissed'              // mövcud açar: indi "bu vaxta qədər" (köhnə qeyd = bağlanma anı)
-const INSTALLED_KEY = 'muslim_cc_pwa_installed'      // '1' — quraşdırılıb, bir daha təklif etmə
 const SNOOZE_DAYS = { close: 14, auto: 7, cancel: 30, guide: 60 }
 const LEGACY_DAYS = 3                                 // köhnə qeydlər (bağlanma anı) 3 gün sayılırdı
 const SHOW_AFTER_MS = 30000                           // ~30 s görünən vaxt …
 const SHOW_AFTER_NAV_MS = 8000                        // … və ya başqa səhifəyə keçid + ~8 s
 const AUTO_HIDE_MS = 25000                            // toxunulmasa sakitcə gizlənir
 const LEAVE_MS = 220
-const INSTALLABLE_EVENT = 'qm-installable'
 
-function markInstalled() {
-  try { localStorage.setItem(INSTALLED_KEY, '1') } catch { /* yaddaş bağlıdır */ }
-}
-
-function isInstalled() {
-  try { return localStorage.getItem(INSTALLED_KEY) === '1' } catch { return false }
-}
-
-// ── Prompt-u modul səviyyəsində tut ─────────────────
-// Hadisə tez-tez React mount olmamışdan ƏVVƏL gəlir; burada tutulmasa itir.
-let savedPrompt = null
-
-if (typeof window !== 'undefined') {
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault()
-    savedPrompt = e
-    window.dispatchEvent(new Event(INSTALLABLE_EVENT))
-  })
-  window.addEventListener('appinstalled', () => {
-    savedPrompt = null
-    markInstalled()
-    window.dispatchEvent(new Event(INSTALLABLE_EVENT))
-  })
-}
+// ── Prompt modul səviyyəsində tutulur: utils/installPrompt.js (əsas paketdə — bu komponent
+// boş vaxtda tənbəl yüklənir, hadisə isə React mount olmamışdan ƏVVƏL gələ bilər) ──
 
 function isStandaloneNow() {
   if (typeof window === 'undefined') return false
@@ -114,7 +91,7 @@ export default function InstallBanner() {
 
   const [standalone, setStandalone] = useState(isStandaloneNow)
   const [isIOS] = useState(isIOSSafari)
-  const [installable, setInstallable] = useState(() => Boolean(savedPrompt))
+  const [installable, setInstallable] = useState(() => Boolean(getSavedPrompt()))
   const [dismissed, setDismissed] = useState(blocked)
   const [showIOSGuide, setShowIOSGuide] = useState(false)
   const [installing, setInstalling] = useState(false)
@@ -126,7 +103,7 @@ export default function InstallBanner() {
   // Modul səviyyəsində tutulan hadisəni izlə; quraşdırılanda dərhal "bloklan"
   useEffect(() => {
     const sync = () => {
-      setInstallable(Boolean(savedPrompt))
+      setInstallable(Boolean(getSavedPrompt()))
       if (isInstalled()) setDismissed(true)
     }
     window.addEventListener(INSTALLABLE_EVENT, sync)
@@ -181,13 +158,13 @@ export default function InstallBanner() {
 
   // Birbaşa quraşdır — prompt.prompt() (hər hadisə yalnız bir dəfə istifadə olunur)
   const handleInstall = async () => {
-    const promptEvent = savedPrompt
+    const promptEvent = getSavedPrompt()
     if (!promptEvent) return
     setInstalling(true)
     try {
       promptEvent.prompt()
       const { outcome } = await promptEvent.userChoice
-      savedPrompt = null
+      clearSavedPrompt()
       setInstallable(false)
       close(outcome === 'accepted' ? 'installed' : SNOOZE_DAYS.cancel)
     } catch {

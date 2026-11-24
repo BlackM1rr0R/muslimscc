@@ -36,6 +36,7 @@ const DETAIL_NOTES = {
   scholars: 'biographies of scholars',
   learn: 'lessons on worship, fiqh, aqidah and family life, with Quran/hadith references and fatwa sources',
   glossary: 'Islamic terms explained',
+  hisn: 'Hisn al-Muslim adhkar, one page each in Arabic only (Arabic text, number of repetitions, takhrij); only items checked against hisnmuslim.com',
   prayer: 'monthly prayer timetables for 75 cities in Azerbaijan and 19 major cities worldwide (Makkah, Madinah, Istanbul, London, New York …)',
 }
 
@@ -74,7 +75,7 @@ export function buildLlmsTxt({ date } = {}) {
   out.push('Sources and policies:')
   out.push('- Quran: Uthmani text (Tanzil); translations are published, attributed editions — never machine-translated.')
   out.push('- Hadith: each hadith cites its collection and number; grades are taken from published gradings (al-Bukhari and Muslim are sahih; grades for the Sunan collections are cited from published gradings, primarily al-Albani), never guessed.')
-  out.push('- Religious texts (Quran, hadith, duas) are not AI-translated. AI answers on the site are not fatwas.')
+  out.push('- Quran and hadith texts are not AI-translated. Hisn al-Muslim: the Arabic text and takhrij are from the book; its translations (az, en, ru, tr) were prepared by Muslims.cc with AI assistance and are labelled as such — only the Arabic per-dua pages are indexed. AI answers on the site are not fatwas.')
   out.push(`- When citing, please link the specific page (e.g. ${SITE}/en/quran/36-yaseen or ${SITE}/en/hadith/1) and name "Muslims.cc".`)
   out.push('')
   out.push('## Key facts')
@@ -104,7 +105,9 @@ export function buildLlmsTxt({ date } = {}) {
   out.push('## Detail pages')
   out.push('')
   for (const [k, note] of Object.entries(DETAIL_NOTES)) {
-    if (DETAILS[k]) out.push(`- ${SITE}${pathFor(k, 'en')}/<slug>: ${note}`)
+    // Tək dilli detal (Hisnul-Müslim zikri — yalnız ar): ünvan həmin dildədir
+    const l = DETAILS[k]?.langs?.[0] || 'en'
+    if (DETAILS[k]) out.push(`- ${SITE}${pathFor(k, l)}/<slug>: ${note}`)
   }
   out.push(`- Sitemap: ${SITE}/sitemap.xml`)
   out.push('')
@@ -125,6 +128,7 @@ const FULL_SECTIONS = [
   ['scholars', 'Scholars'],
   ['prayer', 'Prayer times by city'],
   ['hadith', 'Hadith'],
+  ['hisn', 'Hisn al-Muslim — adhkar (Arabic text only)'],
 ]
 
 /**
@@ -137,12 +141,14 @@ export function buildLlmsFullTxt(detail, opts = {}) {
     if (!DETAILS[key] || DETAILS[key].noindex) continue
     out.push(`## ${title}`)
     out.push('')
+    // Sətirlər ingiliscədir; tək dilli detal (Hisnul-Müslim zikri) — öz dilində (ərəbcə başlıq və ünvan)
+    const l = DETAILS[key].langs?.[0] || 'en'
     for (const param of detailParams(key)) {
-      const m = detail.detailMeta(key, 'en', param)
+      const m = detail.detailMeta(key, l, param)
       if (!m) continue
-      const t = detail.titleForDetail(key, 'en', param).split(' | ')[0]
+      const t = detail.titleForDetail(key, l, param).split(' | ')[0]
       const d = String(m.d || '').replace(/\s+/g, ' ').trim()
-      out.push(`- [${t}](${SITE}${pathFor(key, 'en', param)})${d ? `: ${d}` : ''}`)
+      out.push(`- [${t}](${SITE}${pathFor(key, l, param)})${d ? `: ${d}` : ''}`)
     }
     out.push('')
   }

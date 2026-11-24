@@ -42,6 +42,9 @@ test('Hicri doğum günü: tarix → hicri tarix, yaşlar, növbəti doğum gün
   await expect(box.getByTestId('hbd-share')).toBeVisible()
   await page.reload()
   await settle(page)
+  // brauzer köhnə sürüşmə mövqeyini bərpa edir; tənbəl bölmələr (footer və s.) sonra gəldiyi
+  // üçün o mövqe blokdan AŞAĞI düşə bilər — yuxarıdan aşağı axtar
+  await page.evaluate(() => window.scrollTo(0, 0))
   for (let i = 0; i < 30 && !(await box.count()); i++) { await page.mouse.wheel(0, 600); await page.waitForTimeout(150) }
   await box.scrollIntoViewIfNeeded()
   await expect(box.getByTestId('hbd-hijri')).toContainText('1410', { timeout: 10000 })

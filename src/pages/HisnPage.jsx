@@ -1,11 +1,12 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import HeroOrnament from '../components/HeroOrnament'
 import { useLang } from '../contexts/LangContext'
 import Icon from '../components/Icon'
 import DuaListen from '../components/DuaListen'
 import ReportErrorButton from '../components/ReportErrorButton'
-import { pathFor } from '../seo/routes'
+import { pathFor, parsePath } from '../seo/routes'
+import { HISN_DUA_IDS } from '../seo/hisnIds'
 import ReaderDialog from '../components/reader/ReaderDialog'
 import { copyText, readJSON, shareOrCopy, writeJSON } from '../components/reader/share'
 import '../styles/HisnPage.css'
@@ -22,6 +23,11 @@ import { adhkarProgress, partNow } from '../components/hisn/adhkarState'
 
 // v5.6: səhər/axşam azkarı — tam ekran rejimi (ayrıca chunk)
 const AdhkarFocus = lazy(() => import('../components/hisn/AdhkarFocus'))
+// Bir zikrin ərəbcə səhifəsi (/ar/hisnul-muslim/<fəsil>-<bənd>) — ayrıca chunk, yalnız detal ünvanında
+const HisnDua = lazy(() => import('../components/hisn/HisnDua'))
+// Səhifəsi olan (hisnmuslim.com ilə tutuşdurulmuş) bəndlər — ərəbcə oxu pəncərəsində linklənir
+const DUA_SET = new Set(HISN_DUA_IDS)
+const DUA_LINK = 'صفحة هذا الذكر'
 const ADHKAR_CHAPTER = 28   // "Səhər və axşam zikrləri"
 const AD_TXT = {
   az: { morning: 'Səhər azkarı', evening: 'Axşam azkarı', lead: 'Tam ekran: zikrlər bir-bir, sayğac və irəliləyiş. Bu gün: {d} / {n}.', start: 'Başla', cont: 'Davam et', again: 'Yenidən oxu' },
@@ -185,9 +191,10 @@ function Counter({ total, L }) {
   )
 }
 
-function Item({ it, n, L, lang, isAr, akey }) {
+function Item({ it, n, L, lang, isAr, akey, duaHref }) {
   const [copied, setCopied] = useState(false)
   const t = useRef(null)
+  const nav = useNavigate()
   useEffect(() => () => clearTimeout(t.current), [])
   const copy = async () => {
     try {
@@ -202,6 +209,12 @@ function Item({ it, n, L, lang, isAr, akey }) {
       <div className="hs-item__head">
         <span className="hs-item__n ui-num" aria-hidden="true">{n}</span>
         <span className="hs-item__tools">
+        {duaHref && (
+          <a className="ui-icon-btn hs-item__page" href={duaHref} aria-label={DUA_LINK} title={DUA_LINK}
+            onClick={(e) => { if (plainClick(e)) { e.preventDefault(); nav(duaHref) } }}>
+            <Icon name="link" size={16} />
+          </a>
+        )}
         <ReportErrorButton compact refText={`Hisnul-Müslim №${n}`} kind="translation" />
         <button type="button" className="ui-icon-btn hs-item__copy" onClick={copy} aria-label={copied ? L.copied : L.copy} title={copied ? L.copied : L.copy}>
           <Icon name={copied ? 'check' : 'copy'} size={16} />
@@ -226,7 +239,26 @@ const CAT_BY_ID = new Map(CATS.map(c => [c.id, c]))
 
 const plainClick = (e) => e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey
 
+const arLoader = () => loadHisn('ar')
+
+/**
+ * /hisnul-muslim — siyahı; /ar/hisnul-muslim/<fəsil>-<bənd> — bir zikrin ərəbcə səhifəsi (HisnDua).
+ * Detal ünvanı yalnız ərəbcədə tanınır (routes.js → DETAILS.hisn.langs); başqa dildə App siyahıya yönləndirir.
+ */
 export default function HisnPage({ setPage }) {
+  const location = useLocation()
+  const { param } = parsePath(location.pathname)
+  if (param) {
+    return (
+      <Suspense fallback={<div className="hs-page" style={{ minHeight: '70vh' }} />}>
+        <HisnDua slug={param} load={arLoader} setPage={setPage} />
+      </Suspense>
+    )
+  }
+  return <HisnList setPage={setPage} />
+}
+
+function HisnList({ setPage }) {
   const { lang } = useLang()
   const L = pickUi(LABELS, lang, 'en')
   const X = pickUi(UI_EXTRA, lang, 'en')
@@ -607,7 +639,8 @@ export default function HisnPage({ setPage }) {
               {!isAr && <span className="hs-chapter__ar ui-arabic" lang="ar" dir="rtl">{chap.titleAr}</span>}
             </h2>
             <div className="hs-dlg__items">
-              {chap.items.map((it, i) => <Item key={`${chap.id}-${i}`} akey={`${chap.id}:${i}`} it={it} n={it.n || (startNum.get(chap.id) || 0) + i + 1} L={L} lang={lang} isAr={isAr} />)}
+              {chap.items.map((it, i) => <Item key={`${chap.id}-${i}`} akey={`${chap.id}:${i}`} it={it}
+                duaHref={isAr && DUA_SET.has(`${chap.id}-${i + 1}`) ? pathFor('hisn', 'ar', `${chap.id}-${i + 1}`) : null} n={it.n || (startNum.get(chap.id) || 0) + i + 1} L={L} lang={lang} isAr={isAr} />)}
             </div>
             <div className="hs-dlg__actions">
               <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm" onClick={copyChapter}>

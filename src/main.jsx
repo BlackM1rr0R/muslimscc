@@ -22,7 +22,7 @@ import { initWow } from './utils/wow'
 import { initVau3 } from './utils/vau3'
 import { whenIdle } from './utils/idle'
 import { initInputModality } from './hooks/useInputModality'
-import { readA11yPrefs, applyA11yPrefs } from './utils/a11yPrefs'
+import { readA11yPrefs, applyA11yPrefs, saveA11yPrefs } from './utils/a11yPrefs'
 import { startUpdateWatcher } from './utils/appUpdate'
 import { applyUiDict } from './i18n/load'
 import { installDateLocale } from './utils/uiText'
@@ -46,7 +46,15 @@ whenIdle({ delay: 600 }).then(() => import('./utils/livingSky').then(m => m.init
 // RENDER-DƏN ƏVVƏL <html>-ə tətbiq olunur. PERFORMANS: panelin UI-si artıq
 // tənbəl chunk-dır (AccessibilityWidget.jsx); əvvəl tərcihlər panel
 // komponentinin useEffect-ində — ilk commit-dən sonra — tətbiq olunurdu.
-applyA11yPrefs(readA11yPrefs())
+// Yaddaşa da yazılır — əvvəl bunu dokun AccessibilityWidget-i HƏR açılışda mount anında edirdi;
+// dok indi tənbəl chunk-dır (App.jsx → DockHost). Açar sinxronlanan məlumatdadır: yazı avtomatik
+// sinxronizasiyanın ilk dövründən (utils/autoSync) SONRA olsa, məlumat yenidən "dəyişmiş" sayılır və
+// iki cihazın birləşməsi pozulurdu (tests/e2e/sync.spec.js — "avtomatik sinxronizasiya").
+{
+  const a11y = readA11yPrefs()
+  applyA11yPrefs(a11y)
+  saveA11yPrefs(a11y)
+}
 
 // ── Service Worker qeydiyyatı (PWA) ──
 if ('serviceWorker' in navigator) {

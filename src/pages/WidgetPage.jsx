@@ -8,6 +8,7 @@
 //   Azərbaycan şəhəri — data-city (vidcet özü hesablayır, prayCalc ilə eyni);
 //   digər şəhərlər — data-lat/data-lng/data-tz (aladhan, Diyanət metodu).
 // • Alternativ: iframe — məscid ekranının yığcam görünüşü (/mosque-tv?compact=1).
+// • WordPress plagini (eyni iframe) — components/widget/WpPluginSection.jsx, wordpress/muslimscc-prayer-times/.
 // Vidcetin mənbəyi: src/widget/widget.src.js → node scripts/build-widget.mjs
 // ═══════════════════════════════════════════════════════
 
@@ -23,6 +24,8 @@ import '../styles/WidgetPage.css'
 import { pickUi } from '../utils/uiText'
 import { m } from 'motion/react'
 import { SPRING } from '../motion/presets'
+import WpPluginSection from '../components/widget/WpPluginSection'
+import { wpShortcode } from '../utils/wpPlugin'
 
 // Məscid ekranının yolu (seo/routes.js-də 'mosquetv' → 'mosque-tv')
 const TV_PATH = '/mosque-tv'
@@ -475,6 +478,12 @@ export default function WidgetPage({ setPage }) {
             />
           </div>
         </section>
+
+        {/* ── WordPress plagini (wordpress/muslimscc-prayer-times; zip build zamanı yığılır) ── */}
+        <WpPluginSection
+          lang={lang}
+          shortcodeBox={<CopyBox code={wpShortcode({ cityId: city, lang: wLang, theme })} l={l} id="wg-code-wp" />}
+        />
 
         {/* ── Məscid ekranı ── */}
         <section className="ui-card ui-card--inverse wg-tv" aria-labelledby="wg-tv-title" data-reveal>

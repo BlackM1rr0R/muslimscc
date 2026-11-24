@@ -26,16 +26,8 @@
     to   { opacity: 1; transform: none; }
   }
 
-  /* 2. Çəkmə menyu: arxa fon canlı bulanmır (sadəcə qaralır), sətirlər
-     tək-tək yox — qruplar növbə ilə gəlir; panel öz qatında hazır durur */
-  .qm-sn-backdrop {
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-    background: rgba(7, 11, 16, 0.5);
-  }
-  [data-theme="dark"] .qm-sn-backdrop { background: rgba(0, 0, 0, 0.62); }
-  .qm-sn--drawer.is-open .qm-sn-group.is-expanded .qm-sn-items > li { animation: none; }
-  .qm-sn--drawer .qm-sn-panel { contain: layout style; }
+  /* 2. Çəkmə menyu — bu qaydalar SideNav.css-in SONUNA köçürülüb: SideNav artıq tənbəl
+     chunk-dır (components/LazySideNav.jsx), onun CSS-i bu fayldan SONRA yüklənir */
 
   /* 3. Basılma rəyi dərhal: toxunuşda 300 ms gözləmə yoxdur */
   a, button, [role="button"], summary, label { touch-action: manipulation; }

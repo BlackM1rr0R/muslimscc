@@ -28,7 +28,7 @@ import { brandName } from '../src/config/brand.js'
 import { FULL_T, narratorLine, hasFull } from '../src/utils/hadithFull.js'
 import {
   BODY_UI, SECTION_LABEL, detailMeta, crumbsFor, surahInfo, nameInfo, sahabaInfo, sentencesOf,
-  termInfo, GLOSSARY_CAT_LABEL, hadithInfo, hadithGradeText, HADITH_T } from '../src/seo/detailData.js'
+  termInfo, GLOSSARY_CAT_LABEL, hadithInfo, hadithGradeText, HADITH_T, hisnInfo, HISN_AR, HISN_BOOK } from '../src/seo/detailData.js'
 import { GLOSSARY, GLOSSARY_CATS, GLOSSARY_BY_ID } from '../src/data/glossary.js'
 import { setGlossarySource } from '../src/seo/glossarySource.js'
 import { LESSON_SLUGS } from '../src/seo/detailSlugs.js'
@@ -42,6 +42,7 @@ import { prayerCity, cityName, citySlug, monthTable, isAzCity, WORLD_PAGE_CITIES
 import { G_MONTHS } from '../src/utils/hijri.js'
 import { BABY_NAMES, nameIn } from '../src/data/babyNames.js'
 import { HADITH_IDS } from '../src/seo/hadithIds.js'
+import { HISN_DUA_IDS } from '../src/seo/hisnIds.js'
 import { QIBLA_GUIDE, QIBLA_GUIDE_TXT, QIBLA_SOURCES } from '../src/data/guides/QiblaPage.js'
 import { MOSQUE_GUIDE, MOSQUE_GUIDE_TXT, MOSQUE_SOURCES } from '../src/data/guides/MosqueFinderPage.js'
 import { CAL_MONTHS_GUIDE, CAL_SOURCES } from '../src/data/guides/CalendarPage.js'
@@ -636,6 +637,42 @@ function hadithListBody(lang) {
   )
 }
 
+// ═══ Hisnul-Müslim zikri (/ar/hisnul-muslim/<fəsil>-<bənd>, 2026-11-24) — YALNIZ ərəbcə ═══
+// Ərəb mətni, təkrar sayı və təxric public/data/hisn/ar.json-dan olduğu kimi; tərcümə YOXDUR (sahibin qərarı).
+function hisnDuaBody(id) {
+  const x = hisnInfo(id)
+  if (!x) return ''
+  const m = detailMeta('hisn', 'ar', id)
+  const T = HISN_AR
+  const i = HISN_DUA_IDS.indexOf(String(id))
+  const near = (j, label) => (j >= 0 && j < HISN_DUA_IDS.length ? { href: pathFor('hisn', 'ar', HISN_DUA_IDS[j]), label, name: detailMeta('hisn', 'ar', HISN_DUA_IDS[j])?.crumb || '' } : null)
+  return shell('ar',
+    detailCrumbs('hisn', 'ar', id) +
+    `<header><h1>${esc(m.h1)}</h1></header>` +
+    `<blockquote lang="ar" dir="rtl" class="seo-static__ar">${esc(x.ar)}</blockquote>` +
+    facts([[T.repeat, x.repeat > 1 ? T.times(x.repeat) : ''], [T.src, x.src]]) +
+    `<p>${esc(T.book(HISN_BOOK))} <a href="${pathFor('hisn', 'ar')}#hs-${x.chapter}">${esc(T.chapter)}: ${esc(x.chapterTitle)}</a></p>` +
+    pager(near(i - 1, T.prev), near(i + 1, T.next)) +
+    `<p><a href="${pathFor('hisn', 'ar')}">${esc(T.all)}</a></p>`,
+  )
+}
+
+// Ərəbcə /ar/hisnul-muslim siyahısı — hər zikr səhifəsinə link, fəsillər üzrə (digər dillərdə statik blok yoxdur)
+function hisnListBody() {
+  const byCh = new Map()
+  for (const id of HISN_DUA_IDS) {
+    const x = hisnInfo(id)
+    if (!x) continue
+    if (!byCh.has(x.chapter)) byCh.set(x.chapter, { title: x.chapterTitle, items: [] })
+    byCh.get(x.chapter).items.push(`<li><a href="${pathFor('hisn', 'ar', id)}">${esc(detailMeta('hisn', 'ar', id).crumb)}</a></li>`)
+  }
+  return shell('ar',
+    crumbs('ar', [{ name: brandName('ar'), href: pathFor('home', 'ar') }, { name: shortName('hisn', 'ar') }]) +
+    `<header><h1>${esc(shortName('hisn', 'ar'))}</h1><p class="seo-static__lead">${esc(descFor('hisn', 'ar'))}</p></header>` +
+    [...byCh].map(([c, g]) => `<section id="hs-${c}"><h2>${esc(g.title)}</h2><ol class="seo-static__list">${g.items.join('')}</ol></section>`).join(''),
+  )
+}
+
 function listShell(key, lang, heading, items) {
   return shell(lang,
     crumbs(lang, [
@@ -665,6 +702,8 @@ export function staticBodyFor(key, lang, param = null) {
   if (key === 'prayer') return param ? prayerCityBody(lang, param) : prayerListBody(lang)
   if (key === 'babynames') return babyNamesBody(lang)
   if (key === 'hadith') return param ? hadithBody(lang, param) : hadithListBody(lang)
+  // Hisnul-Müslim: zikr səhifəsi və siyahının statik bloku yalnız ərəbcə (routes.js → DETAILS.hisn.langs)
+  if (key === 'hisn') return lang !== 'ar' ? '' : param ? hisnDuaBody(param) : hisnListBody()
   if (param == null && GUIDES[key]) return guideBody(key, lang)
   return ''
 }

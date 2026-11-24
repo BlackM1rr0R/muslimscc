@@ -39,6 +39,8 @@ import { INTL_QURAN, INTL_BODY_UI } from './intl.js'
 import { INTL_QURAN_SECTION } from './intlMeta.js'
 import { prayerCity, cityName, countryName, isAzCity, PRAYER_CITY_T } from './prayerCity.js'
 import { HADITH_IDS } from './hadithIds.js'
+import { HISN_DUA_IDS } from './hisnIds.js'
+import { HISN_BOOK, HISN_AR, hisnPlain, hisnCrumb, hisnItem } from './hisnDua.js'
 
 // Title-ın səhifə hissəsi üçün hədd (brend şəkilçisi bundan sonra gəlir)
 export const TITLE_MAX = 60
@@ -363,6 +365,36 @@ function hadithTitleDup(lang) {
   }
   return (DUP[lang] = dup)
 }
+// ── Hisnul-Müslim zikri (/ar/hisnul-muslim/<fəsil>-<bənd>, 2026-11-24) — YALNIZ ərəbcə ──
+// Mətn, təkrar sayı və təxric public/data/hisn/ar.json-dan olduğu kimi (tərcümə yoxdur; routes.js → DETAILS.hisn).
+// Məlumat: brauzerdə detailLoaders.js (/data/hisn/ar.json), Node-da detailData.js.
+// Yazılar, qısaltma və bəndin tapılması — ./hisnDua.js (zikr səhifəsinin komponenti də işlədir)
+export { HISN_BOOK, HISN_AR, hisnPlain } from './hisnDua.js'
+/** Zikrin məlumatı: { chapter, n, count, chapterTitle, ar, src, repeat } və ya null. */
+export function hisnInfo(slug) {
+  const src = detailSource('hisn')
+  return src ? hisnItem(src.chapters, slug) : null
+}
+function hisnTitle(x, tag = '') {
+  const chap = snippet(x.chapterTitle, 40)
+  return `${chap}: ${snippet(hisnPlain(x.ar), Math.max(12, TITLE_MAX - [...chap].length - 2 - [...tag].length))}${tag}`
+}
+let HISN_DUP = null
+/** Başlığı başqa zikrinki ilə eyni olan slug-lar (ilki istisna) — onlara bəndin nömrəsi əlavə olunur. */
+function hisnTitleDup() {
+  const src = detailSource('hisn')
+  if (HISN_DUP && HISN_DUP.src === src) return HISN_DUP.set
+  const seen = new Set(), dup = new Set()
+  for (const id of HISN_DUA_IDS) {
+    const x = hisnInfo(id)
+    if (!x) continue
+    const t = hisnTitle(x)
+    if (seen.has(t)) dup.add(id); else seen.add(t)
+  }
+  HISN_DUP = { src, set: dup }
+  return dup
+}
+
 /** Dərəcə mətni yalnız səhih/həsən və hökm verən məlum olanda: "Səhih (Albani)" */
 export function hadithGradeText(g, lang) {
   const L = HADITH_T[lang] || HADITH_T.az
@@ -432,6 +464,16 @@ export function detailMeta(key, lang, param) {
     if ([...d].length < 80) d = `${d}. ${L.more}`
     return { t: L.t(sn, src1), d: clamp(d), h1: `${L.h1}: ${snippet(text, 90)}`, intro: text, crumb: sn }
   }
+  if (key === 'hisn') {
+    // Dildən asılı deyil: səhifə yalnız ərəbcədir (routes.js → DETAILS.hisn.langs)
+    const x = hisnInfo(param)
+    if (!x) return null
+    const plain = hisnPlain(x.ar)
+    const t = hisnTitle(x, hisnTitleDup().has(String(param)) ? ` (${x.n})` : '')
+    let d = `${x.chapterTitle}: ${plain}${x.src ? ` — ${x.src}` : ''}`
+    if ([...d].length < 80) d = `${d}. ${HISN_AR.more}`
+    return { t, d: clamp(d), h1: x.count > 1 ? `${x.chapterTitle} (${x.n})` : x.chapterTitle, intro: x.ar, crumb: hisnCrumb(x.ar) }
+  }
   if (key === 'glossary') {
     const x = termInfo(param, lang)
     if (!x) return null
@@ -461,6 +503,7 @@ export const SECTION_LABEL = {
   glossary: { az: 'İslami söz lüğəti', en: 'Islamic Glossary', ru: 'Исламский глоссарий', ar: 'قاموس المصطلحات الإسلامية', tr: 'İslami Sözlük' },
   prayer: { az: 'Namaz vaxtları', en: 'Prayer times', ru: 'Время намаза', ar: 'مواقيت الصلاة', tr: 'Namaz vakitleri' },
   hadith: { az: 'Hədislər', en: 'Hadith', ru: 'Хадисы', ar: 'الأحاديث', tr: 'Hadisler' },
+  hisn: { az: 'Hisnul-Müslim', en: 'Hisn al-Muslim', ru: 'Крепость мусульманина', ar: 'حصن المسلم', tr: 'Hısnu’l-Müslim' },
 }
 
 /** Bölmənin adı cari dildə (əlavə dildə — ingiliscənin lüğətdəki tərcüməsi). */
@@ -566,6 +609,17 @@ export function detailJsonLd(key, lang, param) {
   } else if (key === 'hadith') {
     const h = hadithInfo(param, lang)
     main = { '@type': 'Quotation', text: h.arText || m.intro, ...(lang !== 'ar' ? { abstract: m.intro } : {}), citation: h.src, inLanguage: lang, url }
+  } else if (key === 'hisn') {
+    // Zikr — kitabdan sitat (Quotation, isPartOf: Book); mətn və təxric ar.json-dan olduğu kimi
+    const x = hisnInfo(param)
+    main = {
+      '@type': 'Quotation',
+      text: x.ar,
+      citation: x.src,
+      inLanguage: 'ar',
+      isPartOf: { '@type': 'Book', name: HISN_BOOK.name, inLanguage: 'ar', author: { '@type': 'Person', name: HISN_BOOK.author } },
+      url,
+    }
   } else if (key === 'prayer') {
     // Şəhər — yalnız səhifədə görünən fakt: adı və koordinatı
     const c = prayerCity(param)

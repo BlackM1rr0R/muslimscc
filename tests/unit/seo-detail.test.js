@@ -1,11 +1,12 @@
 import { HADITH_IDS } from '../../src/seo/hadithIds.js'
+import { HISN_DUA_IDS } from '../../src/seo/hisnIds.js'
 // Detal səhifələri: /quran/<n>-<slug>, /names/<n>-<slug>, /sahaba/<slug>
 // — marşrut (pathFor/parsePath), slug-ların məlumatla uyğunluğu, meta və sxem
 import { describe, it, expect } from 'vitest'
 import fs from 'node:fs'
 import path from 'node:path'
 import {
-  LANGS, PAGES, DETAILS, pathFor, urlFor, parsePath, detailParams, detailSegment,
+  LANGS, PAGES, DETAILS, pathFor, urlFor, parsePath, detailParams, detailSegment, detailLangs,
   parseDetailSegment, isDetailParam, legacyDetailParam,
 } from '../../src/seo/routes.js'
 import { SURAH_SLUGS } from '../../src/seo/surahSlugs.js'
@@ -48,7 +49,8 @@ describe('detal marşrutları — pathFor / parsePath', () => {
   it('hər detal × dil üçün pathFor → parsePath eyni (dil, səhifə, param) qaytarır', () => {
     for (const key of Object.keys(DETAILS)) {
       for (const param of detailParams(key)) {
-        for (const l of LANGS) {
+        // Tək dilli detal (Hisnul-Müslim zikri — yalnız ar) yalnız öz dilində
+        for (const l of LANGS.filter(x => detailLangs(key).includes(x))) {
           expect(parsePath(pathFor(key, l, param)), `${key}/${param}/${l}`).toEqual({ lang: l, key, known: true, param })
         }
       }
@@ -125,10 +127,11 @@ describe('detal marşrutları — pathFor / parsePath', () => {
   })
 
   it('URL-lər təkrarlanmır, hamısı ASCII kiçik hərf və defisdir', () => {
-    const urls = Object.keys(DETAILS).flatMap(k => detailParams(k).flatMap(p => LANGS.map(l => pathFor(k, l, p))))
+    const urls = Object.keys(DETAILS).flatMap(k => detailParams(k).flatMap(p => LANGS.filter(l => detailLangs(k).includes(l)).map(l => pathFor(k, l, p))))
     expect(new Set(urls).size).toBe(urls.length)
-    expect(urls.length).toBe((114 + 99 + SAHABA.length + SCHOLAR_SLUGS.length + LESSON_SLUGS.length + GLOSSARY_SLUGS.length + 75 + 19 + HADITH_IDS.length) * LANGS.length)   // 75 AZ + 19 dünya şəhəri + hədislər
-    for (const u of urls) expect(u, u).toMatch(/^(\/[a-z]{2})?\/(quran|names|sahaba|scholars|learn|glossary|prayer|hadith)\/[a-z0-9-]+$/)
+    // 75 AZ + 19 dünya şəhəri + hədislər (5 dil) + Hisnul-Müslim zikrləri (yalnız ar)
+    expect(urls.length).toBe((114 + 99 + SAHABA.length + SCHOLAR_SLUGS.length + LESSON_SLUGS.length + GLOSSARY_SLUGS.length + 75 + 19 + HADITH_IDS.length) * LANGS.length + HISN_DUA_IDS.length)
+    for (const u of urls) expect(u, u).toMatch(/^(\/[a-z]{2})?\/(quran|names|sahaba|scholars|learn|glossary|prayer|hadith|hisnul-muslim)\/[a-z0-9-]+$/)
   })
 })
 

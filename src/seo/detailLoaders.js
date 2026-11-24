@@ -20,6 +20,9 @@ const LOADERS = {
     .then(m => setDetailSource('scholars', { scholarBySlug: m.scholarBySlug, lifeSpan: m.lifeSpan })),
   learn: () => import('../data/lessons/index.js')
     .then(m => setDetailSource('learn', { lessonBySlug: m.lessonBySlug, CAT_BY_KEY: m.CAT_BY_KEY })),
+  // Hisnul-Müslim zikri — yalnız ərəbcə fayl (HisnPage eyni faylı yükləyir; brauzer keşi)
+  hisn: () => fetch('/data/hisn/ar.json').then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json() })
+    .then(d => setDetailSource('hisn', { chapters: d.chapters })),
   // Lüğət chunk-ını GlossaryPage onsuz da yükləyib
   glossary: () => Promise.all([import('../data/glossary.js'), import('../data/glossaryNames.js')]).then(([g, n]) => {
     setGlossarySource(g.GLOSSARY_BY_ID)

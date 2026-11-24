@@ -259,3 +259,26 @@ html.a11y-reduce-motion .hs-page .hs-card::before { transition: none; }
 .hs-adhkar__bar { height: 6px; border-radius: 3px; background: rgba(255, 255, 255, .2); overflow: hidden; max-width: 360px; }
 .hs-adhkar__bar i { display: block; height: 100%; background: #e7c77d; border-radius: inherit; transition: width .6s cubic-bezier(.22, 1, .36, 1); }
 .hs-adhkar__btns { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+
+/* ── Bir zikrin ərəbcə səhifəsi (/ar/hisnul-muslim/<fəsil>-<bənd>, components/hisn/HisnDua.jsx) ── */
+.hs-dua .hs-dua__title { max-width: 30ch; }
+.hs-dua .hs-dua__title:focus { outline: none; }
+.hs-dua .hs-dua__title:focus-visible { outline: 2px solid var(--brand); outline-offset: 4px; border-radius: 6px; }
+.hs-dua__body { max-width: 860px; margin-inline: auto; }
+.hs-dua .hs-dua__ar { font-size: clamp(22px, 2.4vw, 28px); line-height: 2.1; overflow-wrap: anywhere; }
+.hs-dua__facts { display: grid; gap: 10px; margin: 0; padding-top: 12px; border-top: 1px solid var(--line); }
+.hs-dua__facts > div { display: grid; grid-template-columns: minmax(84px, max-content) 1fr; gap: 4px 12px; align-items: baseline; }
+.hs-dua__facts dt { color: var(--text-secondary); font-size: var(--step--1); font-weight: 600; }
+.hs-dua__facts dd { margin: 0; color: var(--text-body); line-height: 1.7; overflow-wrap: anywhere; }
+.hs-dua__facts cite { font-style: normal; }
+.hs-dua__book { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0; color: var(--text-secondary); font-size: var(--step--1); line-height: 1.7; }
+.hs-dua__book svg { color: var(--accent); flex: none; }
+.hs-dua__book a, .hs-dua__near { color: var(--brand); }
+.hs-dua__pager { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.hs-dua__near { display: flex; flex-direction: column; gap: 4px; min-height: 44px; padding: var(--space-4); text-decoration: none; }
+.hs-dua__near small { display: inline-flex; align-items: center; gap: 4px; color: var(--text-tertiary); font-size: var(--step--2); }
+.hs-dua__near span { color: var(--text-strong); line-height: 1.6; }
+.hs-dua__near--next { text-align: end; align-items: flex-end; }
+.hs-dua__near:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.hs-dua__all { margin: 0; }
+@media (max-width: 520px) { .hs-dua__pager { grid-template-columns: 1fr; } .hs-dua__near--next { text-align: start; align-items: flex-start; } }

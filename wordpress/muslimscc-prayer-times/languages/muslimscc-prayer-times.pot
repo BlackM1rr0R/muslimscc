@@ -1,0 +1,177 @@
+# Copyright (C) 2026 Muslims.cc
+# This file is distributed under the GPL-2.0-or-later.
+msgid ""
+msgstr ""
+"Project-Id-Version: Muslims.cc Prayer Times 1.0.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/muslimscc-prayer-times\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"X-Domain: muslimscc-prayer-times\n"
+
+#: blocks/prayer-times/block.json
+msgctxt "block title"
+msgid "Prayer Times (muslims.cc)"
+msgstr ""
+
+#: blocks/prayer-times/block.json
+msgctxt "block description"
+msgid "Today's prayer times and a countdown to the next prayer from muslims.cc."
+msgstr ""
+
+#: blocks/prayer-times/block.json
+msgctxt "block keyword"
+msgid "prayer"
+msgstr ""
+
+#: blocks/prayer-times/block.json
+msgctxt "block keyword"
+msgid "salah"
+msgstr ""
+
+#: blocks/prayer-times/block.json
+msgctxt "block keyword"
+msgid "namaz"
+msgstr ""
+
+#: blocks/prayer-times/block.json
+msgctxt "block keyword"
+msgid "mosque"
+msgstr ""
+
+#: blocks/prayer-times/block.json
+msgctxt "block keyword"
+msgid "adhan"
+msgstr ""
+
+#: blocks/prayer-times/index.js:13 includes/class-muslimscc-prayer-widget.php:75 includes/class-muslimscc-prayer-widget.php:81 includes/class-muslimscc-prayer-widget.php:85 includes/class-muslimscc-prayer-widget.php:93
+msgid "Default (from settings)"
+msgstr ""
+
+#: blocks/prayer-times/index.js:25 includes/class-muslimscc-prayer-widget.php:86 includes/settings.php:128
+msgid "Light"
+msgstr ""
+
+#: blocks/prayer-times/index.js:26 includes/class-muslimscc-prayer-widget.php:87 includes/settings.php:129
+msgid "Dark"
+msgstr ""
+
+#: blocks/prayer-times/index.js:30 includes/class-muslimscc-prayer-widget.php:94
+msgid "Compact"
+msgstr ""
+
+#: blocks/prayer-times/index.js:31 includes/class-muslimscc-prayer-widget.php:95
+msgid "Full"
+msgstr ""
+
+#: blocks/prayer-times/index.js:60 muslimscc-prayer-times.php:106
+msgid "Settings"
+msgstr ""
+
+#: blocks/prayer-times/index.js:61 includes/class-muslimscc-prayer-widget.php:80 includes/settings.php:114
+msgid "City"
+msgstr ""
+
+#: blocks/prayer-times/index.js:62 includes/class-muslimscc-prayer-widget.php:81 includes/settings.php:118
+msgid "Language"
+msgstr ""
+
+#: blocks/prayer-times/index.js:63 includes/class-muslimscc-prayer-widget.php:83 includes/settings.php:122
+msgid "Theme"
+msgstr ""
+
+#: blocks/prayer-times/index.js:64 includes/class-muslimscc-prayer-widget.php:91 includes/settings.php:138
+msgid "Layout"
+msgstr ""
+
+#: blocks/prayer-times/index.js:66 includes/class-muslimscc-prayer-widget.php:105
+msgid "Mosque name (optional)"
+msgstr ""
+
+#: includes/class-muslimscc-prayer-widget.php:21
+msgid "Prayer Times (muslims.cc)"
+msgstr ""
+
+#: includes/class-muslimscc-prayer-widget.php:23
+msgid "Today's prayer times and a countdown to the next prayer."
+msgstr ""
+
+#: includes/class-muslimscc-prayer-widget.php:101
+msgid "Title"
+msgstr ""
+
+#. translators: %s: city name, e.g. "Baku".
+#: includes/render.php:160
+#, php-format
+msgid "Prayer times — %s"
+msgstr ""
+
+#. translators: Credit link under the widget. "muslims.cc" is the site name.
+#: includes/render.php:174
+msgid "Prayer times by muslims.cc"
+msgstr ""
+
+#: includes/settings.php:53 muslimscc-prayer-times.php:3
+msgid "Muslims.cc Prayer Times"
+msgstr ""
+
+#: includes/settings.php:54
+msgid "Muslims.cc"
+msgstr ""
+
+#: includes/settings.php:109
+msgid "These are the defaults for the block, the classic widget and the shortcode. Each block or shortcode can override them."
+msgstr ""
+
+#: includes/settings.php:144
+msgid "Compact — prayer times and countdown"
+msgstr ""
+
+#: includes/settings.php:145
+msgid "Full — mosque display with clock, verses and remembrance"
+msgstr ""
+
+#: includes/settings.php:154
+msgid "Height (px)"
+msgstr ""
+
+#: includes/settings.php:157
+msgid "Leave empty for automatic height (300 px for compact, 16:9 for full)."
+msgstr ""
+
+#: includes/settings.php:161
+msgid "Credit link"
+msgstr ""
+
+#: includes/settings.php:165
+msgid "Show a \"Prayer times by muslims.cc\" link under the widget on my site"
+msgstr ""
+
+#: includes/settings.php:167
+msgid "Off by default. Turn it on if you would like to thank muslims.cc — the widget works the same either way."
+msgstr ""
+
+#: includes/settings.php:174
+msgid "How to add the widget"
+msgstr ""
+
+#: includes/settings.php:176
+msgid "Block editor: add the \"Prayer Times (muslims.cc)\" block."
+msgstr ""
+
+#: includes/settings.php:177
+msgid "Classic widgets: Appearance → Widgets → \"Prayer Times (muslims.cc)\"."
+msgstr ""
+
+#: includes/settings.php:179
+msgid "Anywhere else, use the shortcode:"
+msgstr ""
+
+#: includes/settings.php:183
+msgid "Times are calculated astronomically. Please confirm congregation times with your mosque."
+msgstr ""
+
+#: muslimscc-prayer-times.php:5
+msgid "Show today's prayer times and a countdown to the next prayer from muslims.cc on your site — as a block, a classic widget or the [muslimscc_prayer] shortcode."
+msgstr ""

@@ -101,6 +101,17 @@ describe('src/api/analytics.js — insan hərəkəti', () => {
     expect(env.sent).toEqual([])
   })
 
+  it('iframe içində (WordPress plagini / məscid ekranı vidceti) → heç vaxt göndərilmir', async () => {
+    const env = fakeEnv()
+    globalThis.window.self = globalThis.window
+    globalThis.window.top = {}   // başqa saytın pəncərəsi
+    const { trackPageview } = await load()
+    trackPageview('/mosque-tv')
+    env.fire('window', 'keydown')
+    vi.advanceTimersByTime(30000)
+    expect(env.sent).toEqual([])
+  })
+
   it('admin yolu sayılmır', async () => {
     const env = fakeEnv()
     const { trackPageview } = await load()

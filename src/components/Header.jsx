@@ -5,7 +5,8 @@ import { PRIMARY_NAV, navShortLabel } from "../data/navigation";
 import { pathFor, EXTRA_LANGS, EXTRA_CODES } from "../seo/routes";
 import { useBackToClose } from "../utils/useBackToClose";
 import { useScrollDirection } from "../hooks/useScrollDirection";
-import SideNav from "./SideNav";
+// Tənbəl chunk (LazySideNav.jsx): telefonda menyu boş vaxtda əvvəlcədən qurulur (aşağıda)
+import SideNav from "./LazySideNav";
 import Icon, { BrandMark } from "./Icon";
 import LimelightNav from "../motion/LimelightNav";
 // Hesab düyməsi (≥1024px) — kiçik; ağır hissə (formalar, passkey, Google) yalnız /login, /account-da
@@ -584,6 +585,7 @@ function Header({ currentPage, setPage }) {
               type="button"
               className={`hdr-btn hdr-burger${menuOpen ? " is-open" : ""}`}
               onClick={() => (menuOpen ? closeMenu() : openMenu())}
+              onPointerDown={() => { SideNav.preload().catch(() => {}); }}
               aria-label={l.menu}
               title={l.menu}
               aria-haspopup="dialog"
@@ -599,16 +601,18 @@ function Header({ currentPage, setPage }) {
       {/* Çəkmə menyu <header>-dən KƏNARDA (axtarış dialoqu kimi): header-in
           backdrop-filter-i position:fixed uşaqları öz qutusuna həbs edərdi */}
       {menuMounted && (
-        <SideNav
-          mode="drawer"
-          id={DRAWER_ID}
-          open={menuOpen}
-          onClose={closeMenu}
-          currentPage={currentPage}
-          setPage={goTo}
-          onOpenSearch={openSearch}
-          returnFocusRef={burgerRef}
-        />
+        <Suspense fallback={null}>
+          <SideNav
+            mode="drawer"
+            id={DRAWER_ID}
+            open={menuOpen}
+            onClose={closeMenu}
+            currentPage={currentPage}
+            setPage={goTo}
+            onOpenSearch={openSearch}
+            returnFocusRef={burgerRef}
+          />
+        </Suspense>
       )}
 
       {/* Dialoq <header>-dən KƏNARDA: header-in backdrop-filter-i

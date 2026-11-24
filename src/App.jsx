@@ -1,7 +1,6 @@
 import { Component, Suspense, lazy as reactLazy, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { reportError } from './utils/errorReport'
 import OfflineBadge from './components/OfflineBadge'
-import AutoSyncToast from './components/AutoSyncToast'
 import { Navigate, useLocation, useNavigate, useNavigationType } from 'react-router-dom'
 import { LangProvider, useStoredLangRedirect } from './contexts/LangContext'
 import { ALL_LANGS, parsePath, pathFor, legacyDetailParam, uiLang } from './seo/routes'
@@ -14,20 +13,22 @@ import { isKidLocked, kidAllowed, KIDLOCK_EVENT, KIDLOCK_KEY } from './utils/kid
 //   ≥1024px — başlığın altında həmişə açıq yan panel (SideNav "rail", qərar #5)
 //   <1024px — başlıqdakı ☰ sağdan sürüşən çəkmə menyunu açır (Header →
 //             SideNav "drawer", qərar #7). Aşağı zolaq YOXDUR — aşağı hissə boşdur.
-import SideNav from './components/SideNav'
+// Tənbəl chunk (components/LazySideNav.jsx): geniş ekranda main.jsx ilk render-dən əvvəl gözləyir
+import SideNav from './components/LazySideNav'
 import useMedia from './hooks/useMedia'
-import Footer from './components/Footer'
-import InstallBanner from './components/InstallBanner'
-// Tək üzən düymə (AI, əlçatanlıq, bildirişlər) — əvvəlki 3 ayrı dairəvi düymənin yerinə.
-// Adi import: dok özü yüngüldür, ağır panelləri (AI, bildirişlər) içəridə tənbəl yükləyir,
-// əlçatanlıq tərcihləri isə ilk boyamadan tətbiq olunmalıdır.
-import FloatingDock from './components/FloatingDock'
+// PWA quraşdırma hadisəsi ilk andan tutulsun — InstallBanner özü boş vaxtda tənbəl yüklənir
+import './utils/installPrompt'
+// Əlçatanlıq tərcihlərinin saytda tətbiq olunan qaydaları (html.a11y-*) ilk boyamada lazımdır —
+// dok (FloatingDock → AccessibilityWidget) tənbəl yüklənsə də CSS əsas paketdə, əvvəlki yerində qalır
+import './styles/AccessibilityWidget.css'
 // D dəstəsi: "Kəşf et" turu + menyuda "Yeni" nişanlarının "açıldı" qeydi. Host kiçikdir (adi import —
 // tur düyməsinin hadisəsi itməsin); turun özü və ilk gəliş təklifi öz içində tənbəl yüklənir.
 import TourHost from './components/tour/TourHost'
 import { lazyWhenIdle, whenIdle } from './utils/idle'
 import { usePageviews } from './api/analytics'
 import { withChunkRetry } from './utils/chunkRetry'
+import { lazyPage } from './utils/lazyPage'
+import { readA11yPrefs, countActiveA11y } from './utils/a11yPrefs'
 import { markRouteLoading, withViewTransition, routeCommitted, leavePage } from './utils/wow'
 // Dizayn v6: tək Motion konteksti (LazyMotion — xüsusiyyətlər boş vaxtda, ayrıca chunk)
 // və <main> keçidi (AnimatePresence; View Transition ilə növbələşir — src/motion/PageTransition)
@@ -71,28 +72,7 @@ const lazy = (factory) => {
 // "tullanmır" (CLS yoxdur) — davranış eager import-dakı kimidir.
 const HomePage = lazyPage(() => import('./pages/HomePage'))
 
-/**
- * React.lazy + preload: modul artıq yüklənibsə, komponent Suspense-siz,
- * birbaşa render olunur (React.lazy ilk render-də HƏMİŞƏ bir dəfə suspend edir).
- */
-function lazyPage(factory) {
-  let Loaded = null
-  let promise = null
-  const load = withChunkRetry(factory)
-  const preload = () => {
-    if (!promise) {
-      promise = load().then((m) => { Loaded = m.default; return m })
-      promise.catch(() => { promise = null })
-    }
-    return promise
-  }
-  const Lazy = reactLazy(preload)
-  function Page(props) {
-    return Loaded ? <Loaded {...props} /> : <Lazy {...props} />
-  }
-  Page.preload = () => preload().then((m) => { Page.loaded = true; return m })
-  return Page
-}
+// lazyPage — React.lazy + preload (utils/lazyPage.jsx): modul yüklənibsə Suspense-siz render olunur.
 
 /**
  * main.jsx ilk render-dən əvvəl çağırır: açılan ünvan ana səhifədirsə, onun
@@ -102,8 +82,15 @@ function lazyPage(factory) {
  */
 export function preloadInitialPage(pathname) {
   const { key, known } = parsePath(pathname)
-  if (!known || key !== 'home') return Promise.resolve()
-  return HomePage.preload()
+  // Qabıq hissələri (PERFORMANS, 2026-11-24 — əsas paketdən ayrıca chunk-lar):
+  //  • footer — gözlənilmir, sadəcə səhifə chunk-ı ilə paralel başlayır (ekranın altındadır);
+  //  • geniş ekranda yan panel (rail) — gözlənilir: ilk kadrda əvvəlki kimi görünsün.
+  //    Telefonda yan panel render olunmur, çəkmə menyu boş vaxtda qurulur (Header.jsx).
+  Footer.preload().catch(() => {})
+  const wide = typeof window !== 'undefined' && window.matchMedia?.(WIDE_MQ).matches
+  const shell = wide ? SideNav.preload().catch(() => {}) : null
+  const page = known && key === 'home' ? HomePage.preload() : null
+  return Promise.all([shell, page])
 }
 // "Əsas" bölmələri (namaz vaxtları aşağıdadır)
 const JamaatPage = lazy(() => import('./pages/JamaatPage'))
@@ -236,6 +223,47 @@ const EidMode = lazy(lazyWhenIdle(() => import('./components/EidMode')))
 const DuaFriendNotice = lazy(lazyWhenIdle(() => import('./components/p3/DuaFriendNotice')))
 // "Səhv bildir" — bütün sayt üçün tək dialoq (düymələr yalnız hadisə göndərir)
 const ReportErrorHost = lazy(lazyWhenIdle(() => import('./components/ReportErrorButton').then(m => ({ default: m.ReportErrorHost }))))
+
+// ── Qabığın ilk ekrana lazım olmayan hissələri (PERFORMANS, 2026-11-24) ──
+// Əvvəl hamısı hər səhifənin əsas paketində (index.js + index.css) idi. Davranış eynidir,
+// dəyişən yalnız kodun NƏ VAXT yükləndiyidir:
+//  • InstallBanner — ən tez ~30 s görünən vaxtdan sonra təklif olunur (promptCoordinator);
+//    "beforeinstallprompt" hadisəsi isə əsas paketdəki utils/installPrompt.js-də ilk andan tutulur.
+//  • AutoSyncToast — avtomatik sinxronizasiyanın ilk yoxlaması onsuz da mount-dan 3 s sonradır.
+//  • Footer — ekranın altında; chunk səhifə chunk-ı ilə paralel başlayır (preloadInitialPage).
+//  • FloatingDock — DockHost (aşağıda): geniş ekranda dərhal, telefonda (düymə gizlidir) boş vaxtda;
+//    erkən gələn "aç" hadisələri itmir.
+const InstallBanner = lazy(lazyWhenIdle(() => import('./components/InstallBanner')))
+const AutoSyncToast = lazy(lazyWhenIdle(() => import('./components/AutoSyncToast'), { delay: 0 }))
+const Footer = lazyPage(() => import('./components/Footer'))
+const FloatingDock = lazyPage(() => import('./components/FloatingDock'))
+// ≥1024px — yan panel (globals.css, SideNav.css ilə eyni sərhəd)
+const WIDE_MQ = '(min-width: 1024px)'
+
+// Dok panellərini açan hadisələr (SideNav "Əlçatanlıq", "Bildirişlər" düymələri, ana səhifə …)
+const DOCK_EVENTS = ['qm-dock-open', 'open-notifications']
+function DockHost({ page }) {
+  const [ready, setReady] = useState(Boolean(FloatingDock.loaded))
+  const pending = useRef([])
+  useEffect(() => {
+    if (ready) return undefined
+    let alive = true
+    const go = () => { FloatingDock.preload().then(() => { if (alive) setReady(true) }).catch(() => {}) }
+    // Dok hələ yüklənməyibsə hadisə yadda saxlanılır və dok mount olandan sonra təkrar göndərilir
+    const early = (e) => { pending.current.push([e.type, e.detail]); go() }
+    DOCK_EVENTS.forEach(t => window.addEventListener(t, early))
+    // Geniş ekranda düymə görünür; aktiv əlçatanlıq köməkçisi (oxu xətti, səsli oxu …) varsa da dərhal
+    if (window.matchMedia?.(WIDE_MQ).matches || countActiveA11y(readA11yPrefs()) > 0) go()
+    else whenIdle().then(go)
+    return () => { alive = false; DOCK_EVENTS.forEach(t => window.removeEventListener(t, early)) }
+  }, [ready])
+  // Uşaq komponentin effektləri (dokun dinləyiciləri) bundan ƏVVƏL qoşulur
+  useEffect(() => {
+    if (!ready) return
+    pending.current.splice(0).forEach(([t, d]) => window.dispatchEvent(new CustomEvent(t, { detail: d })))
+  }, [ready])
+  return ready ? <FloatingDock page={page} /> : null
+}
 
 // ── Marşrut səviyyəsində xəta sərhədi ──
 // Səhifənin render xətası (və ya ikinci dəfə yüklənməyən chunk) bütün saytı
@@ -553,7 +581,7 @@ function AppInner() {
   }
 
   // ≥1024px — yan panel (globals.css, SideNav.css ilə eyni sərhəd); hook — ilk return-dən əvvəl
-  const wide = useMedia('(min-width: 1024px)')
+  const wide = useMedia(WIDE_MQ)
   const kidLock = useKidLock()
   // H5: uşaq rejimində icazəsiz səhifə (AI, hesab, admin, 404 …) → /kids (eyni dil)
   if (kidLock && !kidAllowed(page)) return <Navigate to={pathFor('kids', lang)} replace />
@@ -624,23 +652,23 @@ function AppInner() {
           Ərəbcədə grid güzgülənir, panel sağda olur. */}
       <div className="qm-shell">
         {/* Telefonda yan panel gizlidir — heç render olunmur (v5.4, ~490 DOM düyünü) */}
-        {wide && <SideNav mode="rail" currentPage={page} setPage={navigate} />}
+        {wide && <Suspense fallback={null}><SideNav mode="rail" currentPage={page} setPage={navigate} /></Suspense>}
         <div className="qm-shell-main">
           {pageMain}
-          <Footer setPage={navigate} />
+          <Suspense fallback={null}><Footer setPage={navigate} /></Suspense>
         </div>
       </div>
 
-      <InstallBanner />
       <OfflineBadge />
-      <AutoSyncToast />
+      <Suspense fallback={null}><AutoSyncToast /></Suspense>
       {/* ≥1024px: sağ aşağıda TƏK üzən düymə — AI köməkçi, əlçatanlıq,
           bildiriş ayarları. <1024px-də düymə gizlidir (məzmunu örtürdü);
           həmin alətlər ☰ çəkmə menyusundadır, panellər isə yenə buradan
           açılır. <main key={page}>-dən kənarda — səhifə dəyişəndə yenidən
           qurulmur. AI bəndini page === 'aichat' olanda özü gizlədir. */}
-      <FloatingDock page={page} />
+      <DockHost page={page} />
       <Suspense fallback={null}>
+        <InstallBanner />
         {/* Elan bildirişi, bildiriş icazəsi və quraşdırma zolağı növbə ilə
             göstərilir (src/utils/promptCoordinator.js) — üst-üstə düşmürlər */}
         <AnnouncementToast />

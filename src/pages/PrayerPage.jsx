@@ -31,11 +31,6 @@ import SunDial from '../components/prayer/SunDial'
 import RollingDigits from '../components/prayer/RollingDigits'
 import Sparkle from '../components/prayer/Sparkle'
 import '../styles/ToolsMotion.css'
-import CalendarSubscribe from '../components/prayer/CalendarSubscribe'
-import HomeScreenWidget from '../components/prayer/HomeScreenWidget'
-import PrayerWallpaper from '../components/prayer/PrayerWallpaper'
-import TelegramBotCard from '../components/prayer/TelegramBotCard'
-import LandscapeBoard from '../components/prayer/LandscapeBoard'
 import { ProgressRing, StatTile } from '../components/viz'
 import { pickUi } from '../utils/uiText'
 import { m } from 'motion/react'
@@ -403,6 +398,14 @@ const durHM = (min) => `${Math.floor(min / 60)}:${pad2(Math.round(min % 60))}`
 const isPlainClick = (e) => !e.defaultPrevented && e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey
 
 const QiyamMode = lazy(() => import('../components/prayer/QiyamMode'))
+// PERFORMANS (2026-11-24): vaxtlar kartının ALTINDAKI alət kartları (təqvim abunəliyi, Telegram,
+// ana ekran vidceti, yan lövhə, divar kağızı; ~12 KB gzip + CSS) səhifə chunk-ından ayrıldı —
+// ilk ekranda görünmürlər; səhifə render olunan kimi paralel yüklənirlər (Suspense fallback yoxdur)
+const CalendarSubscribe = lazy(() => import('../components/prayer/CalendarSubscribe'))
+const TelegramBotCard = lazy(() => import('../components/prayer/TelegramBotCard'))
+const HomeScreenWidget = lazy(() => import('../components/prayer/HomeScreenWidget'))
+const LandscapeBoard = lazy(() => import('../components/prayer/LandscapeBoard'))
+const PrayerWallpaper = lazy(() => import('../components/prayer/PrayerWallpaper'))
 const AdhanWave = lazy(() => import('../components/prayer/AdhanWave'))
 const YearPrayerChart = lazy(() => import('../components/prayer/YearPrayerChart'))
 const MashrabiyaLight = lazy(() => import('../components/MashrabiyaLight'))
@@ -944,6 +947,7 @@ export default function PrayerPage({ setPage }) {
                 <QiyamMode nowMin={nowMin} maghrib={M.maghrib} fajr={M.fajr} lang={lang} onClose={() => setQiyamOpen(false)} />
               </Suspense>
             )}
+            <Suspense fallback={null}>
             {/* Google / Apple / Outlook təqviminə abunəlik (server/ics.js) */}
             <CalendarSubscribe location={pt.location} lang={lang} city={cityName} />
             {/* Telegram botu (server/telegramBot.js) — VITE_TELEGRAM_BOT yoxdursa görünmür */}
@@ -957,6 +961,7 @@ export default function PrayerPage({ setPage }) {
             {/* v5.8: kilid ekranı üçün divar kağızı */}
             <PrayerWallpaper city={cityName} hijri={hijri ? hijriLine(hijri, lang) : ''} today={dayTimes} names={dayNames}
               month={isCurMonth ? month.days : null} monthLabel={monthLabel} lang={lang} />
+            </Suspense>
           </div>
         </section>
       )}

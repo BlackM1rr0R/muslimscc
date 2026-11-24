@@ -13,7 +13,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import {
-  SITE, LANGS, DEFAULT_LANG, PAGES, DETAILS, pathFor, detailParams, langsFor, seoLangsFor, canonicalLang,
+  SITE, PAGES, DETAILS, pathFor, detailParams, detailLangs, langsFor, seoLangsFor, canonicalLang, xDefaultLang,
 } from '../src/seo/routes.js'
 
 // ── HTML-dən çıxarış ──
@@ -94,7 +94,8 @@ export function expected(key, lang, param = null) {
     noindex,
     canonical: SITE + pathFor(key, canonicalLang(key, lang, param), p),
     hreflang: noindex ? [] : [...seoLangsFor(key, param), 'x-default'],
-    hrefOf: (l) => SITE + pathFor(key, l === 'x-default' ? DEFAULT_LANG : l, p),
+    // x-default: az; tək dilli detalda (Hisnul-Müslim zikri) — həmin dil (routes.js → xDefaultLang)
+    hrefOf: (l) => SITE + pathFor(key, l === 'x-default' ? xDefaultLang(key, param) : l, p),
   }
 }
 
@@ -148,7 +149,7 @@ export function sample({ langs = ['az', 'en', 'ru', 'ar', 'tr', 'id', 'fr', 'ur'
     const ps = detailParams(key)
     const pick = [...new Set([ps[0], ps[1], ps[ps.length - 1]])].filter(v => v != null)
     for (const param of pick) {
-      for (const l of (DETAILS[key].coreOnly ? LANGS : langsFor(key))) if (langs.includes(l)) out.push([key, l, param])
+      for (const l of detailLangs(key)) if (langs.includes(l)) out.push([key, l, param])
     }
   }
   return out

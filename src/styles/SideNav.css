@@ -1178,3 +1178,26 @@ html:not(.qm-input-pointer) .qm-sn-close:focus-visible {
 .qm-sn-tour svg { flex-shrink: 0; color: var(--brand); }
 .qm-sn-tour:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
 @media (hover: hover) and (pointer: fine) { .qm-sn-tour:hover { background: var(--surface-2); color: var(--text-strong); } }
+
+/* ══ Toxunma ekranı — animasiya büdcəsi (əvvəl perf-touch.css §2-də idi) ══
+   SideNav tənbəl chunk-dır (components/LazySideNav.jsx): bu fayl əsas CSS-dən (perf-touch.css
+   daxil) SONRA yüklənir — üstələmələr burada, faylın SONUNDA durmalıdır ki, yuxarıdakı
+   eyni çəkili qaydalardan güclü olsun. Arxa fon canlı bulanmır (sadəcə qaralır), sətirlər
+   tək-tək yox — qruplar növbə ilə gəlir; panel öz qatında hazır durur. */
+@media (hover: none), (pointer: coarse) {
+  .qm-sn-backdrop {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: rgba(7, 11, 16, 0.5);
+  }
+  [data-theme="dark"] .qm-sn-backdrop { background: rgba(0, 0, 0, 0.62); }
+  .qm-sn--drawer.is-open .qm-sn-group.is-expanded .qm-sn-items > li { animation: none; }
+  .qm-sn--drawer .qm-sn-panel { contain: layout style; }
+}
+
+/* PERFORMANS (v5.4): "Digər dillər" seçicisi (44 dilin öz adı) SİSTEM şrifti ilə — veb-şriftdə
+   hər səhifədə ərəb/kiril/vyetnam alt-çoxluqları yüklənirdi (~200 KB). Əvvəl vau3.css-də idi;
+   yuxarıdakı "font: inherit"-dən SONRA durmalıdır (bax vau3.css → çoxdilli siyahılar). */
+.qm-sn-morelangs__select, .qm-sn-morelangs__select option {
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans', sans-serif;
+}

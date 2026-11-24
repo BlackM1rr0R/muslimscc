@@ -9,7 +9,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { SITE, PAGES, DETAILS, LANGS, pathFor, detailParams, langsFor } from '../src/seo/routes.js'
+import { SITE, PAGES, DETAILS, LANGS, pathFor, detailParams, detailLangs, langsFor } from '../src/seo/routes.js'
 
 /** HTML → daxili link yolları (hash/query-siz, təkrarsız). */
 export function internalLinks(html) {
@@ -37,7 +37,9 @@ export function samplePaths() {
   for (const p of PAGES) if (!p.noindex) for (const l of langsFor(p.key)) out.add(pathFor(p.key, l))
   for (const key of Object.keys(DETAILS)) {
     if (DETAILS[key].noindex) continue
-    for (const param of detailParams(key)) for (const l of ['az', 'en']) if (LANGS.includes(l)) out.add(pathFor(key, l, param))
+    // Tək dilli detal (Hisnul-Müslim zikri — yalnız ar) öz dilində yoxlanır
+    const ls = DETAILS[key].langs ? detailLangs(key) : ['az', 'en']
+    for (const param of detailParams(key)) for (const l of ls) if (LANGS.includes(l)) out.add(pathFor(key, l, param))
   }
   return [...out]
 }

@@ -12,6 +12,7 @@ import { SURAH_SLUGS } from './surahSlugs.js'
 import { NAME_SLUGS, REMOVED_NAME_SLUGS, SAHABA_SLUGS, SCHOLAR_SLUGS, LESSON_SLUGS, GLOSSARY_SLUGS, PRAYER_CITY_SLUGS } from './detailSlugs.js'
 import { EXTRA_LANGS, EXTRA_CODES, EXTRA_PAGES, EXTRA_UI_LANG, isExtraLang } from './langs.js'
 import { HADITH_IDS } from './hadithIds.js'
+import { HISN_DUA_IDS } from './hisnIds.js'
 
 export const SITE = 'https://muslims.cc'
 
@@ -50,10 +51,26 @@ export const langsFor = (key) => (EXTRA_PAGES.includes(key) ? ALL_LANGS : [...LA
 // prayer (v6.6): şəhər səhifəsinin başlıq/mətni 5 dildədir — əlavə dildə ingilis səhifəsinin surəti
 export const CORE_CONTENT_DETAILS = ['glossary', 'names', 'sahaba', 'scholars', 'learn', 'prayer', 'hadith']
 const isCoreDetail = (key, param) => param != null && param !== '' && CORE_CONTENT_DETAILS.includes(key)
+/**
+ * Yalnız bəzi dillərdə olan detal (DETAILS[key].langs): Hisnul-Müslim zikrinin səhifəsi YALNIZ ərəbcədir
+ * (sahibin qərarı, 2026-11-24: az/en/ru/tr tərcümələri AI köməyi ilə — indekslənən ayrıca səhifə olmur).
+ * Başqa dildə belə detal yaradılmır (prerender, sitemap); ünvanı açılsa — bölmənin siyahısına (parsePath → fallback).
+ */
+const onlyLangs = (key, param) => (param != null && param !== '' ? DETAILS[key]?.langs || null : null)
+/** Detal bu dildə mövcuddurmu? (langs məhdudiyyəti olmayan növdə — həmişə) */
+export const detailInLang = (key, lang) => !DETAILS[key]?.langs || DETAILS[key].langs.includes(lang)
+/** Detal səhifələrinin yazıldığı dillər (prerender, dist yoxlamaları). */
+export const detailLangs = (key) => DETAILS[key]?.langs || (DETAILS[key]?.coreOnly ? LANGS : langsFor(key))
 /** hreflang / sitemap dilləri — səhifə (və detal parametri) üçün */
-export const seoLangsFor = (key, param) => (isCoreDetail(key, param) ? LANGS : langsFor(key))
-/** canonical-ın dili: əlavə dildə əsas-məzmunlu detal → ingiliscə səhifə */
-export const canonicalLang = (key, lang, param) => (isCoreDetail(key, param) && !LANGS.includes(lang) ? 'en' : lang)
+export const seoLangsFor = (key, param) => onlyLangs(key, param) || (isCoreDetail(key, param) ? LANGS : langsFor(key))
+/** canonical-ın dili: əlavə dildə əsas-məzmunlu detal → ingiliscə səhifə; tək dilli detal → həmin dil */
+export const canonicalLang = (key, lang, param) => {
+  const only = onlyLangs(key, param)
+  if (only) return only.includes(lang) ? lang : only[0]
+  return isCoreDetail(key, param) && !LANGS.includes(lang) ? 'en' : lang
+}
+/** hreflang x-default-un dili: susmaya görə az; tək dilli detalda — onun dili (az ünvanı yoxdur). */
+export const xDefaultLang = (key, param) => onlyLangs(key, param)?.[0] || DEFAULT_LANG
 
 /** Məzmun cədvəllərində ehtiyat dil: əlavə dildə ingiliscə, əsas dildə azərbaycanca. */
 export const contentFallback = (lang) => (isExtraLang(lang) ? 'en' : DEFAULT_LANG)
@@ -275,6 +292,10 @@ export const DETAILS = {
   // v6.8: hər hədis (/hadith/<id>) — yalnız 5 əsas dildə prerender (coreOnly: əlavə dillərin ingiliscə
   // nüsxələri yaradılmır — 1143 × 49 fayl image limitini aşardı); hreflang/sitemap da 5 dil
   hadith: { kind: 'slug', slugs: HADITH_IDS, coreOnly: true },
+  // Hisnul-Müslim zikri (/ar/hisnul-muslim/<fəsil>-<bənd>, 2026-11-24) — YALNIZ ərəbcə: ərəb mətni, təkrar sayı,
+  // təxric (public/data/hisn/ar.json). Yalnız hisnmuslim.com ilə tutuşdurulmuş bəndlər (scripts/build-hisn-verified.mjs).
+  // Başqa dildə ünvan yaradılmır; açılsa /hisnul-muslim siyahısına keçir (onlyLangs yuxarıda)
+  hisn: { kind: 'slug', slugs: HISN_DUA_IDS, langs: ['ar'] },
   // Qrup otağı (/group/<id>) — istifadəçinin yaratdığı otaq: indekslənmir,
   // prerender və sitemap-a düşmür (detailParams → [])
   group:  { kind: 'id', pattern: /^[a-z0-9]{10}$/, noindex: true },
@@ -378,7 +399,8 @@ export function pathFor(key, lang = DEFAULT_LANG, param) {
   const slug = page ? page.path : ''
   const prefix = lang === DEFAULT_LANG ? '' : `/${lang}`
   if (!slug) return prefix || '/'
-  const seg = param == null ? null : detailSegment(key, param)
+  // Tək dilli detal (Hisnul-Müslim zikri — yalnız ar) başqa dildə siyahı səhifəsinə düşür
+  const seg = param == null || !detailInLang(key, lang) ? null : detailSegment(key, param)
   return seg ? `${prefix}/${slug}/${seg}` : `${prefix}/${slug}`
 }
 
@@ -398,6 +420,8 @@ export function parsePath(pathname) {
   // Əlavə dilin kökü (/id) və bu dildə olmayan səhifə (/id/prayer) —
   // App.jsx ingiliscə variantına (pathFor) replace edir
   if (r.known && isExtraLang(r.lang) && !hasPageInLang(r.key, r.lang)) r.fallback = true
+  // Tək dilli detal başqa dildə (/hisnul-muslim/27-1) → həmin dildə siyahı (pathFor → /hisnul-muslim)
+  else if (r.known && r.param != null && !detailInLang(r.key, r.lang)) r.fallback = true
   return r
 }
 

@@ -989,8 +989,9 @@ html.a11y-reduce-motion .vx-listen.is-on .vx-listen__wave i { animation: none; t
    Menyunun "Digər dillər" seçicisi (44 dilin öz adı) və footer-dəki 50 dil
    zolağı veb-şrift ilə göstəriləndə HƏR səhifədə ərəb (IBM Plex, 3 çəki),
    kiril, kiril-ext, vyetnam alt-çoxluqları yüklənirdi (~200 KB, ölçülüb).
-   Sistem şriftləri cihazda var — heç nə endirilmir. */
-.qm-sn-morelangs__select, .qm-sn-morelangs__select option,
+   Sistem şriftləri cihazda var — heç nə endirilmir.
+   Menyunun seçicisi üçün eyni qayda SideNav.css-in SONUNDADIR (SideNav tənbəl chunk-dır,
+   onun "font: inherit"-i bu fayldan sonra yüklənir və buranı üstələyərdi). */
 .vx-marquee__item, .vx-marquee__item * {
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans', sans-serif;
 }

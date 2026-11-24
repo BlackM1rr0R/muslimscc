@@ -1183,6 +1183,10 @@ body.panel-open .notif-fab {
 .seo-static__eyebrow { margin: 0 0 var(--space-2); color: var(--accent-text); font-size: var(--step--1); font-weight: 600; }
 .seo-static__lead { max-width: 60ch; margin: 0; color: var(--text-secondary); font-size: var(--step-1); line-height: 1.6; }
 .seo-static__ar { margin: 0 0 var(--space-2); color: var(--brand); font-size: 2rem; }
+/* PERFORMANS (2026-11-24): statik blokdakı ərəbcə mətn (hədis, zikr …) Quran/hədis şrifti ilə —
+   ui-arabic sinfi olmayan blokda --font-sans yığınının "IBM Plex Sans Arabic"-i (~42 KB) yalnız
+   bu bir neçə saniyəlik blok üçün yüklənirdi; Amiri-ni tətbiq onsuz da həmin mətn üçün yükləyir */
+.seo-static [lang="ar"] { font-family: var(--font-arabic); }
 .seo-static__facts { display: flex; flex-wrap: wrap; gap: var(--space-4) var(--space-6); margin: var(--space-5) 0 0; }
 .seo-static__facts dt { color: var(--text-tertiary); font-size: var(--step--1); }
 .seo-static__facts dd { margin: 0; color: var(--text-strong); font-weight: 600; }

@@ -36,7 +36,7 @@ import zlib from 'node:zlib'
 
 // Gizli admin ünvanı (VITE_ADMIN_PATH) routes.js-dən ƏVVƏL process.env-ə düşsün
 import './admin-path-env.mjs'
-import { SITE, LANGS, LOCALES, DEFAULT_LANG, PAGES, INDEXABLE, DETAILS, pathFor, detailParams, langsFor, seoLangsFor, canonicalLang, uiLang, dirOf } from '../src/seo/routes.js'
+import { SITE, LANGS, LOCALES, PAGES, INDEXABLE, DETAILS, DEFAULT_LANG, pathFor, detailParams, detailLangs, langsFor, seoLangsFor, canonicalLang, xDefaultLang, uiLang, dirOf } from '../src/seo/routes.js'
 import { titleFor, descFor, fitDesc, shortName, UI, ogImageFor, OG_ALT } from '../src/seo/meta.js'
 import { brandName } from '../src/config/brand.js'
 import { siteSchema } from '../src/seo/siteSchema.js'
@@ -113,7 +113,8 @@ function headFor(key, lang, param = null, noindex = false) {
   const alts = [
     // Səhifənin SEO dilləri (Quran — bütün dillər; dərs/lüğət detalı — 5 əsas dil; src/seo/routes.js)
     ...seoLangsFor(key, param).map(l => `    <link rel="alternate" hreflang="${l}" href="${SITE + pathFor(key, l, p)}" data-seo="alt" />`),
-    `    <link rel="alternate" hreflang="x-default" href="${SITE + pathFor(key, DEFAULT_LANG, p)}" data-seo="alt" />`,
+    // x-default: az ünvanı; tək dilli detalda (Hisnul-Müslim zikri — yalnız ar) həmin dilin ünvanı
+    `    <link rel="alternate" hreflang="x-default" href="${SITE + pathFor(key, xDefaultLang(key, param), p)}" data-seo="alt" />`,
   ].join('\n')
 
   const { title, desc } = textsFor(key, lang, param)
@@ -379,12 +380,14 @@ function makePreloader() {
       // "credentials mode does not match") və fayl iki dəfə yüklənir (yoxlanılıb)
       for (const f of css) if (!entry.css.has(f)) lines.push(`<link rel="preload" as="style" crossorigin href="/${f}" />`)
     }
-    // PERFORMANS: /hadith — cari dilin hədis modulu (vite.config.js →
-    // "virtual:hadiths/<dil>", chunk "hadiths-<dil>") HadithPage chunk-ı ilə
-    // PARALEL yüklənsin; yoxsa chunk → məlumat ardıcıl iki gediş-gəliş olardı.
+    // PERFORMANS: /hadith — cari dilin hədis modulu (vite.config.js → "virtual:hadiths/<dil>",
+    // chunk "hadiths-<dil>", ~110 KB gzip) HadithPage chunk-ı ilə PARALEL, amma AŞAĞI prioritetlə
+    // (2026-11-24): əvvəl adi modulepreload kimi index.js/CSS/səhifə chunk-ı ilə bant genişliyi
+    // uğrunda yarışırdı. Preload-suz isə /hadith/<id>-in öz hədisi ~1 s GEC görünürdü (ölçülüb) —
+    // aşağı prioritet ikisinin ortasıdır. Hero məlumatı gözləmir (pages/HadithPage.jsx → HadithHero).
     if (key === 'hadith') {
       const hk = `virtual:hadiths/${lang}.js`
-      if (manifest[hk]) lines.push(`<link rel="modulepreload" crossorigin href="/${manifest[hk].file}" />`)
+      if (manifest[hk]) lines.push(`<link rel="modulepreload" fetchpriority="low" crossorigin href="/${manifest[hk].file}" />`)
     }
     // PERFORMANS: əlavə dilin interfeys lüğəti (src/i18n/<dil>.json, ~130 KB gzip)
     // main.jsx-də İLK RENDER-DƏN ƏVVƏL gözlənilir — əsas paketlə PARALEL yüklənsin
@@ -414,6 +417,7 @@ const DETAIL_SITEMAP = {
   glossary: { file: 'sitemap-glossary.xml', priority: 0.7, changefreq: 'monthly' },
   prayer: { file: 'sitemap-prayer.xml', priority: 0.9, changefreq: 'daily' },
   hadith: { file: 'sitemap-hadith.xml', priority: 0.7, changefreq: 'monthly' },
+  hisn: { file: 'sitemap-hisn.xml', priority: 0.6, changefreq: 'monthly' },
 }
 
 /**
@@ -531,7 +535,8 @@ for (const p of PAGES) {
 let detailCount = 0
 for (const key of Object.keys(DETAILS)) {
   for (const param of detailParams(key)) {
-    for (const lang of (DETAILS[key].coreOnly ? LANGS : langsFor(key))) {
+    // coreOnly — 5 əsas dil; langs — yalnız həmin dillər (Hisnul-Müslim zikri: ar); routes.js → detailLangs
+    for (const lang of detailLangs(key)) {
       writeRoute(renderPage(template, key, lang, false, param), pathFor(key, lang, param))
       detailCount++
     }

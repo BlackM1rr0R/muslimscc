@@ -141,6 +141,8 @@ test('tur: sona qədər — 3 yerli təklif, keçid işləyir; axe (açıq + tü
   await settle(page)
   await page.getByTestId('wn-tour').getByRole('button', { name: 'Start the tour' }).click()
   const tour = page.getByRole('dialog', { name: 'Site tour' })
+  // Tur tənbəl chunk-dır (TourHost → DiscoverTour): axe kart DOM-a düşməmiş işləsə "No elements found" atır
+  await expect(page.locator('.tour-card')).toBeVisible()
   expect(await serious(page, ['.tour-card'])).toEqual([])
   for (let k = 1; k < 9; k++) await tour.getByRole('button', { name: 'Next' }).click()
   await expect(tour.getByRole('heading', { name: 'All set!' })).toBeFocused()

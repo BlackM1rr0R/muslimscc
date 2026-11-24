@@ -1,0 +1,25 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "muslimscc/prayer-times",
+	"version": "1.0.0",
+	"title": "Prayer Times (muslims.cc)",
+	"category": "widgets",
+	"icon": "clock",
+	"description": "Today's prayer times and a countdown to the next prayer from muslims.cc.",
+	"keywords": [ "prayer", "salah", "namaz", "mosque", "adhan" ],
+	"textdomain": "muslimscc-prayer-times",
+	"attributes": {
+		"city": { "type": "string", "default": "" },
+		"lang": { "type": "string", "default": "" },
+		"theme": { "type": "string", "default": "" },
+		"layout": { "type": "string", "default": "" },
+		"name": { "type": "string", "default": "" }
+	},
+	"supports": {
+		"html": false,
+		"align": [ "wide", "full" ]
+	},
+	"editorScript": "file:./index.js",
+	"render": "file:./render.php"
+}

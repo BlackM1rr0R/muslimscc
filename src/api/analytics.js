@@ -5,7 +5,8 @@
 //   p — yol (sorğu sətri və hash olmadan), r — xarici referrer (yalnız
 //   səhifə ilk açılanda; server ondan yalnız domeni götürür), l — dil.
 // Kuki, localStorage, ID, barmaq izi YOXDUR. Göndərilmir:
-//   DNT / Global Privacy Control açıqdırsa, /admin*, localhost, avtomat brauzer.
+//   DNT / Global Privacy Control açıqdırsa, /admin*, localhost, avtomat brauzer,
+//   səhifə iframe içindədirsə (başqa sayt və ya /widget önizləməsi).
 // İnsan yoxlaması (botlar real JS işlədir): ilk baxış yalnız ilk real hərəkətdən
 //   (toxunma/klik/düymə/təkər/sürüşdürmə) və ya səhifə cəmi VISIBLE_MS görünəndən
 //   sonra göndərilir; ondan sonrakı SPA keçidləri dərhal sayılır. Heç nə saxlanmır.
@@ -26,6 +27,9 @@ function disabled() {
   if (n.doNotTrack === '1' || window.doNotTrack === '1' || n.msDoNotTrack === '1') return true
   if (n.globalPrivacyControl === true) return true
   if (n.webdriver) return true
+  // Başqa saytda iframe içindəyik (məscid ekranı vidceti, WordPress plagini) — sayılmır:
+  // plagin readme-si "yerləşdirildikdə statistika göndərilmir" deyir (wordpress/muslimscc-prayer-times)
+  try { if (window.top !== window.self) return true } catch { return true }
   const h = window.location.hostname
   return h === 'localhost' || h === '127.0.0.1' || h === '[::1]' || h.endsWith('.local')
 }
