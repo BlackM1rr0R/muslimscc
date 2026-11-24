@@ -68,3 +68,6 @@ server/*.db-wal
 *-[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f].json
 gsc.json
 scripts/.og-pages.json
+
+# Lighthouse CI hesabatları (.github/workflows/seo-nightly.yml)
+.lighthouseci/

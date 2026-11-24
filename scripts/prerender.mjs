@@ -40,10 +40,13 @@ import { SITE, LANGS, LOCALES, DEFAULT_LANG, PAGES, INDEXABLE, DETAILS, pathFor,
 import { titleFor, descFor, fitDesc, shortName, UI, ogImageFor, OG_ALT } from '../src/seo/meta.js'
 import { brandName } from '../src/config/brand.js'
 import { siteSchema } from '../src/seo/siteSchema.js'
+import { pageJsonLd } from '../src/seo/pageJsonLd.js'
 import { detailMeta, titleForDetail, detailJsonLd } from '../src/seo/detailData.js'
 import { staticBodyFor, staticPreloadFor, hasQuranData } from './seo-body.mjs'
 import { setUiDict } from '../src/utils/uiText.js'
-import { buildLlmsTxt } from './llms-txt.mjs'
+import { buildLlmsTxt, buildLlmsFullTxt } from './llms-txt.mjs'
+import * as detailData from '../src/seo/detailData.js'
+import { buildSeoManifest } from './indexnow.mjs'
 import { stripComments } from './shell-min.mjs'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
@@ -88,35 +91,25 @@ function replaceMeta(html, attr, key, value) {
   return html
 }
 
-/**
- * Səhifənin izi (breadcrumb): Ana səhifə → səhifə. src/seo/Seo.jsx ilə EYNİ
- * quruluş — JS-li və JS-siz robot eyni sxemi görür.
- */
-function breadcrumbFor(key, lang, title) {
-  const brand = brandName(lang)
-  return {
-    '@context': 'https://schema.org',
-    '@type': 'BreadcrumbList',
-    itemListElement: [
-      { '@type': 'ListItem', position: 1, name: brand, item: SITE + pathFor('home', lang) },
-      ...(key === 'home'
-        ? []
-        : [{ '@type': 'ListItem', position: 2, name: title.split(' | ')[0], item: SITE + pathFor(key, lang) }]),
-    ],
-  }
-}
-
 /** Səhifənin title/description-u (detal səhifəsində — src/seo/detail.js). */
 function textsFor(key, lang, param) {
   if (param != null) return { title: titleForDetail(key, lang, param), desc: fitDesc(detailMeta(key, lang, param).d) }
   return { title: titleFor(key, lang), desc: descFor(key, lang) }
 }
 
-/** Bir səhifə + dil (+ detal parametri) üçün <head> parçası. */
-function headFor(key, lang, param = null) {
+/**
+ * Bir səhifə + dil (+ detal parametri) üçün <head> parçası.
+ * noindex səhifədə (hesab, şəxsi dəftərlər, /share …) yalnız canonical qalır: hreflang və sxem
+ * YAZILMIR — indekslənməyən səhifənin "dil variantları" yoxdur (Google noindex URL-lərin
+ * hreflang qrupunu onsuz da atır), 98 sətir × ~1200 səhifə isə image-də ~11 MB boş baytdır.
+ * Canonical qalır: Seo.jsx (BOOT) prerender olunmuş head-i ondan tanıyır, 404 qabığından ayırır.
+ */
+function headFor(key, lang, param = null, noindex = false) {
   const p = param ?? undefined
   // Əlavə dildə əsas-məzmunlu detal (dərs, lüğət, …) — kanonik ingilis səhifəsidir (routes.js → canonicalLang)
   const canonical = SITE + pathFor(key, canonicalLang(key, lang, param), p)
+  const canonicalLine = `    <link rel="canonical" href="${canonical}" data-seo="canonical" />`
+  if (noindex) return canonicalLine
   const alts = [
     // Səhifənin SEO dilləri (Quran — bütün dillər; dərs/lüğət detalı — 5 əsas dil; src/seo/routes.js)
     ...seoLangsFor(key, param).map(l => `    <link rel="alternate" hreflang="${l}" href="${SITE + pathFor(key, l, p)}" data-seo="alt" />`),
@@ -126,20 +119,10 @@ function headFor(key, lang, param = null) {
   const { title, desc } = textsFor(key, lang, param)
 
   // Detal: WebPage + breadcrumb (3 addım) + mainEntity (Chapter / DefinedTerm / Person)
-  const jsonld = param != null ? detailJsonLd(key, lang, param) : {
-    '@context': 'https://schema.org',
-    '@type': 'WebPage',
-    name: title,
-    description: desc,
-    url: canonical,
-    inLanguage: lang,
-    // @id siteJsonLd()-dəki WebSite ilə eynidir — Google onları birləşdirir
-    isPartOf: { '@type': 'WebSite', '@id': SITE + '/#website', name: brandName(lang), url: SITE + '/' },
-    breadcrumb: breadcrumbFor(key, lang, title),
-  }
+  const jsonld = param != null ? detailJsonLd(key, lang, param) : pageJsonLd({ key, lang, title, desc, canonical })
 
   return [
-    `    <link rel="canonical" href="${canonical}" data-seo="canonical" />`,
+    canonicalLine,
     alts,
     `    <script type="application/ld+json" data-seo="page-jsonld">${JSON.stringify(jsonld)}</script>`,
     // Sayt sxemi (WebSite + Organization + WebApplication) — yalnız ana səhifədə, həmin dildə
@@ -234,7 +217,7 @@ function renderPage(template, key, lang, noindex = false, param = null) {
 
   html = notFound || selfShell
     ? html.replace(/[ \t]*<!--SEO:HEAD-->[ \t]*\r?\n?/, '')
-    : html.replace('<!--SEO:HEAD-->', () => headFor(key, lang, param))
+    : html.replace('<!--SEO:HEAD-->', () => headFor(key, lang, param, noindex))
   // Səhifə chunk-ı + şrift preload-ları (yuxarıdakı PERFORMANS bölməsi)
   // + Quran səhifələrində alquran.cloud məlumat preload-ları (seo-body.mjs → staticPreloadFor)
   html = html.replace(/[ \t]*<!--PERF:PRELOAD-->/, () => preloadFor(key, lang) + (notFound || noindex ? '' : staticPreloadFor(key, lang, param)))
@@ -477,10 +460,12 @@ function buildSitemap() {
   const files = []
   let total = 0
 
+  const all = []
   const pages = []
   for (const p of INDEXABLE) {
     for (const lang of langsFor(p.key)) pages.push(urlEntry(p.key, lang, null))
   }
+  all.push(...pages)
   files.push(...writeUrlsetChunks('sitemap-pages.xml', pages))
   total += pages.length
 
@@ -493,6 +478,7 @@ function buildSitemap() {
       // Sitemap-a yalnız kanonik variantlar (əlavə dildəki dərs/lüğət detalı — ingilis səhifəsinin surəti)
       for (const lang of seoLangsFor(key, param)) urls.push(urlEntry(key, lang, param))
     }
+    all.push(...urls)
     files.push(...writeUrlsetChunks(cfg.file, urls))
     total += urls.length
   }
@@ -506,7 +492,8 @@ function buildSitemap() {
     files.map(f => `  <sitemap>\n    <loc>${SITE}/${f}</loc>\n  </sitemap>`).join('\n') +
     `\n</sitemapindex>\n`
   fs.writeFileSync(path.join(DIST, 'sitemap.xml'), index, 'utf8')
-  return { total, files }
+  // URL-lər (yolu) — seo-manifest.json üçün
+  return { total, files, urls: all.map(u => u.replace(/^.*<loc>https:\/\/[^/]+/, '').replace(/<\/loc>.*$/, '')) }
 }
 
 // ── İcra ─────────────────────────────────────────────
@@ -562,7 +549,14 @@ count++
 
 const sitemap = buildSitemap()
 // llms.txt — AI axtarış sistemləri üçün saytın xəritəsi (scripts/llms-txt.mjs)
-fs.writeFileSync(path.join(DIST, 'llms.txt'), buildLlmsTxt(), 'utf8')
+// Tarix — build günü (Bakı vaxtı): llms.txt-in "Generated" sətri həqiqi yaranma tarixidir
+const BUILD_DATE = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Baku' }).format(new Date())
+fs.writeFileSync(path.join(DIST, 'llms.txt'), buildLlmsTxt({ date: BUILD_DATE }), 'utf8')
+// llms-full.txt — hər detal səhifəsinin başlığı + təsviri + URL-i (ingiliscə; scripts/llms-txt.mjs)
+fs.writeFileSync(path.join(DIST, 'llms-full.txt'), buildLlmsFullTxt(detailData, { date: BUILD_DATE }), 'utf8')
+// IndexNow manifesti (scripts/indexnow.mjs): sitemap URL-i → SEO məzmununun qısa həşi. Deploy-dan
+// sonra CI köhnə (canlı) manifestlə müqayisə edib YALNIZ dəyişən URL-ləri Bing/Yandex-ə bildirir.
+fs.writeFileSync(path.join(DIST, 'seo-manifest.json'), JSON.stringify(buildSeoManifest(DIST, sitemap.urls)), 'utf8')
 console.log(`✓ Prerender: ${count} statik HTML (404.html daxil; ${detailCount} detal səhifəsi), ${((Date.now() - t0) / 1000).toFixed(1)} san.`)
 console.log(`✓ Sitemap: sitemap.xml (indeks) → ${sitemap.files.join(', ')} — cəmi ${sitemap.total} URL`)
 

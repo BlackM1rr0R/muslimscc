@@ -3,6 +3,7 @@ import { SITE, LANGS, LOCALES, DEFAULT_LANG, DETAILS, NOINDEX_KEYS, urlFor, path
 import { titleFor, descFor, fitDesc, ogImageFor, OG_ALT } from './meta'
 import { brandName } from '../config/brand'
 import { siteSchema } from './siteSchema'
+import { pageJsonLd } from './pageJsonLd'
 import { useLang } from '../contexts/LangContext'
 import { ROBOTS_NOINDEX } from './profileSeo'
 import { loadDetail } from './detailLoaders'
@@ -210,9 +211,11 @@ function applySeo(page, lang, param, detail) {
   setMeta('name', 'twitter:image', ogImageFor(lang))
   setMeta('name', 'twitter:image:alt', ogAlt)
 
-  // canonical + hreflang — hər dil variantı bir-birini göstərir (Quran — 25 dil)
+  // canonical + hreflang — hər dil variantı bir-birini göstərir (Quran — 25 dil).
+  // İndekslənməyən səhifədə (NOINDEX_KEYS) hreflang və sxem yoxdur — prerender.mjs (headFor) ilə eyni
+  const isNoindexPage = NOINDEX_KEYS.has(page) || isPrivateDetail
   setLinks('canonical', isNotFound ? [] : [{ rel: 'canonical', href: canonical }])
-  setLinks('alt', isNotFound ? [] : [
+  setLinks('alt', isNotFound || isNoindexPage ? [] : [
     ...seoLangsFor(page, param).map(l => ({
       rel: 'alternate',
       hreflang: l,
@@ -221,28 +224,9 @@ function applySeo(page, lang, param, detail) {
     { rel: 'alternate', hreflang: 'x-default', href: SITE + pathFor(page, DEFAULT_LANG, param ?? undefined) },
   ])
 
-  // Səhifə səviyyəli sxem — Google-a bu URL-in nə olduğunu deyir
-  const brand = brandName(lang)
-  setJsonLd(isNotFound ? null : meta ? detail.detailJsonLd(page, lang, param) : {
-    '@context': 'https://schema.org',
-    '@type': 'WebPage',
-    name: title,
-    description: desc,
-    url: canonical,
-    inLanguage: lang,
-    // @id siteJsonLd()-dəki WebSite ilə eynidir — Google onları birləşdirir
-    isPartOf: { '@type': 'WebSite', '@id': SITE + '/#website', name: brand, url: SITE + '/' },
-    breadcrumb: {
-      '@context': 'https://schema.org',
-      '@type': 'BreadcrumbList',
-      itemListElement: [
-        { '@type': 'ListItem', position: 1, name: brand, item: SITE + pathFor('home', lang) },
-        ...(page === 'home'
-          ? []
-          : [{ '@type': 'ListItem', position: 2, name: title.split(' | ')[0], item: canonical }]),
-      ],
-    },
-  })
+  // Səhifə səviyyəli sxem — Google-a bu URL-in nə olduğunu deyir (src/seo/pageJsonLd.js)
+  setJsonLd(isNotFound ? null : meta ? detail.detailJsonLd(page, lang, param)
+    : pageJsonLd({ key: page, lang, title, desc, canonical, noindex: isNoindexPage }))
 
   // Sayt sxemi (WebSite + Organization + WebApplication; src/seo/siteSchema.js) — yalnız
   // ana səhifədə, cari dildə; digərlərində silinir. Saytın yeganə #website node-udur.

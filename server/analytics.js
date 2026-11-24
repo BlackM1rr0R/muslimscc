@@ -147,6 +147,13 @@ function listExcluded(db) {
 
 const DIM_KINDS = { referrers: 'ref', languages: 'lang', devices: 'device', browsers: 'browser' }
 
+// AI köməkçilərindən gələn keçidlər (GEO ölçüsü) — mövcud "ref" ölçüsündən (yalnız domen) süzülür,
+// heç bir yeni məlumat toplanmır. Domen referrerDomain()-in qaytardığı formadadır (www. atılıb).
+const AI_REFERRERS = ['chatgpt.com', 'chat.openai.com', 'perplexity.ai', 'gemini.google.com', 'copilot.microsoft.com',
+  'claude.ai', 'chat.deepseek.com', 'chat.mistral.ai', 'you.com', 'phind.com', 'meta.ai', 'grok.com']
+/** Domen AI köməkçisinindirmi? (alt domen də: m.perplexity.ai) */
+const isAiReferrer = (host) => typeof host === 'string' && AI_REFERRERS.some((h) => host === h || host.endsWith('.' + h))
+
 // ─── Saf köməkçilər (testlənir) ───────────────────────────────────────
 
 const dayOf = (ms) => new Date(ms).toISOString().slice(0, 10)
@@ -317,6 +324,9 @@ function createAnalytics(opts = {}) {
     dims: raw.prepare(`SELECT key, SUM(count) AS count FROM analytics_dim
       WHERE kind = ? AND day BETWEEN ? AND ? AND ${NOT_EXCLUDED} GROUP BY key ORDER BY count DESC, key ASC LIMIT ?`),
     pathsOfDay: raw.prepare('SELECT path FROM analytics_daily WHERE day = ?'),
+    // Bütün referrer domenləri (LIMIT-siz) — AI köməkçiləri top-N siyahısından kənarda qalmasın
+    refsAll: raw.prepare(`SELECT key, SUM(count) AS count FROM analytics_dim
+      WHERE kind = 'ref' AND day BETWEEN ? AND ? AND ${NOT_EXCLUDED} GROUP BY key`),
     pageDaily: raw.prepare(`SELECT day, views FROM analytics_daily WHERE path = ? AND day BETWEEN ? AND ? AND ${NOT_EXCLUDED}`),
   }
 
@@ -456,6 +466,8 @@ function createAnalytics(opts = {}) {
     })
     const dim = (kind) => st.dims.all(kind, start, end, limit).map((r) => ({ key: r.key, count: Number(r.count) }))
     const languages = dim('lang')
+    const aiReferrers = st.refsAll.all(start, end).filter((r) => isAiReferrer(r.key))
+      .map((r) => ({ key: r.key, count: Number(r.count) })).sort((a, b) => b.count - a.count || (a.key < b.key ? -1 : 1))
     const pages = st.pages.all(start, end, limit).map((r) => ({ key: r.key, views: Number(r.views), visitors: Number(r.visitors) }))
     const extra = {}
     if (compare) {
@@ -479,10 +491,12 @@ function createAnalytics(opts = {}) {
         viewsPerVisit: totalViews.visitors ? Math.round((totalViews.views / totalViews.visitors) * 100) / 100 : 0,
         pages: Number(st.pagesCount.get(start, end).n),
         topLanguage: languages[0] ? languages[0].key : null,
+        aiVisits: aiReferrers.reduce((n, r) => n + r.count, 0),
       },
       series,
       pages,
       referrers: dim(DIM_KINDS.referrers),
+      aiReferrers,
       languages,
       devices: dim(DIM_KINDS.devices),
       browsers: dim(DIM_KINDS.browsers),
@@ -537,7 +551,7 @@ const handleStats = (req, res) => (instance ? instance.handleStats(req, res) : n
 module.exports = {
   migrate, handleCollect, handleStats, createAnalytics,
   // saf köməkçilər — testlər üçün
-  normalizePath, referrerDomain, deviceClass, browserFamily, isBot, optedOut, validDay, dayOf, addDays,
+  normalizePath, referrerDomain, isAiReferrer, AI_REFERRERS, deviceClass, browserFamily, isBot, optedOut, validDay, dayOf, addDays,
   clientHintsBot, isSecure,
   // anomal günlər (server/scripts/analytics-exclude.js)
   excludeDay, includeDay, listExcluded,

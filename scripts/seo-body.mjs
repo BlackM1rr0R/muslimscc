@@ -42,6 +42,12 @@ import { prayerCity, cityName, citySlug, monthTable, isAzCity, WORLD_PAGE_CITIES
 import { G_MONTHS } from '../src/utils/hijri.js'
 import { BABY_NAMES, nameIn } from '../src/data/babyNames.js'
 import { HADITH_IDS } from '../src/seo/hadithIds.js'
+import { QIBLA_GUIDE, QIBLA_GUIDE_TXT, QIBLA_SOURCES } from '../src/data/guides/QiblaPage.js'
+import { MOSQUE_GUIDE, MOSQUE_GUIDE_TXT, MOSQUE_SOURCES } from '../src/data/guides/MosqueFinderPage.js'
+import { CAL_MONTHS_GUIDE, CAL_SOURCES } from '../src/data/guides/CalendarPage.js'
+import { CHARITY_GUIDE } from '../src/data/pageGuides/CharityPage.js'
+import { DONATE_GUIDE } from '../src/data/pageGuides/DonatePage.js'
+import { DUA_GUIDE } from '../src/data/pageGuides/DuaJournalPage.js'
 
 // detail.js lüğəti glossarySource.js-dən oxuyur (prerender: meta + statik blok)
 setGlossarySource(GLOSSARY_BY_ID)
@@ -209,7 +215,7 @@ function namesListBody(lang) {
 
 // ═══ Səhabə ═══
 
-const pick = (obj, lang) => (obj && (obj[lang] || obj.en)) || ''
+const pick = (obj, lang) => (obj && (typeof obj === 'string' ? obj : (obj[lang] || obj.en))) || ''
 // Kateqoriyalar — SahabePage.jsx → FILTERS ilə eyni (yalnız məlumatdan)
 const isCaliph = (s) => s.id <= 4
 const isWoman = (s) => /\bbint\b/i.test(s.name.en)
@@ -578,6 +584,58 @@ function hadithBody(lang, id) {
   )
 }
 
+// ═══ Alət səhifələrinin bələdçisi (GEO, 2026-11-24) ═══
+// Qiblə, zəkat, təqvim, məscid, sədəqə… səhifələrinin <body>-si boş idi — JS icra etməyən robot
+// (Bing, OAI-SearchBot, PerplexityBot) yalnız h1 + description görürdü. İndi səhifənin ÖZ bələdçisi
+// (src/data/guides, src/data/pageGuides — səhifədə göstərilən eyni bloklar, mənbələri ilə) statik
+// yazılır: "cavab əvvəl" mətn, ayə/hədis istinadı, fətva linkləri. Heç bir yeni dini mətn yoxdur.
+// Zəkat: səhifənin ayrıca bələdçisi yoxdur — "Fiqh sualları" dərsinin zəkat bölməsi (fətva nömrələri ilə).
+const lessonSection = (slug, id) => LESSON_BODY[slug]?.sections?.find(x => x.id === id)
+const GUIDES = {
+  qibla: () => ({ title: QIBLA_GUIDE_TXT.title, lead: QIBLA_GUIDE_TXT.lead, sections: QIBLA_GUIDE, sources: QIBLA_SOURCES }),
+  mosques: () => ({ title: MOSQUE_GUIDE_TXT.title, lead: MOSQUE_GUIDE_TXT.lead, sections: MOSQUE_GUIDE, sources: MOSQUE_SOURCES }),
+  calendar: () => ({ sections: CAL_MONTHS_GUIDE, sources: CAL_SOURCES }),
+  charity: () => ({ sections: CHARITY_GUIDE }),
+  donate: () => ({ sections: DONATE_GUIDE }),
+  duajournal: () => ({ sections: DUA_GUIDE }),
+  zakat: () => {
+    const sec = lessonSection('fiqh-faq', 'zakat')
+    return sec ? { sections: [sec], lesson: 'fiqh-faq' } : null
+  },
+}
+export const GUIDE_KEYS = Object.keys(GUIDES)
+
+function guideBody(key, lang) {
+  const g = GUIDES[key]()
+  if (!g || !g.sections?.length) return ''
+  const L = ui(lang)
+  const lesson = g.lesson && LESSONS.find(l => l.slug === g.lesson)
+  return shell(lang,
+    crumbs(lang, [{ name: brandName(lang), href: pathFor('home', lang) }, { name: shortName(key, lang) }]) +
+    `<header><h1>${esc(shortName(key, lang))}</h1><p class="seo-static__lead">${esc(descFor(key, lang))}</p></header>` +
+    (g.title ? `<h2>${esc(pick(g.title, lang))}</h2>` : '') +
+    (g.lead ? `<p>${esc(pick(g.lead, lang))}</p>` : '') +
+    g.sections.map(sec => `<section>${sec.title ? `<h2>${esc(pick(sec.title, lang))}</h2>` : ''}${(sec.blocks || []).map(b => lessonBlock(b, lang)).join('')}</section>`).join('') +
+    (g.sources?.length ? `<h2>${esc(L.sources)}</h2><ul>${g.sources.map(r => `<li>${r.url ? `<a href="${esc(r.url)}" rel="noopener nofollow">${esc(pick(r.label, lang))}</a>` : esc(pick(r.label, lang))}</li>`).join('')}</ul>` : '') +
+    (lesson ? `<p><a href="${pathFor('learn', lang, lesson.slug)}">${esc(pick(lesson.title, lang))}</a></p>` : ''),
+  )
+}
+
+// ═══ Hədis siyahısı (/hadith) — hər /hadith/<id> səhifəsinə link (2026-11-24) ═══
+// Əvvəl hədis səhifələrinə yalnız əvvəlki/növbəti zənciri və sitemap aparırdı (krawl dərinliyi ~1100).
+function hadithListBody(lang) {
+  const T = HADITH_T[lang] || HADITH_T.az
+  const items = HADITH_IDS.map((id) => {
+    const m = detailMeta('hadith', lang, id)
+    return m ? `<li><a href="${pathFor('hadith', lang, id)}">${esc(m.crumb)}</a></li>` : ''
+  }).join('')
+  return shell(lang,
+    crumbs(lang, [{ name: brandName(lang), href: pathFor('home', lang) }, { name: shortName('hadith', lang) }]) +
+    `<header><h1>${esc(shortName('hadith', lang))}</h1><p class="seo-static__lead">${esc(descFor('hadith', lang))}</p></header>` +
+    `<h2>${esc(T.all)}</h2><ol class="seo-static__list">${items}</ol>`,
+  )
+}
+
 function listShell(key, lang, heading, items) {
   return shell(lang,
     crumbs(lang, [
@@ -606,7 +664,8 @@ export function staticBodyFor(key, lang, param = null) {
   if (key === 'glossary') return param ? termBody(lang, param) : glossaryListBody(lang)
   if (key === 'prayer') return param ? prayerCityBody(lang, param) : prayerListBody(lang)
   if (key === 'babynames') return babyNamesBody(lang)
-  if (key === 'hadith' && param) return hadithBody(lang, param)
+  if (key === 'hadith') return param ? hadithBody(lang, param) : hadithListBody(lang)
+  if (param == null && GUIDES[key]) return guideBody(key, lang)
   return ''
 }
 

@@ -28,7 +28,7 @@ const LABELS = {
     trend: 'Gündəlik baxışlar və ziyarətçilər', pages: 'Ən çox baxılan səhifələr', referrers: 'Gəlinən saytlar',
     languages: 'Dillər', devices: 'Cihazlar', browsers: 'Brauzerlər',
     table: 'Cədvəl kimi göstər', date: 'Tarix', item: 'Ad', share: 'Pay',
-    empty: 'Bu dövr üçün hələ məlumat yoxdur.', noRefs: 'Bu dövrdə xarici saytdan keçid olmayıb.',
+    empty: 'Bu dövr üçün hələ məlumat yoxdur.', noRefs: 'Bu dövrdə xarici saytdan keçid olmayıb.', aiRefs: 'AI köməkçilərindən', noAiRefs: 'Bu dövrdə AI köməkçisindən keçid olmayıb.',
     error: 'Statistika yüklənmədi', loading: 'Yüklənir...',
     home: 'Ana səhifə', other: 'Digər', notFound: 'Tapılmayan səhifə (404)',
     keys: 'Günlər arasında ox düymələri ilə keçin.', peak: 'Ən yüksək gün',
@@ -43,7 +43,7 @@ const LABELS = {
     trend: 'Daily page views and visitors', pages: 'Most viewed pages', referrers: 'Referring sites',
     languages: 'Languages', devices: 'Devices', browsers: 'Browsers',
     table: 'Show as table', date: 'Date', item: 'Name', share: 'Share',
-    empty: 'No data for this period yet.', noRefs: 'No visits from other sites in this period.',
+    empty: 'No data for this period yet.', noRefs: 'No visits from other sites in this period.', aiRefs: 'From AI assistants', noAiRefs: 'No visits from AI assistants in this period.',
     error: 'Could not load analytics', loading: 'Loading...',
     home: 'Home page', other: 'Other', notFound: 'Not found page (404)',
     keys: 'Use the arrow keys to move between days.', peak: 'Busiest day',
@@ -58,7 +58,7 @@ const LABELS = {
     trend: 'Просмотры и посетители по дням', pages: 'Самые просматриваемые страницы', referrers: 'Сайты-источники',
     languages: 'Языки', devices: 'Устройства', browsers: 'Браузеры',
     table: 'Показать таблицей', date: 'Дата', item: 'Название', share: 'Доля',
-    empty: 'За этот период данных пока нет.', noRefs: 'За этот период переходов с других сайтов не было.',
+    empty: 'За этот период данных пока нет.', noRefs: 'За этот период переходов с других сайтов не было.', aiRefs: 'Из ИИ-ассистентов', noAiRefs: 'За этот период переходов из ИИ-ассистентов не было.',
     error: 'Не удалось загрузить статистику', loading: 'Загрузка...',
     home: 'Главная страница', other: 'Прочее', notFound: 'Страница не найдена (404)',
     keys: 'Переходите между днями стрелками.', peak: 'Самый активный день',
@@ -73,7 +73,7 @@ const LABELS = {
     trend: 'المشاهدات والزوار يوميًا', pages: 'الصفحات الأكثر مشاهدة', referrers: 'المواقع المُحيلة',
     languages: 'اللغات', devices: 'الأجهزة', browsers: 'المتصفحات',
     table: 'عرض كجدول', date: 'التاريخ', item: 'الاسم', share: 'النسبة',
-    empty: 'لا توجد بيانات لهذه الفترة بعد.', noRefs: 'لا زيارات من مواقع أخرى في هذه الفترة.',
+    empty: 'لا توجد بيانات لهذه الفترة بعد.', noRefs: 'لا زيارات من مواقع أخرى في هذه الفترة.', aiRefs: 'من مساعدات الذكاء الاصطناعي', noAiRefs: 'لا زيارات من مساعدات الذكاء الاصطناعي في هذه الفترة.',
     error: 'تعذّر تحميل الإحصائيات', loading: 'جارٍ التحميل...',
     home: 'الصفحة الرئيسية', other: 'أخرى', notFound: 'صفحة غير موجودة (404)',
     keys: 'استخدم مفاتيح الأسهم للتنقل بين الأيام.', peak: 'أكثر الأيام نشاطًا',
@@ -88,7 +88,7 @@ const LABELS = {
     trend: 'Günlük görüntülemeler ve ziyaretçiler', pages: 'En çok görüntülenen sayfalar', referrers: 'Yönlendiren siteler',
     languages: 'Diller', devices: 'Cihazlar', browsers: 'Tarayıcılar',
     table: 'Tablo olarak göster', date: 'Tarih', item: 'Ad', share: 'Pay',
-    empty: 'Bu dönem için henüz veri yok.', noRefs: 'Bu dönemde başka sitelerden gelen ziyaret olmadı.',
+    empty: 'Bu dönem için henüz veri yok.', noRefs: 'Bu dönemde başka sitelerden gelen ziyaret olmadı.', aiRefs: 'Yapay zekâ asistanlarından', noAiRefs: 'Bu dönemde yapay zekâ asistanlarından ziyaret olmadı.',
     error: 'İstatistikler yüklenemedi', loading: 'Yükleniyor...',
     home: 'Ana sayfa', other: 'Diğer', notFound: 'Bulunamayan sayfa (404)',
     keys: 'Günler arasında ok tuşlarıyla gezinin.', peak: 'En yoğun gün',
@@ -508,6 +508,8 @@ export default function AnalyticsManager() {
               <BarChart title={l.pages} icon="list" items={map(data.pages, pageLabel)} l={l} fmt={fmt} rtl={rtl} />
               <div className="an-grid">
                 <BarChart title={l.referrers} icon="link" items={map(data.referrers)} l={l} fmt={fmt} rtl={rtl} emptyText={l.noRefs} />
+                {/* GEO: AI köməkçilərindən gələn keçidlər (server/analytics.js → aiReferrers; yalnız domen) */}
+                <BarChart title={l.aiRefs} icon="link" items={map(data.aiReferrers)} l={l} fmt={fmt} rtl={rtl} emptyText={l.noAiRefs} />
                 <BarChart title={l.languages} icon="globe" items={map(data.languages, (k) => langName(l, k))} l={l} fmt={fmt} rtl={rtl} />
                 <BarChart title={l.devices} icon="phone" items={map(data.devices, (k) => l.dev[k] || k)} l={l} fmt={fmt} rtl={rtl} />
                 <BarChart title={l.browsers} icon="compass" items={map(data.browsers, (k) => (k === 'Other' ? l.other : k))} l={l} fmt={fmt} rtl={rtl} />

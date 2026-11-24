@@ -95,6 +95,10 @@ jobs:
           cp .env.public .env.production.local
           npm run build
           test -f dist/404.html && test -f dist/sitemap.xml
+      # JSON-LD (sintaksis + tələb olunan sahələr, saxta reytinq yox), canonical, hreflang özünə istinad və
+      # qarşılıqlılıq, noindex səhifələr — dist nümunəsi (~1100 səhifə, ~10 san). scripts/check-seo-dist.mjs
+      - name: SEO yoxlaması (dist)
+        run: node scripts/check-seo-dist.mjs dist
       # ~45k kiçik fayl: upload-artifact onları tək-tək göndərəndə 62 san çəkirdi — bir arxiv kimi saniyələrdir
       - name: dist arxivi
         run: tar -I 'zstd -T0 -3' -cf dist.tar.zst dist && ls -l dist.tar.zst
@@ -297,6 +301,12 @@ jobs:
             ssh prod "upload $TAG $n" < "images/$n.tar.gz"
           done
 
+      # IndexNow (scripts/indexnow.mjs): deploy-dan ƏVVƏLKİ canlı SEO manifesti — sonra yenisi ilə müqayisə
+      # olunur və yalnız dəyişən URL-lər Bing/Yandex-ə bildirilir. Alınmasa deploy-a təsir etmir.
+      - name: IndexNow — köhnə manifest
+        continue-on-error: true
+        run: curl -fsS --max-time 20 "https://muslims.cc/seo-manifest.json?ci=${GITHUB_RUN_ID}" -o /tmp/seo-old.json || echo '{}' > /tmp/seo-old.json
+
       - name: Deploy (sağlamlıq yoxlaması + avtomatik geri qaytarma)
         run: ssh prod "deploy $TAG"
 
@@ -308,6 +318,16 @@ jobs:
             sleep 6
           done
           echo "✗ sayt cavab vermir"; exit 1
+
+      # IndexNow — yalnız dəyişən URL-lər (≤ 10 000 / POST, ≤ 20 000 / deploy). Açar açıqdır (public/<açar>.txt,
+      # protokolun tələbi). Deploy-un nəticəsinə təsir etmir (continue-on-error).
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with: { sparse-checkout: scripts/indexnow.mjs, sparse-checkout-cone-mode: false }
+      - name: IndexNow — dəyişən URL-ləri bildir
+        continue-on-error: true
+        run: |
+          curl -fsS --max-time 20 "https://muslims.cc/seo-manifest.json?ci=${GITHUB_RUN_ID}-new" -o /tmp/seo-new.json
+          node scripts/indexnow.mjs submit /tmp/seo-old.json /tmp/seo-new.json
 
       - name: Vəziyyət
         if: always()

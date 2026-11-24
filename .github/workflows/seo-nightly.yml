@@ -1,0 +1,60 @@
+# ═══════════════════════════════════════════════════════
+# Muslims.cc — gecəlik SEO / performans yoxlaması (deploy qapısı DEYİL, push-da işləmir)
+#
+# links:      build → daxili linklərin oflayn yoxlaması (scripts/check-links-dist.mjs: bütün siyahı
+#             səhifələri × 49 dil + hər detal səhifəsi az/en) + tam SEO dist yoxlaması.
+#             Xarici saytlar yoxlanmır (başqalarına gecəlik yük salmırıq).
+# lighthouse: canlı saytda ~15 təmsilçi URL, mobil emulyasiya (Lighthouse CI, .lighthouserc.json):
+#             LCP / CLS / TBT / SEO büdcələri. Hesabat yalnız artifact kimi (kənar serverə yüklənmir).
+# Yıxılsa yalnız Actions-da görünür; sayta və deploy-a təsiri yoxdur. Əl ilə: Actions → SEO nightly → Run.
+# ═══════════════════════════════════════════════════════
+name: SEO nightly
+
+on:
+  schedule:
+    - cron: '17 1 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: seo-nightly
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '22'
+
+jobs:
+  links:
+    name: Daxili linklər + SEO dist
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with: { node-version: '${{ env.NODE_VERSION }}', cache: npm }
+      - run: npm ci
+      - name: Build
+        run: |
+          cp .env.public .env.production.local
+          npm run build
+      - name: SEO dist yoxlaması
+        run: node scripts/check-seo-dist.mjs dist
+      - name: Daxili linklər (oflayn)
+        run: node scripts/check-links-dist.mjs dist
+
+  lighthouse:
+    name: Lighthouse CI (canlı, mobil)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with: { sparse-checkout: .lighthouserc.json, sparse-checkout-cone-mode: false }
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with: { node-version: '${{ env.NODE_VERSION }}' }
+      - name: Lighthouse CI
+        run: npx --yes @lhci/cli@0.14.0 autorun --config=.lighthouserc.json
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with: { name: lighthouse, path: .lighthouseci, retention-days: 14 }
