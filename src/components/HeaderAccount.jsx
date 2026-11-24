@@ -25,7 +25,7 @@ const HeaderJourney = lazy(() => import('./account/HeaderJourney'))
 const hasProfiles = () => { try { return Boolean(globalThis.localStorage?.getItem('mcc_profiles')) } catch { return false } }
 
 const LABELS = {
-  az: { signIn: 'Daxil ol', account: 'Hesabım', menu: 'Hesab menyusu', panel: 'Admin paneli', logout: 'Çıxış' },
+  az: { signIn: 'Daxil ol', account: 'Hesabım', menu: 'Hesab menyusu', panel: 'İdarə paneli', logout: 'Çıxış' },
   en: { signIn: 'Sign in', account: 'My account', menu: 'Account menu', panel: 'Admin panel', logout: 'Sign out' },
   ru: { signIn: 'Войти', account: 'Мой аккаунт', menu: 'Меню аккаунта', panel: 'Админ-панель', logout: 'Выйти' },
   tr: { signIn: 'Giriş yap', account: 'Hesap ayarları', menu: 'Hesap menüsü', panel: 'Yönetim paneli', logout: 'Çıkış yap' },
@@ -131,8 +131,9 @@ export default function HeaderAccount({ currentPage }) {
               <ProfileMenu lang={lang} manageHref={`${pathFor('account', siteLang)}#profiles`} onManage={() => setOpen(false)} />
             </Suspense>
           )}
+          {/* İdarə paneli — sayt hesabı ilə açılır (server/adminSso.js: panel rolu + 2FA); ünvan routes.js → ADMIN_PATH */}
           {PANEL_ROLES.has(user.role) && (
-            <a className="hdr-account-menu__item" href={pathFor('admin', siteLang)}>
+            <a className="hdr-account-menu__item" href={pathFor('admin', siteLang)} data-testid="hdr-admin-panel">
               <Icon name="shield" size={18} /> {l.panel}
             </a>
           )}

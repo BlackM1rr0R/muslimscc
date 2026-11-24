@@ -64,6 +64,28 @@ export const uiLang = (lang) => (LANGS.includes(lang) ? lang : EXTRA_UI_LANG)
 /** Mətn istiqaməti (rtl: ərəb, urdu, fars, puştu). */
 export const dirOf = (lang) => (lang === 'ar' || EXTRA_LANGS[lang]?.dir === 'rtl' ? 'rtl' : 'ltr')
 
+// ── Admin panelinin (gizli) ünvanı — docs/ADMIN-SECURITY.md → "Gizli ünvan" ──
+// Build zamanı VITE_ADMIN_PATH (CI: GitHub sirri ADMIN_PATH → web image-in build-i). Repoda həqiqi
+// dəyər YOXDUR. Verilməyibsə (lokal dev, testlər) — köhnə /admin və /adminlogin. Verilibsə panel
+// /<gizli>, köhnə ayrıca admin girişi /<gizli>/login; /admin, /adminlogin (və dil prefiksliləri) — 404.
+// Brauzerdə Vite import.meta.env-i əvəz edir; prerender-də (Node) scripts/admin-path-env.mjs
+// eyni .env fayllarından process.env-ə yazır. Sitemap, llms.txt, robots.txt-ə düşmür (noindex).
+export const DEFAULT_ADMIN_PATH = '/admin'
+export const ADMIN_PATH_RE = /^\/[a-z0-9-]{8,40}$/
+/** Dəyər → panel ünvanı: formatı düzgün deyilsə (və ya boşdursa) '/admin'. */
+export const resolveAdminPath = (v) => {
+  const s = typeof v === 'string' ? v.trim() : ''
+  return ADMIN_PATH_RE.test(s) ? s : DEFAULT_ADMIN_PATH
+}
+/** Panel ünvanı → PAGES yolları (dil prefiksindən sonrakı hissə). */
+export const adminRoutePaths = (adminPath) => (adminPath === DEFAULT_ADMIN_PATH
+  ? { admin: 'admin', adminlogin: 'adminlogin' }
+  : { admin: adminPath.slice(1), adminlogin: `${adminPath.slice(1)}/login` })
+export const ADMIN_PATH = resolveAdminPath(import.meta.env?.VITE_ADMIN_PATH || globalThis.process?.env?.VITE_ADMIN_PATH)
+/** Gizli ünvan qoşulubmu (onda "#admin" qısayolu da bağlıdır — App.jsx) */
+export const ADMIN_HIDDEN = ADMIN_PATH !== DEFAULT_ADMIN_PATH
+const ADMIN_ROUTE_PATHS = adminRoutePaths(ADMIN_PATH)
+
 // ── Səhifələr ────────────────────────────────────────
 // key      — App.jsx-dəki daxili ad (setPage(key) API-si dəyişmir)
 // path     — dil prefiksindən sonrakı URL hissəsi ('' = ana səhifə)
@@ -160,9 +182,10 @@ export const PAGES = [
   { key: 'terms',        path: 'terms',        priority: 0.30, changefreq: 'yearly'  },
   { key: 'licenses',     path: 'licenses',     priority: 0.30, changefreq: 'yearly'  },
 
-  // Admin — indekslənmir, sitemap-a düşmür
-  { key: 'adminlogin',   path: 'adminlogin',   noindex: true },
-  { key: 'admin',        path: 'admin',        noindex: true },
+  // Admin — indekslənmir, sitemap-a düşmür. Ünvan build zamanı VITE_ADMIN_PATH-dən (aşağıda ADMIN_PATH):
+  // verilməyibsə /admin + /adminlogin (köhnə davranış); verilibsə /<gizli> + /<gizli>/login, /admin isə 404
+  { key: 'adminlogin',   path: ADMIN_ROUTE_PATHS.adminlogin, noindex: true },
+  { key: 'admin',        path: ADMIN_ROUTE_PATHS.admin,      noindex: true },
 
   // İstifadəçi hesabı (server/users.js, docs/USER-ACCOUNTS.md) — indekslənmir, sitemap-a düşmür.
   // account/verify və account/reset — e-poçt keçidləri (#token=… fraqmentdə); iki seqmentli yol
@@ -196,6 +219,11 @@ export const PAGES = [
   // R3: 'Mənim ilim' çap kitabı — yalnız cihazdakı şəxsi qeydlərdən (prerender-də boş qabıq): indekslənmir
   { key: 'yearbook',      path: 'my-year-book',     noindex: true },
 ]
+
+// Gizli admin ünvanı mövcud səhifə ilə üst-üstə düşməsin — build (prerender) burada dayanır
+if (ADMIN_HIDDEN && PAGES.some(p => p.key !== 'admin' && p.key !== 'adminlogin' && p.path.split('/')[0] === ADMIN_ROUTE_PATHS.admin)) {
+  throw new Error('VITE_ADMIN_PATH mövcud səhifə ünvanı ilə üst-üstə düşür')
+}
 
 /** İndekslənməyən səhifə açarları (Seo.jsx → robots noindex). */
 export const NOINDEX_KEYS = new Set(PAGES.filter(p => p.noindex).map(p => p.key))

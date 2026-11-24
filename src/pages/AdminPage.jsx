@@ -37,6 +37,8 @@ const CommunityModeration = lazy(() => import('../components/admin/CommunityMode
 const MailComposer = lazy(() => import('../components/admin/MailComposer'))
 import { AUTH_TEXT } from '../components/account/authText'
 import { AdminEmpty, AdminAlert } from '../components/admin/AdminUi'
+// Saytın istifadəçi hesabı ilə panel (server/adminSso.js): 2FA bələdçisi, "Hesab" bölməsinin qeydi
+import { AdminSiteGate, SiteAccountNote, SITE_GATE_STATUSES, siteBackLabel } from '../components/admin/AdminSiteGate'
 import Icon, { BrandMark } from '../components/Icon'
 import '../styles/AdminPage.css'
 import { pickUi } from '../utils/uiText'
@@ -117,12 +119,13 @@ export default function AdminPage({ setPage }) {
   // Server sessiyası (GET /api/admin/me, server/auth.js). Daxil olunmayıbsa
   // (və ya server əlçatmazdırsa) — giriş səhifəsinə. Müvəqqəti şifrə ilə
   // (mustChangePassword) panel açılmır — yalnız "Şifrəni dəyiş" forması.
+  // Sayt hesabı ilə (via:'site'): panel rolu var, amma 2FA bağlıdır və s. — bələdçi ekranı (AdminSiteGate).
   const [authStatus, setAuthStatus] = useState('loading')
-  const [account, setAccount] = useState({ email: '', mustChangePassword: false, role: '', twoFactor: undefined })
-  useEffect(() => watchAdmin(({ status, email, mustChangePassword, role, twoFactor }) => {
+  const [account, setAccount] = useState({ email: '', mustChangePassword: false, role: '', twoFactor: undefined, via: 'session' })
+  useEffect(() => watchAdmin(({ status, email, mustChangePassword, role, twoFactor, via }) => {
     setAuthStatus(status)
-    if (status === 'admin') setAccount({ email, mustChangePassword, role, twoFactor })
-    if (status === 'loading' || status === 'admin') return
+    if (status === 'admin') setAccount({ email, mustChangePassword, role, twoFactor, via })
+    if (status === 'loading' || status === 'admin' || SITE_GATE_STATUSES.has(status)) return
     setPage('adminlogin')
   // Bir dəfəlik abunə (watchAdmin) — setPage dəyişsə belə yenidən abunə lazım deyil
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -152,7 +155,9 @@ export default function AdminPage({ setPage }) {
     })
   }
 
-  const handleLogout = async () => { await signOutAdmin(); setPage('home') }
+  const viaSite = account.via === 'site'
+  // Sayt hesabı ilə: "Sayta qayıt" (sayt hesabından çıxış saytın öz menyusundadır)
+  const handleLogout = async () => { if (!viaSite) await signOutAdmin(); setPage('home') }
 
   const renderTab = () => {
     switch (activeTab) {
@@ -176,7 +181,7 @@ export default function AdminPage({ setPage }) {
       case 'seed':          return <SeedManager />
       case 'users':         return canUsers ? <UserManager actorRole={account.role} actorEmail={account.email} onCompose={canMail ? composeTo : undefined} /> : <DashboardOverview counts={counts} setActiveTab={setActiveTab} />
       case 'mail':          return canMail ? <Suspense fallback={<AdminEmpty icon="mail" busy>{l.checking}</AdminEmpty>}><MailComposer targets={mailTargets} onClearTargets={() => setMailTargets([])} /></Suspense> : <DashboardOverview counts={counts} setActiveTab={setActiveTab} />
-      case 'account':       return <AccountManager email={account.email} twoFactor={account.twoFactor} onTwoFactor={(on) => setAccount(a => ({ ...a, twoFactor: on }))} />
+      case 'account':       return viaSite ? <SiteAccountNote email={account.email} /> : <AccountManager email={account.email} twoFactor={account.twoFactor} onTwoFactor={(on) => setAccount(a => ({ ...a, twoFactor: on }))} />
       default:              return <DashboardOverview counts={counts} setActiveTab={setActiveTab} />
     }
   }
@@ -195,6 +200,17 @@ export default function AdminPage({ setPage }) {
             onChanged={() => setAccount(a => ({ ...a, mustChangePassword: false }))}
             onLogout={handleLogout}
           />
+        </div>
+      </div>
+    )
+  }
+
+  // Sayt hesabının panel rolu var, amma şərt ödənməyib (2FA və s.) — yalnız bələdçi, heç bir məlumat yox
+  if (SITE_GATE_STATUSES.has(authStatus)) {
+    return (
+      <div className="admin-page">
+        <div className="admin-main admin-main--solo">
+          <AdminSiteGate status={authStatus} setPage={setPage} />
         </div>
       </div>
     )
@@ -273,7 +289,7 @@ export default function AdminPage({ setPage }) {
               <Icon name={dark ? 'sun' : 'moon'} className="ui-btn__icon" /> {dark ? l.light : l.dark}
             </button>
             <button type="button" className="ui-btn ui-btn--ghost admin-logout-btn" onClick={handleLogout}>
-              <Icon name="enter" className="ui-btn__icon admin-back-arrow" /> {l.logout}
+              <Icon name="enter" className="ui-btn__icon admin-back-arrow" /> {viaSite ? siteBackLabel(lang) : l.logout}
             </button>
           </div>
         </aside>

@@ -369,7 +369,7 @@ function renderWelcome(lang, vars = {}) {
 
 // ═══════════════════════════════════════════════════════════════════════
 // Admin məktubu (server/mailCampaigns.js) — renderCampaign(lang, vars)
-//   vars: { subject, body, ctaLabel?, ctaUrl?, header: 'gif'|'text', unsubUrl, origin?, test? }
+//   vars: { subject, body, ctaLabel?, ctaUrl?, header: 'gif'|'text', theme?: CAMPAIGN_THEMES açarı, unsubUrl, origin?, test? }
 //   Gövdə — DÜZ MƏTN + sadə işarələmə: boş sətir = abzas, sətir sonu = <br>, **qalın**,
 //   [mətn](https://…) və çılpaq https://… keçidləri. Formadan gələn HTML HEÇ VAXT keçmir —
 //   hər şey əvvəlcə escape olunur, işarələmə sonra tətbiq edilir. Yalnız https keçidləri
@@ -400,7 +400,7 @@ function safeHttpsUrl(u) {
 const LINK_RE = /\[([^\]\n]{1,200})\]\((https:\/\/[^\s()<>"']{1,500})\)|(https:\/\/[^\s<>"'()]{1,500})/g
 const boldHtml = (t) => esc(t).replace(/\*\*([^*\n]{1,500}?)\*\*/g, '<strong>$1</strong>')
 
-function inlineHtml(s) {
+function inlineHtml(s, link = C.brand) {
   let out = '', last = 0
   for (const m of s.matchAll(LINK_RE)) {
     out += boldHtml(s.slice(last, m.index))
@@ -408,7 +408,7 @@ function inlineHtml(s) {
     if (!m[1]) { const t = /[.,;:!?]+$/.exec(raw); if (t) { tail = t[0]; raw = raw.slice(0, -tail.length) } }
     const href = safeHttpsUrl(raw)
     const label = m[1] || raw
-    out += href ? `<a href="${esc(href)}" target="_blank" class="mcc-link" style="color:${C.brand};text-decoration:underline">${boldHtml(label)}</a>` : boldHtml(m[1] ? m[0] : raw)
+    out += href ? `<a href="${esc(href)}" target="_blank" class="mcc-link" style="color:${link};text-decoration:underline">${boldHtml(label)}</a>` : boldHtml(m[1] ? m[0] : raw)
     out += boldHtml(tail)
     last = m.index + m[0].length
   }
@@ -418,18 +418,66 @@ function inlineHtml(s) {
 /** Düz mətn → abzaslar (sətirlər massivi) */
 const paragraphs = (body) => cleanText(body).split(/\n[ \t]*\n+/).map((p) => p.replace(/^\n+|\n+$/g, '')).filter((p) => p.trim())
 
-/** Gövdə → { html, text } (təhlükəsiz) */
-function formatCampaignBody(body) {
+/** Gövdə → { html, text } (təhlükəsiz); link — keçidlərin rəngi (mövzunun palitrasından) */
+function formatCampaignBody(body, link = C.brand) {
   const paras = paragraphs(String(body || '').slice(0, 10000))
-  const html = paras.map((p) => p.split('\n').map(inlineHtml).join('<br>'))
+  const html = paras.map((p) => p.split('\n').map((x) => inlineHtml(x, link)).join('<br>'))
   const text = paras.map((p) => p
     .replace(/\[([^\]\n]{1,200})\]\((https:\/\/[^\s()<>"']{1,500})\)/g, (_, l, u) => (safeHttpsUrl(u) ? `${l} (${u})` : `${l}`))
     .replace(/\*\*([^*\n]{1,500}?)\*\*/g, '$1'))
   return { html, text }
 }
 
+// ── Rəng mövzuları (admin məktubu) — YALNIZ bu siyahıdan; rəng klientdən heç vaxt gəlmir ──
+//   img: başlıq GIF-i (scripts/build-mail-headers.mjs; emerald = xoş gəldin GIF-i, köhnə göndərişlər dəyişmir).
+//   Açıq rejim rəngləri inline, tünd rejim — @media (prefers-color-scheme: dark) + [data-ogsc].
+//   Kontrast WCAG AA (≥ 4.5:1) — tests/unit/server-mail-campaigns.test.js hər cütü yoxlayır.
+//   page/card/ink/muted/line/border — səhifə və kart; brand/btnInk — düymə; link; head/headInk — başlıq
+//   və altlıq zolağı; d* — tünd rejim əvəzləri.
+const CAMPAIGN_THEMES = {
+  emerald: {
+    img: WELCOME_IMG, page: '#eef2ee', card: '#fbfcfa', ink: '#16241e', muted: '#4f6158', line: '#dfe7e1', border: '#dfe7e1',
+    brand: '#0f6b4f', btnInk: '#ffffff', link: '#0f6b4f', head: '#062a20', headInk: '#e8c16a',
+    dPage: '#0c1512', dCard: '#12211b', dInk: '#eef3ef', dMuted: '#b5c4bb', dLink: '#7fd3b0', dLine: '#264238',
+  },
+  dawn: {
+    img: '/email/header-dawn-v1.gif', page: '#f7f1e6', card: '#fffbf4', ink: '#2a1d10', muted: '#69523d', line: '#ecdcc4', border: '#e6cfa6',
+    brand: '#9a4f0c', btnInk: '#ffffff', link: '#8a440a', head: '#2b1708', headInk: '#f2c66b',
+    dPage: '#17110a', dCard: '#221810', dInk: '#f5ece0', dMuted: '#cdbba6', dLink: '#f0b664', dLine: '#3d2c1c',
+  },
+  night: {
+    img: '/email/header-night-v1.gif', page: '#eef1f7', card: '#fbfcff', ink: '#141b2e', muted: '#4c5671', line: '#dde3ef', border: '#d3dbec',
+    brand: '#1f3f8f', btnInk: '#ffffff', link: '#1f3f8f', head: '#0b1736', headInk: '#e9c76f',
+    dPage: '#0a0f1d', dCard: '#121a2e', dInk: '#eef1f8', dMuted: '#b4bdd3', dLink: '#9db8ff', dLine: '#26324f',
+  },
+  festive: {
+    img: '/email/header-festive-v1.gif', page: '#ecf5f4', card: '#fbfefd', ink: '#10272a', muted: '#46605f', line: '#d6e8e6', border: '#e3d3a1',
+    brand: '#0b6e72', btnInk: '#ffffff', link: '#0b6a6e', head: '#063f43', headInk: '#f1cd72',
+    dPage: '#081615', dCard: '#0f2423', dInk: '#ecf6f5', dMuted: '#b0c8c6', dLink: '#7fd6d2', dLine: '#21403e',
+  },
+  sand: {
+    img: '/email/header-sand-v1.gif', page: '#f6f1e9', card: '#fffdf9', ink: '#2b2419', muted: '#625646', line: '#e9dfcf', border: '#e9dfcf',
+    brand: '#6b4a26', btnInk: '#ffffff', link: '#6b4a26', head: '#efe4d2', headInk: '#5a3d1e',
+    dPage: '#15120e', dCard: '#1f1a14', dInk: '#f3ede4', dMuted: '#c8bcab', dLink: '#e3c08f', dLine: '#3a3127',
+  },
+}
+const MAIL_THEMES = Object.keys(CAMPAIGN_THEMES)
+const DEFAULT_THEME = 'emerald'
+// Başlıq şəklinin alt mətni (emerald — xoş gəldin məktubununku); canlı varlıq yoxdur
+const THEME_ALT = {
+  dawn: { az: 'Muslims.cc — aypara, səkkizguşəli ulduz və fənərlər', en: 'Muslims.cc — crescent, eight-pointed star and lanterns', ru: 'Muslims.cc — полумесяц, восьмиконечная звезда и фонари', tr: 'Muslims.cc — hilal, sekiz köşeli yıldız ve fenerler', ar: 'Muslims.cc — هلال ونجمة ثمانية وفوانيس' },
+  night: { az: 'Muslims.cc — ulduzlu gecə, aypara və səkkizguşəli ulduz', en: 'Muslims.cc — starry night, crescent and eight-pointed star', ru: 'Muslims.cc — звёздная ночь, полумесяц и восьмиконечная звезда', tr: 'Muslims.cc — yıldızlı gece, hilal ve sekiz köşeli yıldız', ar: 'Muslims.cc — ليلة مرصّعة بالنجوم وهلال ونجمة ثمانية' },
+  festive: { az: 'Muslims.cc — bayram çələngi, aypara və səkkizguşəli ulduz', en: 'Muslims.cc — festive garland, crescent and eight-pointed star', ru: 'Muslims.cc — праздничная гирлянда, полумесяц и восьмиконечная звезда', tr: 'Muslims.cc — bayram süsü, hilal ve sekiz köşeli yıldız', ar: 'Muslims.cc — زينة العيد وهلال ونجمة ثمانية' },
+  sand: { az: 'Muslims.cc — aypara və səkkizguşəli ulduz', en: 'Muslims.cc — crescent and eight-pointed star', ru: 'Muslims.cc — полумесяц и восьмиконечная звезда', tr: 'Muslims.cc — hilal ve sekiz köşeli yıldız', ar: 'Muslims.cc — هلال ونجمة ثمانية' },
+}
+/** Mövzu adı → allowlist açarı (naməlum / yox → emerald) */
+const pickTheme = (t) => (typeof t === 'string' && Object.prototype.hasOwnProperty.call(CAMPAIGN_THEMES, t) ? t : DEFAULT_THEME)
+
+/** vars.theme — CAMPAIGN_THEMES açarı; başqa dəyər və ya yoxdursa → emerald (mövzusuz köhnə göndərişlər). */
 function renderCampaign(lang, vars = {}) {
   const l = pickLang(lang)
+  const theme = pickTheme(vars.theme)
+  const P = CAMPAIGN_THEMES[theme]
   const rtl = l === 'ar'
   const dir = rtl ? 'rtl' : 'ltr'
   const align = rtl ? 'right' : 'left'
@@ -438,21 +486,22 @@ function renderCampaign(lang, vars = {}) {
   const home = `${origin}${l === 'az' ? '' : '/' + l}`
   const f = CAMPAIGN_FOOT[l]
   const subject = (vars.test ? '[Test] ' : '') + cleanLine(vars.subject).slice(0, 150)
-  const body = formatCampaignBody(vars.body)
+  const body = formatCampaignBody(vars.body, P.link)
   const ctaLabel = cleanLine(vars.ctaLabel).slice(0, 60)
   const ctaUrl = ctaLabel ? safeHttpsUrl(String(vars.ctaUrl || '')) : ''
   const unsubUrl = URL_RE.test(String(vars.unsubUrl || '')) ? String(vars.unsubUrl) : ''
   const pre = body.text.join(' ').replace(/\s+/g, ' ').slice(0, 140)
+  const alt = THEME_ALT[theme] ? THEME_ALT[theme][l] : WELCOME[l].alt
   const header = vars.header === 'text'
-    ? `<tr><td style="padding:26px 28px;background:${C.head};text-align:center;font-family:${FONT}" bgcolor="${C.head}">` +
-      `<a href="${esc(home)}" target="_blank" style="color:#e8c16a;text-decoration:none;font-size:26px;font-weight:700;letter-spacing:0.02em">Muslims.cc</a></td></tr>`
-    : `<tr><td style="padding:0;background:${C.head};line-height:0;font-size:0" bgcolor="${C.head}">` +
-      `<a href="${esc(home)}" target="_blank"><img src="${esc(origin + WELCOME_IMG)}" width="600" height="220" alt="${esc(WELCOME[l].alt)}" style="display:block;width:100%;max-width:600px;height:auto;border:0;background:${C.head};color:#e8c16a;font-family:${FONT};font-size:22px;line-height:1.3"></a></td></tr>`
-  const paras = body.html.map((h) => `<p class="mcc-ink" style="margin:0 0 16px;font-size:16px;line-height:1.65;color:${C.ink}">${h}</p>`).join('')
+    ? `<tr><td style="padding:26px 28px;background:${P.head};text-align:center;font-family:${FONT}" bgcolor="${P.head}">` +
+      `<a href="${esc(home)}" target="_blank" style="color:${P.headInk};text-decoration:none;font-size:26px;font-weight:700;letter-spacing:0.02em">Muslims.cc</a></td></tr>`
+    : `<tr><td style="padding:0;background:${P.head};line-height:0;font-size:0" bgcolor="${P.head}">` +
+      `<a href="${esc(home)}" target="_blank"><img src="${esc(origin + P.img)}" width="600" height="220" alt="${esc(alt)}" style="display:block;width:100%;max-width:600px;height:auto;border:0;background:${P.head};color:${P.headInk};font-family:${FONT};font-size:22px;line-height:1.3"></a></td></tr>`
+  const paras = body.html.map((h) => `<p class="mcc-ink" style="margin:0 0 16px;font-size:16px;line-height:1.65;color:${P.ink}">${h}</p>`).join('')
   const cta = ctaUrl
     ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="${align}" style="margin:8px 0 8px"><tr>` +
-      `<td bgcolor="${C.brand}" style="border-radius:8px;background:${C.brand}">` +
-      `<a href="${esc(ctaUrl)}" target="_blank" style="display:inline-block;padding:12px 22px;font-family:${font};font-size:15px;font-weight:700;line-height:1.2;color:#ffffff;text-decoration:none;border-radius:8px">${esc(ctaLabel)}&nbsp;${rtl ? '&larr;' : '&rarr;'}</a>` +
+      `<td bgcolor="${P.brand}" style="border-radius:8px;background:${P.brand}">` +
+      `<a href="${esc(ctaUrl)}" target="_blank" style="display:inline-block;padding:12px 22px;font-family:${font};font-size:15px;font-weight:700;line-height:1.2;color:${P.btnInk};text-decoration:none;border-radius:8px">${esc(ctaLabel)}&nbsp;${rtl ? '&larr;' : '&rarr;'}</a>` +
       `</td></tr></table>`
     : ''
   const html = '<!doctype html>' +
@@ -463,28 +512,28 @@ function renderCampaign(lang, vars = {}) {
     '<style>:root{color-scheme:light dark;supported-color-schemes:light dark}' +
     'body{margin:0;padding:0;-webkit-text-size-adjust:100%}img{border:0;outline:none;text-decoration:none}' +
     '@media (prefers-color-scheme: dark){' +
-    '.mcc-page{background:#0c1512!important}.mcc-card{background:#12211b!important}' +
-    '.mcc-ink{color:#eef3ef!important}.mcc-muted{color:#b5c4bb!important}.mcc-link{color:#7fd3b0!important}' +
-    '.mcc-line{border-color:#264238!important}}' +
-    '[data-ogsc] .mcc-ink{color:#eef3ef!important}[data-ogsc] .mcc-muted{color:#b5c4bb!important}[data-ogsc] .mcc-link{color:#7fd3b0!important}' +
+    `.mcc-page{background:${P.dPage}!important}.mcc-card{background:${P.dCard}!important;border-color:${P.dLine}!important}` +
+    `.mcc-ink{color:${P.dInk}!important}.mcc-muted{color:${P.dMuted}!important}.mcc-link{color:${P.dLink}!important}` +
+    `.mcc-line{border-color:${P.dLine}!important}}` +
+    `[data-ogsc] .mcc-ink{color:${P.dInk}!important}[data-ogsc] .mcc-muted{color:${P.dMuted}!important}[data-ogsc] .mcc-link{color:${P.dLink}!important}` +
     '</style></head>' +
-    `<body class="mcc-page" style="margin:0;padding:0;background:${C.page}">` +
-    `<div style="display:none;max-height:0;overflow:hidden;mso-hide:all;font-size:1px;line-height:1px;color:${C.page};opacity:0">${esc(pre)}</div>` +
-    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="mcc-page" style="background:${C.page}"><tr><td align="center" style="padding:16px 8px">` +
+    `<body class="mcc-page" data-theme="${theme}" style="margin:0;padding:0;background:${P.page}">` +
+    `<div style="display:none;max-height:0;overflow:hidden;mso-hide:all;font-size:1px;line-height:1px;color:${P.page};opacity:0">${esc(pre)}</div>` +
+    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="mcc-page" style="background:${P.page}"><tr><td align="center" style="padding:16px 8px">` +
     '<!--[if mso]><table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0"><tr><td><![endif]-->' +
-    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="mcc-card" style="width:100%;max-width:600px;background:${C.card};border-radius:14px;overflow:hidden">` +
+    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="mcc-card" style="width:100%;max-width:600px;background:${P.card};border:1px solid ${P.border};border-radius:14px;overflow:hidden">` +
     header +
     `<tr><td dir="${dir}" lang="${l}" style="padding:28px 28px 12px;text-align:${align};font-family:${font}">` +
-    `<h1 class="mcc-ink" style="margin:0 0 16px;font-size:22px;line-height:1.35;font-weight:700;color:${C.ink}">${esc(cleanLine(vars.subject).slice(0, 150))}</h1>` +
+    `<h1 class="mcc-ink" style="margin:0 0 16px;font-size:22px;line-height:1.35;font-weight:700;color:${P.ink}">${esc(cleanLine(vars.subject).slice(0, 150))}</h1>` +
     paras + cta +
     `</td></tr>` +
-    `<tr><td style="padding:0 28px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td class="mcc-line" style="border-top:1px solid ${C.line};font-size:0;line-height:0;height:1px">&nbsp;</td></tr></table></td></tr>` +
+    `<tr><td style="padding:0 28px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td class="mcc-line" style="border-top:1px solid ${P.line};font-size:0;line-height:0;height:1px">&nbsp;</td></tr></table></td></tr>` +
     `<tr><td dir="${dir}" style="padding:14px 28px 22px;text-align:${align};font-family:${font}">` +
-    `<p class="mcc-muted" style="margin:0 0 6px;font-size:13px;line-height:1.5;color:${C.muted}">${esc(f.reason)}</p>` +
-    (unsubUrl ? `<p style="margin:0;font-size:13px;line-height:1.5"><a href="${esc(unsubUrl)}" target="_blank" class="mcc-muted" style="color:${C.muted};text-decoration:underline">${esc(f.unsub)}</a></p>` : '') +
+    `<p class="mcc-muted" style="margin:0 0 6px;font-size:13px;line-height:1.5;color:${P.muted}">${esc(f.reason)}</p>` +
+    (unsubUrl ? `<p style="margin:0;font-size:13px;line-height:1.5"><a href="${esc(unsubUrl)}" target="_blank" class="mcc-muted" style="color:${P.muted};text-decoration:underline">${esc(f.unsub)}</a></p>` : '') +
     `</td></tr>` +
-    `<tr><td style="padding:14px 28px 18px;background:${C.head};text-align:center;font-family:${FONT};font-size:13px;line-height:1.5" bgcolor="${C.head}">` +
-    `<a href="${esc(home)}" target="_blank" style="color:#e8c16a;text-decoration:none;font-weight:700">Muslims.cc</a></td></tr>` +
+    `<tr><td style="padding:14px 28px 18px;background:${P.head};text-align:center;font-family:${FONT};font-size:13px;line-height:1.5" bgcolor="${P.head}">` +
+    `<a href="${esc(home)}" target="_blank" style="color:${P.headInk};text-decoration:none;font-weight:700">Muslims.cc</a></td></tr>` +
     '</table>' +
     '<!--[if mso]></td></tr></table><![endif]-->' +
     '</td></tr></table></body></html>'
@@ -538,4 +587,4 @@ function createMailer({ apiKey = process.env.RESEND_API_KEY, from = DEFAULT_FROM
   }
 }
 
-module.exports = { createMailer, render, renderWelcome, renderCampaign, formatCampaignBody, safeHttpsUrl, LANGS, RESEND_URL, WELCOME_IMG }
+module.exports = { createMailer, render, renderWelcome, renderCampaign, formatCampaignBody, safeHttpsUrl, LANGS, RESEND_URL, WELCOME_IMG, CAMPAIGN_THEMES, MAIL_THEMES, DEFAULT_THEME }

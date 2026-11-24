@@ -14,11 +14,17 @@ import { apiFetch, ApiError } from './http'
 
 const meState = () => apiFetch('/api/admin/me', { admin: true })
 
+// Sayt hesabı ilə panel (server/adminSso.js): 403 kodu → panelin bələdçi ekranı
+const SITE_GATE = { need_2fa: 'need2fa', need_reauth: 'needReauth', security_hold: 'hold' }
+
 /**
- * Admin vəziyyətini izlə: cb({ status, email, mustChangePassword, role, twoFactor })
+ * Admin vəziyyətini izlə: cb({ status, email, mustChangePassword, role, twoFactor, via })
  *   twoFactor: iki addımlı yoxlama açıqdırmı (server/security.js → admin_totp; köhnə server — undefined)
  *   role: panel rolu — 'editor' | 'admin' | 'superadmin' (server/users.js → admin_roles; köhnə server — 'admin')
+ *   via: 'session' (ayrıca admin hesabı) | 'site' (saytın istifadəçi hesabı — SSO)
  *   status: 'loading' | 'admin' | 'signedOut' | 'unavailable'
+ *         | 'need2fa' (sayt hesabında panel rolu var, 2FA bağlıdır) | 'needReauth' (2FA-dan sonra yenidən daxil olmaq lazımdır)
+ *         | 'hold' (hesab qorunma rejimindədir)
  * Qaytarır: dayandıran funksiya.
  */
 export function watchAdmin(cb) {
@@ -26,11 +32,15 @@ export function watchAdmin(cb) {
   cb({ status: 'loading', email: '', mustChangePassword: false, role: '' })
   meState().then((me) => {
     if (stopped) return
-    cb({ status: 'admin', email: me?.email || '', mustChangePassword: Boolean(me?.mustChangePassword), role: typeof me?.role === 'string' ? me.role : 'admin', twoFactor: typeof me?.twoFactor === 'boolean' ? me.twoFactor : undefined })
+    cb({
+      status: 'admin', email: me?.email || '', mustChangePassword: Boolean(me?.mustChangePassword), role: typeof me?.role === 'string' ? me.role : 'admin',
+      twoFactor: typeof me?.twoFactor === 'boolean' ? me.twoFactor : undefined, via: me?.via === 'site' ? 'site' : 'session',
+    })
   }).catch((e) => {
     if (stopped) return
+    const gate = e instanceof ApiError && e.status === 403 ? SITE_GATE[e.code] : null
     const signedOut = e instanceof ApiError && (e.status === 401 || e.status === 403)
-    cb({ status: signedOut ? 'signedOut' : 'unavailable', email: '', mustChangePassword: false, role: '' })
+    cb({ status: gate || (signedOut ? 'signedOut' : 'unavailable'), email: '', mustChangePassword: false, role: '' })
   })
   return () => { stopped = true }
 }

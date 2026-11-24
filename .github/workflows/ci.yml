@@ -10,6 +10,8 @@
 #   DEPLOY_HOST          serverin IP-si
 #   DEPLOY_SSH_KEY       CI açarının PRIVATE hissəsi (~/.ssh/muslimscc_ci)
 #   DEPLOY_KNOWN_HOSTS   `ssh-keyscan -t ed25519 <IP>` çıxışı (MITM qoruması)
+#   ADMIN_PATH           (istəyə bağlı) gizli admin paneli ünvanı, ^/[a-z0-9-]{8,40}$ — web image-in build-inə
+#                        VITE_ADMIN_PATH kimi düşür (docs/ADMIN-SECURITY.md). e2e build-i onsuzdur (/admin).
 # Bu açar serverdə yalnız infra/ci-gate.sh-ı işlədə bilər (shell ala bilməz).
 # ═══════════════════════════════════════════════════════
 name: CI/CD
@@ -79,6 +81,15 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with: { node-version: '${{ env.NODE_VERSION }}', cache: npm }
       - run: npm ci
+      # ADMIN_PATH sirri (gizli admin ünvanı) bu build-ə QƏSDƏN yazılmır: bu dist yalnız e2e üçündür və testlər
+      # susmaya görə /admin-dədir; sirr Playwright hesabatlarına/izlərinə düşməsin. İstehsal build-i — images job.
+      # Burada yalnız format yoxlanır (səhv sirr deploy-dan əvvəl tez yıxılsın); dəyər çap olunmur.
+      - name: ADMIN_PATH sirrinin formatı
+        env: { ADMIN_PATH: '${{ secrets.ADMIN_PATH }}' }
+        run: |
+          if [ -n "$ADMIN_PATH" ] && ! printf '%s' "$ADMIN_PATH" | grep -Eqx '/[a-z0-9-]{8,40}'; then
+            echo "::error::ADMIN_PATH sirri ^/[a-z0-9-]{8,40}$ formatında olmalıdır"; exit 1
+          fi
       - name: Build
         run: |
           cp .env.public .env.production.local
@@ -168,6 +179,18 @@ jobs:
           echo "web_src=$(git ls-tree HEAD | grep -vP '\tserver$' | git hash-object --stdin)" >> "$GITHUB_OUTPUT"
       - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
 
+      # Gizli admin ünvanı (istəyə bağlı sirr ADMIN_PATH) → BuildKit sirri faylı "VITE_ADMIN_PATH=<dəyər>"
+      # (sirr yoxdursa boş fayl → /admin). Format yoxlanır, dəyər çap olunmur; image metadata-sına düşmür.
+      - name: Gizli admin ünvanı (ADMIN_PATH sirri)
+        env: { ADMIN_PATH: '${{ secrets.ADMIN_PATH }}' }
+        run: |
+          f="$RUNNER_TEMP/admin_path"
+          ( umask 077; : > "$f" )
+          if [ -n "$ADMIN_PATH" ]; then
+            printf '%s' "$ADMIN_PATH" | grep -Eqx '/[a-z0-9-]{8,40}' || { echo "::error::ADMIN_PATH sirri ^/[a-z0-9-]{8,40}$ formatında olmalıdır"; exit 1; }
+            printf 'VITE_ADMIN_PATH=%s\n' "$ADMIN_PATH" > "$f"
+          fi
+
       - name: api image
         uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
         with:
@@ -182,6 +205,7 @@ jobs:
         with:
           context: .
           file: infra/web.Dockerfile
+          secret-files: admin_path=${{ runner.temp }}/admin_path
           tags: muslimscc-web:${{ steps.tag.outputs.tag }}
           labels: cc.muslims.src=${{ steps.tag.outputs.web_src }}
           outputs: type=docker,dest=/tmp/web.tar

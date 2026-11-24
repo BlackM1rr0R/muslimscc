@@ -12,16 +12,25 @@
 
 export const ADMIN_EMAIL = 'admin@example.com'
 
+export const SITE_ADMIN_EMAIL = 'owner@example.com'
+// Sayt hesabı ilə panel (server/adminSso.js) — 403 kodları
+const SITE_GATE = { need2fa: 'need_2fa', needReauth: 'need_reauth', hold: 'security_hold' }
+
 /**
  * Saxta admin sessiyası. mode:
  *   'admin' — düzgün giriş, adi şifrə
  *   'temp'  — düzgün giriş, müvəqqəti şifrə (əvvəlcə "Şifrəni dəyiş" forması)
  *   'wrong' — yanlış şifrə (401)
+ *   'site'  — saytın hesabı ilə (SSO): sessiya artıq var, /me → via:'site', rol opts.role (susmaya görə superadmin)
+ *   'need2fa' | 'needReauth' | 'hold' — sayt hesabının panel rolu var, amma hər admin API-si 403 (kod ilə)
  * Qaytarır: state ({ signedIn, mustChange, requests }) — testlər yoxlaya bilər.
  */
-export async function fakeAdminSession(page, mode = 'admin') {
-  const state = { signedIn: false, mustChange: mode === 'temp', requests: [] }
-  const me = () => ({ email: ADMIN_EMAIL, via: 'session', mustChangePassword: state.mustChange })
+export async function fakeAdminSession(page, mode = 'admin', opts = {}) {
+  const site = mode === 'site'
+  const state = { signedIn: site, mustChange: mode === 'temp', requests: [] }
+  const me = () => (site
+    ? { email: SITE_ADMIN_EMAIL, via: 'site', mustChangePassword: false, role: opts.role || 'superadmin', twoFactor: true }
+    : { email: ADMIN_EMAIL, via: 'session', mustChangePassword: state.mustChange })
 
   await page.route((u) => u.pathname.startsWith('/api/admin/'), async (route) => {
     const req = route.request()
@@ -30,6 +39,12 @@ export async function fakeAdminSession(page, mode = 'admin') {
     state.requests.push(`${method} ${pathname}`)
     // CSRF qaydası (server/auth.js): vəziyyət dəyişən sorğuda X-Requested-With mütləqdir
     if (method !== 'GET' && !req.headers()['x-requested-with']) return route.fulfill({ status: 403, json: { error: 'Forbidden' } })
+    if (SITE_GATE[mode] && pathname !== '/api/admin/login' && pathname !== '/api/admin/logout') {
+      return route.fulfill({ status: 403, json: { error: 'Forbidden', code: SITE_GATE[mode] } })
+    }
+    if (site && (pathname === '/api/admin/password' || pathname.startsWith('/api/admin/2fa'))) {
+      return route.fulfill({ status: 403, json: { error: 'Managed in the site account', code: 'site_account' } })
+    }
 
     if (pathname === '/api/admin/login' && method === 'POST') {
       if (mode === 'wrong') return route.fulfill({ status: 401, json: { error: 'Invalid credentials' } })

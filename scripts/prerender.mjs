@@ -34,6 +34,8 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import zlib from 'node:zlib'
 
+// Gizli admin ünvanı (VITE_ADMIN_PATH) routes.js-dən ƏVVƏL process.env-ə düşsün
+import './admin-path-env.mjs'
 import { SITE, LANGS, LOCALES, DEFAULT_LANG, PAGES, INDEXABLE, DETAILS, pathFor, detailParams, langsFor, seoLangsFor, canonicalLang, uiLang, dirOf } from '../src/seo/routes.js'
 import { titleFor, descFor, fitDesc, shortName, UI, ogImageFor, OG_ALT } from '../src/seo/meta.js'
 import { brandName } from '../src/config/brand.js'

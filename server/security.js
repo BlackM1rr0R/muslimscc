@@ -46,6 +46,8 @@ const SCOPES = ['user', 'admin']
 const EVENT_KINDS = [
   'sign_in', 'sign_in_new', 'password_changed', 'password_reset', 'twofa_enabled', 'twofa_disabled',
   'backup_codes_new', 'backup_code_used', 'twofa_failed', 'passkey_added', 'passkey_removed', 'not_me', 'hold_released',
+  // Admin panelinə sayt hesabı ilə giriş (server/adminSso.js) — sessiya başına 12 saatda bir, məktubsuz
+  'admin_panel',
 ]
 // Bu hadisələrdə istifadəçiyə məktub gedir (giriş — yalnız yeni cihazdan)
 const ALERT_KINDS = new Set(['sign_in_new', 'password_changed', 'password_reset', 'twofa_enabled', 'twofa_disabled', 'backup_codes_new', 'passkey_added', 'passkey_removed'])
@@ -464,10 +466,13 @@ const PAGE_T = {
 
 // ─── Əsas obyekt: users.js / auth.js / server.js bunu işlədir ─────────
 /**
- * opts: { db, mailer?, publicOrigin?, totpKey?, prefsOf?(userId) → { tz, lang } | null, now?, log?, limits? }
+ * opts: { db, mailer?, publicOrigin?, totpKey?, prefsOf?(userId) → { tz, lang } | null, now?, log?, limits?, adminPath? }
+ *   adminPath — admin panelinin (gizli) ünvanı, məs. env ADMIN_PATH (build-dəki VITE_ADMIN_PATH ilə eyni);
+ *   format ^/[a-z0-9-]{8,40}$ deyilsə '/admin'. Yalnız adminin öz "yeni cihazdan giriş" məktubundakı keçiddə.
  */
 function createSecurity(opts) {
   const { db, mailer = null, publicOrigin = 'https://muslims.cc', now = () => Date.now(), log = console } = opts
+  const adminPath = typeof opts.adminPath === 'string' && /^\/[a-z0-9-]{8,40}$/.test(opts.adminPath) ? opts.adminPath : '/admin'
   const store = opts.store || createSecurityStore(db, { totpKey: opts.totpKey || '' })
   const prefsOf = (id) => { try { return (opts.prefsOf && opts.prefsOf(id)) || null } catch { return null } }
   const limits = opts.limits || {}
@@ -600,7 +605,7 @@ function createSecurity(opts) {
         const d = deviceCheck(req, res, 'admin', admin.id, label)
         if (d.isNew && !d.first && admin.email) {
           const ml = MAIL_LANGS.includes(lang) ? lang : 'az'
-          send('adminSignIn', ml, admin.email, { url: `${publicOrigin}${ml === 'az' ? '' : '/' + ml}/admin`, time: fmtTime(now(), ml, 'UTC'), device: label || '—', place: countryName(country, ml) || '—' })
+          send('adminSignIn', ml, admin.email, { url: `${publicOrigin}${ml === 'az' ? '' : '/' + ml}${adminPath}`, time: fmtTime(now(), ml, 'UTC'), device: label || '—', place: countryName(country, ml) || '—' })
         }
       } catch (e) { log.error('afterAdminLogin:', e && e.message) }
     },

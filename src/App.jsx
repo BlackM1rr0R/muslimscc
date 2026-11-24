@@ -4,7 +4,7 @@ import OfflineBadge from './components/OfflineBadge'
 import AutoSyncToast from './components/AutoSyncToast'
 import { Navigate, useLocation, useNavigate, useNavigationType } from 'react-router-dom'
 import { LangProvider, useStoredLangRedirect } from './contexts/LangContext'
-import { ALL_LANGS, parsePath, pathFor, legacyDetailParam, uiLang } from './seo/routes'
+import { ALL_LANGS, ADMIN_HIDDEN, parsePath, pathFor, legacyDetailParam, uiLang } from './seo/routes'
 import Seo from './seo/Seo'
 import { isOverlayEntry } from './utils/useBackToClose'
 import Header from './components/Header'
@@ -102,7 +102,7 @@ function lazyPage(factory) {
  */
 export function preloadInitialPage(pathname, hash) {
   const { key, known } = parsePath(pathname)
-  if (!known || key !== 'home' || hash === ADMIN_HASH || hash === '#/admin') return Promise.resolve()
+  if (!known || key !== 'home' || isAdminHash(hash)) return Promise.resolve()
   return HomePage.preload()
 }
 // "Əsas" bölmələri (namaz vaxtları aşağıdadır)
@@ -282,8 +282,10 @@ function PageFallback() {
   )
 }
 
-// Gizli admin girişi — ünvan sətrinə "#admin" yaz
+// Gizli admin girişi — ünvan sətrinə "#admin" yaz. Gizli panel ünvanı (VITE_ADMIN_PATH) qoşulubsa
+// bu qısayol BAĞLIDIR: köhnə giriş yalnız gizli ünvandadır (src/seo/routes.js → ADMIN_PATH)
 const ADMIN_HASH = '#admin'
+const isAdminHash = (hash) => !ADMIN_HIDDEN && (hash === ADMIN_HASH || hash === '#/admin')
 
 // H5: uşaq rejiminin qabığı (components/kid/KidShell) — yalnız kilid açıq olanda
 const KidShell = lazy(() => import('./components/kid/KidShell'))
@@ -385,7 +387,7 @@ function AppInner() {
   // "#admin" istənilən səhifədən gizli girişi açır, amma /admin marşrutunun
   // özünü ələ keçirmir — əks halda login-dən sonra sonsuz dövrə yaranardı.
   // Tanınmayan ünvan → 'notfound' (404 səhifəsi, noindex) — əvvəl səssizcə ana səhifə açılırdı
-  const page = (!isAdminKey && (hash === ADMIN_HASH || hash === '#/admin')) ? 'adminlogin' : (known ? key : 'notfound')
+  const page = (!isAdminKey && isAdminHash(hash)) ? 'adminlogin' : (known ? key : 'notfound')
   // Kukisiz statistika: hər yeni ünvan üçün bir mayak (admin sayılmır, 404 → '/404')
   usePageviews(location.pathname, { skip: isAdminKey || page === 'adminlogin', notFound: page === 'notfound' })
 

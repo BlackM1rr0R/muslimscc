@@ -26,7 +26,7 @@ for (const m of ['./auth', './users', './security', './syncKeys', './mailer', '.
   './prompts', './ai-utils', './prayer-utils', './daily-ayah', './checkin', './fasting', './reminders', './prayCalc', './eclipse', './eclipse-lib', './daily-hadith', './daily-hadith-data', './personal', './hijri',
   './readTogether', './family', './hifzTest', './globalKhatm', './challenges', './classes', './familyRamadan', './calFeed',
   './communityKit', './publicProfile', './familyDua', './duaWall', './mosqueRep', './weekly', './ipKey', './pushClaims', './quranMeaning',
-  './duaFriend', './hajjJourney', './welcome', './mailCampaigns']) require(m)
+  './duaFriend', './hajjJourney', './welcome', './mailCampaigns', './adminSso']) require(m)
 // Paket asılılıqları da (server/package.json → npm ci) — image-də yoxdursa bazadan ƏVVƏL çöksün
 for (const m of ['@simplewebauthn/server']) require(m)
 
@@ -73,7 +73,10 @@ app.use('/api/push', limit(60000, 30))
 // ─── Admin girişi (server/auth.js) ───────────────────────────────────
 const authLib = require('./auth')
 const authStore = authLib.createAuthStore(db)
-const requireAdmin = authLib.createRequireAdmin({ store: authStore, allowedOrigins: ALLOWED })
+// Sayt hesabı ilə panel (SSO, server/adminSso.js): panel rolu + TOTP 2FA olan istifadəçi sessiyası da keçir.
+// adminSso aşağıda (usersStore + security-dən sonra) yaradılır — sorğu anında hazırdır.
+const siteSso = { resolve: (req, res) => adminSso.resolve(req, res), audit: (req, r) => adminSso.audit(req, r) }
+const requireAdmin = authLib.createRequireAdmin({ store: authStore, allowedOrigins: ALLOWED, siteSso })
 // İstifadəçi hesabları (server/users.js) — cədvəllər miqrasiyasız; admin_roles burada yaradılır,
 // ona görə store admin router-indən əvvəl qurulur (GET /api/admin/me → role)
 const usersLib = require('./users')
@@ -84,7 +87,10 @@ const security = require('./security').createSecurity({
   db, totpKey: process.env.TOTP_KEY || '', publicOrigin: (process.env.PUBLIC_ORIGIN || 'https://muslims.cc').replace(/\/+$/, ''),
   mailer: { sendTemplate: (...a) => mailer.sendTemplate(...a) },
   prefsOf: (id) => personalRouter.store.prefs(id),
+  // Gizli panel ünvanı (build-dəki VITE_ADMIN_PATH ilə eyni; yoxdursa /admin) — yalnız adminin yeni cihaz məktubunda
+  adminPath: process.env.ADMIN_PATH || undefined,
 })
+const adminSso = require('./adminSso').createAdminSso({ db, usersStore, security })
 app.use('/api', authLib.createAuthRouter({ store: authStore, requireAdmin, allowedOrigins: ALLOWED, adminRoleOf: usersStore.adminRole, security }))
 // Vaxtı keçmiş sessiyaları saatda bir təmizlə
 setInterval(() => { try { authStore.purgeExpired() } catch { /* */ } }, 3600e3).unref()
@@ -101,7 +107,7 @@ const welcome = require('./welcome').createWelcome({ db, mailer, publicOrigin: P
 const usersRouter = usersLib.createUsersRouter({
   db, store: usersStore, requireAdmin, allowedOrigins: ALLOWED,
   hooks: {
-    beforeDeleteUser: (id) => { syncKeysStore.deleteUserData(id); readTogetherRouter.closeOwnerRooms(id) },
+    beforeDeleteUser: (id) => { syncKeysStore.deleteUserData(id); readTogetherRouter.closeOwnerRooms(id); adminSso.deleteUserData(id) },
     passkeyRemoved: (userId, credId) => syncKeysStore.remove(userId, 'prf', credId),
     passwordReset: (userId) => syncKeysStore.remove(userId, 'password', ''),
     emailVerified: (userId, lang) => welcome.onVerified(userId, lang),
@@ -121,7 +127,7 @@ app.use('/api', require('./security').createSecurityRouter({
   sources: { personal: () => personalRouter.store, family: () => familyRouter, hifzTests: () => hifzTestRouter, sync: syncKeysStore, readTogether: () => readTogetherRouter, globalKhatm: () => khatmRouter,
     challenges: () => challengesRouter, classes: () => classesRouter, familyRamadan: () => familyRamadanRouter, calFeed: () => calFeedRouter,
     publicProfile: () => publicProfileRouter, familyDuas: () => familyDuaRouter, duaWall: () => duaWallRouter, mosqueRep: () => mosqueRepRouter, weekly: () => weeklyRouter,
-    duaFriend: () => duaFriendRouter, hajjJourney: () => hajjJourneyRouter, welcome, mailCampaigns: () => mailCampaignsRouter },
+    duaFriend: () => duaFriendRouter, hajjJourney: () => hajjJourneyRouter, welcome, mailCampaigns: () => mailCampaignsRouter, adminPanel: adminSso },
 }))
 setInterval(() => security.purge(), 3600e3).unref()
 app.use('/api', syncKeysLib.createSyncKeysRouter({

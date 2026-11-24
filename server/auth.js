@@ -16,6 +16,9 @@
 //   `must_change=1` olur. Belə sessiya yalnız /me, /password, /logout-a çata
 //   bilər (requireAdmin.allowTemp); qalan admin API-ləri 403 { code:'must_change' }.
 //   POST /api/admin/password — cari + yeni şifrə; digər sessiyalar ləğv olunur.
+// • Sayt hesabı ilə panel (SSO, server/adminSso.js): createRequireAdmin({ siteSso }) sayt
+//   sessiyasını da qəbul edir — panel rolu + TOTP 2FA şərti ilə; req.adminUser.site === true.
+//   Panelin öz şifrə/2FA marşrutları belə sessiyaya 403 { code:'site_account' } qaytarır.
 // • İstifadəçi hesabları (admin panelindən AYRI) — server/users.js; oradakı
 //   köməkçilər (hashPassword, csrfRejected, createFailureLimiter...) buradan gəlir.
 // ═══════════════════════════════════════════════════════════════════════
@@ -213,9 +216,15 @@ function createAuthStore(db) {
 }
 
 /**
- * requireAdmin middleware — yalnız sessiya cookie-si (req.adminUser.via === 'session').
+ * requireAdmin middleware — interaktiv cookie sessiyası (req.adminUser.via === 'session'):
+ *  1) admin panelinin öz sessiyası (__Host-mcc_admin) — əvvəlki kimi, üstünlük bunundur;
+ *  2) siteSso verilibsə (server/adminSso.js) — saytın istifadəçi sessiyası (__Host-mcc_user), panel rolu
+ *     + TOTP 2FA ilə. Onda req.adminUser.site === true, siteUserId; id — kölgə admins sətri.
+ *     via yenə 'session'-dır (panel modulları "via !== 'session'" ilə token girişini bağlayırdı —
+ *     sayt sessiyası da interaktiv cookie sessiyasıdır); GET /api/admin/me isə via:'site' qaytarır.
+ *     403 { code:'need_2fa' | 'need_reauth' | 'security_hold' } — panel bələdçi ekranı göstərir.
  */
-function createRequireAdmin({ store, allowedOrigins = [] }) {
+function createRequireAdmin({ store, allowedOrigins = [], siteSso = null }) {
   const make = (allowTemp) => function requireAdmin(req, res, next) {
     const token = parseCookies(req.headers.cookie)[COOKIE_NAME]
     if (token) {
@@ -230,6 +239,18 @@ function createRequireAdmin({ store, allowedOrigins = [] }) {
         }
         return next()
       }
+    }
+    const sso = siteSso ? siteSso.resolve(req, res) : null
+    if (sso) {
+      if (csrfRejected(req, allowedOrigins)) return res.status(403).json({ error: 'Forbidden' })
+      res.set('Cache-Control', 'no-store')
+      if (!sso.ok) {
+        const msg = sso.code === 'need_2fa' ? 'Two-step verification required' : sso.code === 'need_reauth' ? 'Sign in again' : 'Forbidden'
+        return res.status(sso.status || 403).json({ error: msg, code: sso.code })
+      }
+      req.adminUser = { id: sso.admin.id, email: sso.admin.email, via: 'session', site: true, siteUserId: sso.admin.userId, mustChange: false }
+      if (siteSso.audit) siteSso.audit(req, sso)
+      return next()
     }
     return res.status(401).json({ error: 'Unauthorized' })
   }
@@ -308,12 +329,23 @@ function createAuthRouter({ store, requireAdmin, allowedOrigins = [], limits = {
 
   router.get('/admin/me', requireAny, (req, res) => {
     res.set('Cache-Control', 'no-store')
-    const body = { email: req.adminUser.email, via: req.adminUser.via, mustChangePassword: Boolean(req.adminUser.mustChange) }
-    // Panel rolu (server/users.js → admin_roles; sətri olmayan admin = 'admin')
+    const site = Boolean(req.adminUser.site)
+    const body = { email: req.adminUser.email, via: site ? 'site' : req.adminUser.via, mustChangePassword: Boolean(req.adminUser.mustChange) }
+    // Panel rolu (server/users.js → admin_roles; sətri olmayan admin = 'admin'; SSO — sayt rolu ilə eyni)
     if (adminRoleOf) body.role = adminRoleOf(req.adminUser.id)
-    if (security) body.twoFactor = security.twoFactorEnabled('admin', req.adminUser.id)
+    // SSO: 2FA sayt hesabındadır və SSO üçün mütləqdir (server/adminSso.js) — həmişə açıq
+    if (site) body.twoFactor = true
+    else if (security) body.twoFactor = security.twoFactorEnabled('admin', req.adminUser.id)
     res.json(body)
   })
+  // Panelin öz şifrəsi / 2FA-sı yalnız ayrıca admin hesabı üçündür; sayt hesabı bunları /account-da idarə edir
+  const legacyOnly = (req, res, next) => {
+    if (req.adminUser && req.adminUser.site) {
+      res.set('Cache-Control', 'no-store')
+      return res.status(403).json({ error: 'Managed in the site account', code: 'site_account' })
+    }
+    next()
+  }
 
   // ── İki addımlı yoxlama (TOTP, server/security.js → admin_totp) ──
   if (security) {
@@ -343,11 +375,11 @@ function createAuthRouter({ store, requireAdmin, allowedOrigins = [], limits = {
       pwLimiter.reset(key)
       return true
     }
-    router.get('/admin/2fa', requireAdmin, (req, res) => {
+    router.get('/admin/2fa', requireAdmin, legacyOnly, (req, res) => {
       res.set('Cache-Control', 'no-store')
       res.json(sstore.totpStatus('admin', req.adminUser.id))
     })
-    router.post('/admin/2fa/setup', requireAdmin, json, async (req, res) => {
+    router.post('/admin/2fa/setup', requireAdmin, legacyOnly, json, async (req, res) => {
       res.set('Cache-Control', 'no-store')
       if (sstore.totpEnabled('admin', req.adminUser.id)) return res.status(409).json({ error: 'Already enabled', code: 'already_enabled' })
       if (!(await reauth(req, res))) return
@@ -355,7 +387,7 @@ function createAuthRouter({ store, requireAdmin, allowedOrigins = [], limits = {
       if (!secret) return res.status(409).json({ error: 'Already enabled', code: 'already_enabled' })
       res.json({ secret, uri: require('./security').otpauthUri({ secret, account: req.adminUser.email, issuer: 'Muslims.cc Admin' }) })
     })
-    router.post('/admin/2fa/enable', requireAdmin, json, (req, res) => {
+    router.post('/admin/2fa/enable', requireAdmin, legacyOnly, json, (req, res) => {
       res.set('Cache-Control', 'no-store')
       const key = 'tf:' + req.adminUser.id
       if (pwLimiter.blocked(key)) return res.status(429).json({ error: 'Too many attempts' })
@@ -363,7 +395,7 @@ function createAuthRouter({ store, requireAdmin, allowedOrigins = [], limits = {
       if (!codes) { pwLimiter.fail(key); return res.status(400).json({ error: 'Invalid code', code: 'invalid_code' }) }
       res.json({ ok: true, backupCodes: codes })
     })
-    router.post('/admin/2fa/disable', requireAdmin, json, async (req, res) => {
+    router.post('/admin/2fa/disable', requireAdmin, legacyOnly, json, async (req, res) => {
       res.set('Cache-Control', 'no-store')
       if (!sstore.totpEnabled('admin', req.adminUser.id)) return res.json({ ok: true })
       if (!(await reauth(req, res))) return
@@ -374,7 +406,7 @@ function createAuthRouter({ store, requireAdmin, allowedOrigins = [], limits = {
 
   // Şifrəni dəyiş: { currentPassword, newPassword } — yalnız sessiya ilə.
   // CSRF requireAdmin-dədir. Uğurlu olanda digər sessiyalar ləğv olunur, cari sessiya qalır.
-  router.post('/admin/password', requireAny, json, async (req, res) => {
+  router.post('/admin/password', requireAny, legacyOnly, json, async (req, res) => {
     res.set('Cache-Control', 'no-store')
     if (req.adminUser.via !== 'session') return res.status(403).json({ error: 'Session required' })
     const cur = req.body && req.body.currentPassword

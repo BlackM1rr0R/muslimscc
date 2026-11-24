@@ -15,6 +15,7 @@ import { AdminHeader, AdminEmpty, AdminAlert, AdminToast, SectionTitle } from '.
 import {
   adminMailAudience, adminMailCampaigns, adminMailCancel, adminMailCreate, adminMailPreview, adminMailTest,
 } from '../../api/userAuth'
+import { MAIL_TEMPLATES, MAIL_THEMES, THEME_NAMES, themeThumb } from '../../utils/mailTemplates'
 
 const MAIL_LANGS = ['az', 'en', 'ru', 'tr', 'ar']
 const EMPTY = { subject: '', body: '', ctaLabel: '', ctaUrl: '' }
@@ -28,7 +29,9 @@ const LABELS = {
     language: 'Dil', langSingle: 'Hamıya bir versiya', langPer: 'Hər dilə ayrı versiya', langOf: 'Məktubun dili',
     include: 'Hansı dillərdə yazırsınız', fallback: 'Ehtiyat dil',
     fallbackHint: 'Sayt dili yazdığınız versiyalardan biri olmayan istifadəçilər ehtiyat dilin versiyasını alır.',
-    header: 'Başlıq', headerGif: 'Animasiyalı şəkil', headerText: 'Sadə başlıq',
+    header: 'Başlıq', headerGif: 'Animasiyalı (palitranın şəkli)', headerText: 'Sadə mətn başlığı', theme: 'Rəng palitrası',
+    templates: 'Hazır şablonlar', templatesHint: 'Şablonu seçin — 5 dilin hamısında mövzu, mətn, düymə və rəng palitrası doldurulacaq. Sonra istədiyiniz kimi dəyişə bilərsiniz.',
+    tplApplied: '«{name}» şablonu tətbiq olundu — 5 dildə versiya hazırdır', undo: 'Geri qaytar', undone: 'Əvvəlki mətn qaytarıldı', errTheme: 'Rəng palitrası düzgün deyil',
     edit: 'Versiyanı redaktə et', subject: 'Mövzu', body: 'Mətn',
     bodyHint: 'Boş sətir — yeni abzas. **qalın**, [mətn](https://…) və ya sadəcə https://… keçid. HTML qəbul olunmur.',
     ctaLabel: 'Düymənin mətni (ixtiyari)', ctaUrl: 'Düymənin keçidi',
@@ -60,7 +63,9 @@ const LABELS = {
     language: 'Language', langSingle: 'One version for everyone', langPer: 'A version per language', langOf: 'Email language',
     include: 'Languages you are writing in', fallback: 'Fallback language',
     fallbackHint: 'Users whose site language is not one of your versions get the fallback version.',
-    header: 'Header', headerGif: 'Animated image', headerText: 'Simple header',
+    header: 'Header', headerGif: 'Animated (theme image)', headerText: 'Simple text header', theme: 'Colour theme',
+    templates: 'Ready-made templates', templatesHint: 'Pick a template — subject, message, button and colour theme are filled in for all 5 languages. You can then edit anything.',
+    tplApplied: 'The “{name}” template was applied — versions in 5 languages are ready', undo: 'Undo', undone: 'Your previous text was restored', errTheme: 'The colour theme is not valid',
     edit: 'Edit version', subject: 'Subject', body: 'Message',
     bodyHint: 'Blank line — new paragraph. **bold**, [text](https://…) or a plain https://… link. HTML is not accepted.',
     ctaLabel: 'Button text (optional)', ctaUrl: 'Button link',
@@ -92,7 +97,9 @@ const LABELS = {
     language: 'Язык', langSingle: 'Одна версия для всех', langPer: 'Своя версия для каждого языка', langOf: 'Язык письма',
     include: 'На каких языках вы пишете', fallback: 'Запасной язык',
     fallbackHint: 'Пользователи, чей язык сайта не совпадает ни с одной версией, получат версию на запасном языке.',
-    header: 'Шапка', headerGif: 'Анимированная картинка', headerText: 'Простая шапка',
+    header: 'Шапка', headerGif: 'Анимированная (картинка темы)', headerText: 'Простая текстовая шапка', theme: 'Цветовая тема',
+    templates: 'Готовые шаблоны', templatesHint: 'Выберите шаблон — тема письма, текст, кнопка и цветовая тема заполнятся на всех 5 языках. Потом всё можно изменить.',
+    tplApplied: 'Шаблон «{name}» применён — версии на 5 языках готовы', undo: 'Отменить', undone: 'Прежний текст восстановлен', errTheme: 'Неверная цветовая тема',
     edit: 'Редактировать версию', subject: 'Тема', body: 'Текст',
     // lang-ok[HTML,https]: синтаксис разметки, не текст
     bodyHint: 'Пустая строка — новый абзац. **жирный**, [текст](https://…) или просто ссылка https://… HTML не принимается.',
@@ -127,7 +134,9 @@ const LABELS = {
     language: 'Dil', langSingle: 'Herkese tek sürüm', langPer: 'Her dile ayrı sürüm', langOf: 'E-postanın dili',
     include: 'Hangi dillerde yazıyorsunuz', fallback: 'Yedek dil',
     fallbackHint: 'Site dili sürümlerinizden biri olmayan kullanıcılar yedek dildeki sürümü alır.',
-    header: 'Üst kısım', headerGif: 'Hareketli görsel', headerText: 'Sade başlık',
+    header: 'Üst kısım', headerGif: 'Hareketli (temanın görseli)', headerText: 'Sade metin başlığı', theme: 'Renk teması',
+    templates: 'Hazır şablonlar', templatesHint: 'Bir şablon seçin — 5 dilin hepsinde konu, metin, düğme ve renk teması doldurulur. Sonra dilediğiniz gibi değiştirebilirsiniz.',
+    tplApplied: '«{name}» şablonu uygulandı — 5 dilde sürüm hazır', undo: 'Geri al', undone: 'Önceki metin geri getirildi', errTheme: 'Renk teması geçersiz',
     edit: 'Sürümü düzenle', subject: 'Konu', body: 'Metin',
     bodyHint: 'Boş satır — yeni paragraf. **kalın**, [metin](https://…) veya düz https://… bağlantısı. HTML kabul edilmez.',
     ctaLabel: 'Düğme metni (isteğe bağlı)', ctaUrl: 'Düğme bağlantısı',
@@ -160,7 +169,9 @@ const LABELS = {
     language: 'اللغة', langSingle: 'نسخة واحدة للجميع', langPer: 'نسخة لكل لغة', langOf: 'لغة الرسالة',
     include: 'اللغات التي تكتب بها', fallback: 'اللغة الاحتياطية',
     fallbackHint: 'من لم تكن لغة الموقع لديه إحدى نسخك يتلقى نسخة اللغة الاحتياطية.',
-    header: 'الترويسة', headerGif: 'صورة متحركة', headerText: 'ترويسة بسيطة',
+    header: 'الترويسة', headerGif: 'متحركة (صورة السمة)', headerText: 'ترويسة نصية بسيطة', theme: 'سمة الألوان',
+    templates: 'قوالب جاهزة', templatesHint: 'اختر قالبًا — يُملأ الموضوع والنص والزر وسمة الألوان باللغات الخمس كلها. بعد ذلك يمكنك تعديل ما تشاء.',
+    tplApplied: 'طُبّق قالب «{name}» — النسخ باللغات الخمس جاهزة', undo: 'تراجع', undone: 'استُعيد نصك السابق', errTheme: 'سمة الألوان غير صالحة',
     edit: 'تحرير النسخة', subject: 'الموضوع', body: 'النص',
     // lang-ok[HTML,https]: صيغة التنسيق وليست نصًا
     bodyHint: 'سطر فارغ — فقرة جديدة. **عريض**، [نص](https://…) أو رابط https://… مباشر. لا يُقبل HTML.',
@@ -190,7 +201,7 @@ const LABELS = {
 }
 
 const CODE = {
-  bad_subject: 'errSubject', bad_body: 'errBody', bad_cta: 'errCta', bad_lang: 'errLang', bad_mode: 'errLang', bad_fallback: 'errFallback',
+  bad_subject: 'errSubject', bad_body: 'errBody', bad_cta: 'errCta', bad_lang: 'errLang', bad_mode: 'errLang', bad_fallback: 'errFallback', bad_theme: 'errTheme',
   bad_recipients: 'errRecipients', no_recipients: 'errNoRecipients', count_changed: 'errCountChanged', confirm_required: 'errCountChanged',
   mail_disabled: 'errMailOff', send_failed: 'errSendFailed', not_active: 'errNotActive', superadmin_required: 'errSuperOnly',
   session_required: 'errSessionReq', rate_limited: 'errMany', no_email: 'errSendFailed',
@@ -222,6 +233,10 @@ export default function MailComposer({ targets = [], onClearTargets }) {
   const [fallback, setFallback] = useState('en')
   const [editLang, setEditLang] = useState('az')
   const [header, setHeader] = useState('gif')
+  const [theme, setTheme] = useState('emerald')
+  const [tplId, setTplId] = useState('')
+  const [tplNote, setTplNote] = useState('')
+  const [undo, setUndo] = useState(null)
   const [versions, setVersions] = useState(() => Object.fromEntries(MAIL_LANGS.map((x) => [x, { ...EMPTY }])))
   const [preview, setPreview] = useState(null)
   const [err, setErr] = useState('')
@@ -235,10 +250,10 @@ export default function MailComposer({ targets = [], onClearTargets }) {
   const langs = langMode === 'single' ? [singleLang] : MAIL_LANGS.filter((x) => included.includes(x))
   const activeLang = langs.includes(editLang) ? editLang : langs[0]
   const content = useMemo(() => ({
-    mode: langMode, header,
+    mode: langMode, header, theme,
     ...(langMode === 'perLang' ? { fallback: langs.includes(fallback) ? fallback : langs[0] } : {}),
     versions: Object.fromEntries(langs.map((x) => [x, versions[x]])),
-  }), [langMode, header, fallback, versions, langs.join(',')]) // eslint-disable-line react-hooks/exhaustive-deps
+  }), [langMode, header, theme, fallback, versions, langs.join(',')]) // eslint-disable-line react-hooks/exhaustive-deps
   // Seçim təmizlənibsə — "hamısı"; əks halda 1 nəfər → "one", çox → "selected"
   const recMode = useAll || !hasTargets ? 'all' : targets.length === 1 ? 'one' : 'selected'
   const recipients = recMode === 'all' ? { mode: 'all' } : { mode: recMode, ids: targets.map((t) => t.id) }
@@ -280,6 +295,31 @@ export default function MailComposer({ targets = [], onClearTargets }) {
     const h = setInterval(loadList, 4000)
     return () => clearInterval(h)
   }, [active, loadList])
+
+  // ── Şablon: 5 dilin hamısını + rəng mövzusunu doldurur; əvvəlki vəziyyət "Geri qaytar" üçün saxlanır ──
+  const applyTemplate = (t) => {
+    setUndo({ langMode, singleLang, included, fallback, editLang, header, theme, versions, tplId })
+    setConfirm(null)
+    setVersions(Object.fromEntries(MAIL_LANGS.map((x) => [x, { ...EMPTY, ...t.versions[x] }])))
+    setLangMode('perLang')
+    setIncluded([...MAIL_LANGS])
+    setFallback('en')
+    setEditLang(MAIL_LANGS.includes(lang) ? lang : 'az')
+    setHeader('gif')
+    setTheme(t.theme)
+    setTplId(t.id)
+    setTplNote(fill(l.tplApplied, { name: t.name[lang] || t.name.en }))
+  }
+  const undoTemplate = () => {
+    const u = undo
+    if (!u) return
+    setUndo(null)
+    setConfirm(null)
+    setLangMode(u.langMode); setSingleLang(u.singleLang); setIncluded(u.included); setFallback(u.fallback)
+    setEditLang(u.editLang); setHeader(u.header); setTheme(u.theme); setVersions(u.versions); setTplId(u.tplId)
+    setTplNote(l.undone)
+  }
+  const themeNames = THEME_NAMES[lang] || THEME_NAMES.en
 
   const setField = (k, v) => { setConfirm(null); setVersions((vs) => ({ ...vs, [activeLang]: { ...vs[activeLang], [k]: v } })) }
   const toggleLang = (x) => {
@@ -327,6 +367,28 @@ export default function MailComposer({ targets = [], onClearTargets }) {
       <AdminHeader icon="mail" title={l.title} sub={l.sub} />
       {list && list.mailEnabled === false && <AdminAlert tone="warn">{l.mailOff}</AdminAlert>}
       {err && <AdminAlert>{err}</AdminAlert>}
+
+      <section className="admin-section" aria-labelledby="mail-tpl">
+        <span id="mail-tpl"><SectionTitle icon="palette">{l.templates}</SectionTitle></span>
+        <p className="admin-hint" id="mail-tpl-hint">{l.templatesHint}</p>
+        <div className="admin-mail__tpls" role="group" aria-labelledby="mail-tpl" aria-describedby="mail-tpl-hint" data-testid="mail-templates">
+          {MAIL_TEMPLATES.map((t) => (
+            <button key={t.id} type="button" className="admin-mail__tpl" aria-pressed={tplId === t.id} onClick={() => applyTemplate(t)} data-testid={`mail-tpl-${t.id}`}>
+              <img className="admin-mail__tpl-img" src={themeThumb(t.theme)} alt="" width="300" height="110" loading="lazy" decoding="async" />
+              <span className="admin-mail__tpl-name">{t.name[lang] || t.name.en}</span>
+              <span className="admin-mail__tpl-theme">{themeNames[t.theme]}</span>
+            </button>
+          ))}
+        </div>
+        <div className="admin-mail__tplnote" aria-live="polite" data-testid="mail-tpl-note">
+          {tplNote && (
+            <>
+              <span>{tplNote}</span>
+              {undo && <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm" onClick={undoTemplate}>{l.undo}</button>}
+            </>
+          )}
+        </div>
+      </section>
 
       <section className="admin-section" aria-labelledby="mail-rcp">
         <span id="mail-rcp"><SectionTitle icon="user">{l.recipients}</SectionTitle></span>
@@ -385,9 +447,15 @@ export default function MailComposer({ targets = [], onClearTargets }) {
           )}
           <label className="admin-input-group">
             <span className="admin-input-label">{l.header}</span>
-            <select className="admin-input admin-select" value={header} onChange={(e) => { setConfirm(null); setHeader(e.target.value) }}>
+            <select className="admin-input admin-select" value={header} onChange={(e) => { setConfirm(null); setHeader(e.target.value) }} data-testid="mail-header">
               <option value="gif">{l.headerGif}</option>
               <option value="text">{l.headerText}</option>
+            </select>
+          </label>
+          <label className="admin-input-group">
+            <span className="admin-input-label">{l.theme}</span>
+            <select className="admin-input admin-select" value={theme} onChange={(e) => { setConfirm(null); setTheme(e.target.value) }} data-testid="mail-theme">
+              {MAIL_THEMES.map((x) => <option key={x} value={x}>{themeNames[x]}</option>)}
             </select>
           </label>
         </div>

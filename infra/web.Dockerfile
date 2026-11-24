@@ -18,7 +18,15 @@ RUN cp .env.public .env.production.local
 # JS/CSS/JSON/XML üçün dist ilə birlikdə image-ə düşür; yoxdursa build dayansın.
 # HTML üçün .gz YAZILMIR (image 400 MB server həddini aşırdı) — onu nginx
 # dinamik gzip sıxır; ona görə .html.gz OLMAMALIDIR.
-RUN npm run build && test -f dist/404.html && test -f dist/index.html && ! test -f dist/index.html.gz && ls dist/assets/*.js.gz > /dev/null
+# Gizli admin paneli ünvanı (docs/ADMIN-SECURITY.md → "Gizli ünvan"): CI GitHub sirri ADMIN_PATH-i
+# BuildKit sirri kimi verir (fayl: "VITE_ADMIN_PATH=/..." və ya boş). Image metadata-sına/ARG-a düşmür;
+# yalnız bu RUN-da .env.production.local-a əlavə olunur. Yoxdursa — köhnə /admin.
+RUN --mount=type=secret,id=admin_path,required=false \
+    if [ -s /run/secrets/admin_path ]; then \
+      grep -Eqx 'VITE_ADMIN_PATH=/[a-z0-9-]{8,40}' /run/secrets/admin_path || { echo 'admin_path sirri formatı yanlışdır'; exit 1; }; \
+      { echo; cat /run/secrets/admin_path; } >> .env.production.local; \
+    fi && \
+    npm run build && test -f dist/404.html && test -f dist/index.html && ! test -f dist/index.html.gz && ls dist/assets/*.js.gz > /dev/null
 
 # ── 2) Serve ──
 # stable-alpine: hər deploy-da təzə build olunur → nginx təhlükəsizlik

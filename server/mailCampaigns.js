@@ -35,7 +35,7 @@
 
 const crypto = require('node:crypto')
 const express = require('express')
-const { renderCampaign } = require('./mailer')
+const { renderCampaign, MAIL_THEMES, DEFAULT_THEME } = require('./mailer')
 const { SCHEMA: WELCOME_SCHEMA } = require('./welcome')
 
 const MAIL_LANGS = ['az', 'en', 'ru', 'tr', 'ar']
@@ -103,7 +103,7 @@ const cleanBody = (s) => String(s).replace(/\r\n?/g, '\n').replace(/[‪-‮⁦-
 
 /**
  * Formadan gələn məzmun → { content } | { error, lang? }.
- * content: { mode: 'single'|'perLang', header: 'gif'|'text', fallback, versions: { <lang>: { subject, body, ctaLabel, ctaUrl } } }
+ * content: { mode: 'single'|'perLang', header: 'gif'|'text', theme: MAIL_THEMES (allowlist; yoxdursa emerald), fallback, versions: { <lang>: { subject, body, ctaLabel, ctaUrl } } }
  * ctaUrl: tam https URL (yalnız publicOrigin) və ya "/yol" — yol versiyanın dil prefiksi ilə tamamlanır (az — prefikssiz).
  */
 function validContent(c, publicOrigin = 'https://muslims.cc') {
@@ -111,6 +111,9 @@ function validContent(c, publicOrigin = 'https://muslims.cc') {
   if (c.mode !== 'single' && c.mode !== 'perLang') return { error: 'bad_mode' }
   const header = c.header == null ? 'gif' : c.header
   if (header !== 'gif' && header !== 'text') return { error: 'bad_request' }
+  // Rəng mövzusu — yalnız serverin siyahısından (rəngin özü klientdən heç vaxt gəlmir)
+  const theme = c.theme == null ? DEFAULT_THEME : c.theme
+  if (typeof theme !== 'string' || !MAIL_THEMES.includes(theme)) return { error: 'bad_theme' }
   const v = c.versions
   if (!v || typeof v !== 'object' || Array.isArray(v)) return { error: 'bad_request' }
   const langs = Object.keys(v)
@@ -145,7 +148,7 @@ function validContent(c, publicOrigin = 'https://muslims.cc') {
     }
     versions[l] = { subject, body, ctaLabel, ctaUrl }
   }
-  return { content: { mode: c.mode, header, fallback, versions } }
+  return { content: { mode: c.mode, header, theme, fallback, versions } }
 }
 
 /** Alıcı seçimi → { mode, ids } | null */
@@ -324,7 +327,7 @@ function createMailCampaignsRouter(opts) {
     let r = null
     try {
       const m = renderCampaign(job.lang, {
-        subject: v.subject, body: v.body, ctaLabel: v.ctaLabel, ctaUrl: v.ctaUrl, header: content.header, origin: publicOrigin,
+        subject: v.subject, body: v.body, ctaLabel: v.ctaLabel, ctaUrl: v.ctaUrl, header: content.header, theme: content.theme, origin: publicOrigin,
         unsubUrl: `${publicOrigin}/api/mail/unsubscribe?t=${unsubToken(secretOf(), job.user_id)}&l=${job.lang}`,
       })
       r = await mailer.send({ to: u.email, ...m, kind: 'campaign' })
@@ -390,7 +393,7 @@ function createMailCampaignsRouter(opts) {
   }
   const render = (content, lang, extra = {}) => {
     const v = content.versions[lang]
-    return renderCampaign(lang, { subject: v.subject, body: v.body, ctaLabel: v.ctaLabel, ctaUrl: v.ctaUrl, header: content.header, origin: publicOrigin, ...extra })
+    return renderCampaign(lang, { subject: v.subject, body: v.body, ctaLabel: v.ctaLabel, ctaUrl: v.ctaUrl, header: content.header, theme: content.theme, origin: publicOrigin, ...extra })
   }
 
   router.post('/admin/mail/preview', ...guard, json, (req, res) => {

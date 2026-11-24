@@ -2,6 +2,8 @@
 
 Saytın **istifadəçi** hesabları — admin panelindən **tam ayrıdır** (ayrı cədvəllər, ayrı cookie, ayrı giriş).
 Admin paneli öz girişini saxlayır (`server/auth.js`, [ADMIN-SECURITY.md](ADMIN-SECURITY.md), [SERVER-OPS.md](SERVER-OPS.md)).
+**İstisna (SSO, `server/adminSso.js`):** rolu `editor`/`admin`/`superadmin` olan və **iki addımlı yoxlaması açıq**
+istifadəçi hesabı panelə ayrıca girişsiz keçir (eyni panel rolu ilə) — [ADMIN-SECURITY.md → "Sayt hesabı ilə panel"](ADMIN-SECURITY.md).
 
 | | Admin paneli | İstifadəçi hesabı |
 |---|---|---|
@@ -339,7 +341,7 @@ miqrasiyasızdır (`CREATE TABLE IF NOT EXISTS`, `user_version` dəyişmir), `us
 (`./communityKit`, `./publicProfile`, `./familyDua`, `./duaWall`, `./mosqueRep`, `./weekly`) `server.js`-in əvvəlcədən
 yükləmə siyahısında, "Mənim məlumatlarım" ixracında (`exportUser`/`summaryUser`). İctimai mətnlərdən keçidlər silinir
 (`communityKit.stripLinks`), dua divarında keçid/telefon → rədd. **Moderasiya — admin PANELİ** (`server/auth.js`
-sessiyası, `admin_roles` ≥ editor; saytın `editor` rolu kifayət deyil): panel → "Dua divarına nəzarət"
+sessiyası, `admin_roles` ≥ editor; saytın `editor` rolu yalnız 2FA ilə, SSO vasitəsilə — `server/adminSso.js`): panel → "Dua divarına nəzarət"
 (`src/components/admin/CommunityModeration.jsx`). Moderator yalnız məzmunu görür — e-poçt / hesab id-si göndərilmir.
 
 | Modul | Cədvəllər | Endpoint-lər | Limit (IP) |

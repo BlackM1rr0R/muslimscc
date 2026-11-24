@@ -238,17 +238,23 @@ describe('HTTP + növbə', () => {
     expect(pv.lang).toBe('ru')
     expect(pv.subject).toBe('RU тема')
     expect(pv.html).toContain('<html lang="ru" dir="ltr"')
+    expect(pv.html).toContain('data-theme="emerald"')                // mövzusuz → emerald
+    const night = await (await call('/api/admin/mail/preview', { cookie: sa, body: { content: { ...perLang(), header: 'gif', theme: 'night' }, lang: 'az' } })).json()
+    expect(night.html).toContain('data-theme="night"')
+    expect(night.html).toContain('/email/header-night-v1.gif')
+    expect((await call('/api/admin/mail/preview', { cookie: sa, body: { content: { ...perLang(), theme: '#ff0000' } } })).status).toBe(400)
     mail.length = 0
-    const r = await call('/api/admin/mail/test', { cookie: sa, body: { content: perLang(), to: 'victim@example.com' } })
+    const r = await call('/api/admin/mail/test', { cookie: sa, body: { content: { ...perLang(), theme: 'dawn' }, to: 'victim@example.com' } })
     expect(await r.json()).toEqual({ ok: true, sent: 3 })
     expect(mail.map((m) => m.to)).toEqual(['owner@muslims.cc', 'owner@muslims.cc', 'owner@muslims.cc'])
     expect(mail.every((m) => m.subject.startsWith('[Test] '))).toBe(true)
+    expect(mail.every((m) => m.html.includes('data-theme="dawn"'))).toBe(true)
     mail.length = 0
   })
 
   it('kampaniya: təsdiq sayı tələb olunur, növbə hər alıcıya bir dəfə, dilinə görə; ikiqat sorğu yeni kampaniya yaratmır', async () => {
     const sa = await login('owner@muslims.cc')
-    const body = { content: perLang(), recipients: { mode: 'all' } }
+    const body = { content: { ...perLang(), theme: 'festive' }, recipients: { mode: 'all' } }
     expect((await (await call('/api/admin/mail/campaigns', { cookie: sa, body })).json()).code).toBe('confirm_required')
     const wrong = await call('/api/admin/mail/campaigns', { cookie: sa, body: { ...body, confirmCount: 4 } })
     expect(wrong.status).toBe(409)
@@ -270,6 +276,7 @@ describe('HTTP + növbə', () => {
     expect(byTo['fr1@example.com'].subject).toBe('EN subject')
     expect(byTo['nolang@example.com'].subject).toBe('EN subject')
     expect(byTo['az1@example.com'].html).toContain('href="https://muslims.cc/quran"')
+    expect(Object.values(byTo).every((m) => m.html.includes('data-theme="festive"'))).toBe(true)
     expect(byTo['en1@example.com'].html).toContain('href="https://muslims.cc/en/quran"')
     expect(byTo['en1@example.com'].headers['List-Unsubscribe-Post']).toBe('List-Unsubscribe=One-Click')
     expect(byTo['en1@example.com'].headers['List-Unsubscribe']).toContain(`/api/mail/unsubscribe?t=${mc.unsubToken(SECRET, ids.en1)}&l=en`)

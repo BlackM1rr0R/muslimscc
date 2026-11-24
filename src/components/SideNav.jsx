@@ -93,13 +93,15 @@ const LANG_OPTIONS = [
 const SVG = { width: 20, height: 20, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round', 'aria-hidden': true }
 
 // Çəkmə menyuda hesab kafeli (başlıqdakı HeaderAccount düyməsi <1024px-də gizlidir)
+// panel — saytın hesabında panel rolu (editor/admin/superadmin) olanda idarə panelinə qısayol (telefon: başlıqdakı menyu gizlidir)
 const ACCOUNT_LABELS = {
-  az: { signIn: 'Daxil ol', account: 'Hesabım' },
-  en: { signIn: 'Sign in', account: 'My account' },
-  ru: { signIn: 'Войти', account: 'Мой аккаунт' },
-  tr: { signIn: 'Giriş yap', account: 'Hesap' },
-  ar: { signIn: 'دخول', account: 'حسابي' },
+  az: { signIn: 'Daxil ol', account: 'Hesabım', panel: 'İdarə paneli' },
+  en: { signIn: 'Sign in', account: 'My account', panel: 'Admin panel' },
+  ru: { signIn: 'Войти', account: 'Мой аккаунт', panel: 'Админ-панель' },
+  tr: { signIn: 'Giriş yap', account: 'Hesap', panel: 'Yönetim paneli' },
+  ar: { signIn: 'دخول', account: 'حسابي', panel: 'لوحة الإدارة' },
 }
+const PANEL_ROLES = new Set(['editor', 'admin', 'superadmin'])
 
 const LABELS = {
   az: {
@@ -438,8 +440,9 @@ export default function SideNav({ mode = 'drawer', id, open = false, onClose, cu
   const routerNavigate = useNavigate()
   const l = pickUi(LABELS, lang)
   const al = pickUi(ACCOUNT_LABELS, lang)
-  const { status: authStatus } = useAuthUser()
+  const { status: authStatus, user: authUser } = useAuthUser()
   const accountKey = authStatus === 'anon' ? 'login' : 'account'
+  const hasPanel = authStatus === 'user' && PANEL_ROLES.has(authUser?.role)
   // İstiqamət kontekstdən: ərəbcə və rtl əlavə dillər (urdu interfeysi) — rtl
   const isRtl = (uiDir || (lang === 'ar' ? 'rtl' : 'ltr')) === 'rtl'
   const currentGroup = navGroupOf(currentPage)
@@ -937,6 +940,12 @@ export default function SideNav({ mode = 'drawer', id, open = false, onClose, cu
               >
                 <span className="qm-sn-tool-icon"><Icon name="user" size={18} /></span>
               </a>
+              {/* İdarə paneli (ünvan src/seo/routes.js → ADMIN_PATH; tam səhifə keçidi — panelin başlığı/menyusu yoxdur) */}
+              {hasPanel && (
+                <a className="qm-sn-tool" href={pathFor('admin', siteLang)} aria-label={al.panel} title={al.panel} data-testid="sn-admin-panel">
+                  <span className="qm-sn-tool-icon"><Icon name="shield" size={18} /></span>
+                </a>
+              )}
               <button
                 type="button"
                 className="qm-sn-tool"

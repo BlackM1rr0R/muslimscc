@@ -76,8 +76,9 @@ export default function AdminLoginPage({ setPage }) {
   }
 
   // Artıq admin kimi daxil olubsa — birbaşa panelə
+  // Sayt hesabının panel rolu var, amma 2FA bağlıdır və s. (server/adminSso.js) — panel özü bələdçini göstərir
   useEffect(() => watchAdmin(({ status }) => {
-    if (status === 'admin') goAdmin()
+    if (status === 'admin' || status === 'need2fa' || status === 'needReauth' || status === 'hold') goAdmin()
   // Bir dəfəlik abunə; goAdmin ref ilə qorunur (təkrar keçid olmur)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }), [])
