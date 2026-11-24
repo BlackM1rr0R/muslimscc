@@ -92,6 +92,6 @@ function render() {
 // Əlavə dildə (/id/…) interfeys lüğəti də ilk render-dən əvvəl — ingiliscə
 // yazılar bir anlıq görünüb dəyişməsin (src/utils/uiText.js)
 Promise.all([
-  preloadInitialPage(window.location.pathname, window.location.hash).catch(() => {}),
+  preloadInitialPage(window.location.pathname).catch(() => {}),
   applyUiDict(parsePath(window.location.pathname).lang).catch(() => {}),
 ]).then(render)

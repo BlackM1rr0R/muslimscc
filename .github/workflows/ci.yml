@@ -11,7 +11,7 @@
 #   DEPLOY_SSH_KEY       CI açarının PRIVATE hissəsi (~/.ssh/muslimscc_ci)
 #   DEPLOY_KNOWN_HOSTS   `ssh-keyscan -t ed25519 <IP>` çıxışı (MITM qoruması)
 #   ADMIN_PATH           (istəyə bağlı) gizli admin paneli ünvanı, ^/[a-z0-9-]{8,40}$ — web image-in build-inə
-#                        VITE_ADMIN_PATH kimi düşür (docs/ADMIN-SECURITY.md). e2e build-i onsuzdur (/admin).
+#                        VITE_ADMIN_PATH kimi düşür (docs/ADMIN-SECURITY.md). e2e build-i onsuzdur (/account/panel).
 # Bu açar serverdə yalnız infra/ci-gate.sh-ı işlədə bilər (shell ala bilməz).
 # ═══════════════════════════════════════════════════════
 name: CI/CD
@@ -82,7 +82,7 @@ jobs:
         with: { node-version: '${{ env.NODE_VERSION }}', cache: npm }
       - run: npm ci
       # ADMIN_PATH sirri (gizli admin ünvanı) bu build-ə QƏSDƏN yazılmır: bu dist yalnız e2e üçündür və testlər
-      # susmaya görə /admin-dədir; sirr Playwright hesabatlarına/izlərinə düşməsin. İstehsal build-i — images job.
+      # susmaya görə /account/panel-dədir; sirr Playwright hesabatlarına/izlərinə düşməsin. İstehsal build-i — images job.
       # Burada yalnız format yoxlanır (səhv sirr deploy-dan əvvəl tez yıxılsın); dəyər çap olunmur.
       - name: ADMIN_PATH sirrinin formatı
         env: { ADMIN_PATH: '${{ secrets.ADMIN_PATH }}' }
@@ -180,7 +180,7 @@ jobs:
       - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
 
       # Gizli admin ünvanı (istəyə bağlı sirr ADMIN_PATH) → BuildKit sirri faylı "VITE_ADMIN_PATH=<dəyər>"
-      # (sirr yoxdursa boş fayl → /admin). Format yoxlanır, dəyər çap olunmur; image metadata-sına düşmür.
+      # (sirr yoxdursa boş fayl → /account/panel). Format yoxlanır, dəyər çap olunmur; image metadata-sına düşmür.
       - name: Gizli admin ünvanı (ADMIN_PATH sirri)
         env: { ADMIN_PATH: '${{ secrets.ADMIN_PATH }}' }
         run: |

@@ -11,6 +11,23 @@
 //   • Bazada yalnız cəmlər: gün × səhifə, gün × ölçü (dil, mənbə domeni,
 //     cihaz növü, brauzer ailəsi). Ölkə, tam referrer URL-i, sorğu sətri yoxdur.
 //   • DNT: 1 və ya Sec-GPC: 1 → sayılmır. Botlar və admin səhifələri sayılmır.
+//
+// Bot süzgəci (qatlı, ehtiyatlı — insanı itirməkdənsə botu buraxmaq yaxşıdır):
+//   1. Klient (src/api/analytics.js): navigator.webdriver → göndərilmir; baxış
+//      yalnız ilk real hərəkətdən (toxunma/klik/düymə/sürüşdürmə) və ya səhifə
+//      ~12 san görünəndən sonra göndərilir.
+//   2. UA siyahısı (BOT_RE).
+//   3. Client Hints uyğunluğu (clientHintsBot): HTTPS-də Chromium ≥ 90 kimi
+//      görünən UA `sec-ch-ua` göndərməlidir; yoxdursa, "HeadlessChrome"-dursa və
+//      ya Chromium versiyası UA-dakı ilə tutmursa → bot. Başlıq yalnız yoxlanır,
+//      heç yerdə saxlanmır.
+//   4. Bir gündəlik heşdən (aşağıdakı yaddaş heşi) gündə maxViewsPerVisitor-dan
+//      çox baxış sayılmır — sayğac yalnız yaddaşdadır.
+//   5. Keçmiş anomal günlər: analytics_excluded_days (gün + səbəb; CLI:
+//      server/scripts/analytics-exclude.js). Statistika cavabında belə günlər
+//      cəmlərdən, səhifə/ölçü siyahılarından çıxarılır; seriyada 0 + excluded:true,
+//      "excluded" massivində isə qeydə alınmış (sayılmayan) xam rəqəmlər göstərilir.
+//      Məlumat silinmir — gün geri qaytarıla bilər.
 //   • Saxlama müddəti: 400 gün (köhnə günlər avtomatik silinir).
 //
 // API:
@@ -66,6 +83,68 @@ const SCHEMA = `
   ) WITHOUT ROWID;
 `
 
+/**
+ * Client Hints uyğunluğu → bot? (yalnız HTTPS-də yoxlanır; brauzerlər sec-ch-ua-nı
+ * təhlükəsiz kontekstdə göndərir). Ehtiyatlı: iOS (CriOS/EdgiOS — WebKit), Android
+ * WebView, tətbiqdaxili brauzerlər və UA-CH dəstəyi qeyri-müəyyən Chromium
+ * törəmələri yoxlanılmır. Başlıq heç yerdə saxlanmır.
+ */
+const CHROMIUM_UA_RE = /\bChrome\/(\d+)\./
+const UA_CH_EXEMPT_RE = /CriOS|EdgiOS|FxiOS|iPhone|iPad|iPod|; wv\)|\bwv\b|FBAN|FBAV|Instagram|Line\/|MicroMessenger|SamsungBrowser|UCBrowser|MiuiBrowser|HuaweiBrowser|HeyTapBrowser|VivoBrowser|OppoBrowser|QQBrowser|Puffin|Silk/
+function clientHintsBot(ua, headers = {}, secure = false) {
+  const ch = headers['sec-ch-ua']
+  const chs = typeof ch === 'string' ? ch.slice(0, 512) : ''
+  if (/HeadlessChrome/i.test(chs)) return true
+  if (!secure) return false
+  const m = CHROMIUM_UA_RE.exec(ua || '')
+  if (!m || UA_CH_EXEMPT_RE.test(ua)) return false
+  const major = Number(m[1])
+  if (!(major >= 90)) return false
+  if (!chs.trim()) return true
+  const cm = /"Chromium"\s*;\s*v\s*=\s*"(\d+)/.exec(chs)
+  return !!cm && Number(cm[1]) !== major
+}
+
+/** Sorğu HTTPS ilə gəlib? (nginx X-Forwarded-Proto https qoyur; trust proxy → req.secure) */
+const isSecure = (req) => req.secure === true ||
+  String((req.headers && req.headers['x-forwarded-proto']) || '').split(',')[0].trim().toLowerCase() === 'https'
+
+const EXCLUDED_SCHEMA = `
+  CREATE TABLE IF NOT EXISTS analytics_excluded_days (
+    day        TEXT PRIMARY KEY,
+    reason     TEXT NOT NULL DEFAULT '',
+    created_at INTEGER NOT NULL
+  ) WITHOUT ROWID;
+`
+const REASON_MAX = 200
+const NOT_EXCLUDED = 'day NOT IN (SELECT day FROM analytics_excluded_days)'
+
+/** Anomal günü statistikadan çıxar (CLI üçün). Məlumat silinmir — includeDay ilə qaytarılır. */
+function excludeDay(db, day, reason = '', now = Date.now()) {
+  if (!validDay(day)) throw new Error('day: YYYY-MM-DD')
+  const r = String(reason || '').replace(/[\u0000-\u001f\u007f]/g, ' ').trim().slice(0, REASON_MAX)
+  const raw = db.raw || db
+  raw.exec(EXCLUDED_SCHEMA)
+  raw.prepare(`INSERT INTO analytics_excluded_days (day, reason, created_at) VALUES (?, ?, ?)
+    ON CONFLICT(day) DO UPDATE SET reason = excluded.reason`).run(day, r, now)
+}
+/** Günü yenidən statistikaya qaytar. → true, əgər sətir var idisə */
+function includeDay(db, day) {
+  if (!validDay(day)) throw new Error('day: YYYY-MM-DD')
+  const raw = db.raw || db
+  raw.exec(EXCLUDED_SCHEMA)
+  return Number(raw.prepare('DELETE FROM analytics_excluded_days WHERE day = ?').run(day).changes) > 0
+}
+/** Bütün çıxarılmış günlər + həmin günün qeydə alınmış (sayılmayan) xam cəmləri */
+function listExcluded(db) {
+  const raw = db.raw || db
+  raw.exec(SCHEMA)
+  raw.exec(EXCLUDED_SCHEMA)
+  return raw.prepare(`SELECT e.day, e.reason, COALESCE(d.views, 0) AS views, COALESCE(d.visitors, 0) AS visitors
+    FROM analytics_excluded_days e LEFT JOIN analytics_days d ON d.day = e.day ORDER BY e.day`).all()
+    .map((r) => ({ day: r.day, reason: r.reason, views: Number(r.views), visitors: Number(r.visitors) }))
+}
+
 const DIM_KINDS = { referrers: 'ref', languages: 'lang', devices: 'device', browsers: 'browser' }
 
 // ─── Saf köməkçilər (testlənir) ───────────────────────────────────────
@@ -116,6 +195,7 @@ function normalizePath(p) {
   let lang = DEFAULT_LANG
   if (parts.length && LANGS.includes(parts[0])) lang = parts.shift()
   if (parts.length && /^(admin|adminlogin|api)$/.test(parts[0])) return null
+  if (parts[0] === 'account' && parts[1] === 'panel') return null   // idarə paneli (src/seo/routes.js)
   const path = '/' + parts.join('/')
   if (path.length > 200) return null
   return { path, lang }
@@ -195,6 +275,7 @@ function parsePayload(raw) {
  *   retentionDays  — 400
  *   maxPathsPerDay — gündə fərqli yol limiti (zibil yollara qarşı); artığı '(other)'
  *   maxVisitorsPerDay — yaddaşdakı heş dəstinin həddi (yaddaşı qoruyur)
+ *   maxViewsPerVisitor — bir gündəlik heşdən gündə ən çox sayılan baxış (100)
  *   ownHosts       — öz domenlərimiz (referrer kimi sayılmır)
  *   allowedOrigins — verilibsə, başqa Origin-dən gələn mayak sayılmır
  */
@@ -207,6 +288,7 @@ function createAnalytics(opts = {}) {
     retentionDays = 400,
     maxPathsPerDay = 5000,
     maxVisitorsPerDay = 500000,
+    maxViewsPerVisitor = 100,
     ownHosts = ['muslims.cc'],
     allowedOrigins = null,
   } = opts
@@ -214,6 +296,7 @@ function createAnalytics(opts = {}) {
   const raw = db.raw || db
 
   raw.exec(SCHEMA)
+  raw.exec(EXCLUDED_SCHEMA)
 
   const st = {
     day: raw.prepare(`INSERT INTO analytics_days (day, views, visitors) VALUES (?, 1, ?)
@@ -225,14 +308,16 @@ function createAnalytics(opts = {}) {
     pruneDays: raw.prepare('DELETE FROM analytics_days WHERE day < ?'),
     prunePaths: raw.prepare('DELETE FROM analytics_daily WHERE day < ?'),
     pruneDims: raw.prepare('DELETE FROM analytics_dim WHERE day < ?'),
+    pruneExcluded: raw.prepare('DELETE FROM analytics_excluded_days WHERE day < ?'),
     series: raw.prepare('SELECT day, views, visitors FROM analytics_days WHERE day BETWEEN ? AND ? ORDER BY day'),
+    excluded: raw.prepare('SELECT day, reason FROM analytics_excluded_days WHERE day BETWEEN ? AND ? ORDER BY day'),
     pages: raw.prepare(`SELECT path AS key, SUM(views) AS views, SUM(visitors) AS visitors FROM analytics_daily
-      WHERE day BETWEEN ? AND ? GROUP BY path ORDER BY views DESC, path ASC LIMIT ?`),
-    pagesCount: raw.prepare('SELECT COUNT(DISTINCT path) AS n FROM analytics_daily WHERE day BETWEEN ? AND ?'),
+      WHERE day BETWEEN ? AND ? AND ${NOT_EXCLUDED} GROUP BY path ORDER BY views DESC, path ASC LIMIT ?`),
+    pagesCount: raw.prepare(`SELECT COUNT(DISTINCT path) AS n FROM analytics_daily WHERE day BETWEEN ? AND ? AND ${NOT_EXCLUDED}`),
     dims: raw.prepare(`SELECT key, SUM(count) AS count FROM analytics_dim
-      WHERE kind = ? AND day BETWEEN ? AND ? GROUP BY key ORDER BY count DESC, key ASC LIMIT ?`),
+      WHERE kind = ? AND day BETWEEN ? AND ? AND ${NOT_EXCLUDED} GROUP BY key ORDER BY count DESC, key ASC LIMIT ?`),
     pathsOfDay: raw.prepare('SELECT path FROM analytics_daily WHERE day = ?'),
-    pageDaily: raw.prepare('SELECT day, views FROM analytics_daily WHERE path = ? AND day BETWEEN ? AND ?'),
+    pageDaily: raw.prepare(`SELECT day, views FROM analytics_daily WHERE path = ? AND day BETWEEN ? AND ? AND ${NOT_EXCLUDED}`),
   }
 
   const tx = (fn) => {
@@ -241,19 +326,20 @@ function createAnalytics(opts = {}) {
   }
 
   // Gündəlik yaddaş vəziyyəti — heç vaxt diskə yazılmır
-  const mem = { day: '', salt: null, visitors: new Set(), pathVisitors: new Set(), paths: new Set() }
+  // views: heş → bu gün sayılmış baxış sayı (maxViewsPerVisitor üçün); açarları = unikal ziyarətçilər
+  const mem = { day: '', salt: null, views: new Map(), pathVisitors: new Set(), paths: new Set() }
   const rate = new Map()   // ip → { n, reset }
 
   function prune(today) {
     const cutoff = addDays(today, -(retentionDays - 1))
-    tx(() => { st.pruneDays.run(cutoff); st.prunePaths.run(cutoff); st.pruneDims.run(cutoff) })
+    tx(() => { st.pruneDays.run(cutoff); st.prunePaths.run(cutoff); st.pruneDims.run(cutoff); st.pruneExcluded.run(cutoff) })
   }
 
   function rollover(day) {
     if (mem.day === day) return
     mem.day = day
     mem.salt = crypto.randomBytes(32)
-    mem.visitors = new Set()
+    mem.views = new Map()
     mem.pathVisitors = new Set()
     // Yenidən başlamadan sonra: bu günün mövcud yolları limitdə nəzərə alınsın
     mem.paths = new Set(st.pathsOfDay.all(day).map((r) => r.path))
@@ -278,15 +364,21 @@ function createAnalytics(opts = {}) {
     const day = dayOf(t)
     rollover(day)
 
+    const h = visitorHash(ip, ua, day)
+    let newVisitor = 0
+    const seen = mem.views.get(h)
+    if (seen !== undefined) {
+      // Bir heşdən gündə həddən çox baxış — avtomatlaşdırma; artıq sayılmır
+      if (seen >= maxViewsPerVisitor) return false
+      mem.views.set(h, seen + 1)
+    } else if (mem.views.size < maxVisitorsPerDay) { mem.views.set(h, 1); newVisitor = 1 }
+
     let p = path
     if (!mem.paths.has(p)) {
       if (mem.paths.size >= maxPathsPerDay) p = '(other)'
       else mem.paths.add(p)
     }
 
-    const h = visitorHash(ip, ua, day)
-    let newVisitor = 0
-    if (!mem.visitors.has(h) && mem.visitors.size < maxVisitorsPerDay) { mem.visitors.add(h); newVisitor = 1 }
     const pk = h + '\n' + p
     let newPathVisitor = 0
     if (!mem.pathVisitors.has(pk) && mem.pathVisitors.size < maxVisitorsPerDay) { mem.pathVisitors.add(pk); newPathVisitor = 1 }
@@ -299,6 +391,7 @@ function createAnalytics(opts = {}) {
       st.dim.run(day, 'browser', browserFamily(ua))
       if (ref) st.dim.run(day, 'ref', ref)
     })
+    return true
   }
 
   async function handleCollect(req, res) {
@@ -309,6 +402,7 @@ function createAnalytics(opts = {}) {
       if (optedOut(headers)) return send(res, 204)
       const ua = String(headers['user-agent'] || '').slice(0, 512)
       if (isBot(ua)) return send(res, 204)
+      if (clientHintsBot(ua, headers, isSecure(req))) return send(res, 204)
       if (allowedOrigins && headers.origin) {
         const o = String(headers.origin)
         const local = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(o)
@@ -343,8 +437,11 @@ function createAnalytics(opts = {}) {
     const start = from || addDays(end, -29)
     const totalViews = { views: 0, visitors: 0 }
     const rows = new Map(st.series.all(start, end).map((r) => [r.day, r]))
+    const excludedRows = st.excluded.all(start, end)
+    const excludedSet = new Set(excludedRows.map((r) => r.day))
     const series = []
     for (let d = start; d <= end; d = addDays(d, 1)) {
+      if (excludedSet.has(d)) { series.push({ day: d, views: 0, visitors: 0, excluded: true }); continue }
       const r = rows.get(d)
       const views = r ? Number(r.views) : 0
       const visitors = r ? Number(r.visitors) : 0
@@ -352,6 +449,11 @@ function createAnalytics(opts = {}) {
       totalViews.visitors += visitors
       series.push({ day: d, views, visitors })
     }
+    // Çıxarılmış günlər: qeydə alınmış, amma sayılmayan xam rəqəmlər (şəffaflıq üçün)
+    const excluded = excludedRows.map((e) => {
+      const r = rows.get(e.day)
+      return { day: e.day, reason: e.reason, views: r ? Number(r.views) : 0, visitors: r ? Number(r.visitors) : 0 }
+    })
     const dim = (kind) => st.dims.all(kind, start, end, limit).map((r) => ({ key: r.key, count: Number(r.count) }))
     const languages = dim('lang')
     const pages = st.pages.all(start, end, limit).map((r) => ({ key: r.key, views: Number(r.views), visitors: Number(r.visitors) }))
@@ -385,6 +487,7 @@ function createAnalytics(opts = {}) {
       devices: dim(DIM_KINDS.devices),
       browsers: dim(DIM_KINDS.browsers),
       retentionDays,
+      excluded,
       ...extra,
     }
   }
@@ -415,7 +518,7 @@ function createAnalytics(opts = {}) {
     stats,
     prune: () => prune(dayOf(now())),
     /** Testlər üçün: yaddaşdakı vəziyyətin ölçüləri (məzmun yox). */
-    _mem: () => ({ day: mem.day, visitors: mem.visitors.size, rateKeys: rate.size }),
+    _mem: () => ({ day: mem.day, visitors: mem.views.size, rateKeys: rate.size }),
   }
 }
 
@@ -435,4 +538,7 @@ module.exports = {
   migrate, handleCollect, handleStats, createAnalytics,
   // saf köməkçilər — testlər üçün
   normalizePath, referrerDomain, deviceClass, browserFamily, isBot, optedOut, validDay, dayOf, addDays,
+  clientHintsBot, isSecure,
+  // anomal günlər (server/scripts/analytics-exclude.js)
+  excludeDay, includeDay, listExcluded,
 }

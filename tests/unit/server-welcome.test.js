@@ -142,7 +142,7 @@ describe('welcome axını (users router)', () => {
     const app = express()
     app.set('trust proxy', 1)
     app.use('/api', users.createUsersRouter({
-      db, store, requireAdmin: auth.createRequireAdmin({ store: authStore, allowedOrigins }), allowedOrigins, publicOrigin: ORIGIN,
+      db, store, requireAdmin: auth.createRequireAdmin({ legacyLogin: true, store: authStore, allowedOrigins }), allowedOrigins, publicOrigin: ORIGIN,
       googleClientId: 'cid', googleVerify: async (c) => (c === 'good' ? { sub: 'g-1', email: 'google@example.com', name: 'Gülnar' } : null),
       mailer, webauthn: {}, now: () => t,
       hooks: { emailVerified: (id, l) => welcome.onVerified(id, l), seenLang: (id, l) => welcome.onSeenLang(id, l) },

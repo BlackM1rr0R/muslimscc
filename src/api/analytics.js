@@ -6,6 +6,9 @@
 //   səhifə ilk açılanda; server ondan yalnız domeni götürür), l — dil.
 // Kuki, localStorage, ID, barmaq izi YOXDUR. Göndərilmir:
 //   DNT / Global Privacy Control açıqdırsa, /admin*, localhost, avtomat brauzer.
+// İnsan yoxlaması (botlar real JS işlədir): ilk baxış yalnız ilk real hərəkətdən
+//   (toxunma/klik/düymə/təkər/sürüşdürmə) və ya səhifə cəmi VISIBLE_MS görünəndən
+//   sonra göndərilir; ondan sonrakı SPA keçidləri dərhal sayılır. Heç nə saxlanmır.
 // ═══════════════════════════════════════════════════════════
 import { useEffect } from 'react'
 import { ALL_LANGS } from '../seo/routes'
@@ -27,11 +30,63 @@ function disabled() {
   return h === 'localhost' || h === '127.0.0.1' || h === '[::1]' || h.endsWith('.local')
 }
 
-const isAdminPath = (p) => /^\/(?:(?:az|en|ru|ar|tr)\/)?admin/.test(p)
+const isAdminPath = (p) => /^\/(?:(?:az|en|ru|ar|tr)\/)?(?:admin|account\/panel)/.test(p)
 
-/** Bir baxış göndər. pathname — location.pathname. */
+// ── İnsan hərəkəti gözlənilir ──
+const VISIBLE_MS = 12000   // görünən vaxt (cəmi) — hərəkətsiz oxuyan insan da sayılsın
+const SCROLL_GRACE_MS = 1000   // açılışdakı proqram sürüşdürməsi "hərəkət" sayılmasın
+const ENGAGE_EVENTS = ['pointerdown', 'touchstart', 'keydown', 'wheel', 'scroll']
+let engaged = false
+let armedAt = 0
+let pending = null   // hərəkətdən əvvəlki son yol
+let visibleMs = 0
+let visibleSince = 0
+let visTimer = 0
+
+function onEngageEvent(e) {
+  if (e.isTrusted === false) return
+  if (e.type === 'scroll' && Date.now() - armedAt < SCROLL_GRACE_MS) return
+  engage()
+}
+
+function onVisibility() {
+  clearTimeout(visTimer)
+  const t = Date.now()
+  if (document.visibilityState === 'visible') {
+    if (!visibleSince) visibleSince = t
+    visTimer = setTimeout(engage, Math.max(0, VISIBLE_MS - visibleMs))
+  } else if (visibleSince) {
+    visibleMs += t - visibleSince
+    visibleSince = 0
+  }
+}
+
+function arm() {
+  if (armedAt) return
+  armedAt = Date.now()
+  for (const ev of ENGAGE_EVENTS) window.addEventListener(ev, onEngageEvent, { capture: true, passive: true })
+  document.addEventListener('visibilitychange', onVisibility)
+  onVisibility()
+}
+
+function engage() {
+  if (engaged) return
+  engaged = true
+  clearTimeout(visTimer)
+  for (const ev of ENGAGE_EVENTS) window.removeEventListener(ev, onEngageEvent, { capture: true })
+  document.removeEventListener('visibilitychange', onVisibility)
+  if (pending !== null) { const p = pending; pending = null; send(p) }
+}
+
+/** Bir baxış göndər (insan hərəkətindən sonra; o vaxta qədər son yol gözləyir). pathname — location.pathname. */
 export function trackPageview(pathname) {
   if (disabled() || typeof pathname !== 'string' || isAdminPath(pathname)) return
+  if (engaged) { send(pathname); return }
+  pending = pathname
+  arm()
+}
+
+function send(pathname) {
   const seg = pathname.split('/')[1]
   let r = ''
   if (!firstSent) {

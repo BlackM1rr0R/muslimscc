@@ -42,7 +42,8 @@ beforeAll(async () => {
   base = `http://127.0.0.1:${port}`
   // Minimal mühit: real açarlar (VAPID, RESEND, …) uşaq prosesə ötürülmür
   // LINGER_MS=0: SIGTERM-dən sonra 4 san gözləmə (kəsintisiz deploy üçün) testdə lazım deyil
-  const env = { NODE_ENV: 'production', PORT: String(port), DB_PATH: dbPath, OPENROUTER_KEY: FAKE_KEY, OPENROUTER_API_URL: 'http://127.0.0.1:9/', LINGER_MS: '0' }
+  // ADMIN_LEGACY_LOGIN=1: bu test köhnə admin sessiyası cookie-si ilə işləyir (break-glass; susmaya görə sönülüdür — server-admin-sso.test.js)
+  const env = { NODE_ENV: 'production', ADMIN_LEGACY_LOGIN: '1', PORT: String(port), DB_PATH: dbPath, OPENROUTER_KEY: FAKE_KEY, OPENROUTER_API_URL: 'http://127.0.0.1:9/', LINGER_MS: '0' }
   for (const k of ['PATH', 'Path', 'SystemRoot', 'SYSTEMROOT', 'TEMP', 'TMP', 'HOME', 'USERPROFILE']) if (process.env[k]) env[k] = process.env[k]
   proc = spawn(process.execPath, [path.join(ROOT, 'server', 'server.js')], { cwd: path.join(ROOT, 'server'), env, stdio: ['ignore', 'pipe', 'pipe'] })
   proc.stdout.on('data', (d) => logs.push(String(d)))

@@ -1145,6 +1145,19 @@ html:not(.qm-input-pointer) .qm-sn-close:focus-visible {
 @media (hover: hover) { .qm-sn-account:hover { background: var(--surface-2); color: var(--text-strong); } }
 .qm-sn-account:focus-visible { outline: 2px solid var(--brand); outline-offset: -2px; }
 
+/* İdarə paneli — çəkmə menyunun alt hissəsində adlı sətir (yalnız panel rolunda; SideNav.jsx).
+   Menyu sətri üslubu (.qm-sn-item), ikon kafeli zümrüd çalarda; alt hissənin kiçik/tutqun şriftini götürmür */
+.qm-sn-foot .qm-sn-panel-link {
+  margin-block-end: 10px;
+  border: 1px solid var(--line);
+  background: var(--surface-1);
+  color: var(--text-strong);
+  font-weight: 600;
+  letter-spacing: normal;
+}
+.qm-sn-foot .qm-sn-panel-link .qm-sn-item-icon { background: var(--brand-soft-2); color: var(--brand); }
+@media (hover: hover) { .qm-sn-foot .qm-sn-panel-link:hover { background: var(--brand-soft); border-color: var(--brand-line); } }
+
 /* D dəstəsi (whatsNewSeen / tur) */
 /* ── Yan menyu / çəkmə menyuda "Yeni" nişanı və tur düyməsi (SideNav.jsx) ── */
 .qm-sn-li { position: relative; }

@@ -12,7 +12,7 @@
 import AxeBuilder from '@axe-core/playwright'
 import { test, expect, expectCleanConsole, settle } from './fixtures.js'
 import { fakeUserSession, setLoginHint } from './userAuth.js'
-import { fakeAdminSession, adminSignIn } from './adminAuth.js'
+import { fakeAdminSession, ADMIN_PANEL } from './adminAuth.js'
 
 /** Yaddaşda K serveri — bir testin bütün səhifələri arasında ortaq */
 function createK() {
@@ -224,7 +224,7 @@ test('ailə dua siyahısı: istək yaz; başqasının istəyinə "dua etdim" —
 test('dua divarı: göndər → baxılır → admin təsdiqləyir → divarda → "Dua etdim"', async ({ page, consoleProblems }) => {
   const S = createK()
   await signedIn(page)
-  await fakeAdminSession(page, 'admin')
+  await fakeAdminSession(page, 'site', { role: 'admin' })
   await attachK(page, S)
   await page.goto('/dua-wall')
   await expect(page.getByRole('heading', { level: 1, name: 'Dua divarı' })).toBeVisible()
@@ -240,8 +240,7 @@ test('dua divarı: göndər → baxılır → admin təsdiqləyir → divarda �
   await expect(page.getByTestId('dw-mine-status')).toHaveText('Baxılır')
   expect(S.wall[0]).toMatchObject({ body: 'Anam üçün şəfa duası edin, xahiş edirəm', name: 'Aynur', lang: 'az', status: 'pending' })
 
-  await page.goto('/admin')
-  await adminSignIn(page)
+  await page.goto(ADMIN_PANEL)
   await openModeration(page)
   const mod = page.getByTestId('admin-moderation')
   await expect(mod.getByTestId('mod-wall-item')).toContainText('Anam üçün şəfa duası')
@@ -355,7 +354,7 @@ for (const theme of ['light', 'dark']) {
     S.wall.push({ id: 5, body: 'Anam üçün dua edin', name: 'Aynur', lang: 'az', status: 'approved', prayed: 3, at: Date.now() })
     S.wall.push({ id: 6, body: 'Gözləyən istək mətni', name: '', lang: 'az', status: 'pending', prayed: 0, at: Date.now(), createdAt: Date.now(), reported: 1, reports: [{ reason: 'spam', at: 1 }] })
     await signedIn(page, { role: 'mosque_rep', mosqueId: 'n123' })
-    await fakeAdminSession(page, 'admin')
+    await fakeAdminSession(page, 'site', { role: 'admin' })
     await attachK(page, S)
     const axe = async (include) => {
       await settle(page)
@@ -374,8 +373,7 @@ for (const theme of ['light', 'dark']) {
     await page.goto('/u/ali_k')
     await page.getByTestId('public-profile').waitFor()
     expect(await axe(['main'])).toEqual([])
-    await page.goto('/admin')
-    await adminSignIn(page)
+    await page.goto(ADMIN_PANEL)
     await openModeration(page)
     await page.getByTestId('mod-wall-item').first().waitFor()
     expect(await axe(['[data-testid="admin-moderation"]'])).toEqual([])
@@ -478,7 +476,7 @@ test('dua divarı (1280): boş divar kartı, iki sütunun yuxarısı eyni xətd�
 
 test('admin moderasiyası: şikayət olunan dualar (saxla / rədd et) və gizlədilmiş profillər (gizlətməni qaldır)', async ({ page, consoleProblems }) => {
   const S = createK()
-  await fakeAdminSession(page, 'admin')
+  await fakeAdminSession(page, 'site', { role: 'admin' })
   await attachK(page, S)
   // Bu testin saxtaları: ?status=reported (divarda qalan, şikayət olunmuş) və ?status=hidden (gizlədilmiş profillər).
   // E-poçt / id cavabda olsa da, panel onları göstərməməlidir.
@@ -520,8 +518,7 @@ test('admin moderasiyası: şikayət olunan dualar (saxla / rədd et) və gizlə
     return route.fallback()
   })
 
-  await page.goto('/admin')
-  await adminSignIn(page)
+  await page.goto(ADMIN_PANEL)
   await openModeration(page)
   const mod = page.getByTestId('admin-moderation')
 

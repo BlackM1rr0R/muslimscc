@@ -50,7 +50,7 @@ yaddaşda yalnız SHA-256, 5 dəq, 5 cəhd (sonra silinir, hadisə `twofa_failed
 `POST /api/auth/2fa { ticket, code | backupCode }` → sessiya. API bir konteynerdir — biletlər yaddaşda kifayətdir (restart → yenidən giriş).
 **Passkey ilə giriş TOTP-ni keçir** — passkey özü iki faktorludur (cihazdakı açar + biometrik/PIN, `userVerification: required`).
 
-**Admin paneli** (`server/auth.js`): eyni mexanizm, `admin_totp`. `POST /api/admin/login` → `{ twoFactor, ticket }` →
+**Ayrıca admin hesabı** (`server/auth.js`, yalnız break-glass `ADMIN_LEGACY_LOGIN=1` — adi halda panel sayt hesabının 2FA-sı ilə açılır, [ADMIN-SECURITY.md](ADMIN-SECURITY.md)): eyni mexanizm, `admin_totp`. `POST /api/admin/login` → `{ twoFactor, ticket }` →
 `POST /api/admin/2fa`. İdarə: `GET /api/admin/2fa`, `POST /api/admin/2fa/setup { password }`, `/enable { code }`,
 `/disable { password | code | backupCode }`. `GET /api/admin/me` → `twoFactor`. Baş admin üçün panel 2FA açılana qədər xəbərdarlıq göstərir.
 

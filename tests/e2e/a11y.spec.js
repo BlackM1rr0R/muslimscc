@@ -11,7 +11,7 @@
 // ═══════════════════════════════════════════════════════
 import AxeBuilder from '@axe-core/playwright'
 import { test, expect, settle } from './fixtures.js'
-import { fakeAdminSession, adminSignIn } from './adminAuth.js'
+import { fakeAdminSession, ADMIN_PANEL } from './adminAuth.js'
 
 const TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'best-practice']
 
@@ -72,9 +72,8 @@ for (const theme of ['light', 'dark']) {
 test('admin paneli: bütün bölmələrdə sahələrin adı var, ciddi pozuntu yoxdur', async ({ page }, info) => {
   test.skip(info.project.name === 'mobile', 'masaüstü kifayətdir')
   test.setTimeout(90_000)
-  await fakeAdminSession(page, 'admin')
-  await page.goto('/admin')
-  await adminSignIn(page)
+  await fakeAdminSession(page, 'site', { role: 'admin' })
+  await page.goto(ADMIN_PANEL)
   await expect(page.locator('.admin-nav-btn').first()).toBeVisible()
   await settle(page)
   const nav = page.locator('.admin-nav-btn')

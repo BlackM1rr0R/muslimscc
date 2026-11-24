@@ -93,7 +93,8 @@ const LANG_OPTIONS = [
 const SVG = { width: 20, height: 20, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round', 'aria-hidden': true }
 
 // Çəkmə menyuda hesab kafeli (başlıqdakı HeaderAccount düyməsi <1024px-də gizlidir)
-// panel — saytın hesabında panel rolu (editor/admin/superadmin) olanda idarə panelinə qısayol (telefon: başlıqdakı menyu gizlidir)
+// panel — saytın hesabında panel rolu (editor/admin/superadmin) olanda idarə panelinə adlı sətir (/account/panel;
+// telefon: başlıqdakı menyu gizlidir). İkon sətrində DEYİL — orada 7 düymə sıxışırdı (2026-11-24)
 const ACCOUNT_LABELS = {
   az: { signIn: 'Daxil ol', account: 'Hesabım', panel: 'İdarə paneli' },
   en: { signIn: 'Sign in', account: 'My account', panel: 'Admin panel' },
@@ -796,6 +797,12 @@ export default function SideNav({ mode = 'drawer', id, open = false, onClose, cu
             <span className="qm-sn-tool-icon"><Icon name="user" size={18} /></span>
             <span>{accountKey === 'login' ? al.signIn : al.account}</span>
           </a>
+          {hasPanel && (
+            <a className="qm-sn-account" href={pathFor('admin', siteLang)} data-testid="sn-rail-admin-panel">
+              <span className="qm-sn-tool-icon"><Icon name="shield" size={18} /></span>
+              <span>{al.panel}</span>
+            </a>
+          )}
         </div>
       </nav>
     )
@@ -917,6 +924,14 @@ export default function SideNav({ mode = 'drawer', id, open = false, onClose, cu
                 </label>
               </div>
             )}
+            {/* İdarə paneli — yalnız panel rolunda, hesab ikonunun üstündə adlı sətir (menyunun sətir üslubunda).
+                Ünvan src/seo/routes.js → ADMIN_PATH; tam səhifə keçidi — panelin öz başlığı/menyusu var */}
+            {hasPanel && (
+              <a className="qm-sn-item qm-sn-panel-link" href={pathFor('admin', siteLang)} data-testid="sn-admin-panel">
+                <span className="qm-sn-item-icon" aria-hidden="true"><Icon name="shield" size={18} /></span>
+                <span className="qm-sn-item-label">{al.panel}</span>
+              </a>
+            )}
             <div className="qm-sn-bar" role="group" aria-label={l.tools}>
               {currentPage !== 'aichat' && (
                 <button type="button" className="qm-sn-tool" onClick={() => openTool('ai')} aria-haspopup="dialog" aria-label={l.ai} title={l.ai}>
@@ -940,12 +955,6 @@ export default function SideNav({ mode = 'drawer', id, open = false, onClose, cu
               >
                 <span className="qm-sn-tool-icon"><Icon name="user" size={18} /></span>
               </a>
-              {/* İdarə paneli (ünvan src/seo/routes.js → ADMIN_PATH; tam səhifə keçidi — panelin başlığı/menyusu yoxdur) */}
-              {hasPanel && (
-                <a className="qm-sn-tool" href={pathFor('admin', siteLang)} aria-label={al.panel} title={al.panel} data-testid="sn-admin-panel">
-                  <span className="qm-sn-tool-icon"><Icon name="shield" size={18} /></span>
-                </a>
-              )}
               <button
                 type="button"
                 className="qm-sn-tool"

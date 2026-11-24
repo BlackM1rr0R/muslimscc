@@ -3,11 +3,12 @@
 //
 // • AdminSiteGate: hesabın panel rolu var, amma panel hələ açılmır (məlumat yüklənmir):
 //   need2fa — iki addımlı yoxlama bağlıdır → hesabın "İki addımlı yoxlama" bölməsinə keçid;
-//   needReauth — 2FA açıqdır, bu giriş ondan əvvəl olub → çıxış + yenidən giriş;
+//   needReauth — 2FA açıqdır, bu giriş ondan əvvəl olub → çıxış + yenidən giriş (sonra panelə qayıdır);
 //   hold — hesab qorunma rejimindədir → hesab səhifəsi.
 // • SiteAccountNote: "Hesab və şifrə" bölməsi sayt hesabı üçün — şifrə/2FA /account-dadır.
 // ═══════════════════════════════════════════════════════
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useLang } from '../../contexts/LangContext'
 import { pathFor } from '../../seo/routes'
 import { pickUi } from '../../utils/uiText'
@@ -99,12 +100,14 @@ export function AdminSiteGate({ status, setPage }) {
   const { lang, siteLang = lang } = useLang()
   const l = pickUi(LABELS, lang)
   const [busy, setBusy] = useState(false)
+  const navigate = useNavigate()
   const account = pathFor('account', siteLang)
   const kind = status === 'needReauth' ? 'reauth' : status === 'hold' ? 'hold' : 'need2fa'
   const reauth = async () => {
     setBusy(true)
     try { await logoutUser() } catch { /* ipucu onsuz da silindi */ }
-    setPage('login')
+    // Yenidən girişdən sonra panelə qayıt (LoginPage → ?next, yalnız saytın öz yolu)
+    navigate(`${pathFor('login', siteLang)}?next=${encodeURIComponent(window.location.pathname)}`)
   }
   return (
     <section className="admin-section admin-notice admin-site-gate" data-testid="admin-site-gate" data-gate={status}>

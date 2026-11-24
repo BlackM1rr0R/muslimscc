@@ -1,7 +1,11 @@
 // Server: admin paneli — saytın istifadəçi hesabı ilə giriş (SSO, server/adminSso.js + auth.js createRequireAdmin({ siteSso })).
 // Yalnız panel rolu (editor/admin/superadmin) + TOTP 2FA (və 2FA-dan sonra açılmış sessiya) keçir; rol xəritəsi;
-// 2FA yoxdur → 403 need_2fa; köhnə sessiya → need_reauth; CSRF; köhnə admin hesabı işləyir; kölgə admin
-// sətri köhnə login-ə yaramır; jurnal (admin_panel hadisəsi); ixrac sirsizdir; hesab silinəndə kölgə admin silinir.
+// 2FA yoxdur → 403 need_2fa; köhnə sessiya → need_reauth; CSRF; jurnal (admin_panel hadisəsi); ixrac sirsizdir;
+// hesab silinəndə kölgə admin silinir.
+// 2026-11-24: ayrıca admin girişi susmaya görə SÖNÜLÜDÜR (legacyLogin:false — istehsal): /api/admin/login və
+// /api/admin/2fa → 403 legacy_login_disabled, köhnə __Host-mcc_admin cookie-si heç nəyi açmır. Break-glass
+// (ADMIN_LEGACY_LOGIN=1 → legacyLogin:true) ikinci serverdə: köhnə giriş işləyir, 401-də legacyLogin:true;
+// kölgə admin sətri orada da köhnə login-ə yaramır.
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { require, express, listen } from './server-helpers.js'
 
@@ -18,7 +22,7 @@ const ADMIN_PASS = 'admin-paneli-şifrəsi-123'
 const silent = { info() {}, error() {}, warn() {} }
 
 describe('admin paneli: sayt hesabı ilə SSO', () => {
-  let db, srv, usersStore, security, sso, authStore, mail
+  let db, srv, srvLegacy, usersStore, security, sso, authStore, mail
   const T0 = Date.now() - 10 * 60_000
 
   /** Sayt istifadəçisi: rol + (istəyə görə) 2FA; sessiya 2FA-dan SONRA (fresh) və ya ƏVVƏL */
@@ -54,8 +58,16 @@ describe('admin paneli: sayt hesabı ilə SSO', () => {
     app.get('/api/admin/editor-only', requireEditor, (req, res) => res.json({ role: req.adminRole, email: req.adminUser.email }))
     app.post('/api/admin/write', requireAdmin, (req, res) => res.json({ ok: true, id: req.adminUser.id, site: Boolean(req.adminUser.site) }))
     srv = await listen(app)
+    // Break-glass serveri (ADMIN_LEGACY_LOGIN=1): eyni baza və SSO, köhnə giriş açıq
+    const requireLegacy = auth.createRequireAdmin({ store: authStore, allowedOrigins: [ORIGIN], siteSso: sso, legacyLogin: true })
+    const legacyApp = express()
+    legacyApp.set('trust proxy', 1)
+    legacyApp.use('/api', auth.createAuthRouter({ store: authStore, requireAdmin: requireLegacy, allowedOrigins: [ORIGIN], adminRoleOf: usersStore.adminRole, security, legacyLogin: true }))
+    srvLegacy = await listen(legacyApp)
   })
-  afterAll(async () => { await srv.close() })
+  afterAll(async () => { await srv.close(); await srvLegacy.close() })
+  const getL = (path, cookie) => fetch(srvLegacy.url + path, { headers: { ...H, cookie } })
+  const postL = (path, cookie, body) => fetch(srvLegacy.url + path, { method: 'POST', headers: { ...H, cookie }, body: JSON.stringify(body) })
 
   it('cookie yoxdur / adi istifadəçi / mosque_rep → 401 (köhnə davranış)', async () => {
     expect((await get('/api/admin/me', '')).status).toBe(401)
@@ -168,27 +180,61 @@ describe('admin paneli: sayt hesabı ilə SSO', () => {
     }
   })
 
-  it('kölgə admin sətri köhnə login formuna yaramır', async () => {
-    const u = await siteUser('shadow@example.com', 'editor')
-    await get('/api/admin/me', u.cookie)
-    const r = await post('/api/admin/login', '', { email: ssoLib.shadowEmail(u.id), password: '!sso-site-account-no-password' })
-    expect(r.status).toBe(401)
-    expect(r.headers.get('set-cookie')).toBeNull()
+  it('susmaya görə: ayrıca admin girişi rədd olunur (403 legacy_login_disabled), şifrə yoxlanmır, cookie yoxdur', async () => {
+    await authStore.createAdmin('legacy-off@example.com', ADMIN_PASS)
+    for (const body of [{ email: 'legacy-off@example.com', password: ADMIN_PASS }, { email: 'legacy-off@example.com', password: 'yanlış-şifrə-123456' }]) {
+      const r = await post('/api/admin/login', '', body)
+      expect(r.status).toBe(403)
+      expect((await r.json()).code).toBe('legacy_login_disabled')
+      expect(r.headers.get('set-cookie')).toBeNull()
+    }
+    const tf = await post('/api/admin/2fa', '', { ticket: 'x'.repeat(43), code: '123456' })
+    expect(tf.status).toBe(403)
+    expect((await tf.json()).code).toBe('legacy_login_disabled')
+    // 401 cavabında break-glass işarəsi yoxdur (panel ayrıca forma göstərmir)
+    const anon = await get('/api/admin/me', '')
+    expect(anon.status).toBe(401)
+    expect((await anon.json()).legacyLogin).toBeUndefined()
   })
 
-  it('köhnə ayrıca admin hesabı əvvəlki kimi işləyir və sayt sessiyasından üstündür', async () => {
+  it('susmaya görə: köhnə admin sessiyası (etibarlı cookie) heç nəyi açmır; sayt sessiyası ilə birlikdə — SSO', async () => {
+    const a = authStore.findByEmail('legacy-off@example.com')
+    expect(a).toBeTruthy()
+    const adminCookie = `${auth.COOKIE_NAME}=${authStore.createSession(a.id)}`
+    for (const path of ['/api/admin/me', '/api/admin/users', '/api/admin/editor-only']) expect((await get(path, adminCookie)).status, path).toBe(401)
+    expect((await post('/api/admin/write', adminCookie, {})).status).toBe(401)
+    expect((await post('/api/admin/password', adminCookie, { currentPassword: ADMIN_PASS, newPassword: 'yeni-uzun-şifrə-123' })).status).toBe(401)
+    const site = await siteUser('both-off@example.com', 'editor')
+    const both = await (await get('/api/admin/me', `${adminCookie}; ${site.cookie}`)).json()
+    expect(both).toMatchObject({ email: 'both-off@example.com', via: 'site', role: 'editor' })
+  })
+
+  it('break-glass (legacyLogin:true): köhnə giriş işləyir və sayt sessiyasından üstündür; 401-də legacyLogin:true', async () => {
+    const anon = await getL('/api/admin/me', '')
+    expect(anon.status).toBe(401)
+    expect(await anon.json()).toEqual({ error: 'Unauthorized', legacyLogin: true })
     await authStore.createAdmin('legacy@example.com', ADMIN_PASS)
-    const login = await post('/api/admin/login', '', { email: 'legacy@example.com', password: ADMIN_PASS })
+    const login = await postL('/api/admin/login', '', { email: 'legacy@example.com', password: ADMIN_PASS })
     expect(login.status).toBe(200)
     const adminCookie = login.headers.get('set-cookie').split(';')[0]
-    const me = await (await get('/api/admin/me', adminCookie)).json()
+    const me = await (await getL('/api/admin/me', adminCookie)).json()
     expect(me).toMatchObject({ email: 'legacy@example.com', via: 'session', role: 'admin' })
     const site = await siteUser('both@example.com', 'editor')
-    const both = await (await get('/api/admin/me', `${adminCookie}; ${site.cookie}`)).json()
+    const both = await (await getL('/api/admin/me', `${adminCookie}; ${site.cookie}`)).json()
     expect(both).toMatchObject({ email: 'legacy@example.com', via: 'session' })
     // Etibarsız admin cookie-si + sayt sessiyası → SSO
-    const fallback = await (await get('/api/admin/me', `${auth.COOKIE_NAME}=${'x'.repeat(43)}; ${site.cookie}`)).json()
+    const fallback = await (await getL('/api/admin/me', `${auth.COOKIE_NAME}=${'x'.repeat(43)}; ${site.cookie}`)).json()
     expect(fallback).toMatchObject({ email: 'both@example.com', via: 'site' })
+    // Eyni cookie break-glass olmayan serverdə — rədd
+    expect((await get('/api/admin/me', adminCookie)).status).toBe(401)
+  })
+
+  it('break-glass: kölgə admin sətri köhnə login formuna yaramır', async () => {
+    const u = await siteUser('shadow@example.com', 'editor')
+    await get('/api/admin/me', u.cookie)
+    const r = await postL('/api/admin/login', '', { email: ssoLib.shadowEmail(u.id), password: '!sso-site-account-no-password' })
+    expect(r.status).toBe(401)
+    expect(r.headers.get('set-cookie')).toBeNull()
   })
 
   it('security hold → 403 security_hold; bloklanmış hesab → 401', async () => {

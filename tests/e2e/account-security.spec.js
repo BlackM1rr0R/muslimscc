@@ -12,7 +12,7 @@ import fs from 'node:fs'
 import AxeBuilder from '@axe-core/playwright'
 import { test, expect, expectCleanConsole } from './fixtures.js'
 import { fakeUserSession, USER_EMAIL, USER_PASSWORD } from './userAuth.js'
-import { fakeAdminSession, ADMIN_EMAIL } from './adminAuth.js'
+import { fakeAdminSession, ADMIN_EMAIL, ADMIN_PANEL } from './adminAuth.js'
 import { fakeSecurityApi, fakeAdminTwoFactor, TOTP_CODE, TOTP_SECRET, BACKUP } from './securityApi.js'
 
 test.beforeEach(async ({ page }) => {
@@ -137,10 +137,11 @@ test('Mənim məlumatlarım: bu cihaz / sinxron / server; "Bütün məlumatımı
   expectCleanConsole(consoleProblems)
 })
 
-test('admin paneli: 2FA açıq hesabda şifrədən sonra kod addımı', async ({ page }) => {
+// Break-glass (serverdə ADMIN_LEGACY_LOGIN=1): ayrıca admin hesabının girişi panelin öz ünvanında
+test('admin paneli (break-glass): 2FA açıq hesabda şifrədən sonra kod addımı', async ({ page }) => {
   const admin = await fakeAdminSession(page, 'admin')
   const api = await fakeAdminTwoFactor(page, admin)
-  await page.goto('/admin')
+  await page.goto(ADMIN_PANEL)
   await page.getByLabel('E-poçt').fill(ADMIN_EMAIL)
   await page.getByLabel('Şifrə', { exact: true }).fill('test-password')
   await page.getByRole('button', { name: 'Daxil ol' }).click()

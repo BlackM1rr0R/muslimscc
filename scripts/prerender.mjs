@@ -531,10 +531,9 @@ if (!hasQuranData()) {
 const t0 = Date.now()
 let count = 0
 for (const p of PAGES) {
-  // Admin marşrutları da HƏR DİLDƏ statik yazılır: server artıq naməlum
-  // ünvana həqiqi 404 qaytarır (bax: infra/nginx/muslims.cc.conf),
-  // tətbiq isə interfeys ingiliscə olanda admini /en/admin ünvanında açır.
-  // noindex olduqları üçün sitemap-a düşmürlər.
+  // İdarə paneli (/account/panel) də HƏR DİLDƏ statik yazılır: server naməlum
+  // ünvana həqiqi 404 qaytarır (bax: infra/nginx/muslims.cc.conf) — köhnə /admin,
+  // /adminlogin artıq PAGES-də yoxdur, ona görə 404-dür. noindex olduğu üçün sitemap-a düşmür.
   for (const lang of langsFor(p.key)) {
     writeRoute(renderPage(template, p.key, lang, Boolean(p.noindex)), pathFor(p.key, lang))
     count++

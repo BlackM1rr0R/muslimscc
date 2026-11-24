@@ -13,7 +13,7 @@
 // ═══════════════════════════════════════════════════════
 import { test, expect, expectCleanConsole, settle } from './fixtures.js'
 import { fakeUserSession, USER_EMAIL, USER_PASSWORD, RESET_TOKEN, VERIFY_TOKEN } from './userAuth.js'
-import { fakeAdminSession, adminSignIn, ADMIN_EMAIL } from './adminAuth.js'
+import { fakeAdminSession, ADMIN_EMAIL, ADMIN_PANEL } from './adminAuth.js'
 
 const meCalls = (state) => state.requests.filter(r => r === 'GET /api/auth/me').length
 
@@ -316,7 +316,7 @@ test.describe('dillər', () => {
 
 /** Admin paneli + "İstifadəçilər" API-si (server/users.js → /api/admin/users*, /api/admin/role-audit). */
 async function fakeAdminUsers(page, role) {
-  const admin = await fakeAdminSession(page, 'admin')
+  const admin = await fakeAdminSession(page, 'site', { role })
   const state = {
     users: [
       { id: 1, email: 'zeyneb@example.com', emailVerified: true, displayName: 'Zeynəb', role: 'user', mosqueId: null, disabled: false, createdAt: Date.UTC(2026, 10, 1), lastLoginAt: null },
@@ -332,7 +332,7 @@ async function fakeAdminUsers(page, role) {
     const req = route.request()
     const url = new URL(req.url())
     if (!admin.signedIn) return route.fulfill({ status: 401, json: { error: 'Unauthorized' } })
-    if (url.pathname === '/api/admin/me') return route.fulfill({ json: { email: ADMIN_EMAIL, via: 'session', mustChangePassword: false, role } })
+    if (url.pathname === '/api/admin/me') return route.fulfill({ json: { email: ADMIN_EMAIL, via: 'site', mustChangePassword: false, role } })
     if (role !== 'admin' && role !== 'superadmin') return route.fulfill({ status: 403, json: { error: 'Forbidden', code: 'forbidden' } })
     if (url.pathname === '/api/admin/role-audit') return route.fulfill({ json: { entries: state.audit, page: 1, pageSize: 50 } })
     if (url.pathname === '/api/admin/users') {
@@ -372,8 +372,7 @@ async function openUsersTab(page) {
 test.describe('admin paneli: istifadəçilər', () => {
   test('superadmin: nişan, rol dəyişmə (məscid ID-si ilə), tarixçə; superadmin rolu təklif olunmur', async ({ page, consoleProblems }) => {
     const state = await fakeAdminUsers(page, 'superadmin')
-    await page.goto('/admin')
-    await adminSignIn(page)
+    await page.goto(ADMIN_PANEL)
     await expect(page.getByTestId('admin-role')).toContainText('Baş admin')
     await expect(page.getByTestId('admin-role')).toHaveClass(/admin-role-badge--super/)
     await openUsersTab(page)
@@ -402,8 +401,7 @@ test.describe('admin paneli: istifadəçilər', () => {
 
   test('admin: admin rolu təklif olunmur, digər admin yalnız oxunur; server 403 kodu mətnlə', async ({ page }) => {
     await fakeAdminUsers(page, 'admin')
-    await page.goto('/admin')
-    await adminSignIn(page)
+    await page.goto(ADMIN_PANEL)
     await expect(page.getByTestId('admin-role')).not.toHaveClass(/admin-role-badge--super/)
     await openUsersTab(page)
     const row = page.locator('[data-testid="admin-user"][data-email="zeyneb@example.com"]')
@@ -421,8 +419,7 @@ test.describe('admin paneli: istifadəçilər', () => {
 
   test('blokla / bloku aç: POST /disable gövdəsi, nişan; superadmin sətrində düymə yoxdur', async ({ page, consoleProblems }) => {
     const state = await fakeAdminUsers(page, 'superadmin')
-    await page.goto('/admin')
-    await adminSignIn(page)
+    await page.goto(ADMIN_PANEL)
     await openUsersTab(page)
     const row = page.locator('[data-testid="admin-user"][data-email="zeyneb@example.com"]')
     await expect(row).not.toContainText('Bloklanıb')
@@ -447,8 +444,7 @@ test.describe('admin paneli: istifadəçilər', () => {
 
   test('editor: "İstifadəçilər" bölməsi görünmür', async ({ page }) => {
     await fakeAdminUsers(page, 'editor')
-    await page.goto('/admin')
-    await adminSignIn(page)
+    await page.goto(ADMIN_PANEL)
     await expect(page.locator('.admin-nav-btn').first()).toBeAttached()
     await expect(page.getByRole('button', { name: 'İstifadəçilər' })).toHaveCount(0)
   })

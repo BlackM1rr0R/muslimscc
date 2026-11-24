@@ -15,6 +15,7 @@ import { useLang } from '../../contexts/LangContext'
 import { apiFetch } from '../../api/http'
 import { AdminHeader, AdminEmpty, AdminAlert, SectionTitle } from './AdminUi'
 import Icon from '../Icon'
+import ExcludedDaysNote from './ExcludedDaysNote'
 import '../../styles/AnalyticsManager.css'
 import { pickUi } from '../../utils/uiText'
 
@@ -466,6 +467,8 @@ export default function AnalyticsManager() {
       {error && <AdminAlert tone="bad">{error}</AdminAlert>}
 
       {!data && busy && <AdminEmpty icon="analytics" busy>{l.loading}</AdminEmpty>}
+
+      {t && <ExcludedDaysNote lists={[data.excluded]} />}
 
       {t && (
         <div className="an-body">

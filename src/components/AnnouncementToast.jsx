@@ -43,7 +43,7 @@ const LABELS = {
 }
 
 // Toast çıxmayan səhifələr
-const QUIET_PAGES = new Set(['home', 'announcements', 'admin', 'adminlogin'])
+const QUIET_PAGES = new Set(['home', 'announcements', 'admin'])
 const MIN_ENGAGED_MS = 5000     // sessiyada ilk ~5 s heç nə çıxmır
 const ROUTE_SETTLE_MS = 2500    // səhifə açılan kimi yox, bir az sonra
 const DURATION_MS = { normal: 8000, urgent: 14000 }

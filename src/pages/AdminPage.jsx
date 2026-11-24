@@ -1,4 +1,5 @@
 import { lazy, Suspense, useState, useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { m } from 'motion/react'
 import LayoutFeatures from '../motion/LayoutFeatures'
 import HoverPill from '../motion/HoverPill'
@@ -7,6 +8,8 @@ import { useLang } from '../contexts/LangContext'
 import { brandName } from '../config/brand'
 import { getVideos } from '../data/videos'
 import { watchAdmin, signOutAdmin } from '../api/adminAuth'
+import { refreshMe } from '../api/userSession'
+import { pathFor } from '../seo/routes'
 import { getBooks } from '../data/books'
 import {
   getCustomHadiths, getCustomDuas, getAnnouncements,
@@ -42,6 +45,17 @@ import { AdminSiteGate, SiteAccountNote, SITE_GATE_STATUSES, siteBackLabel } fro
 import Icon, { BrandMark } from '../components/Icon'
 import '../styles/AdminPage.css'
 import { pickUi } from '../utils/uiText'
+// Break-glass (serverdə ADMIN_LEGACY_LOGIN=1): ayrıca admin hesabının forması — adi halda heç yüklənmir
+const LegacyAdminLogin = lazy(() => import('../components/admin/LegacyAdminLogin'))
+
+// Panelin giriş yoxlaması alınmadıqda (server əlçatmazdır) — panelin öz mətnləri
+const GATE_LABELS = {
+  az: { unavailable: 'Server cavab vermir. Bir az sonra yenidən yoxlayın.', retry: 'Yenidən yoxla' },
+  en: { unavailable: 'The server is not responding. Please try again in a moment.', retry: 'Try again' },
+  ru: { unavailable: 'Сервер не отвечает. Повторите попытку чуть позже.', retry: 'Повторить' },
+  ar: { unavailable: 'الخادم لا يستجيب. حاول مرة أخرى بعد قليل.', retry: 'إعادة المحاولة' },
+  tr: { unavailable: 'Sunucu yanıt vermiyor. Biraz sonra tekrar deneyin.', retry: 'Tekrar dene' },
+}
 
 const LABELS = {
   az: { mail:'E-poçt göndər', moderation:'Dua divarına nəzarət', users:'İstifadəçilər', roleLabel:'Panel rolu', checking:'Giriş yoxlanılır...', account:'Hesab və şifrə', dashboard:'İdarə paneli', content:'MƏZMUN', videos:'Videolar', books:'Kitablar', hadiths:'Hədislər', duas:'Dualar', quotes:'Sitatlar', announcements:'Elanlar', events:'Hadisələr', daily:'Günün məzmunu', customization:'FƏRDİLƏŞDİRMƏ', hero:'Ana səhifə lövhəsi', system:'SİSTEM', settings:'Parametrlər', analytics:'Sayt statistikası', feedback:'Səhv bildirişləri', stats:'Statistika', backup:'Ehtiyat nüsxə və bərpa', seed:'İlkin məlumatlar', pushNotif:'Anlıq bildirişlər', logout:'Çıxış', adminPanel:'Admin paneli', sections:'Admin bölmələri', dark:'Qaranlıq rejim', light:'İşıqlı rejim' },
@@ -106,30 +120,50 @@ const NAV_GROUPS = [
   },
 ]
 
-export default function AdminPage({ setPage }) {
+export default function AdminPage({ setPage, onDenied }) {
   // Admin səhifəsində sayt başlığı yoxdur — tema açarı yan menyudadır
-  const { lang, dark, toggleDark } = useLang()
+  const { lang, siteLang = lang, dark, toggleDark } = useLang()
   const l = pickUi(LABELS, lang)
+  const gl = pickUi(GATE_LABELS, lang)
+  const routerNavigate = useNavigate()
 
   const [activeTab, setActiveTab] = useState('dashboard')
   const [counts, setCounts] = useState({ videos:0, books:0, hadiths:0, duas:0, quotes:0, announcements:0, events:0, places:0 })
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const navRef = useRef(null)
 
-  // Server sessiyası (GET /api/admin/me, server/auth.js). Daxil olunmayıbsa
-  // (və ya server əlçatmazdırsa) — giriş səhifəsinə. Müvəqqəti şifrə ilə
-  // (mustChangePassword) panel açılmır — yalnız "Şifrəni dəyiş" forması.
-  // Sayt hesabı ilə (via:'site'): panel rolu var, amma 2FA bağlıdır və s. — bələdçi ekranı (AdminSiteGate).
+  // Panel YALNIZ saytın hesabı ilə (GET /api/admin/me → server/adminSso.js; ayrıca admin girişi yoxdur):
+  //  • panel rolu + 2FA → panel; rol var, amma 2FA bağlı / yenidən giriş / qorunma → bələdçi (AdminSiteGate);
+  //  • 401: sayt hesabına daxil olmayıbsa → /login?next=<panel> (girişdən sonra bura qayıdır);
+  //    daxil olub, amma panel rolu yoxdursa → 404 (onDenied — App.jsx həmin ünvanda "Səhifə tapılmadı" göstərir);
+  //  • server break-glass rejimindədirsə (ADMIN_LEGACY_LOGIN=1 → 401 legacyLogin:true) — ayrıca admin forması.
+  // Müvəqqəti şifrə ilə (mustChangePassword, yalnız break-glass) panel açılmır — "Şifrəni dəyiş" forması.
   const [authStatus, setAuthStatus] = useState('loading')
   const [account, setAccount] = useState({ email: '', mustChangePassword: false, role: '', twoFactor: undefined, via: 'session' })
-  useEffect(() => watchAdmin(({ status, email, mustChangePassword, role, twoFactor, via }) => {
-    setAuthStatus(status)
-    if (status === 'admin') setAccount({ email, mustChangePassword, role, twoFactor, via })
-    if (status === 'loading' || status === 'admin' || SITE_GATE_STATUSES.has(status)) return
-    setPage('adminlogin')
-  // Bir dəfəlik abunə (watchAdmin) — setPage dəyişsə belə yenidən abunə lazım deyil
+  // Break-glass girişindən və ya "Yenidən yoxla"-dan sonra yoxlama təkrarlanır
+  const [authTick, setAuthTick] = useState(0)
+  useEffect(() => {
+    let alive = true
+    const stop = watchAdmin(({ status, email, mustChangePassword, role, twoFactor, via, legacyLogin }) => {
+      if (!alive) return
+      if (status === 'signedOut' && legacyLogin) { setAuthStatus('legacy'); return }
+      if (status === 'signedOut') {
+        // Panel sessiyası yoxdur: sayt hesabının özünə baxılır (yoxlanana qədər "Yoxlanılır...")
+        refreshMe().then((user) => {
+          if (!alive) return
+          if (user) { if (onDenied) onDenied(); return }
+          routerNavigate(`${pathFor('login', siteLang)}?next=${encodeURIComponent(window.location.pathname)}`, { replace: true })
+        }, () => { if (alive) setAuthStatus('unavailable') })
+        return
+      }
+      setAuthStatus(status)
+      if (status === 'admin') setAccount({ email, mustChangePassword, role, twoFactor, via })
+    })
+    return () => { alive = false; stop() }
+  // Yalnız authTick dəyişəndə yenidən abunə (setPage/onDenied hər render-də yeni funksiyadır)
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }), [])
+  }, [authTick])
+  const recheck = () => { setAuthStatus('loading'); setAuthTick((t) => t + 1) }
   const isAdmin = authStatus === 'admin' && !account.mustChangePassword
   // İstifadəçi idarəsi yalnız admin və superadmin üçün (editor görmür)
   const canUsers = account.role === 'admin' || account.role === 'superadmin'
@@ -211,6 +245,29 @@ export default function AdminPage({ setPage }) {
       <div className="admin-page">
         <div className="admin-main admin-main--solo">
           <AdminSiteGate status={authStatus} setPage={setPage} />
+        </div>
+      </div>
+    )
+  }
+
+  // Break-glass: serverdə ADMIN_LEGACY_LOGIN=1 — ayrıca admin hesabının forması (docs/ADMIN-SECURITY.md)
+  if (authStatus === 'legacy') {
+    return (
+      <Suspense fallback={<div className="admin-page"><AdminEmpty icon="shield" busy>{l.checking}</AdminEmpty></div>}>
+        <LegacyAdminLogin setPage={setPage} onSignedIn={recheck} />
+      </Suspense>
+    )
+  }
+
+  // Server əlçatmazdır — panel açılmır, təkrar yoxlama düyməsi
+  if (authStatus === 'unavailable') {
+    return (
+      <div className="admin-page">
+        <div className="admin-main admin-main--solo">
+          <AdminAlert tone="warn">{gl.unavailable}</AdminAlert>
+          <p className="admin-site-gate__actions">
+            <button type="button" className="ui-btn ui-btn--primary" onClick={recheck}>{gl.retry}</button>
+          </p>
         </div>
       </div>
     )

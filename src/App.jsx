@@ -4,7 +4,7 @@ import OfflineBadge from './components/OfflineBadge'
 import AutoSyncToast from './components/AutoSyncToast'
 import { Navigate, useLocation, useNavigate, useNavigationType } from 'react-router-dom'
 import { LangProvider, useStoredLangRedirect } from './contexts/LangContext'
-import { ALL_LANGS, ADMIN_HIDDEN, parsePath, pathFor, legacyDetailParam, uiLang } from './seo/routes'
+import { ALL_LANGS, parsePath, pathFor, legacyDetailParam, uiLang } from './seo/routes'
 import Seo from './seo/Seo'
 import { isOverlayEntry } from './utils/useBackToClose'
 import Header from './components/Header'
@@ -100,9 +100,9 @@ function lazyPage(factory) {
  * Digər səhifələr gözlənilmir — ağır səhifə (məs. /hadith) başlığın görünməsini
  * ləngitməsin; onlarda əvvəlki kimi Suspense fallback göstərilir.
  */
-export function preloadInitialPage(pathname, hash) {
+export function preloadInitialPage(pathname) {
   const { key, known } = parsePath(pathname)
-  if (!known || key !== 'home' || isAdminHash(hash)) return Promise.resolve()
+  if (!known || key !== 'home') return Promise.resolve()
   return HomePage.preload()
 }
 // "Əsas" bölmələri (namaz vaxtları aşağıdadır)
@@ -186,7 +186,6 @@ const FatwaPage = lazy(() => import('./pages/FatwaPage'))
 const HisnPage = lazy(() => import('./pages/HisnPage'))
 const LessonsPage = lazy(() => import('./pages/LessonsPage'))
 const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage'))
-const AdminLoginPage = lazy(() => import('./pages/AdminLoginPage'))
 const AdminPage = lazy(() => import('./pages/AdminPage'))
 const VideosPage = lazy(() => import('./pages/VideosPage'))
 const BooksPage = lazy(() => import('./pages/BooksPage'))
@@ -282,10 +281,8 @@ function PageFallback() {
   )
 }
 
-// Gizli admin girişi — ünvan sətrinə "#admin" yaz. Gizli panel ünvanı (VITE_ADMIN_PATH) qoşulubsa
-// bu qısayol BAĞLIDIR: köhnə giriş yalnız gizli ünvandadır (src/seo/routes.js → ADMIN_PATH)
-const ADMIN_HASH = '#admin'
-const isAdminHash = (hash) => !ADMIN_HIDDEN && (hash === ADMIN_HASH || hash === '#/admin')
+// "#admin" qısayolu və ayrıca admin giriş səhifəsi YOXDUR (2026-11-24): panel yalnız saytın hesabı ilə,
+// /account/panel ünvanında açılır (src/seo/routes.js → ADMIN_PATH, docs/ADMIN-SECURITY.md)
 
 // H5: uşaq rejiminin qabığı (components/kid/KidShell) — yalnız kilid açıq olanda
 const KidShell = lazy(() => import('./components/kid/KidShell'))
@@ -382,14 +379,14 @@ function AppInner() {
   // Səhifə və dil artıq URL-dən oxunur — hər səhifənin öz ünvanı var
   // (/quran, /ru/quran) ki, Google onları ayrıca indeksləyə bilsin.
   const { lang, key, known, param, removed, fallback } = parsePath(location.pathname)
-  const hash = location.hash
-  const isAdminKey = key === 'admin' || key === 'adminlogin'
-  // "#admin" istənilən səhifədən gizli girişi açır, amma /admin marşrutunun
-  // özünü ələ keçirmir — əks halda login-dən sonra sonsuz dövrə yaranardı.
+  const isAdminKey = key === 'admin'
+  // İdarə paneli: sayt hesabı daxil olub, amma panel rolu yoxdursa (AdminPage → onDenied) — 404 səhifəsi.
+  // Yalnız həmin ünvan üçün yadda qalır (başqa səhifəyə keçəndə sıfırlanmış sayılır).
+  const [panelDenied, setPanelDenied] = useState(null)
   // Tanınmayan ünvan → 'notfound' (404 səhifəsi, noindex) — əvvəl səssizcə ana səhifə açılırdı
-  const page = (!isAdminKey && isAdminHash(hash)) ? 'adminlogin' : (known ? key : 'notfound')
+  const page = !known || (isAdminKey && panelDenied === location.pathname) ? 'notfound' : key
   // Kukisiz statistika: hər yeni ünvan üçün bir mayak (admin sayılmır, 404 → '/404')
-  usePageviews(location.pathname, { skip: isAdminKey || page === 'adminlogin', notFound: page === 'notfound' })
+  usePageviews(location.pathname, { skip: isAdminKey && page !== 'notfound', notFound: page === 'notfound' })
 
   // Səhifələr hələ də setPage('quran') çağırır — API dəyişmir,
   // sadəcə altında state yerinə həqiqi URL naviqasiyası var.
@@ -425,7 +422,7 @@ function AppInner() {
     } else withViewTransition(go)
   }
 
-  // Skip link: <main>-ə fokus (hash dəyişmir — "#admin" məntiqinə toxunmur)
+  // Skip link: <main>-ə fokus (hash dəyişmir)
   const skipToMain = (e) => {
     e.preventDefault()
     const main = document.getElementById(MAIN_ID)
@@ -515,8 +512,7 @@ function AppInner() {
       case 'hisn':       return <HisnPage setPage={navigate} />
       case 'learn':         return <LessonsPage        setPage={navigate} />
       case 'analytics':     return <AnalyticsPage      setPage={navigate} />
-      case 'adminlogin':    return <AdminLoginPage    setPage={navigate} />
-      case 'admin':         return <AdminPage         setPage={navigate} />
+      case 'admin':         return <AdminPage         setPage={navigate} onDenied={() => setPanelDenied(location.pathname)} />
       case 'videos':        return <VideosPage        setPage={navigate} />
       case 'books':         return <BooksPage         setPage={navigate} />
       case 'aichat':        return <AIChatPage        setPage={navigate} />
@@ -553,7 +549,7 @@ function AppInner() {
   if (detailFix) return <Navigate to={detailFix} replace state={location.state} />
 
   // Admin səhifələri Header/Footer göstərmir — nə yan panel, nə çəkmə menyu
-  const isAdminPage = page === 'adminlogin' || page === 'admin'
+  const isAdminPage = page === 'admin'
   // Məscid ekranı (televizor/iframe) — başlıq, menyu və köməkçilər olmadan, tam ekran
   const isBarePage = isAdminPage || page === 'mosquetv'
 

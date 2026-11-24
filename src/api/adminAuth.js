@@ -1,5 +1,10 @@
 // ═══════════════════════════════════════════════════════════
-// ADMIN GİRİŞİ — öz serverimiz (server/auth.js), sessiya cookie-si
+// ADMIN PANELİ — sessiya (server/auth.js + server/adminSso.js)
+//
+// • 2026-11-24-dən panel YALNIZ saytın hesabı ilə açılır (SSO: panel rolu + TOTP 2FA).
+//   Aşağıdakı e-poçt + şifrə girişi (signInAdmin, verifyAdminTwoFactor, şifrə/2FA idarəsi) yalnız
+//   BREAK-GLASS üçündür: serverdə ADMIN_LEGACY_LOGIN=1 olmasa /api/admin/login 403 qaytarır,
+//   köhnə sessiya cookie-si isə qəbul olunmur (docs/ADMIN-SECURITY.md → "Təcili giriş").
 //
 // • POST /api/admin/login (e-poçt + şifrə) → HttpOnly cookie sessiyası
 //   (__Host-mcc_admin, 30 gün). Token JS-ə HEÇ VAXT görünmür.
@@ -25,6 +30,7 @@ const SITE_GATE = { need_2fa: 'need2fa', need_reauth: 'needReauth', security_hol
  *   status: 'loading' | 'admin' | 'signedOut' | 'unavailable'
  *         | 'need2fa' (sayt hesabında panel rolu var, 2FA bağlıdır) | 'needReauth' (2FA-dan sonra yenidən daxil olmaq lazımdır)
  *         | 'hold' (hesab qorunma rejimindədir)
+ *   legacyLogin: (yalnız signedOut) server break-glass rejimindədir — ayrıca admin giriş forması göstərilə bilər
  * Qaytarır: dayandıran funksiya.
  */
 export function watchAdmin(cb) {
@@ -40,7 +46,10 @@ export function watchAdmin(cb) {
     if (stopped) return
     const gate = e instanceof ApiError && e.status === 403 ? SITE_GATE[e.code] : null
     const signedOut = e instanceof ApiError && (e.status === 401 || e.status === 403)
-    cb({ status: gate || (signedOut ? 'signedOut' : 'unavailable'), email: '', mustChangePassword: false, role: '' })
+    cb({
+      status: gate || (signedOut ? 'signedOut' : 'unavailable'), email: '', mustChangePassword: false, role: '',
+      legacyLogin: Boolean(signedOut && !gate && e.body && e.body.legacyLogin === true),
+    })
   })
   return () => { stopped = true }
 }

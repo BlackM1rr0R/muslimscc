@@ -68,7 +68,7 @@ describe('K mərhələsi HTTP', () => {
     admins.editor = await authStore.createAdmin('editor@muslims.cc', ADMIN_PASS)
     store.setAdminRole('editor@muslims.cc', 'editor')
     const allowedOrigins = [ORIGIN]
-    const requireAdmin = auth.createRequireAdmin({ store: authStore, allowedOrigins })
+    const requireAdmin = auth.createRequireAdmin({ legacyLogin: true, store: authStore, allowedOrigins })
     const app = express()
     app.set('trust proxy', 1)
     const mailer = createMailer({ apiKey: '', onMessage: (m) => mail.push(m) })

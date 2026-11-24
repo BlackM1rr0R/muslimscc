@@ -1,10 +1,14 @@
 import { useState, useRef, useEffect } from 'react'
-import { useLang } from '../contexts/LangContext'
-import { watchAdmin, signInAdmin, verifyAdminTwoFactor } from '../api/adminAuth'
-import Icon, { BrandMark } from '../components/Icon'
-import '../styles/AdminPage.css'
-import { pickUi } from '../utils/uiText'
+import { useLang } from '../../contexts/LangContext'
+import { signInAdmin, verifyAdminTwoFactor } from '../../api/adminAuth'
+import Icon, { BrandMark } from '../Icon'
+import { pickUi } from '../../utils/uiText'
 
+// ═══ BREAK-GLASS: ayrıca admin hesabı ilə giriş (docs/ADMIN-SECURITY.md → "Təcili giriş") ═══
+// Adi halda bu forma HEÇ VAXT görünmür: panel yalnız saytın hesabı ilə açılır (server/adminSso.js),
+// köhnə giriş marşrutu (/adminlogin, "#admin") silinib, server isə /api/admin/login-i rədd edir.
+// Yalnız serverdə ADMIN_LEGACY_LOGIN=1 qoyulanda GET /api/admin/me-nin 401 cavabı legacyLogin:true
+// qaytarır və AdminPage (panelin öz ünvanında) bu formanı tənbəl yükləyib göstərir.
 // Giriş — öz serverimiz (POST /api/admin/login, server/auth.js): e-poçt + şifrə,
 // HttpOnly cookie sessiyası. Admin hesabı serverdə yaradılır:
 // server/scripts/admin-user.js create <e-poçt> (müvəqqəti şifrə — ilk girişdə
@@ -41,7 +45,7 @@ const TF_LABELS = {
 const ERR_KEY = { creds: 'errCreds', many: 'errMany', net: 'errNet', code: 'errCode', ticket: 'errTicket' }
 const errKeyOf = (code) => ERR_KEY[code] || 'errUnknown'
 
-export default function AdminLoginPage({ setPage }) {
+export default function LegacyAdminLogin({ setPage, onSignedIn }) {
   const { lang } = useLang()
   const l = { ...pickUi(LABELS, lang), ...pickUi(TF_LABELS, lang) }
 
@@ -72,16 +76,8 @@ export default function AdminLoginPage({ setPage }) {
   const goAdmin = () => {
     if (navigated.current) return
     navigated.current = true
-    setPage('admin')
+    onSignedIn()
   }
-
-  // Artıq admin kimi daxil olubsa — birbaşa panelə
-  // Sayt hesabının panel rolu var, amma 2FA bağlıdır və s. (server/adminSso.js) — panel özü bələdçini göstərir
-  useEffect(() => watchAdmin(({ status }) => {
-    if (status === 'admin' || status === 'need2fa' || status === 'needReauth' || status === 'hold') goAdmin()
-  // Bir dəfəlik abunə; goAdmin ref ilə qorunur (təkrar keçid olmur)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }), [])
 
   const showError = (key) => {
     setMsg({ tone: 'bad', key })

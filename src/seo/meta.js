@@ -6,7 +6,7 @@
 // Hər dil üçün hər səhifə doldurulmayıb; boşluqlar FALLBACK
 // zənciri ilə örtülür (bax: pickMeta). Açarı ümumiyyətlə olmayan
 // səhifə ana səhifənin mətnini alır — ona görə noindex səhifələrin
-// (admin, adminlogin, notfound) da burada öz girişi var. Yeni tərcümə əlavə etmək
+// (admin, notfound) da burada öz girişi var. Yeni tərcümə əlavə etmək
 // üçün sadəcə müvafiq dil açarını yaz — kod dəyişikliyi lazım deyil.
 //
 // QAYDALAR (Google üçün):
@@ -804,22 +804,9 @@ export const META = {
   },
 
   // ── İdarəetmə (noindex) ──
-  // Axtarışa düşmür (routes.js → noindex, robots.txt → Disallow), amma
+  // Axtarışa düşmür (routes.js → noindex; panel /account/panel-dədir), amma
   // brauzer tabında və prerender edilmiş HTML-də ana səhifənin başlığı
   // görünməsin deyə öz adları var.
-  adminlogin: {
-    az: { t: 'Admin girişi',
-          d: 'Saytın idarəetmə bölməsinə giriş — yalnız səlahiyyətli istifadəçilər üçün.' },
-    en: { t: 'Admin sign-in',
-          d: 'Sign in to the site administration area — for authorised users only.' },
-    ru: { t: 'Вход для администратора',
-          d: 'Вход в раздел управления сайтом — только для уполномоченных пользователей.' },
-    tr: { t: 'Yönetici girişi',
-          d: 'Site yönetim bölümüne giriş — yalnızca yetkili kullanıcılar için.' },
-    ar: { t: 'دخول المشرف',
-          d: 'الدخول إلى قسم إدارة الموقع — للمستخدمين المخوّلين فقط.' },
-  },
-
   admin: {
     az: { t: 'Admin paneli',
           d: 'Saytın idarəetmə paneli — yalnız səlahiyyətli istifadəçilər üçün.' },

@@ -86,9 +86,9 @@ describe('HTTP: login / me / logout / requireAdmin', () => {
     store = auth.createAuthStore(db)
     await store.createAdmin('admin@example.com', PASS)
     const allowedOrigins = ['https://muslims.cc']
-    const requireAdmin = auth.createRequireAdmin({ store, allowedOrigins })
+    const requireAdmin = auth.createRequireAdmin({ legacyLogin: true, store, allowedOrigins })
     const app = express()
-    app.use('/api', auth.createAuthRouter({ store, requireAdmin, allowedOrigins, limits: { ipMax: 50, emailMax: 3 } }))
+    app.use('/api', auth.createAuthRouter({ legacyLogin: true, store, requireAdmin, allowedOrigins, limits: { ipMax: 50, emailMax: 3 } }))
     app.post('/api/admin/thing', requireAdmin, (req, res) => res.json({ via: req.adminUser.via }))
     srv = await listen(app)
   })

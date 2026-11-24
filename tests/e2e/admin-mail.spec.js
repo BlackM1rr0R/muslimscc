@@ -8,7 +8,7 @@
 // Server yoxdur — /api/admin/* cavabları burada saxtadır (fixtures.js ümumi 401-dən SONRA qeyd olunur).
 // ═══════════════════════════════════════════════════════
 import { test, expect } from './fixtures.js'
-import { fakeAdminSession, adminSignIn, ADMIN_EMAIL } from './adminAuth.js'
+import { fakeAdminSession, ADMIN_EMAIL, ADMIN_PANEL } from './adminAuth.js'
 
 const USERS = [
   { id: 1, email: 'zeyneb@example.com', emailVerified: true, displayName: 'Zeynəb', role: 'user', mosqueId: null, disabled: false, createdAt: Date.UTC(2026, 10, 1), lastLoginAt: null, siteLang: 'az', welcomeSentAt: Date.UTC(2026, 10, 2), emailOptOut: false },
@@ -18,14 +18,14 @@ const USERS = [
 ]
 
 async function fakeMailApi(page, role) {
-  const admin = await fakeAdminSession(page, 'admin')
+  const admin = await fakeAdminSession(page, 'site', { role })
   const state = { bodies: [], campaigns: [], tests: 0 }
   await page.route((u) => u.pathname === '/api/admin/me' || u.pathname.startsWith('/api/admin/users') || u.pathname === '/api/admin/role-audit' || u.pathname.startsWith('/api/admin/mail/'), async (route) => {
     const req = route.request()
     const url = new URL(req.url())
     const method = req.method()
     if (!admin.signedIn) return route.fulfill({ status: 401, json: { error: 'Unauthorized' } })
-    if (url.pathname === '/api/admin/me') return route.fulfill({ json: { email: ADMIN_EMAIL, via: 'session', mustChangePassword: false, role, twoFactor: true } })
+    if (url.pathname === '/api/admin/me') return route.fulfill({ json: { email: ADMIN_EMAIL, via: 'site', mustChangePassword: false, role, twoFactor: true } })
     if (method !== 'GET' && !req.headers()['x-requested-with']) return route.fulfill({ status: 403, json: { error: 'Forbidden', code: 'forbidden' } })
     if (url.pathname === '/api/admin/role-audit') return route.fulfill({ json: { entries: [], page: 1, pageSize: 50 } })
     if (url.pathname === '/api/admin/users') {
@@ -76,8 +76,7 @@ async function openTab(page, name) {
 test.describe('admin paneli: e-poçt göndər', () => {
   test('admin: "E-poçt göndər" bölməsi görünmür, seçim qutucuqları yoxdur', async ({ page }) => {
     await fakeMailApi(page, 'admin')
-    await page.goto('/admin')
-    await adminSignIn(page)
+    await page.goto(ADMIN_PANEL)
     await openTab(page, 'İstifadəçilər')
     await expect(page.locator('.admin-nav-btn', { hasText: 'E-poçt göndər' })).toHaveCount(0)
     await expect(page.getByTestId('user-pick')).toHaveCount(0)
@@ -89,8 +88,7 @@ test.describe('admin paneli: e-poçt göndər', () => {
 
   test('baş admin: seçim → önizləmə → sınaq → təsdiq → növbə → dayandır', async ({ page }) => {
     const state = await fakeMailApi(page, 'superadmin')
-    await page.goto('/admin')
-    await adminSignIn(page)
+    await page.goto(ADMIN_PANEL)
     await openTab(page, 'İstifadəçilər')
 
     // təsdiqlənməmiş və imtina etmiş seçilə bilmir
@@ -129,8 +127,7 @@ test.describe('admin paneli: e-poçt göndər', () => {
 
   test('baş admin: hər dilə ayrı versiya — ehtiyat dil göndərilir', async ({ page }) => {
     const state = await fakeMailApi(page, 'superadmin')
-    await page.goto('/admin')
-    await adminSignIn(page)
+    await page.goto(ADMIN_PANEL)
     await openTab(page, 'E-poçt göndər')
     await page.getByRole('radio', { name: 'Hər dilə ayrı versiya' }).click()
     await page.getByLabel('Mövzu').fill('Salam')
@@ -147,8 +144,7 @@ test.describe('admin paneli: e-poçt göndər', () => {
 
   test('baş admin: hazır şablon 5 dili + rəng mövzusunu doldurur, geri qaytarmaq olur', async ({ page }) => {
     const state = await fakeMailApi(page, 'superadmin')
-    await page.goto('/admin')
-    await adminSignIn(page)
+    await page.goto(ADMIN_PANEL)
     await openTab(page, 'E-poçt göndər')
     const cards = page.getByTestId('mail-templates').getByRole('button')
     await expect(cards).toHaveCount(7)

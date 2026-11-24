@@ -20,7 +20,7 @@ RUN cp .env.public .env.production.local
 # dinamik gzip sıxır; ona görə .html.gz OLMAMALIDIR.
 # Gizli admin paneli ünvanı (docs/ADMIN-SECURITY.md → "Gizli ünvan"): CI GitHub sirri ADMIN_PATH-i
 # BuildKit sirri kimi verir (fayl: "VITE_ADMIN_PATH=/..." və ya boş). Image metadata-sına/ARG-a düşmür;
-# yalnız bu RUN-da .env.production.local-a əlavə olunur. Yoxdursa — köhnə /admin.
+# yalnız bu RUN-da .env.production.local-a əlavə olunur. Yoxdursa — /account/panel.
 RUN --mount=type=secret,id=admin_path,required=false \
     if [ -s /run/secrets/admin_path ]; then \
       grep -Eqx 'VITE_ADMIN_PATH=/[a-z0-9-]{8,40}' /run/secrets/admin_path || { echo 'admin_path sirri formatı yanlışdır'; exit 1; }; \

@@ -263,6 +263,6 @@ describe('modul nüsxəsi', () => {
     A.migrate(db)
     A.migrate(db)
     const names = db.raw.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'analytics_%' ORDER BY name").all().map((r) => r.name)
-    expect(names).toEqual(['analytics_daily', 'analytics_days', 'analytics_dim'])
+    expect(names).toEqual(['analytics_daily', 'analytics_days', 'analytics_dim', 'analytics_excluded_days'])
   })
 })

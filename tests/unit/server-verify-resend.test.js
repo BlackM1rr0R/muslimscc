@@ -24,7 +24,7 @@ describe('verify/resend', () => {
     const authStore = auth.createAuthStore(db)
     const store = users.createUsersStore(db)
     const allowedOrigins = [ORIGIN]
-    const requireAdmin = auth.createRequireAdmin({ store: authStore, allowedOrigins })
+    const requireAdmin = auth.createRequireAdmin({ legacyLogin: true, store: authStore, allowedOrigins })
     const app = express()
     app.set('trust proxy', 1)
     app.use('/api', users.createUsersRouter({

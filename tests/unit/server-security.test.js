@@ -183,10 +183,10 @@ describe('HTTP', () => {
     const mailer = createMailer({ apiKey: '', onMessage: (m) => mail.push(m) })
     personal = personalLib.createPersonalStore(db)
     security = sec.createSecurity({ db, mailer, publicOrigin: ORIGIN, prefsOf: (id) => personal.prefs(id) })
-    const requireAdmin = auth.createRequireAdmin({ store: authStore, allowedOrigins })
+    const requireAdmin = auth.createRequireAdmin({ legacyLogin: true, store: authStore, allowedOrigins })
     const app = express()
     app.set('trust proxy', 1)
-    app.use('/api', auth.createAuthRouter({ store: authStore, requireAdmin, allowedOrigins, adminRoleOf: store.adminRole, security }))
+    app.use('/api', auth.createAuthRouter({ legacyLogin: true, store: authStore, requireAdmin, allowedOrigins, adminRoleOf: store.adminRole, security }))
     const router = users.createUsersRouter({
       db, store, requireAdmin, allowedOrigins, publicOrigin: ORIGIN, googleClientId: GOOGLE_CLIENT, mailer, security,
       webauthn: fakeWebauthn, fetchImpl: fakeFetch,

@@ -64,30 +64,31 @@ export const uiLang = (lang) => (LANGS.includes(lang) ? lang : EXTRA_UI_LANG)
 /** Mətn istiqaməti (rtl: ərəb, urdu, fars, puştu). */
 export const dirOf = (lang) => (lang === 'ar' || EXTRA_LANGS[lang]?.dir === 'rtl' ? 'rtl' : 'ltr')
 
-// ── Admin panelinin (gizli) ünvanı — docs/ADMIN-SECURITY.md → "Gizli ünvan" ──
-// Build zamanı VITE_ADMIN_PATH (CI: GitHub sirri ADMIN_PATH → web image-in build-i). Repoda həqiqi
-// dəyər YOXDUR. Verilməyibsə (lokal dev, testlər) — köhnə /admin və /adminlogin. Verilibsə panel
-// /<gizli>, köhnə ayrıca admin girişi /<gizli>/login; /admin, /adminlogin (və dil prefiksliləri) — 404.
+// ── İdarə panelinin ünvanı — docs/ADMIN-SECURITY.md → "Panelin ünvanı" ──
+// Panel YALNIZ saytın hesabı ilə açılır (server/adminSso.js: panel rolu + TOTP 2FA) və hesab bölməsinin
+// altındadır: /account/panel (dil prefiksli də). Köhnə /admin, /adminlogin və "#admin" qısayolu YOXDUR —
+// heç bir PAGES yolu onlara uyğun gəlmir, ona görə həmişə 404 (sahibin qərarı, 2026-11-24).
+// Ayrıca admin giriş səhifəsi marşrutda yoxdur; break-glass (ADMIN_LEGACY_LOGIN=1) forması panelin içindədir.
+// İstəyə bağlı: build zamanı VITE_ADMIN_PATH (CI: GitHub sirri ADMIN_PATH) paneli başqa bir seqmentə
+// köçürür (/<gizli>); onda /account/panel adi hesab səhifəsidir. Repoda həqiqi dəyər YOXDUR.
 // Brauzerdə Vite __ADMIN_PATH__ sabitini (vite.config.js → define) əvəz edir — import.meta YOX, çünki
 // Playwright bu faylı CommonJS kimi yükləyir (2026-11-24 CI: bütün e2e yıxıldı); prerender-də (Node) scripts/admin-path-env.mjs
 // eyni .env fayllarından process.env-ə yazır. Sitemap, llms.txt, robots.txt-ə düşmür (noindex).
-export const DEFAULT_ADMIN_PATH = '/admin'
+export const DEFAULT_ADMIN_PATH = '/account/panel'
 export const ADMIN_PATH_RE = /^\/[a-z0-9-]{8,40}$/
-/** Dəyər → panel ünvanı: formatı düzgün deyilsə (və ya boşdursa) '/admin'. */
+/** Dəyər → panel ünvanı: formatı düzgün deyilsə (və ya boşdursa) '/account/panel'. */
 export const resolveAdminPath = (v) => {
   const s = typeof v === 'string' ? v.trim() : ''
   return ADMIN_PATH_RE.test(s) ? s : DEFAULT_ADMIN_PATH
 }
-/** Panel ünvanı → PAGES yolları (dil prefiksindən sonrakı hissə). */
-export const adminRoutePaths = (adminPath) => (adminPath === DEFAULT_ADMIN_PATH
-  ? { admin: 'admin', adminlogin: 'adminlogin' }
-  : { admin: adminPath.slice(1), adminlogin: `${adminPath.slice(1)}/login` })
+/** Panel ünvanı → PAGES yolu (dil prefiksindən sonrakı hissə). */
+export const adminRoutePath = (adminPath) => adminPath.slice(1)
 /* global __ADMIN_PATH__ */
 const BUILD_ADMIN_PATH = typeof __ADMIN_PATH__ === 'string' ? __ADMIN_PATH__ : ''
 export const ADMIN_PATH = resolveAdminPath(BUILD_ADMIN_PATH || globalThis.process?.env?.VITE_ADMIN_PATH)
-/** Gizli ünvan qoşulubmu (onda "#admin" qısayolu da bağlıdır — App.jsx) */
+/** Gizli ünvan qoşulubmu (panel /account/panel-də deyil) */
 export const ADMIN_HIDDEN = ADMIN_PATH !== DEFAULT_ADMIN_PATH
-const ADMIN_ROUTE_PATHS = adminRoutePaths(ADMIN_PATH)
+const ADMIN_ROUTE_PATH = adminRoutePath(ADMIN_PATH)
 
 // ── Səhifələr ────────────────────────────────────────
 // key      — App.jsx-dəki daxili ad (setPage(key) API-si dəyişmir)
@@ -185,10 +186,9 @@ export const PAGES = [
   { key: 'terms',        path: 'terms',        priority: 0.30, changefreq: 'yearly'  },
   { key: 'licenses',     path: 'licenses',     priority: 0.30, changefreq: 'yearly'  },
 
-  // Admin — indekslənmir, sitemap-a düşmür. Ünvan build zamanı VITE_ADMIN_PATH-dən (aşağıda ADMIN_PATH):
-  // verilməyibsə /admin + /adminlogin (köhnə davranış); verilibsə /<gizli> + /<gizli>/login, /admin isə 404
-  { key: 'adminlogin',   path: ADMIN_ROUTE_PATHS.adminlogin, noindex: true },
-  { key: 'admin',        path: ADMIN_ROUTE_PATHS.admin,      noindex: true },
+  // İdarə paneli — indekslənmir, sitemap-a düşmür. Ünvan yuxarıda (ADMIN_PATH): susmaya görə /account/panel.
+  // /admin və /adminlogin heç bir səhifəyə uyğun gəlmir → 404.
+  { key: 'admin',        path: ADMIN_ROUTE_PATH,     noindex: true },
 
   // İstifadəçi hesabı (server/users.js, docs/USER-ACCOUNTS.md) — indekslənmir, sitemap-a düşmür.
   // account/verify və account/reset — e-poçt keçidləri (#token=… fraqmentdə); iki seqmentli yol
@@ -224,7 +224,7 @@ export const PAGES = [
 ]
 
 // Gizli admin ünvanı mövcud səhifə ilə üst-üstə düşməsin — build (prerender) burada dayanır
-if (ADMIN_HIDDEN && PAGES.some(p => p.key !== 'admin' && p.key !== 'adminlogin' && p.path.split('/')[0] === ADMIN_ROUTE_PATHS.admin)) {
+if (ADMIN_HIDDEN && PAGES.some(p => p.key !== 'admin' && p.path.split('/')[0] === ADMIN_ROUTE_PATH)) {
   throw new Error('VITE_ADMIN_PATH mövcud səhifə ünvanı ilə üst-üstə düşür')
 }
 

@@ -7,6 +7,7 @@ import {
   MiniTable, InlineBar, TrendCell, Delta, BarChart, makeFormat,
 } from '../viz'
 import { AdminAlert } from './AdminUi'
+import ExcludedDaysNote from './ExcludedDaysNote'
 import { pickUi } from '../../utils/uiText'
 import {
   rangeFor, pct, trafficKpis, withPrev, pageRows, feedbackStats, subscriberStats, notificationStats,
@@ -416,6 +417,7 @@ export default function DashboardOverview({ counts, setActiveTab }) {
       </header>
 
       {failedNote && <AdminAlert tone="warn">{failedNote}</AdminAlert>}
+      {a && <ExcludedDaysNote lists={[a.excluded, a.prev?.excluded]} />}
 
       <BentoGrid className="ado-bento">
         {kpis.map(c => (

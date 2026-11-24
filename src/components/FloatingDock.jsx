@@ -115,7 +115,7 @@ export default function FloatingDock({ page }) {
   const { lang } = useLang()
   const l = pickUi(LABELS, lang)
 
-  const isAdmin = page === 'admin' || page === 'adminlogin'
+  const isAdmin = page === 'admin'
   const showAI = page !== 'aichat'
 
   const [menuOpen, setMenuOpen] = useState(false)

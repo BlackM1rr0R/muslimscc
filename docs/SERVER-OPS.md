@@ -41,7 +41,7 @@ Vaxtlar (`createdAt`, `updatedAt`) **millisaniyədir**. Klient kodu bunu artıq 
 | GET | `/api/content/:collection` | hamı | `[{ id, ...data }]`, `createdAt` azalan (klientin `orderBy('createdAt','desc')` sorğusu kimi). ETag → `304` |
 | GET | `/api/content/:collection/:id` | hamı | `{ id, ...data }` / `404` |
 | GET | `/api/singletons/:id` | hamı | `daily`, `hero`, `settings` |
-| POST | `/api/admin/login` | — | `{ email, password }` → cookie `__Host-mcc_admin` (HttpOnly, Secure, SameSite=Strict, 30 gün). Limit: IP 10, e-poçt 5 / 15 dəq |
+| POST | `/api/admin/login` | — | **Yalnız break-glass** (`ADMIN_LEGACY_LOGIN=1`; yoxsa 403 `legacy_login_disabled`, köhnə cookie nəzərə alınmır — panel sayt hesabı ilə, [ADMIN-SECURITY.md](ADMIN-SECURITY.md)). `{ email, password }` → cookie `__Host-mcc_admin` (HttpOnly, Secure, SameSite=Strict, 30 gün). Limit: IP 10, e-poçt 5 / 15 dəq |
 | POST | `/api/admin/logout` | cookie | |
 | GET | `/api/admin/me` | admin (müvəqqəti şifrə ilə də) | `{ email, via:'session', mustChangePassword, role }` |
 | POST | `/api/admin/password` | sessiya (müvəqqəti şifrə ilə də) | `{ currentPassword, newPassword≥12 }` → `{ ok }`; xəta `code`: `wrong`/`weak`/`same`; uğurlu olanda **digər** sessiyalar ləğv olunur, cari qalır |

@@ -27,7 +27,7 @@ describe('2FA ehtiyat kodlarının yenilənməsi (HTTP)', () => {
     const allowedOrigins = [ORIGIN]
     const mailer = createMailer({ apiKey: '', onMessage: (m) => mail.push(m) })
     const security = sec.createSecurity({ db, mailer, publicOrigin: ORIGIN })
-    const requireAdmin = auth.createRequireAdmin({ store: authStore, allowedOrigins })
+    const requireAdmin = auth.createRequireAdmin({ legacyLogin: true, store: authStore, allowedOrigins })
     const app = express()
     app.set('trust proxy', 1)
     const router = users.createUsersRouter({

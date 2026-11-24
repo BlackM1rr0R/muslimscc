@@ -76,7 +76,11 @@ const authStore = authLib.createAuthStore(db)
 // Sayt hesabı ilə panel (SSO, server/adminSso.js): panel rolu + TOTP 2FA olan istifadəçi sessiyası da keçir.
 // adminSso aşağıda (usersStore + security-dən sonra) yaradılır — sorğu anında hazırdır.
 const siteSso = { resolve: (req, res) => adminSso.resolve(req, res), audit: (req, r) => adminSso.audit(req, r) }
-const requireAdmin = authLib.createRequireAdmin({ store: authStore, allowedOrigins: ALLOWED, siteSso })
+// Panel YALNIZ saytın hesabı ilə (SSO). Ayrıca admin hesabının girişi (/api/admin/login, /api/admin/2fa) və köhnə
+// __Host-mcc_admin sessiyaları SÖNÜLÜDÜR — yalnız break-glass: api.env-də ADMIN_LEGACY_LOGIN=1 (docs/ADMIN-SECURITY.md → "Təcili giriş")
+const ADMIN_LEGACY_LOGIN = process.env.ADMIN_LEGACY_LOGIN === '1'
+if (ADMIN_LEGACY_LOGIN) console.warn('ADMIN_LEGACY_LOGIN=1 — ayrıca admin girişi (break-glass) AÇIQDIR; iş bitən kimi sil')
+const requireAdmin = authLib.createRequireAdmin({ store: authStore, allowedOrigins: ALLOWED, siteSso, legacyLogin: ADMIN_LEGACY_LOGIN })
 // İstifadəçi hesabları (server/users.js) — cədvəllər miqrasiyasız; admin_roles burada yaradılır,
 // ona görə store admin router-indən əvvəl qurulur (GET /api/admin/me → role)
 const usersLib = require('./users')
@@ -87,11 +91,11 @@ const security = require('./security').createSecurity({
   db, totpKey: process.env.TOTP_KEY || '', publicOrigin: (process.env.PUBLIC_ORIGIN || 'https://muslims.cc').replace(/\/+$/, ''),
   mailer: { sendTemplate: (...a) => mailer.sendTemplate(...a) },
   prefsOf: (id) => personalRouter.store.prefs(id),
-  // Gizli panel ünvanı (build-dəki VITE_ADMIN_PATH ilə eyni; yoxdursa /admin) — yalnız adminin yeni cihaz məktubunda
+  // Gizli panel ünvanı (build-dəki VITE_ADMIN_PATH ilə eyni; yoxdursa /account/panel) — yalnız adminin yeni cihaz məktubunda
   adminPath: process.env.ADMIN_PATH || undefined,
 })
 const adminSso = require('./adminSso').createAdminSso({ db, usersStore, security })
-app.use('/api', authLib.createAuthRouter({ store: authStore, requireAdmin, allowedOrigins: ALLOWED, adminRoleOf: usersStore.adminRole, security }))
+app.use('/api', authLib.createAuthRouter({ store: authStore, requireAdmin, allowedOrigins: ALLOWED, adminRoleOf: usersStore.adminRole, security, legacyLogin: ADMIN_LEGACY_LOGIN }))
 // Vaxtı keçmiş sessiyaları saatda bir təmizlə
 setInterval(() => { try { authStore.purgeExpired() } catch { /* */ } }, 3600e3).unref()
 

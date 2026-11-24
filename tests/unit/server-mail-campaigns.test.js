@@ -139,10 +139,10 @@ describe('HTTP + növbə', () => {
     store.setAdminRole('owner@muslims.cc', 'superadmin')
     store.setAdminRole('editor@muslims.cc', 'editor')
     const allowedOrigins = [ORIGIN]
-    const requireAdmin = auth.createRequireAdmin({ store: authStore, allowedOrigins })
+    const requireAdmin = auth.createRequireAdmin({ legacyLogin: true, store: authStore, allowedOrigins })
     const mailer = createMailer({ apiKey: '', onMessage: (m) => mail.push(m) })
     const app = express()
-    app.use('/api', auth.createAuthRouter({ store: authStore, requireAdmin, allowedOrigins, adminRoleOf: store.adminRole }))
+    app.use('/api', auth.createAuthRouter({ legacyLogin: true, store: authStore, requireAdmin, allowedOrigins, adminRoleOf: store.adminRole }))
     app.use('/api', users.createUsersRouter({ db, store, requireAdmin, allowedOrigins, publicOrigin: ORIGIN, mailer }))
     router = mc.createMailCampaignsRouter({
       db, requireAdmin, adminRoleOf: store.adminRole, mailer, secret: SECRET, publicOrigin: ORIGIN, now,

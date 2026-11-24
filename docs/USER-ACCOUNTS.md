@@ -1,9 +1,10 @@
 # İstifadəçi hesabları və rollar (`server/users.js`)
 
-Saytın **istifadəçi** hesabları — admin panelindən **tam ayrıdır** (ayrı cədvəllər, ayrı cookie, ayrı giriş).
-Admin paneli öz girişini saxlayır (`server/auth.js`, [ADMIN-SECURITY.md](ADMIN-SECURITY.md), [SERVER-OPS.md](SERVER-OPS.md)).
-**İstisna (SSO, `server/adminSso.js`):** rolu `editor`/`admin`/`superadmin` olan və **iki addımlı yoxlaması açıq**
-istifadəçi hesabı panelə ayrıca girişsiz keçir (eyni panel rolu ilə) — [ADMIN-SECURITY.md → "Sayt hesabı ilə panel"](ADMIN-SECURITY.md).
+Saytın **istifadəçi** hesabları — ayrı cədvəllər və cookie. **2026-11-24-dən idarə paneli YALNIZ istifadəçi hesabı ilə
+açılır** (SSO, `server/adminSso.js`): rolu `editor`/`admin`/`superadmin` olan və **iki addımlı yoxlaması açıq** hesab
+`/account/panel` ünvanında paneli eyni panel rolu ilə açır — [ADMIN-SECURITY.md → "Sayt hesabı ilə panel"](ADMIN-SECURITY.md).
+`/admin`, `/adminlogin` silinib (404). Aşağıdakı cədvəldəki ayrıca "admin paneli hesabı" (`server/auth.js`) yalnız
+fövqəladə hal üçündür — `ADMIN_LEGACY_LOGIN=1` olmadan server onun girişini və sessiyalarını qəbul etmir.
 
 | | Admin paneli | İstifadəçi hesabı |
 |---|---|---|
@@ -56,12 +57,12 @@ istifadəçi hesabı panelə ayrıca girişsiz keçir (eyni panel rolu ilə) —
 
 ```sh
 cd /opt/muslimscc
-# admin PANELİ hesabınız (admins cədvəli) — superadmin | admin | editor
-TAG=$(cat .current_tag) docker compose exec api node scripts/admin-user.js set-role abdllyevv@gmail.com superadmin
-# yoxlama — siyahıda rol mötərizədə görünür
-TAG=$(cat .current_tag) docker compose exec api node scripts/admin-user.js list
-# saytın İSTİFADƏÇİ hesabının rolu (users cədvəli) — lazım olsa
+# saytın İSTİFADƏÇİ hesabının rolu (users cədvəli) — panel BUNUNLA açılır (+ hesabda 2FA)
+TAG=$(cat .current_tag) docker compose exec api node scripts/admin-user.js user-role abdllyevv@gmail.com superadmin
 TAG=$(cat .current_tag) docker compose exec api node scripts/admin-user.js user-role someone@example.com mosque_rep --mosque=baku-taza-pir
+# ayrıca admin PANELİ hesabı (admins cədvəli) — yalnız ADMIN_LEGACY_LOGIN=1 (break-glass) ilə işləyir
+TAG=$(cat .current_tag) docker compose exec api node scripts/admin-user.js set-role <admin-email> superadmin
+TAG=$(cat .current_tag) docker compose exec api node scripts/admin-user.js list
 ```
 
 Sonra paneldə `GET /api/admin/me` cavabında `role: "superadmin"` görünür.

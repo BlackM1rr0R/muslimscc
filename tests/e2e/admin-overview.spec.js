@@ -9,14 +9,13 @@
 // ═══════════════════════════════════════════════════════
 import AxeBuilder from '@axe-core/playwright'
 import { test, expect, settle } from './fixtures.js'
-import { fakeAdminSession, adminSignIn } from './adminAuth.js'
+import { fakeAdminSession, ADMIN_PANEL } from './adminAuth.js'
 import { mockOverviewApi } from './adminOverviewData.js'
 
 async function openDashboard(page, opts) {
-  await fakeAdminSession(page, 'admin')
+  await fakeAdminSession(page, 'site', { role: 'admin' })
   const api = await mockOverviewApi(page, opts)
-  await page.goto('/admin')
-  await adminSignIn(page)
+  await page.goto(ADMIN_PANEL)
   await expect(page.locator('.ado-bento')).toBeVisible()
   return api
 }

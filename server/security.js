@@ -468,11 +468,12 @@ const PAGE_T = {
 /**
  * opts: { db, mailer?, publicOrigin?, totpKey?, prefsOf?(userId) → { tz, lang } | null, now?, log?, limits?, adminPath? }
  *   adminPath — admin panelinin (gizli) ünvanı, məs. env ADMIN_PATH (build-dəki VITE_ADMIN_PATH ilə eyni);
- *   format ^/[a-z0-9-]{8,40}$ deyilsə '/admin'. Yalnız adminin öz "yeni cihazdan giriş" məktubundakı keçiddə.
+ *   format ^/[a-z0-9-]{8,40}$ deyilsə '/account/panel'. Yalnız adminin öz "yeni cihazdan giriş" məktubundakı keçiddə
+ *   (ayrıca admin girişi yalnız break-glass rejimindədir — ADMIN_LEGACY_LOGIN=1, server/auth.js).
  */
 function createSecurity(opts) {
   const { db, mailer = null, publicOrigin = 'https://muslims.cc', now = () => Date.now(), log = console } = opts
-  const adminPath = typeof opts.adminPath === 'string' && /^\/[a-z0-9-]{8,40}$/.test(opts.adminPath) ? opts.adminPath : '/admin'
+  const adminPath = typeof opts.adminPath === 'string' && /^\/[a-z0-9-]{8,40}$/.test(opts.adminPath) ? opts.adminPath : '/account/panel'
   const store = opts.store || createSecurityStore(db, { totpKey: opts.totpKey || '' })
   const prefsOf = (id) => { try { return (opts.prefsOf && opts.prefsOf(id)) || null } catch { return null } }
   const limits = opts.limits || {}

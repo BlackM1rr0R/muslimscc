@@ -19,6 +19,11 @@
 // • Sayt hesabı ilə panel (SSO, server/adminSso.js): createRequireAdmin({ siteSso }) sayt
 //   sessiyasını da qəbul edir — panel rolu + TOTP 2FA şərti ilə; req.adminUser.site === true.
 //   Panelin öz şifrə/2FA marşrutları belə sessiyaya 403 { code:'site_account' } qaytarır.
+// • 2026-11-24: panel YALNIZ sayt hesabı ilə (SSO). Ayrıca admin hesabının girişi (POST /admin/login,
+//   POST /admin/2fa) və köhnə __Host-mcc_admin sessiyaları susmaya görə SÖNÜLÜDÜR: legacyLogin:false →
+//   giriş 403 { code:'legacy_login_disabled' }, requireAdmin köhnə cookie-ni nəzərə almır (yalnız SSO).
+//   Break-glass: server.js-də ADMIN_LEGACY_LOGIN=1 → legacyLogin:true (docs/ADMIN-SECURITY.md → "Təcili giriş");
+//   onda 401 cavabında legacyLogin:true — panel ayrıca giriş formasını göstərir. CLI (admin-user.js) dəyişmir.
 // • İstifadəçi hesabları (admin panelindən AYRI) — server/users.js; oradakı
 //   köməkçilər (hashPassword, csrfRejected, createFailureLimiter...) buradan gəlir.
 // ═══════════════════════════════════════════════════════════════════════
@@ -223,10 +228,12 @@ function createAuthStore(db) {
  *     via yenə 'session'-dır (panel modulları "via !== 'session'" ilə token girişini bağlayırdı —
  *     sayt sessiyası da interaktiv cookie sessiyasıdır); GET /api/admin/me isə via:'site' qaytarır.
  *     403 { code:'need_2fa' | 'need_reauth' | 'security_hold' } — panel bələdçi ekranı göstərir.
+ *  legacyLogin — 1) yalnız true olanda (break-glass, ADMIN_LEGACY_LOGIN=1) nəzərə alınır; susmaya görə köhnə
+ *     cookie görməzdən gəlinir (sessiya sətri DB-də qalır, amma heç nəyi açmır) və yalnız SSO yoxlanır.
  */
-function createRequireAdmin({ store, allowedOrigins = [], siteSso = null }) {
+function createRequireAdmin({ store, allowedOrigins = [], siteSso = null, legacyLogin = false }) {
   const make = (allowTemp) => function requireAdmin(req, res, next) {
-    const token = parseCookies(req.headers.cookie)[COOKIE_NAME]
+    const token = legacyLogin ? parseCookies(req.headers.cookie)[COOKIE_NAME] : null
     if (token) {
       const user = store.sessionUser(token)
       if (user) {
@@ -252,7 +259,8 @@ function createRequireAdmin({ store, allowedOrigins = [], siteSso = null }) {
       if (siteSso.audit) siteSso.audit(req, sso)
       return next()
     }
-    return res.status(401).json({ error: 'Unauthorized' })
+    // Break-glass açıqdırsa panel ayrıca admin giriş formasını göstərə bilər (src/pages/AdminPage.jsx)
+    return res.status(401).json(legacyLogin ? { error: 'Unauthorized', legacyLogin: true } : { error: 'Unauthorized' })
   }
   const requireAdmin = make(false)
   // /me, /password: müvəqqəti şifrəli sessiya da keçir
@@ -264,7 +272,7 @@ function createRequireAdmin({ store, allowedOrigins = [], siteSso = null }) {
  * /api/admin/login, /logout, /me, /password.
  *  opts.limits — { ipMax, emailMax, windowMs } (testlər üçün dəyişilə bilər)
  */
-function createAuthRouter({ store, requireAdmin, allowedOrigins = [], limits = {}, adminRoleOf = null, security = null }) {
+function createAuthRouter({ store, requireAdmin, allowedOrigins = [], limits = {}, adminRoleOf = null, security = null, legacyLogin = false }) {
   // security — server/security.js createSecurity(): admin TOTP (admin_totp) + yeni cihaz məktubu (verilməyibsə sönülü)
   const lang = (req) => (req.body && typeof req.body.lang === 'string' && req.body.lang.length <= 8 ? req.body.lang : undefined)
   const openSession = (req, res, admin) => {
@@ -280,7 +288,14 @@ function createAuthRouter({ store, requireAdmin, allowedOrigins = [], limits = {
   const router = express.Router()
   const json = express.json({ limit: '4kb' })
 
-  router.post('/admin/login', json, async (req, res) => {
+  // Ayrıca admin girişi sönülüdür (break-glass: ADMIN_LEGACY_LOGIN=1) — şifrə yoxlanmır, limitə də yazılmır
+  const legacyGate = (req, res, next) => {
+    if (legacyLogin) return next()
+    res.set('Cache-Control', 'no-store')
+    return res.status(403).json({ error: 'Admin sign-in is only available through the site account', code: 'legacy_login_disabled' })
+  }
+
+  router.post('/admin/login', legacyGate, json, async (req, res) => {
     if (csrfRejected(req, allowedOrigins)) return res.status(403).json({ error: 'Forbidden' })
     const email = normEmail(req.body && req.body.email)
     const password = req.body && req.body.password
@@ -350,7 +365,7 @@ function createAuthRouter({ store, requireAdmin, allowedOrigins = [], limits = {
   // ── İki addımlı yoxlama (TOTP, server/security.js → admin_totp) ──
   if (security) {
     const sstore = security.store
-    router.post('/admin/2fa', json, (req, res) => {
+    router.post('/admin/2fa', legacyGate, json, (req, res) => {
       res.set('Cache-Control', 'no-store')
       if (csrfRejected(req, allowedOrigins)) return res.status(403).json({ error: 'Forbidden' })
       const r = security.secondFactor('admin', req.body || {})
