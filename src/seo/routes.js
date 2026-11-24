@@ -68,7 +68,8 @@ export const dirOf = (lang) => (lang === 'ar' || EXTRA_LANGS[lang]?.dir === 'rtl
 // Build zamanı VITE_ADMIN_PATH (CI: GitHub sirri ADMIN_PATH → web image-in build-i). Repoda həqiqi
 // dəyər YOXDUR. Verilməyibsə (lokal dev, testlər) — köhnə /admin və /adminlogin. Verilibsə panel
 // /<gizli>, köhnə ayrıca admin girişi /<gizli>/login; /admin, /adminlogin (və dil prefiksliləri) — 404.
-// Brauzerdə Vite import.meta.env-i əvəz edir; prerender-də (Node) scripts/admin-path-env.mjs
+// Brauzerdə Vite __ADMIN_PATH__ sabitini (vite.config.js → define) əvəz edir — import.meta YOX, çünki
+// Playwright bu faylı CommonJS kimi yükləyir (2026-11-24 CI: bütün e2e yıxıldı); prerender-də (Node) scripts/admin-path-env.mjs
 // eyni .env fayllarından process.env-ə yazır. Sitemap, llms.txt, robots.txt-ə düşmür (noindex).
 export const DEFAULT_ADMIN_PATH = '/admin'
 export const ADMIN_PATH_RE = /^\/[a-z0-9-]{8,40}$/
@@ -81,7 +82,9 @@ export const resolveAdminPath = (v) => {
 export const adminRoutePaths = (adminPath) => (adminPath === DEFAULT_ADMIN_PATH
   ? { admin: 'admin', adminlogin: 'adminlogin' }
   : { admin: adminPath.slice(1), adminlogin: `${adminPath.slice(1)}/login` })
-export const ADMIN_PATH = resolveAdminPath(import.meta.env?.VITE_ADMIN_PATH || globalThis.process?.env?.VITE_ADMIN_PATH)
+/* global __ADMIN_PATH__ */
+const BUILD_ADMIN_PATH = typeof __ADMIN_PATH__ === 'string' ? __ADMIN_PATH__ : ''
+export const ADMIN_PATH = resolveAdminPath(BUILD_ADMIN_PATH || globalThis.process?.env?.VITE_ADMIN_PATH)
 /** Gizli ünvan qoşulubmu (onda "#admin" qısayolu da bağlıdır — App.jsx) */
 export const ADMIN_HIDDEN = ADMIN_PATH !== DEFAULT_ADMIN_PATH
 const ADMIN_ROUTE_PATHS = adminRoutePaths(ADMIN_PATH)

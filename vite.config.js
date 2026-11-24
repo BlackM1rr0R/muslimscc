@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
 import { pathToFileURL } from 'url'
@@ -147,9 +147,12 @@ const driveUpper = (p) => p.replace(/^[a-z]:/, (d) => d.toUpperCase())
 // Cari qovluq böyük disk hərfinə gətirilir (Linux/CI-ə təsiri yoxdur).
 if (process.platform === 'win32' && /^[a-z]:/.test(process.cwd())) process.chdir(driveUpper(process.cwd()))
 
+// Gizli admin ünvanı (src/seo/routes.js → __ADMIN_PATH__): mühit, yoxdursa .env.production* faylları
+const ADMIN_PATH_BUILD = process.env.VITE_ADMIN_PATH || loadEnv('production', process.cwd(), 'VITE_ADMIN_PATH').VITE_ADMIN_PATH || ''
+
 export default defineConfig({
   plugins: [uiDictPlugin(), react(), dailyPoolsPlugin(), hadithLangPlugin(), nawawiHomePlugin(), versionFilePlugin()],
-  define: { __BUILD_ID__: JSON.stringify(BUILD_ID) },
+  define: { __BUILD_ID__: JSON.stringify(BUILD_ID), __ADMIN_PATH__: JSON.stringify(ADMIN_PATH_BUILD) },
 
   // Yalnız bir React nüsxəsi olsun deyə
   resolve: {
