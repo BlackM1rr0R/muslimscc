@@ -34,6 +34,7 @@ import { sanitizeGraves, GRAVES_KEY } from './graveVisits'
 import { mergeTrips, TRIPS_KEY } from './travelTrips'
 import { sanitizeVisits as sanitizeSickVisits, SICK_KEY } from './sickVisits'
 import { mergeRoutine, ROUTINE_KEY } from './sleepRoutine'
+import { flatPrep, unflatPrep, isEmptyPrep, PREP_KEY } from './ramadanPrep'
 
 export const CONFLICT = Symbol('conflict')
 
@@ -330,6 +331,13 @@ export const MERGERS = {
   [HAID_KEY]: json((L, R, B) => mergeHaid(L, R, B), { ok: isObj }),
   // R1: yatma/oyanış ardıcıllığı — eyni gün: addımların birliyi, fərqli gün: təzəsi; saat və rəng — bu cihazınkı
   [ROUTINE_KEY]: json((L, R) => mergeRoutine(L, R), { ok: isObj }),
+  // Ramazana hazırlıq yolu + son 10 gecə — işarə üzrə 3 tərəfli (götürülməsi də keçir); iki cihazda — ən erkən gün
+  [PREP_KEY]: json((L, R, B) => {
+    const m = mergeMap3(flatPrep(L), flatPrep(R), B === undefined ? {} : flatPrep(B), (l, r) => (l < r ? l : r))
+    if (m === CONFLICT) return CONFLICT
+    const out = unflatPrep(m)
+    return isEmptyPrep(out) ? undefined : out
+  }, { ok: isObj }),
   // Günün bitən seansları { gün: say } — gün üzrə sayğac (iki cihazın artımı toplanır), son 14 gün
   [FOCUS_DONE_KEY]: json((L, R, B) => {
     const Lm = sanitizeDone(L), Rm = sanitizeDone(R), Bm = B === undefined ? null : sanitizeDone(B)

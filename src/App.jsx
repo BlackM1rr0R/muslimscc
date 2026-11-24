@@ -155,6 +155,8 @@ const LovedOneGuidePage = lazy(() => import('./pages/LovedOneGuidePage'))
 const NikahGuidePage = lazy(() => import('./pages/NikahGuidePage'))
 const OnTheRoadPage = lazy(() => import('./pages/OnTheRoadPage'))
 const BedtimeRoutinePage = lazy(() => import('./pages/BedtimeRoutinePage'))
+// Ramazana hazırlıq yolu + son 10 gecə (bir səhifə, iki marşrut)
+const RamadanPrepPage = lazy(() => import('./pages/RamadanPrepPage'))
 const MorningRoutinePage = lazy(() => import('./pages/MorningRoutinePage'))
 const FocusPage = lazy(() => import('./pages/FocusPage'))
 const JariyahJournalPage = lazy(() => import('./pages/JariyahJournalPage'))
@@ -171,8 +173,12 @@ const HaidCalendarPage = lazy(() => import('./pages/HaidCalendarPage'))
 // R3: müsəlman səyyahın dəsti, 'Mənim ilim' çap kitabı
 const TravellerKitPage = lazy(() => import('./pages/TravellerKitPage'))
 const YearBookPage = lazy(() => import('./pages/YearBookPage'))
+// Əmanət qutusu — uçdan-uca şifrəli vəsiyyət qeydləri (server/trustBox.js)
+const TrustBoxPage = lazy(() => import('./pages/TrustBoxPage'))
 // D dəstəsi: yeniliklər (tarixli siyahı)
 const WhatsNewPage = lazy(() => import('./pages/WhatsNewPage'))
+// PWA paylaşma hədəfi (/share — manifest share_target)
+const ShareTargetPage = lazy(() => import('./pages/ShareTargetPage'))
 const SimpleModePage = lazy(() => import('./pages/SimpleModePage'))
 const ShariaUnitsPage = lazy(() => import('./pages/ShariaUnitsPage'))
 const MushafPage = lazy(() => import('./pages/MushafPage'))
@@ -205,6 +211,10 @@ const TogetherPage = lazy(() => import('./pages/TogetherPage'))
 // K mərhələsi: dua divarı (moderasiyalı) və könüllü açıq profil (/u/<ləqəb>)
 const DuaWallPage = lazy(() => import('./pages/DuaWallPage'))
 const PublicProfilePage = lazy(() => import('./pages/PublicProfilePage'))
+// İcma lövhələri: namaz otaqları, cənazə elanı (gizli keçid #n=…), məscid könüllüləri
+const PrayerRoomsPage = lazy(() => import('./pages/PrayerRoomsPage'))
+const JanazaPage = lazy(() => import('./pages/JanazaPage'))
+const VolunteersPage = lazy(() => import('./pages/VolunteersPage'))
 
 // Bu widget-lər hər səhifədə render olunur, amma heç biri ilk ekran üçün
 // vacib deyil — ona görə tənbəl yüklənir.
@@ -486,6 +496,8 @@ function AppInner() {
       case 'nikahprep':  return <NikahGuidePage setPage={navigate} />
       case 'onroad':     return <OnTheRoadPage setPage={navigate} />
       case 'bedtime':    return <BedtimeRoutinePage setPage={navigate} />
+      case 'ramadanprep': return <RamadanPrepPage setPage={navigate} view="road" />
+      case 'lastten':    return <RamadanPrepPage setPage={navigate} view="nights" />
       case 'waking':     return <MorningRoutinePage setPage={navigate} />
       case 'focus':      return <FocusPage setPage={navigate} />
       case 'jariyah':    return <JariyahJournalPage setPage={navigate} />
@@ -498,7 +510,9 @@ function AppInner() {
       case 'haid':       return <HaidCalendarPage setPage={navigate} />
       case 'travelkit':  return <TravellerKitPage setPage={navigate} />
       case 'yearbook':   return <YearBookPage setPage={navigate} />
+      case 'trustbox':   return <TrustBoxPage />
       case 'whatsnew':   return <WhatsNewPage setPage={navigate} />
+      case 'share':      return <ShareTargetPage setPage={navigate} />
       case 'simple':     return <SimpleModePage setPage={navigate} />
       case 'units':      return <ShariaUnitsPage setPage={navigate} />
       case 'mushaf':     return <MushafPage setPage={navigate} />
@@ -530,6 +544,9 @@ function AppInner() {
       case 'together':      return <TogetherPage />
       case 'duawall':       return <DuaWallPage />
       case 'publicprofile': return <PublicProfilePage setPage={navigate} />
+      case 'prayerrooms':   return <PrayerRoomsPage />
+      case 'janaza':        return <JanazaPage />
+      case 'volunteers':    return <VolunteersPage />
       case 'notfound':      return <NotFoundPage      setPage={navigate} />
       default:              return <HomePage          setPage={navigate} />
     }

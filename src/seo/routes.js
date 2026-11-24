@@ -118,6 +118,9 @@ export const PAGES = [
   { key: 'focus',        path: 'focus',        priority: 0.65, changefreq: 'monthly' },
   { key: 'prayer',       path: 'prayer',       priority: 0.95, changefreq: 'daily'   },
   { key: 'ramadan',      path: 'ramadan',      priority: 0.8,  changefreq: 'daily'   },
+  // Ramazana hazırlıq yolu və son 10 gecə — bir səhifə, iki görünüş (irəliləyiş yalnız klientdə)
+  { key: 'ramadanprep',  path: 'road-to-ramadan', priority: 0.75, changefreq: 'weekly' },
+  { key: 'lastten',      path: 'last-ten-nights', priority: 0.75, changefreq: 'weekly' },
   { key: 'hadith',       path: 'hadith',       priority: 0.90, changefreq: 'weekly'  },
   { key: 'nawawi40',     path: 'nawawi40',     priority: 0.85, changefreq: 'monthly' },
   { key: 'hadithbooks',  path: 'hadith-library', priority: 0.85, changefreq: 'monthly' },
@@ -221,6 +224,15 @@ export const PAGES = [
   { key: 'haid',          path: 'private-calendar', noindex: true },
   // R3: 'Mənim ilim' çap kitabı — yalnız cihazdakı şəxsi qeydlərdən (prerender-də boş qabıq): indekslənmir
   { key: 'yearbook',      path: 'my-year-book',     noindex: true },
+  // İcma lövhələri — istifadəçi məzmunu (moderasiyalı; klientdə yüklənir): indekslənmir.
+  // Cənazə elanının gizli keçidi #n=… fraqmentdədir (server/janaza.js)
+  { key: 'prayerrooms',   path: 'prayer-rooms',     noindex: true },
+  { key: 'janaza',        path: 'janaza',           noindex: true },
+  { key: 'volunteers',    path: 'volunteers',       noindex: true },
+  // Əmanət qutusu — girişli, uçdan-uca şifrəli; etibarlı şəxsin gizli keçidi #t=… fraqmentdə: indekslənmir
+  { key: 'trustbox',      path: 'trust-box',        noindex: true },
+  // PWA paylaşma hədəfi (site.webmanifest → share_target, GET ?title=&text=&url=): paylaşılan mətn üçün əməllər — indekslənmir
+  { key: 'share',         path: 'share',            noindex: true },
 ]
 
 // Gizli admin ünvanı mövcud səhifə ilə üst-üstə düşməsin — build (prerender) burada dayanır

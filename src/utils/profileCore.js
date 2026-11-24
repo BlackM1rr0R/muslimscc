@@ -70,6 +70,8 @@ export const PROFILE_KEYS = [
   'sick_visits_v1',
   // R1: yatma / oyanış ardıcıllığının bu günkü irəliləyişi (utils/sleepRoutine)
   'sleep_routine_v1',
+  // Ramazana hazırlıq yolu və son 10 gecənin işarələri (utils/ramadanPrep)
+  'ramadan_prep_v1',
 ]
 const SCOPED = new Set(PROFILE_KEYS)
 export const isProfileScoped = (k) => SCOPED.has(k)

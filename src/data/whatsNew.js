@@ -20,6 +20,20 @@
 export const NEW_DAYS = 30
 
 export const WHATS_NEW = [
+  // 2026-11-24 — icma lövhələri: namaz otaqları, cənazə elanı (gizli keçid), məscid könüllüləri (server/prayerRooms.js, janaza.js, volunteers.js)
+  { id: 'prayerrooms', date: '2026-11-24', key: 'prayerrooms', icon: 'prayerrooms', page: true },
+  { id: 'janaza', date: '2026-11-24', key: 'janaza', icon: 'janaza', page: true },
+  { id: 'volunteers', date: '2026-11-24', key: 'volunteers', icon: 'volunteers', page: true },
+  // 2026-11-24 — Ramazana hazırlıq yolu (/road-to-ramadan) və son 10 gecə (/last-ten-nights)
+  { id: 'ramadanprep', date: '2026-11-24', key: 'ramadanprep', icon: 'ramadanprep', page: true },
+  { id: 'lastten', date: '2026-11-24', key: 'lastten', icon: 'lastten', page: true },
+  // 2026-11-24 — Əmanət qutusu (/trust-box, server/trustBox.js): uçdan-uca şifrəli vəsiyyət qeydləri
+  { id: 'trustbox', date: '2026-11-24', key: 'trustbox', icon: 'trustbox', page: true },
+  // 2026-11-24 — Telegram botu (server/telegramBot.js; /prayer-də kart — VITE_TELEGRAM_BOT olanda)
+  { id: 'telegram-bot', date: '2026-11-24', key: 'prayer', icon: 'send' },
+  // 2026-11-24 — PWA paylaşma hədəfi (/share) və hərf yazma məşqində mövqe formaları + səs
+  { id: 'share-target', date: '2026-11-24', key: 'share', icon: 'share' },
+  { id: 'letter-trace-forms', date: '2026-11-24', key: 'arabic', icon: 'edit' },
   // 2026-11-23 — "Yeniliklər" səhifəsi və bələdçi tur
   { id: 'whats-new', date: '2026-11-23', key: 'whatsnew', icon: 'whatsnew', page: true },
   // 2026-11-23 (1b22ee8) — yatma/oyanış, ailə halqası, xəstə ziyarəti, səyyah dəsti, "Mənim ilim"

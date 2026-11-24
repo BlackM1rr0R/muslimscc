@@ -65,6 +65,10 @@ const DOC = {
       groups: { h: 'Qrup xətmi və ortaq hədəflər', body: [
         'Qrup otağı yaradanda və ona qoşulanda serverdə yalnız sizin yazdığınız görünən ad (məsələn, "Əli") və qeydləriniz (hansı cüzü götürdüyünüz, hansı günləri işarələdiyiniz) saxlanılır. Hesab yaradılmır, {ip} ünvanı və başqa şəxsi məlumat yazılmır. İdarəetmə və iştirak açarları yalnız brauzerinizin yerli yaddaşında qalır. Otaq son fəaliyyətdən 180 gün sonra avtomatik silinir; onu yaradan istənilən vaxt silə bilər.',
       ] },
+      trustbox: { h: 'Əmanət qutusu', body: [
+        'Hesabınızda əmanət qutusu yaratsanız, qeydləriniz (vəsiyyət istəkləri, borclar, sənədlərin yeri, ailəyə sözlər) **brauzerinizdə** yalnız sizin bildiyiniz əmanət parolu ilə şifrələnir (PBKDF2-SHA256, 600 000 dövr; AES-256-GCM). Serverimizdə yalnız şifrəli mətn, təsadüfi duz, gizli keçidin SHA-256 heşi, yaradılma və dəyişmə vaxtı və keçidlə son açılış günü saxlanır — parol, açıq mətn və {ip} ünvanı heç vaxt saxlanmır.',
+        '**Nə qədər:** qutunu silənə qədər; hesab silinəndə də silinir. Hesab ixracında şifrəli şəkildə verilir. Parol itsə, məzmunu heç kim — biz də — bərpa edə bilmərik.',
+      ] },
       push: { h: 'Push bildirişləri', body: [
         'Bildirişlər yalnız siz icazə verəndə açılır. İcazə verdikdə brauzerinizin öz push xidməti ({pushsvc}) brauzerinizə bildiriş ünvanı (cihaza bildiriş çatdırmaq üçün təsadüfi simvollardan ibarət açar) verir və biz öz serverimizin verilənlər bazasında belə bir qeyd saxlayırıq:',
         { ul: [
@@ -77,6 +81,20 @@ const DOC = {
         '**Nə üçün:** serverimiz hər abunəçiyə öz şəhərinin azan vaxtında bildiriş göndərir; həmçinin bütün abunəçilərə ümumi elanlar göndərilə bilər.',
         '**Nə qədər:** siz bildirişləri söndürənə qədər. Saytdakı "Bildirişlər" panelində **"Söndür"** düyməsinə basanda qeyd verilənlər bazasından dərhal silinir. Bildirişləri yalnız brauzer və ya telefon ayarlarından bağlasanız, ünvan etibarsız olur və növbəti göndərişdə server bunu görüb qeydi silir.',
         { note: 'Mobil tətbiqdə namaz xatırlatmaları cihazın özündə planlaşdırılır — bunun üçün serverə ünvan göndərilmir.' },
+      ] },
+      telegram: { h: 'Telegram botu', body: [
+        // lang-ok[Telegram]: xidmətin adı
+        'Saytın Telegram botundan istifadə etdikdə əmrləriniz Telegram şirkətinin serverləri vasitəsilə bizim serverimizə çatır; bu yolda Telegram-ın öz məxfilik siyasəti tətbiq olunur. Bot şəhər seçdikdən sonra serverimizin verilənlər bazasında yalnız bu qeydi saxlayır (şifrələnmədən — şəhər seçməklə buna razılıq verirsiniz):',
+        { ul: [
+          // lang-ok[Telegram]: xidmətin adı
+          'söhbət nömrəsi (Telegram-ın söhbətə verdiyi nömrə — sizə cavab göndərmək üçün);',
+          // lang-ok[Telegram]: xidmətin adı
+          'interfeys diliniz (Telegram-ın bildirdiyi dil kodundan);',
+          'seçdiyiniz şəhər (saytın şəhər siyahısından);',
+          'azan xatırlatmasının açıq və ya sönülü olması və qeydin yaradılma vaxtı.',
+        ] },
+        'Adınız, istifadəçi adınız, telefon nömrəniz və mesajlarınızın mətni saxlanmır və loglanmır; {ip} ünvanı yazılmır.',
+        '**Nə qədər:** botda /stop əmrini göndərənə və ya botu bloklayana qədər — hər iki halda qeyd dərhal silinir.',
       ] },
       ai: { h: 'AI köməkçi', body: [
         'AI köməkçiyə sual verdikdə sualınızın mətni, cari söhbətin son bir neçə mesajı və interfeys diliniz serverimizə, oradan isə {openrouter} xidməti vasitəsilə süni intellekt modelinə (hazırda {gemini}) göndərilir. Cavab eyni yolla geri qayıdır.',
@@ -121,6 +139,15 @@ const DOC = {
       logs: { h: 'Server qeydləri (loglar)', body: [
         'Hər veb server kimi bizim server də ({nginx}) daxil olan sorğular haqqında texniki qeyd aparır: {ip} ünvanı, vaxt, açılan ünvan, cavab kodu və brauzer məlumatı. Şəkil, şrift və skript kimi statik faylların sorğuları qeyd olunmur.',
         'Bu qeydlər yalnız xətaları aradan qaldırmaq və saytı hücumlardan qorumaq üçündür. Onlar ölçü ilə məhdudlaşdırılıb (təxminən 10 MB-lıq 3 fayl): yer dolduqca ən köhnə qeydlər avtomatik olaraq yenilərinin altında silinir. Sorğular serverə {cloudflare} vasitəsilə çatır və o da trafiki öz siyasətinə uyğun emal edir.',
+      ] },
+      community: { h: 'İcma lövhələri: namaz otaqları, cənazə elanı, könüllülər', body: [
+        'Bu bölmələrdən hesabla istifadə etsəniz, aşağıdakılar serverimizdə **şifrəsiz** saxlanılır və hesabınıza bağlanır:',
+        { ul: [
+          '**Namaz otağı təklifi:** yerin adı, növü, şəhəri, ünvanı, koordinatları, mərtəbə və qeyd. Təsdiqdən sonra hər kəsə görünür; adınız və e-poçtunuz göstərilmir. «Yaxınımdakılar» üçün yeriniz yalnız brauzerinizdə işlənir və serverə göndərilmir.',
+          '**Cənazə elanı** (yalnız açıq razılığınızla): mərhumun adı, namazın tarixi və saatı, yer, istəyə bağlı dəfn yeri və ailənin əlaqəsi. Gizli keçidi olan hər kəs görür (keçidin özü bazada yalnız heş kimi saxlanılır); ictimai siyahıya yalnız istəsəniz və nəzarətçi yoxlayandan sonra düşür, orada əlaqə göstərilmir. Elan namaz günündən 30 gün sonra avtomatik silinir. «Dua etdim» yalnız say kimi saxlanılır; ziyarətçinin {ip} ünvanı saxlanmır.',
+          '**Könüllü yazılışı:** yazdığınız ad və (yalnız razılığınızla) e-poçtunuz yalnız həmin məscidin nümayəndəsinə görünür; ictimai siyahıda yalnız dolu yerlərin sayı var. Tarixi keçən işlər 30 gün sonra yazılışlarla birlikdə silinir.',
+        ] },
+        'Bu qeydləri istənilən vaxt özünüz silə bilərsiniz; hesabı silsəniz, hamısı silinir. Onlar hesabdakı məlumat ixracına daxildir.',
       ] },
       purposes: { h: 'Məqsədlər və hüquqi əsas', body: [
         { ul: [
@@ -206,6 +233,10 @@ const DOC = {
       groups: { h: 'Group khatm and shared goals', body: [
         'When you create or join a room, only the display name you type (e.g. “Ali”) and your marks (which juz you claimed, which days you ticked) are stored on the server. No account is created and no {ip} address or other personal data is recorded. The management and participation keys stay only in your browser’s local storage. A room is deleted automatically 180 days after its last activity, and its creator can delete it at any time.',
       ] },
+      trustbox: { h: 'Trust box', body: [
+        'If you create a trust box in your account, your notes (will wishes, debts, where your documents are, words to your family) are encrypted **in your browser** with a trust passphrase that only you know (PBKDF2-SHA256 with 600,000 rounds; AES-256-GCM). Our server stores only the ciphertext, a random salt, the SHA-256 hash of the private link, the creation and change times and the day it was last opened with the link — never the passphrase, never the readable text and never your {ip} address.',
+        '**How long:** until you delete the box; it is also deleted with your account. It is included, still encrypted, in your account export. If the passphrase is lost, nobody — including us — can recover the content.',
+      ] },
       push: { h: 'Push notifications', body: [
         'Notifications are turned on only when you give permission. When you do, your browser’s own push service ({pushsvc}) gives your browser a notification address (a random key used to deliver notifications to your device), and we store a record like this in our own server’s database:',
         { ul: [
@@ -218,6 +249,17 @@ const DOC = {
         '**Why:** our server sends each subscriber a notification at the adhan time of their own city; general announcements may also be sent to all subscribers.',
         '**How long:** until you turn notifications off. Pressing **“Disable”** in the site’s Notifications panel deletes the record from the database immediately. If you block notifications only in your browser or phone settings, the address becomes invalid and the server deletes the record the next time a delivery fails.',
         { note: 'In the mobile app, prayer reminders are scheduled on the device itself — no address is sent to our server for them.' },
+      ] },
+      telegram: { h: 'Telegram bot', body: [
+        'When you use the site’s Telegram bot, your commands reach our server through Telegram’s servers; Telegram’s own privacy policy applies on that path. After you choose a city, the bot keeps only this record in our server’s database (unencrypted — by choosing a city you agree to this):',
+        { ul: [
+          'chat number (Telegram’s chat identifier — to send you replies);',
+          'your interface language (from the language code Telegram reports);',
+          'the city you chose (from the site’s city list);',
+          'whether the adhan reminder is on or off, and when the record was created.',
+        ] },
+        'Your name, username, phone number and the text of your messages are not stored or logged; your {ip} address is not recorded.',
+        '**How long:** until you send the /stop command to the bot or block the bot — in both cases the record is deleted immediately.',
       ] },
       ai: { h: 'AI assistant', body: [
         'When you ask the AI assistant a question, the text of your question, the last few messages of the current conversation and your interface language are sent to our server and from there, through the {openrouter} service, to an artificial-intelligence model (currently {gemini}). The answer comes back the same way.',
@@ -262,6 +304,15 @@ const DOC = {
       logs: { h: 'Server logs', body: [
         'Like any web server, ours ({nginx}) keeps technical records of incoming requests: {ip} address, time, the address requested, the response code and browser details. Requests for static files such as images, fonts and scripts are not logged.',
         'These records are used only to fix errors and protect the site from attacks. They are limited by size (about 3 files of 10 MB): as space fills up, the oldest entries are automatically overwritten. Requests reach our server through {cloudflare}, which also processes the traffic under its own policy.',
+      ] },
+      community: { h: 'Community boards: prayer rooms, janaza notices, volunteers', body: [
+        'If you use these sections with an account, the following is stored on our server **unencrypted** and linked to your account:',
+        { ul: [
+          '**A prayer room suggestion:** the name, type, city, address, coordinates, floor and note of the place. After approval it is visible to everyone; your name and email are never shown. For “Near me” your location is used only in your browser and is not sent to the server.',
+          '**A janaza notice** (only with your explicit consent): the name of the deceased, the date and time of the prayer, the place, and optionally the burial place and a family contact. Anyone with the private link can see it (the link itself is stored only as a hash); it appears in the public list only if you ask and after a moderator checks it, and the contact is never shown there. The notice is deleted automatically 30 days after the prayer date. “I made dua” is stored only as a number; visitors’ {ip} addresses are not stored.',
+          '**A volunteer signup:** the name you enter and (only with your consent) your email are visible only to that mosque’s representative; the public list shows only how many slots are filled. Past tasks are deleted together with their signups after 30 days.',
+        ] },
+        'You can delete these records yourself at any time; deleting your account deletes all of them. They are included in your account data export.',
       ] },
       purposes: { h: 'Purposes and legal basis', body: [
         { ul: [
@@ -348,6 +399,11 @@ const DOC = {
       groups: { h: 'Общий хатм и общие цели', body: [
         'При создании комнаты или присоединении к ней на сервере хранится только введённое вами отображаемое имя (например, «Али») и ваши отметки (какой джуз вы взяли, какие дни отметили). Учётная запись не создаётся, адрес {ip} и другие личные данные не записываются. Ключи управления и участия остаются только в локальном хранилище вашего браузера. Комната удаляется автоматически через 180 дней после последней активности; её создатель может удалить её в любое время.',
       ] },
+      trustbox: { h: 'Ящик доверия', body: [
+        // lang-ok[PBKDF,SHA,AES-]: alqoritmlərin adları tərcümə olunmur
+        'Если вы создадите в аккаунте ящик доверия, ваши записи (пожелания по завещанию, долги, где лежат документы, слова семье) шифруются **в вашем браузере** парольной фразой, которую знаете только вы (PBKDF2-SHA256, 600 000 итераций; AES-256-GCM). На нашем сервере хранятся только шифротекст, случайная соль, хеш SHA-256 секретной ссылки, время создания и изменения и день последнего открытия по ссылке — но никогда не фраза, не читаемый текст и не ваш {ip}-адрес.',
+        '**Как долго:** пока вы не удалите ящик; он удаляется и вместе с аккаунтом. В экспорт аккаунта он попадает в зашифрованном виде. Если фраза потеряна, восстановить содержимое не может никто — и мы тоже.',
+      ] },
       push: { h: 'Пуш-уведомления', body: [
         'Уведомления включаются только с вашего разрешения. После этого собственная пуш-служба вашего браузера ({pushsvc}) выдаёт браузеру адрес для уведомлений (случайный ключ для доставки уведомлений на ваше устройство), а мы сохраняем в базе данных нашего сервера запись следующего вида:',
         { ul: [
@@ -360,6 +416,18 @@ const DOC = {
         '**Зачем:** сервер отправляет каждому подписчику уведомление во время азана в его городе; также всем подписчикам могут приходить общие объявления.',
         '**Как долго:** пока вы не отключите уведомления. Кнопка **«Отключить»** в панели «Уведомления» на сайте сразу удаляет запись из базы. Если запретить уведомления только в настройках браузера или телефона, адрес становится недействительным, и сервер удаляет запись при следующей неудачной отправке.',
         { note: 'В мобильном приложении напоминания о намазе планируются на самом устройстве — для них адрес на сервер не отправляется.' },
+      ] },
+      telegram: { h: 'Telegram-бот', body: [
+        'Когда вы пользуетесь Telegram-ботом сайта, ваши команды доходят до нашего сервера через серверы Telegram; на этом пути действует собственная политика конфиденциальности Telegram. После выбора города бот хранит в базе данных нашего сервера только такую запись (без шифрования — выбирая город, вы соглашаетесь с этим):',
+        { ul: [
+          'номер чата (идентификатор чата Telegram — чтобы отправлять вам ответы);',
+          'язык интерфейса (по коду языка, который сообщает Telegram);',
+          'выбранный город (из списка городов сайта);',
+          'включено ли напоминание об азане и время создания записи.',
+        ] },
+        'Ваше имя, имя пользователя, номер телефона и текст сообщений не сохраняются и не записываются в журналы; {ip}-адрес не сохраняется.',
+        // lang-ok[stop]: botun əmr adı (/stop)
+        '**Как долго:** пока вы не отправите боту команду /stop или не заблокируете бота — в обоих случаях запись сразу удаляется.',
       ] },
       ai: { h: 'ИИ-помощник', body: [
         'Когда вы задаёте вопрос ИИ-помощнику, текст вопроса, несколько последних сообщений текущего диалога и язык интерфейса отправляются на наш сервер, а оттуда через сервис {openrouter} — модели искусственного интеллекта (сейчас это {gemini}). Ответ возвращается тем же путём.',
@@ -404,6 +472,15 @@ const DOC = {
       logs: { h: 'Журналы сервера', body: [
         'Как и любой веб-сервер, наш сервер ({nginx}) ведёт технический журнал входящих запросов: адрес {ip}, время, запрошенный адрес, код ответа и данные браузера. Запросы статических файлов — изображений, шрифтов, скриптов — не записываются.',
         'Журналы нужны только для исправления ошибок и защиты сайта от атак. Их объём ограничен (около 3 файлов по 10 МБ): по мере заполнения самые старые записи автоматически перезаписываются. Запросы доходят до сервера через {cloudflare}, который также обрабатывает трафик по своей политике.',
+      ] },
+      community: { h: 'Доски сообщества: комнаты для намаза, объявления о джаназе, волонтёры', body: [
+        'Если вы пользуетесь этими разделами с аккаунтом, на нашем сервере **без шифрования** хранится и привязывается к аккаунту следующее:',
+        { ul: [
+          '**Предложение комнаты для намаза:** название, тип, город, адрес, координаты, этаж и заметка. После одобрения видно всем; ваше имя и почта не показываются. Для «Рядом со мной» местоположение используется только в браузере и на сервер не отправляется.',
+          '**Объявление о джаназе** (только с вашего явного согласия): имя умершего, дата и время молитвы, место, по желанию — место погребения и связь с семьёй. Его видит каждый, у кого есть закрытая ссылка (сама ссылка хранится только в виде хеша); в общий список оно попадает только по вашему желанию и после проверки модератором, связь с семьёй там не показывается. Объявление удаляется автоматически через 30 дней после даты молитвы. Отметка «Сделал(а) дуа» хранится только как число; {ip}-адреса посетителей не хранятся.',
+          '**Запись волонтёром:** указанное вами имя и (только с вашего согласия) почта видны только представителю этой мечети; в общем списке — только число занятых мест. Прошедшие задачи удаляются вместе с записями через 30 дней.',
+        ] },
+        'Вы можете удалить эти записи сами в любое время; при удалении аккаунта удаляется всё. Они входят в выгрузку данных аккаунта.',
       ] },
       purposes: { h: 'Цели и правовые основания', body: [
         { ul: [
@@ -490,6 +567,11 @@ const DOC = {
       groups: { h: 'الختمة الجماعية والأهداف المشتركة', body: [
         'عند إنشاء غرفة أو الانضمام إليها لا يُحفظ على الخادم إلا الاسم الظاهر الذي تكتبه (مثل «علي») وعلاماتك (الجزء الذي أخذته والأيام التي علّمتها). لا يُنشأ حساب، ولا يُسجَّل عنوان {ip} ولا أي بيانات شخصية أخرى. تبقى مفاتيح الإدارة والمشاركة في التخزين المحلي لمتصفحك فقط. تُحذف الغرفة تلقائيًا بعد 180 يومًا من آخر نشاط، ويستطيع منشئها حذفها في أي وقت.',
       ] },
+      trustbox: { h: 'صندوق الأمانة', body: [
+        // lang-ok[PBKDF,SHA,AES-]: alqoritmlərin adları tərcümə olunmur
+        'إذا أنشأت صندوق أمانة في حسابك فإن ملاحظاتك (ما توصي به، والديون، وأماكن الوثائق، وكلماتك لأهلك) تُشفَّر **في متصفحك** بعبارة مرور أمانة لا يعرفها سواك (PBKDF2-SHA256 بـ 600 000 دورة؛ AES-256-GCM). لا يحفظ خادمنا إلا النص المشفَّر، وملحًا عشوائيًا، وبصمة SHA-256 للرابط الخاص، ووقتَي الإنشاء والتعديل، ويومَ آخر فتح بالرابط — ولا يحفظ أبدًا العبارة ولا النص المقروء ولا عنوان {ip}.',
+        '**المدة:** حتى تحذف الصندوق، ويُحذف كذلك مع حسابك. ويُضمَّن مشفَّرًا في تصدير بيانات حسابك. إن ضاعت العبارة فلا أحد — ولا نحن — يستطيع استعادة المحتوى.',
+      ] },
       push: { h: 'الإشعارات الفورية', body: [
         'لا تُفعَّل الإشعارات إلا بإذنك. عند منح الإذن تعطي خدمة الإشعارات الخاصة بمتصفحك ({pushsvc}) متصفحك عنواناً للإشعارات (مفتاحاً عشوائياً لإيصال الإشعارات إلى جهازك)، ونحفظ في قاعدة بيانات خادمنا سجلاً يتضمّن:',
         { ul: [
@@ -502,6 +584,18 @@ const DOC = {
         '**الغرض:** يرسل خادمنا إلى كل مشترك إشعاراً عند وقت الأذان في مدينته؛ وقد تُرسَل أيضاً إعلانات عامة إلى جميع المشتركين.',
         '**المدة:** حتى توقف الإشعارات. الضغط على زر **«إيقاف»** في لوحة «الإشعارات» في الموقع يحذف السجل من قاعدة البيانات فوراً. وإذا حظرت الإشعارات من إعدادات المتصفح أو الهاتف فقط، يصبح العنوان غير صالح ويحذف الخادم السجل عند أول محاولة إرسال فاشلة.',
         { note: 'في تطبيق الهاتف تُجدوَل تذكيرات الصلاة على الجهاز نفسه، ولا يُرسَل لأجلها أي عنوان إلى خادمنا.' },
+      ] },
+      telegram: { h: 'بوت تيليجرام', body: [
+        'عند استخدامك بوت تيليجرام الخاص بالموقع تصل أوامرك إلى خادمنا عبر خوادم تيليجرام، وتنطبق في هذا المسار سياسة الخصوصية الخاصة بتيليجرام. بعد اختيارك مدينةً يحتفظ البوت في قاعدة بيانات خادمنا بهذا السجل فقط (دون تشفير — وباختيار المدينة توافق على ذلك):',
+        { ul: [
+          'رقم المحادثة (معرّف المحادثة في تيليجرام — لإرسال الردود إليك)؛',
+          'لغة الواجهة (من رمز اللغة الذي يرسله تيليجرام)؛',
+          'المدينة التي اخترتها (من قائمة مدن الموقع)؛',
+          'هل تذكير الأذان مفعّل أم لا، ووقت إنشاء السجل.',
+        ] },
+        'لا يُحفظ اسمك ولا اسم المستخدم ولا رقم هاتفك ولا نص رسائلك ولا يُسجَّل، ولا يُسجَّل عنوان {ip}.',
+        // lang-ok[stop]: botun əmr adı (/stop)
+        '**إلى متى:** حتى ترسل الأمر /stop إلى البوت أو تحظره — وفي الحالتين يُحذف السجل فورًا.',
       ] },
       ai: { h: 'المساعد الذكي', body: [
         'عندما تطرح سؤالاً على المساعد الذكي يُرسَل نص سؤالك وآخر بضع رسائل من المحادثة الحالية ولغة الواجهة إلى خادمنا، ومنه عبر خدمة {openrouter} إلى نموذج ذكاء اصطناعي (حالياً {gemini}). ويعود الجواب بالطريق نفسه.',
@@ -546,6 +640,15 @@ const DOC = {
       logs: { h: 'سجلات الخادم', body: [
         'كأي خادم ويب، يحتفظ خادمنا ({nginx}) بسجلّ تقني للطلبات الواردة: عنوان {ip}، والوقت، والعنوان المطلوب، ورمز الاستجابة، وبيانات المتصفح. ولا تُسجَّل طلبات الملفات الثابتة كالصور والخطوط والبرامج النصية.',
         'تُستخدم هذه السجلات فقط لإصلاح الأخطاء وحماية الموقع من الهجمات. وحجمها محدود (نحو ثلاثة ملفات بحجم ١٠ ميغابايت لكل منها): وكلما امتلأت المساحة تُستبدل أقدم الإدخالات تلقائياً. وتصل الطلبات إلى خادمنا عبر {cloudflare} الذي يعالج حركة المرور أيضاً وفق سياسته.',
+      ] },
+      community: { h: 'لوحات المجتمع: المصليات وإعلانات الجنازة والتطوع', body: [
+        'إن استخدمت هذه الأقسام بحساب، فإن ما يلي يُحفظ على خادمنا **دون تشفير** ويُربط بحسابك:',
+        { ul: [
+          '**اقتراح مصلى:** اسم المكان ونوعه ومدينته وعنوانه وإحداثياته والطابق والملاحظة. يظهر للجميع بعد القبول، ولا يظهر اسمك ولا بريدك أبدًا. ولخيار «بالقرب مني» يُستخدم موقعك في متصفحك فقط ولا يُرسل إلى الخادم.',
+          '**إعلان جنازة** (بموافقتك الصريحة فقط): اسم المتوفى وتاريخ الصلاة ووقتها والمكان، واختياريًا مكان الدفن ووسيلة التواصل مع الأسرة. يراه كل من لديه الرابط الخاص (ويُحفظ الرابط نفسه بصيغة مُجزّأة فقط)، ولا يظهر في القائمة العامة إلا إن طلبت ذلك وبعد مراجعة المشرف، ولا تظهر وسيلة التواصل هناك. ويُحذف الإعلان تلقائيًا بعد 30 يومًا من تاريخ الصلاة. ويُحفظ «دعوتُ للميت» عددًا فقط، ولا تُحفظ عناوين {ip} للزوار.',
+          '**التسجيل للتطوع:** الاسم الذي تكتبه وبريدك (بموافقتك فقط) لا يراهما إلا ممثل ذلك المسجد، وتعرض القائمة العامة عدد الأماكن المشغولة فقط. وتُحذف الأعمال المنتهية مع تسجيلاتها بعد 30 يومًا.',
+        ] },
+        'يمكنك حذف هذه السجلات بنفسك في أي وقت، وحذف الحساب يحذفها كلها. وهي مشمولة في تصدير بيانات الحساب.',
       ] },
       purposes: { h: 'الأغراض والأساس القانوني', body: [
         { ul: [
@@ -631,6 +734,10 @@ const DOC = {
       groups: { h: 'Grup hatmi ve ortak hedefler', body: [
         'Bir oda oluşturduğunuzda veya bir odaya katıldığınızda sunucuda yalnızca yazdığınız görünen ad (örneğin “Ali”) ve işaretleriniz (hangi cüzü aldığınız, hangi günleri işaretlediğiniz) saklanır. Hesap oluşturulmaz; {ip} adresi ve diğer kişisel veriler kaydedilmez. Yönetim ve katılım anahtarları yalnızca tarayıcınızın yerel deposunda kalır. Oda, son etkinlikten 180 gün sonra otomatik olarak silinir; odayı oluşturan kişi onu istediği zaman silebilir.',
       ] },
+      trustbox: { h: 'Emanet kutusu', body: [
+        'Hesabınızda bir emanet kutusu oluşturursanız notlarınız (vasiyet istekleri, borçlar, belgelerin yeri, ailenize sözler) **tarayıcınızda** yalnızca sizin bildiğiniz bir emanet parolasıyla şifrelenir (PBKDF2-SHA256, 600.000 tur; AES-256-GCM). Sunucumuzda yalnızca şifreli metin, rastgele bir tuz, gizli bağlantının SHA-256 özeti, oluşturma ve değişiklik zamanı ve bağlantıyla son açılış günü saklanır — parola, okunabilir metin ve {ip} adresiniz asla saklanmaz.',
+        '**Ne kadar süre:** kutuyu silene kadar; hesabınız silindiğinde de silinir. Hesap dışa aktarımında şifreli hâliyle yer alır. Parola kaybolursa içeriği hiç kimse — biz de — kurtaramaz.',
+      ] },
       push: { h: 'Anlık bildirimler', body: [
         'Bildirimler yalnızca siz izin verdiğinizde açılır. İzin verdiğinizde tarayıcınızın kendi anlık bildirim hizmeti ({pushsvc}) tarayıcınıza bir bildirim adresi (bildirimleri cihazınıza ulaştırmak için rastgele bir anahtar) verir ve biz kendi sunucumuzun veri tabanında şu bilgileri içeren bir kayıt saklarız:',
         { ul: [
@@ -643,6 +750,17 @@ const DOC = {
         '**Neden:** sunucumuz her aboneye kendi şehrinin ezan vaktinde bildirim gönderir; ayrıca tüm abonelere genel duyurular gönderilebilir.',
         '**Ne kadar süre:** bildirimleri kapatana kadar. Sitedeki “Bildirimler” panelinde **“Kapat”** düğmesine bastığınızda kayıt veri tabanından hemen silinir. Bildirimleri yalnızca tarayıcı veya telefon ayarlarından engellerseniz adres geçersiz olur ve sunucu bir sonraki başarısız gönderimde kaydı siler.',
         { note: 'Mobil uygulamada namaz hatırlatmaları cihazın kendisinde planlanır; bunun için sunucumuza adres gönderilmez.' },
+      ] },
+      telegram: { h: 'Telegram botu', body: [
+        'Sitenin Telegram botunu kullandığınızda komutlarınız sunucumuza Telegram’ın sunucuları üzerinden ulaşır; bu yolda Telegram’ın kendi gizlilik politikası geçerlidir. Bir şehir seçtikten sonra bot sunucumuzun veritabanında yalnızca şu kaydı tutar (şifrelenmeden — şehir seçerek buna onay vermiş olursunuz):',
+        { ul: [
+          'sohbet numarası (Telegram’ın sohbet kimliği — size yanıt göndermek için);',
+          'arayüz diliniz (Telegram’ın bildirdiği dil kodundan);',
+          'seçtiğiniz şehir (sitenin şehir listesinden);',
+          'ezan hatırlatmasının açık veya kapalı olduğu ve kaydın oluşturulma zamanı.',
+        ] },
+        'Adınız, kullanıcı adınız, telefon numaranız ve mesajlarınızın metni saklanmaz ve kayda geçirilmez; {ip} adresi yazılmaz.',
+        '**Ne kadar süre:** bota /stop komutunu gönderene veya botu engelleyene kadar — her iki durumda da kayıt hemen silinir.',
       ] },
       ai: { h: 'Yapay zekâ asistanı', body: [
         'Yapay zekâ asistanına soru sorduğunuzda sorunuzun metni, mevcut sohbetin son birkaç mesajı ve arayüz diliniz sunucumuza, oradan da {openrouter} hizmeti aracılığıyla bir yapay zekâ modeline (şu an {gemini}) gönderilir. Cevap aynı yoldan geri döner.',
@@ -687,6 +805,15 @@ const DOC = {
       logs: { h: 'Sunucu kayıtları', body: [
         'Her web sunucusu gibi bizim sunucumuz da ({nginx}) gelen istekler hakkında teknik kayıt tutar: {ip} adresi, zaman, açılan adres, yanıt kodu ve tarayıcı bilgisi. Görsel, yazı tipi ve betik gibi statik dosya istekleri kaydedilmez.',
         'Bu kayıtlar yalnızca hataları gidermek ve siteyi saldırılara karşı korumak için kullanılır. Boyutları sınırlıdır (yaklaşık 10 MB’lık 3 dosya): alan doldukça en eski kayıtların üzerine otomatik olarak yazılır. İstekler sunucumuza {cloudflare} üzerinden ulaşır; o da trafiği kendi politikasına göre işler.',
+      ] },
+      community: { h: 'Topluluk panoları: namaz odaları, cenaze ilanları, gönüllüler', body: [
+        'Bu bölümleri hesapla kullanırsanız aşağıdakiler sunucumuzda **şifrelenmeden** saklanır ve hesabınıza bağlanır:',
+        { ul: [
+          '**Namaz odası önerisi:** yerin adı, türü, şehri, adresi, koordinatları, katı ve notu. Onaydan sonra herkese görünür; adınız ve e-postanız gösterilmez. “Yakınımdakiler” için konumunuz yalnızca tarayıcınızda kullanılır ve sunucuya gönderilmez.',
+          '**Cenaze ilanı** (yalnızca açık rızanızla): vefat edenin adı, namazın tarihi ve saati, yer, isteğe bağlı olarak defin yeri ve aileyle iletişim. Gizli bağlantıya sahip herkes görür (bağlantının kendisi veritabanında yalnızca özet değeri olarak saklanır); açık listeye yalnızca isterseniz ve moderatör kontrolünden sonra girer, orada iletişim bilgisi gösterilmez. İlan, namaz gününden 30 gün sonra otomatik silinir. “Dua ettim” yalnızca sayı olarak saklanır; ziyaretçilerin {ip} adresleri saklanmaz.',
+          '**Gönüllü kaydı:** yazdığınız ad ve (yalnızca rızanızla) e-postanız yalnızca o caminin temsilcisine görünür; açık listede yalnızca dolan yer sayısı vardır. Tarihi geçen işler 30 gün sonra kayıtlarıyla birlikte silinir.',
+        ] },
+        'Bu kayıtları dilediğiniz zaman kendiniz silebilirsiniz; hesabı silerseniz hepsi silinir. Hesap veri dışa aktarımına dahildir.',
       ] },
       purposes: { h: 'Amaçlar ve hukuki dayanak', body: [
         { ul: [

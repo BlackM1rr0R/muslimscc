@@ -41,8 +41,9 @@ export function radarPoint(km, deg) {
   return { x: Math.cos(a) * rr, y: Math.sin(a) * rr }
 }
 
-export default function MosqueRadar({ origin, mosques, lang = 'az', nextPrayer, unknown = '?' }) {
-  const t = pickUi(T, lang)
+// text — mətnlərin üstünə yazmaq (məs. namaz otaqları radarı: { title, sum }); testId — e2e üçün
+export default function MosqueRadar({ origin, mosques, lang = 'az', nextPrayer, unknown = '?', text = null, testId = 'mosque-radar' }) {
+  const t = text ? { ...pickUi(T, lang), ...text } : pickUi(T, lang)
   const [sel, setSel] = useState(0)
   if (!origin || !mosques?.length) return null
   const list = mosques.slice(0, 60)
@@ -51,7 +52,7 @@ export default function MosqueRadar({ origin, mosques, lang = 'az', nextPrayer, 
   const ring = (km) => Math.sqrt(km / R_KM) * 92
 
   return (
-    <figure className="ui-card mr" data-testid="mosque-radar" data-reveal="fade">
+    <figure className="ui-card mr" data-testid={testId} data-reveal="fade">
       <figcaption className="mr__title">{t.title} <span className="mr__sum">{t.sum(mosques.length)}</span></figcaption>
       <div className="mr__body">
         <svg className="mr__svg" viewBox="-100 -100 200 200" role="img" aria-label={t.sum(mosques.length)}>

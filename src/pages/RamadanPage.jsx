@@ -23,7 +23,7 @@ import CrescentPath from '../components/CrescentPath'
 import { ummahAdd } from '../utils/ummah'
 import { useNavigate } from 'react-router-dom'
 import { useLang } from '../contexts/LangContext'
-import { navGroupLabel } from '../data/navigation'
+import { navGroupLabel, navLabel } from '../data/navigation'
 import { PRAYER_NAMES } from '../hooks/usePrayerTimes'
 import RamadanCard, { useRamadan, formatGregorian, RC_TXT } from '../components/RamadanCard'
 import CityPicker from '../components/CityPicker'
@@ -209,6 +209,13 @@ function RamadanGuide({ lang, todayJuz }) {
   // v3.2: hazırda oxunan bölmə — çip vurğulanır və zolaqda görünən yerə sürüşdürülür
   const [active, setActive] = useState(null)
   const navRef = useRef(null)
+  // #rp-g-<bölmə> ilə gəlinibsə (məs. /road-to-ramadan-dan SPA keçidi) — bölməyə sürüşdür
+  useEffect(() => {
+    const id = decodeURIComponent(window.location.hash.slice(1))
+    if (!id.startsWith('rp-g-')) return undefined
+    const t = setTimeout(() => document.getElementById(id)?.scrollIntoView({ block: 'start' }), 60)
+    return () => clearTimeout(t)
+  }, [])
   useEffect(() => {
     if (typeof IntersectionObserver === 'undefined') return
     const els = RAMADAN_GUIDE.map(s => document.getElementById(`rp-g-${s.id}`)).filter(Boolean)
@@ -457,6 +464,17 @@ export default function RamadanPage({ setPage }) {
             <TaraweehLog key={`tw-${year || 'x'}`} lang={lang} year={year || 'x'} today={st.phase?.phase === 'ramadan' ? st.phase.day : null}
               nightsInMonth={st.calendar?.length === 29 ? 29 : 30} />
           </Suspense>
+          {/* Ramazana hazırlıq yolu və son 10 gecənin planı (/road-to-ramadan, /last-ten-nights) */}
+          <nav className="rp-prep-links" aria-label={navLabel('ramadanprep', lang)} data-testid="rp-prep-links">
+            {['ramadanprep', 'lastten'].map((k) => (
+              <a key={k} href={pathFor(k, lang)} className="ui-card ui-card--interactive rp-guide-link"
+                onClick={(e) => { if (!isPlainClick(e)) return; e.preventDefault(); setPage?.(k) }}>
+                <Icon name={k} size={20} className="rp-guide-link__icon" />
+                <span>{navLabel(k, lang)}</span>
+                <Icon name="arrow" size={16} className="ui-link__arrow ui-flip-rtl" />
+              </a>
+            ))}
+          </nav>
 
           <div className="rp-print">
             <div className="rp-toolbar" data-reveal>

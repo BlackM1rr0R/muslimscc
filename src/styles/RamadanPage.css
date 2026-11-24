@@ -441,3 +441,6 @@ html[dir="rtl"] .rp-juz__range { text-align: end; }
 }
 .rp-fast__ylab--hi { color: var(--brand); }
 .rp-fast__wrap + .rp-fast__axis { padding-inline-end: 48px; }
+
+/* Ramazana hazırlıq yolu və son 10 gecəyə keçidlər (/road-to-ramadan, /last-ten-nights) */
+.rp-prep-links { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: var(--space-3); }

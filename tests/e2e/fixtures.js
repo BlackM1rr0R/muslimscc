@@ -65,7 +65,9 @@ const IGNORED = [
   //   hesab (server/users.js, security.js) · D (read-together, family, hifz-tests) · I (challenges, classes, cal-feed)
   //   · K (profile, u, dua-wall, mosque-rep, mosques, weekly) · qrup otaqları (groups)
   /Failed to load resource: the server responded with a status of 40[0-9]\b.*\/api\/(auth\/|personal\/|admin\/(users|role-audit|2fa))/i,
-  /Failed to load resource: the server responded with a status of 40[13469]\b.*\/api\/(read-together|family|hifz-tests|challenges|classes|cal-feed|profile|u|dua-wall|mosque-rep|mosques|weekly|groups|dua-friend|hajj-journey)(\/|\?|$)/i,
+  /Failed to load resource: the server responded with a status of 40[13469]\b.*\/api\/(read-together|family|hifz-tests|challenges|classes|cal-feed|profile|u|dua-wall|mosque-rep|mosques|weekly|groups|dua-friend|hajj-journey|trust-box)(\/|\?|$)/i,
+  // İcma lövhələri: gözlənilən 401 (girişsiz), 404 (köhnə gizli keçid), 409 (dolu / arxiv)
+  /Failed to load resource: the server responded with a status of 40[1349]\b.*\/api\/(prayer-rooms|janaza|volunteers)(\/|\?|$)/i,
 ]
 
 // Öz API-miz: yerli preview (127.0.0.1 / localhost) və ya VITE_API_URL (https://muslims.cc — AI çatı) üzərində /api/…
@@ -249,6 +251,13 @@ export const test = base.extend({
       if (get && /^\/api\/(u|mosques)\//.test(pathname)) return route.fulfill({ status: 404, json: { error: 'Not found', code: 'not_found' } })
       return route.fulfill({ status: 401, json: { error: 'unauthenticated', code: 'unauthenticated' } })
     })
+    // Əmanət qutusu (server/trustBox.js) — susmaya görə qutu yoxdur; gizli keçid → 404. tests/e2e/trust-box.spec.js öz saxtasını qoyur.
+    await page.route((u) => /^\/api\/trust-box(\/|$)/.test(u.pathname), (route) => {
+      const { pathname } = new URL(route.request().url())
+      if (route.request().method() === 'GET' && pathname === '/api/trust-box') return route.fulfill({ json: { box: null, maxBlob: 262144 } })
+      if (pathname === '/api/trust-box/open') return route.fulfill({ status: 404, json: { error: 'Invalid link', code: 'invalid_token' } })
+      return route.fulfill({ status: 401, json: { error: 'unauthenticated', code: 'unauthenticated' } })
+    })
     // P3 (server/duaFriend.js, hajjJourney.js) — susmaya görə qoşulmayıb / səfər yoxdur; gizli keçid → 404
     await page.route((u) => /^\/api\/(dua-friend|hajj-journey)(\/|$)/.test(u.pathname), (route) => {
       const { pathname } = new URL(route.request().url())
@@ -257,6 +266,17 @@ export const test = base.extend({
       if (get && pathname === '/api/hajj-journey') return route.fulfill({ json: { journey: null, stages: {}, inCircle: false } })
       if (get && pathname === '/api/hajj-journey/family') return route.fulfill({ json: { inCircle: false, journeys: [] } })
       if (pathname === '/api/hajj-journey/view') return route.fulfill({ status: 404, json: { error: 'Invalid link', code: 'invalid_token' } })
+      return route.fulfill({ status: 401, json: { error: 'unauthenticated', code: 'unauthenticated' } })
+    })
+    // İcma lövhələri (server/prayerRooms.js, janaza.js, volunteers.js) — susmaya görə boş siyahılar; gizli cənazə keçidi → 404.
+    // tests/e2e/community-boards-*.spec.js öz saxtasını qoyur.
+    await page.route((u) => /^\/api\/(prayer-rooms|janaza|volunteers)(\/|$)/.test(u.pathname), (route) => {
+      const { pathname } = new URL(route.request().url())
+      const get = route.request().method() === 'GET'
+      if (get && pathname === '/api/prayer-rooms') return route.fulfill({ json: { items: [], cities: [], types: [] } })
+      if (get && pathname === '/api/janaza/public') return route.fulfill({ json: { items: [] } })
+      if (pathname === '/api/janaza/view') return route.fulfill({ status: 404, json: { error: 'Invalid link', code: 'invalid_token' } })
+      if (get && pathname === '/api/volunteers') return route.fulfill({ json: { items: [], mosques: [] } })
       return route.fulfill({ status: 401, json: { error: 'unauthenticated', code: 'unauthenticated' } })
     })
     // Ümmətin Canlı Xətmi (server/globalKhatm.js) — susmaya görə boş dövr; ictimai SSE bir "hello" göndərib

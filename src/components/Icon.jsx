@@ -87,6 +87,9 @@ const P = {
   nikahprep: <><path d="M6 3h8.5L18 6.5V21H6z" /><path d="M14.5 3v3.5H18" /><path d="M9 10h6M9 13.5h6" /><path d="M9 17.5h2.2M12.8 17.5H15" /></>,
   // R2: xəstəni ziyarət (ürək + nəbz xətti), ailə halqası (açıq kitab + dairəvi oturuş nöqtələri) — canlı təsviri yoxdur
   sickvisit: <><path d="M12 20s-7.5-4.4-7.5-10A4.3 4.3 0 0 1 12 7.3 4.3 4.3 0 0 1 19.5 10c0 5.6-7.5 10-7.5 10z" /><path d="M6 12.5h3l1.5-2.5 2 4 1.5-1.5H18" /></>,
+  // Ramazana hazırlıq yolu (hilala gedən dolanan yol), son 10 gecə (hilal + ulduzlar)
+  ramadanprep: <><path d="M3.5 21c0-3.6 3.6-4.6 6.6-5.8s5.4-2.7 5.9-6" /><path d="M21 7.6A3.6 3.6 0 0 1 16.4 3a3.6 3.6 0 1 0 4.6 4.6z" /><path d="M3 21h3M8.6 15.2h.01M13.4 12.6h.01" strokeWidth="2.4" /></>,
+  lastten: <><path d="M13.5 3.6a8.4 8.4 0 1 0 6.9 12.9 6.9 6.9 0 0 1-6.9-12.9z" /><path d="M19 3v3.6M17.2 4.8h3.6" /><path d="M21 10.5h.01M16.5 9.5h.01" strokeWidth="2.4" /></>,
   halaqa: <><path d="M12 9.5c-1.5-1-3.5-1.5-6-1.5v8c2.5 0 4.5.5 6 1.5 1.5-1 3.5-1.5 6-1.5V8c-2.5 0-4.5.5-6 1.5z" /><path d="M12 9.5v8" /><circle cx="12" cy="3.5" r="1.2" /><circle cx="4" cy="5.5" r="1.2" /><circle cx="20" cy="5.5" r="1.2" /><circle cx="4" cy="20.5" r="1.2" /><circle cx="20" cy="20.5" r="1.2" /></>,
   // P1: borc dəftəri (kitab + sətirlər), qadın təqvimi (təqvim + damla), sadə rejim (iri "A"), şəri ölçülər (ölçü qabı)
   debts: <><rect x="5" y="3" width="14" height="18" rx="2" /><path d="M9 3v18" /><path d="M12 8h4M12 12h4M12 16h2.5" /></>,
@@ -97,8 +100,13 @@ const P = {
   hajjtracker: <><path d="M6 6.5 12 4l6 2.5v7L12 16l-6-2.5z" /><path d="M6 9l6 2.5L18 9" /><circle cx="4.5" cy="20" r="1.3" /><circle cx="12" cy="20" r="1.3" /><circle cx="19.5" cy="20" r="1.3" /><path d="M5.8 20h4.9M13.3 20h4.9" /></>,
   // R3: səyyahın dəsti (çamadan + qiblə oxu), 'Mənim ilim' kitabı (kitab + 8 guşəli ulduz)
   travelkit: <><rect x="3.5" y="7.5" width="17" height="12.5" rx="2" /><path d="M9 7.5V5a1.5 1.5 0 0 1 1.5-1.5h3A1.5 1.5 0 0 1 15 5v2.5" /><path d="M12 17.5v-6M9.8 13.7 12 11.5l2.2 2.2" /></>,
+  trustbox: <><rect x="3.5" y="8" width="17" height="12.5" rx="2" /><path d="M3.5 12.5h17" /><path d="M7.5 8V6.5A2.5 2.5 0 0 1 10 4h4a2.5 2.5 0 0 1 2.5 2.5V8" /><rect x="10.25" y="11" width="3.5" height="4" rx="1" /></>,
   yearbook: <><path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H19v15H6.5A1.5 1.5 0 0 0 5 19.5z" /><path d="M5 19.5A1.5 1.5 0 0 0 6.5 21H19v-3" /><path d="M12 6.6l1 1.9 2-.5-.5 2 1.9 1-1.9 1 .5 2-2-.5-1 1.9-1-1.9-2 .5.5-2-1.9-1 1.9-1-.5-2 2 .5z" /></>,
   gravevisit: <><path d="M12 13.5s-4.5-4-4.5-7.2a4.5 4.5 0 0 1 9 0c0 3.2-4.5 7.2-4.5 7.2z" /><circle cx="12" cy="6.4" r="1.5" /><path d="M8.5 21v-3.5a3.5 3.5 0 0 1 7 0V21" /><path d="M5 21h14" /></>,
+  // İcma lövhələri: namaz otağı (otaq + mehrab tağı), cənazə elanı (örtülü tabut + ayaqlar), könüllülər (insan + artı)
+  prayerrooms: <><rect x="3.5" y="3.5" width="17" height="17" rx="2.5" /><path d="M8.5 20.5v-6a3.5 3.5 0 0 1 7 0v6" /><path d="M12 6.5v2.5" /></>,
+  janaza: <><path d="M3.5 15h17" /><path d="M6 15c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5" /><path d="M6.5 15v4.5M17.5 15v4.5" /><path d="M12 4v3" /></>,
+  volunteers: <><circle cx="9" cy="8" r="3.2" /><path d="M3 20.5v-1a5 5 0 0 1 5-5h2a5 5 0 0 1 5 5v1" /><path d="M18.5 6.5v6M15.5 9.5h6" /></>,
   units: <><path d="M5 4h12l-1.2 15.2A2 2 0 0 1 13.8 21H8.2a2 2 0 0 1-2-1.8z" /><path d="M17 7h2.5v5h-2.9" /><path d="M8 9h3M8 12.5h4M8 16h3" /></>,
   // Yeniliklər (/whats-new): dördguşəli parıltı + iki kiçik qığılcım; tur: yol nişanı (dirək + iki lövhə)
   whatsnew: <><path d="M10 4.5c.5 3.6 2.9 6 6.5 6.5-3.6.5-6 2.9-6.5 6.5-.5-3.6-2.9-6-6.5-6.5 3.6-.5 6-2.9 6.5-6.5z" /><path d="M18 3v3M16.5 4.5h3" /><path d="M18.5 16.5v3M17 18h3" /></>,

@@ -57,3 +57,12 @@
 .trp__note { margin: 0; font-size: .82rem; color: var(--text-secondary); text-align: center; }
 .trp--kid .trp__item { min-height: 56px; font-size: 1.8rem; border-radius: 16px; }
 .trp--kid .trp__grid { grid-template-columns: repeat(auto-fill, minmax(56px, 1fr)); }
+
+/* Hərfin adı, transliterasiya, səs; mövqe formaları (TracePractice) */
+.trp__info { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; justify-content: center; }
+.trp__tl { color: var(--text-secondary); font-style: italic; }
+.trp__listen { min-height: 40px; }
+.trp__forms { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+.trp__form { display: inline-flex; gap: 8px; align-items: center; min-height: 40px; }
+.trp__form-ar { font-family: var(--font-arabic, 'Amiri', serif); font-size: 1.25rem; line-height: 1; }
+.trp__form.is-done { border-color: color-mix(in srgb, var(--gold, #c59a2c) 55%, transparent); }

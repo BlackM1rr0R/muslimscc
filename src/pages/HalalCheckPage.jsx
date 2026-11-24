@@ -853,6 +853,14 @@ function ECodeSection({ data, status, retry, lang, L }) {
   const chipsRef = useRef(null)
   const [limit, setLimit] = useState(24)
   useEffect(() => { setLimit(24) }, [q, cat])
+  // Paylaşma hədəfindən (/share) gələn ?q=E471, E120 — yalnız mount-dan sonra (prerender ilə uyğun)
+  useEffect(() => {
+    let s = ''
+    try { s = new URLSearchParams(window.location.search).get('q') || '' } catch { /* */ }
+    if (!s) return
+    setQ(s.slice(0, 500))
+    requestAnimationFrame(() => document.getElementById('hc-codes')?.scrollIntoView({ block: 'start' }))
+  }, [])
 
   const results = useMemo(() => {
     if (!data) return { list: [], missing: [] }
@@ -978,6 +986,16 @@ function BarcodeSection({ data, lang, L }) {
   }, [])
 
   const onScanned = useCallback((code) => { setScanning(false); setInput(code); lookup(code) }, [lookup])
+  // Paylaşma hədəfindən (/share) gələn ?barcode= — mount-dan sonra yoxlanılır
+  useEffect(() => {
+    let s = ''
+    try { s = new URLSearchParams(window.location.search).get('barcode') || '' } catch { /* */ }
+    const code = normalizeBarcode(s)
+    if (!code) return
+    setInput(code)
+    lookup(code)
+    requestAnimationFrame(() => document.getElementById('hc-barcode')?.scrollIntoView({ block: 'start' }))
+  }, [lookup])
   const submit = (e) => { e.preventDefault(); lookup(input) }
   const typed = normalizeBarcode(input)
 

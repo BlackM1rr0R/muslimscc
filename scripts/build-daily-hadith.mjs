@@ -16,6 +16,7 @@ import { fileURLToPath } from 'node:url'
 import { HADITHS } from '../src/data/hadiths.js'
 import { HADITH_IDS } from '../src/seo/hadithIds.js'
 import { gradeOf } from '../src/utils/hadithGrade.js'
+import { SUNAN_GRADES } from '../src/data/hadithGrades.js'
 import { localizeSource } from '../src/utils/sourceNames.js'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
@@ -26,7 +27,7 @@ const by = Object.fromEntries(LANGS.map(l => [l, new Map(HADITHS[l].map(h => [St
 const out = []
 for (const h of HADITHS.az) {
   const id = String(h.id)
-  if (!ids.has(id) || gradeOf(h).g !== 's') continue
+  if (!ids.has(id) || gradeOf(h, SUNAN_GRADES).g !== 's') continue
   if (!h.text || h.text.length > 200) continue
   const t = {}, src = {}
   let ok = true

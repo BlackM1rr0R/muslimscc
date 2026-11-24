@@ -26,7 +26,9 @@ for (const m of ['./auth', './users', './security', './syncKeys', './mailer', '.
   './prompts', './ai-utils', './prayer-utils', './daily-ayah', './checkin', './fasting', './reminders', './prayCalc', './eclipse', './eclipse-lib', './daily-hadith', './daily-hadith-data', './personal', './hijri',
   './readTogether', './family', './hifzTest', './globalKhatm', './challenges', './classes', './familyRamadan', './calFeed',
   './communityKit', './publicProfile', './familyDua', './duaWall', './mosqueRep', './weekly', './ipKey', './pushClaims', './quranMeaning',
-  './duaFriend', './hajjJourney', './welcome', './mailCampaigns', './adminSso']) require(m)
+  './duaFriend', './hajjJourney', './welcome', './mailCampaigns', './adminSso',
+  './prayerRooms', './janaza', './volunteers',
+  './trustBox', './telegramBot', './prayerCities']) require(m)
 // Paket asılılıqları da (server/package.json → npm ci) — image-də yoxdursa bazadan ƏVVƏL çöksün
 for (const m of ['@simplewebauthn/server']) require(m)
 
@@ -69,6 +71,8 @@ app.use('/api/admin/mail', limit(60000, 90))
 app.use('/api/content', limit(60000, 300))
 app.use('/api/singletons', limit(60000, 300))
 app.use('/api/push', limit(60000, 30))
+// Telegram botu (server/telegramBot.js) — sorğular Telegram serverlərindən gəlir (çox istifadəçi, az IP)
+app.use('/api/telegram', limit(60000, 600))
 
 // ─── Admin girişi (server/auth.js) ───────────────────────────────────
 const authLib = require('./auth')
@@ -131,7 +135,9 @@ app.use('/api', require('./security').createSecurityRouter({
   sources: { personal: () => personalRouter.store, family: () => familyRouter, hifzTests: () => hifzTestRouter, sync: syncKeysStore, readTogether: () => readTogetherRouter, globalKhatm: () => khatmRouter,
     challenges: () => challengesRouter, classes: () => classesRouter, familyRamadan: () => familyRamadanRouter, calFeed: () => calFeedRouter,
     publicProfile: () => publicProfileRouter, familyDuas: () => familyDuaRouter, duaWall: () => duaWallRouter, mosqueRep: () => mosqueRepRouter, weekly: () => weeklyRouter,
-    duaFriend: () => duaFriendRouter, hajjJourney: () => hajjJourneyRouter, welcome, mailCampaigns: () => mailCampaignsRouter, adminPanel: adminSso },
+    duaFriend: () => duaFriendRouter, hajjJourney: () => hajjJourneyRouter, welcome, mailCampaigns: () => mailCampaignsRouter, adminPanel: adminSso,
+    trustBox: () => trustBoxRouter,
+    prayerRooms: () => prayerRoomsRouter, janaza: () => janazaRouter, volunteers: () => volunteersRouter },
 }))
 setInterval(() => security.purge(), 3600e3).unref()
 app.use('/api', syncKeysLib.createSyncKeysRouter({
@@ -289,11 +295,34 @@ app.use('/api', duaFriendRouter)
 app.use('/api/hajj-journey', limit(60000, 60))
 const hajjJourneyRouter = require('./hajjJourney').createHajjJourneyRouter({ db, requireUser: usersRouter.requireUser, allowedOrigins: ALLOWED })
 app.use('/api', hajjJourneyRouter)
+// Əmanət qutusu (server/trustBox.js) — UCDAN-UCA şifrəli (server yalnız { salt, blob }); /open girişsiz + IP heşi limiti
+app.use('/api/trust-box', limit(60000, 30))
+const trustBoxRouter = require('./trustBox').createTrustBoxRouter({ db, requireUser: usersRouter.requireUser, allowedOrigins: ALLOWED })
+app.use('/api', trustBoxRouter)
 setInterval(() => {
   try { duaFriendRouter.pairTick() } catch (e) { console.error('dua friend pair:', e && e.message) }
   try { hajjJourneyRouter.purge() } catch (e) { console.error('hajj journey purge:', e && e.message) }
 }, 3600e3).unref()
 setTimeout(() => { try { duaFriendRouter.pairTick() } catch (e) { console.error('dua friend pair:', e && e.message) } }, 30e3).unref()
+
+// ─── İcma lövhələri — cədvəllər miqrasiyasız, users(id) CASCADE; moderasiya admin panelində (editor+) ──
+// Namaz otaqları (server/prayerRooms.js) — təklif girişli + təsdiqli, gündə 5; "yaxınımda" yalnız klientdə
+app.use('/api/prayer-rooms', limit(60000, 60))
+const prayerRoomsRouter = require('./prayerRooms').createPrayerRoomsRouter({ db, requireUser: usersRouter.requireUser, requireEditor })
+app.use('/api', prayerRoomsRouter)
+// Cənazə elanı (server/janaza.js) — gizli keçid (#n=…, yalnız SHA-256), ictimai siyahı admin təsdiqi ilə; 30 gündən sonra silinir
+app.use('/api/janaza', limit(60000, 60))
+const janazaRouter = require('./janaza').createJanazaRouter({ db, requireUser: usersRouter.requireUser, requireEditor, optionalUser, allowedOrigins: ALLOWED })
+app.use('/api', janazaRouter)
+// Məscid könüllüləri (server/volunteers.js) — mosque_rep öz məscidi / admin; ictimai yalnız "N / M yer"
+app.use('/api/volunteers', limit(60000, 60))
+const volunteersRouter = require('./volunteers').createVolunteersRouter({ db, requireUser: usersRouter.requireUser, requireEditor, optionalUser })
+app.use('/api', volunteersRouter)
+setInterval(() => {
+  for (const r of [prayerRoomsRouter, janazaRouter, volunteersRouter]) {
+    try { r.purge() } catch (e) { console.error('community boards purge:', e && e.message) }
+  }
+}, 3600e3).unref()
 
 // ─── CSP pozuntu hesabatları (server/csp.js) — Report-Only rejimi; yaddaşda birləşdirilir ──
 app.use('/api/csp-report', limit(60000, 60))
@@ -331,6 +360,17 @@ app.use('/api', push.createPushRouter({
   extraHosts: PUSH_EXTRA_HOSTS,
   onChange: () => { tokensLoadedAt = 0 },   // planlayıcı siyahını növbəti dövrdə təzələsin
 }))
+
+// ─── Telegram botu (server/telegramBot.js) — api.env-də TELEGRAM_BOT_TOKEN + TELEGRAM_WEBHOOK_SECRET yoxdursa
+// tam sönülüdür (/api/telegram/* → 404, şəbəkə sorğusu yoxdur). Öz JSON parser-i sirr yoxlanandan SONRA işləyir.
+const telegramBot = require('./telegramBot').createTelegramBot({
+  db, token: process.env.TELEGRAM_BOT_TOKEN || '', secret: process.env.TELEGRAM_WEBHOOK_SECRET || '', publicOrigin: PUBLIC_ORIGIN,
+})
+app.use('/api', telegramBot.router)
+if (telegramBot.enabled) {
+  // Azan xatırlatması: 20 saniyədə bir; bir dəfə göndəriş — pushClaims (kəsintisiz deploy)
+  setInterval(() => { telegramBot.tick().catch((e) => console.error('telegram tick:', e && e.message)) }, 20000).unref()
+}
 
 app.use(express.json())
 

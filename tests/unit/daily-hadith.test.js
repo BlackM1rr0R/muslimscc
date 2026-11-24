@@ -3,6 +3,7 @@ import { createRequire } from 'node:module'
 import { HADITH_IDS } from '../../src/seo/hadithIds.js'
 import { HADITHS } from '../../src/data/hadiths.js'
 import { gradeOf } from '../../src/utils/hadithGrade.js'
+import { SUNAN_GRADES } from '../../src/data/hadithGrades.js'
 
 const require = createRequire(import.meta.url)
 const dh = require('../../server/daily-hadith.js')
@@ -15,7 +16,7 @@ describe('Günün hədisi (server/daily-hadith.js)', () => {
     const az = new Map(HADITHS.az.map(h => [String(h.id), h]))
     for (const h of dh.LIST) {
       expect(ids.has(String(h.id))).toBe(true)
-      expect(gradeOf(az.get(String(h.id))).g).toBe('s')
+      expect(gradeOf(az.get(String(h.id)), SUNAN_GRADES).g).toBe('s')   // saytın öz qiymət qaydası (Sünən: Albani)
       for (const l of ['az', 'en', 'ru', 'tr', 'ar']) { expect(h.t[l]).toBeTruthy(); expect(h.src[l]).toBeTruthy() }
       expect(h.t.az).toBe(az.get(String(h.id)).text)
     }

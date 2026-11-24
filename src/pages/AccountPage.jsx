@@ -50,6 +50,8 @@ const AccountKSections = lazy(() => import('../components/account/AccountKSectio
 const AccountJTop = lazy(() => import('../components/account/AccountJSections').then(m => ({ default: m.JTop })))
 const AccountJSections = lazy(() => import('../components/account/AccountJSections'))
 const JourneyFrame = lazy(() => import('../components/account/JourneyFrame'))
+// Əmanət qutusu (/trust-box) — keçid kartı
+const TrustBoxAccountCard = lazy(() => import('../components/trustbox/TrustBoxAccountCard'))
 
 const LABELS = {
   az: {
@@ -364,6 +366,9 @@ export default function AccountPage() {
         </Suspense>
         <Suspense fallback={null}>
           <AccountKSections lang={lang} siteLang={siteLang} user={user} />
+        </Suspense>
+        <Suspense fallback={null}>
+          <TrustBoxAccountCard lang={lang} siteLang={siteLang} />
         </Suspense>
         <Suspense fallback={null}>
           <AccountJSections user={user} lang={lang} />

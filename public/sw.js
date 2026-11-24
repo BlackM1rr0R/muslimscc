@@ -107,14 +107,19 @@ async function cacheFirst(request) {
   return res
 }
 
+// Paylaşma hədəfi (/share?text=…, manifest share_target): paylaşılan şəxsi mətn ünvandadır —
+// belə səhifə keşə YAZILMIR; oflayn olanda sorğusuz /share qabığı (varsa) verilir
+const isPrivateShare = (u) => /^\/(?:[a-z]{2,3}\/)?share\/?$/.test(u.pathname) && u.search !== ''
+
 async function networkFirstPage(e) {
+  const priv = isPrivateShare(new URL(e.request.url))
   try {
     const preloaded = await e.preloadResponse
     const res = preloaded || await fetch(e.request)
-    putInCache(CACHE_NAME, e.request, res)
+    if (!priv) putInCache(CACHE_NAME, e.request, res)
     return res
   } catch (err) {
-    return (await caches.match(e.request)) || (await caches.match('/')) || Response.error()
+    return (await caches.match(e.request, { ignoreSearch: priv })) || (await caches.match('/')) || Response.error()
   }
 }
 

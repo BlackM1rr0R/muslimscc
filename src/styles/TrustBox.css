@@ -1,0 +1,68 @@
+/* Əmanət qutusu (/trust-box) — sakit, 360px-dən, məntiqi xassələr (RTL), açıq/qaranlıq tema dəyişənləri ilə */
+.tb-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.tb-head .acc-section__title, .tb-page .acc-section__title { display: flex; align-items: center; gap: 8px; }
+.tb-small { font-size: var(--step--1); }
+
+.tb-warn {
+  display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border-radius: var(--radius-md, 12px);
+  background: color-mix(in srgb, var(--warn, #b7791f) 12%, var(--surface-1)); border-inline-start: 3px solid var(--warn, #b7791f);
+  color: var(--text-strong);
+}
+.tb-warn svg { flex: none; margin-block-start: 2px; color: var(--warn, #b7791f); }
+.tb-warn p { margin: 4px 0 0; color: var(--text-body); font-size: var(--step--1); line-height: 1.55; }
+
+.tb-gen { display: grid; gap: 6px; padding: 12px; border-radius: var(--radius-md, 12px); background: var(--brand-soft); color: var(--text-strong); font-size: var(--step--1); }
+.tb-gen__code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 1.05rem; letter-spacing: .06em; overflow-wrap: anywhere; user-select: all; }
+
+.tb-textarea { min-block-size: 7em; resize: vertical; line-height: 1.55; font: inherit; }
+
+.tb-debts { border: 0; margin: 0; padding: 0; display: grid; gap: 10px; min-inline-size: 0; }
+.tb-debts > legend { padding: 0; margin-block-end: 2px; }
+.tb-debt-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.tb-debt { display: grid; gap: 8px; padding: 12px; border-radius: var(--radius-md, 12px); background: var(--surface-2); border: 1px solid var(--line); }
+.tb-debt__grid { display: grid; gap: 8px; grid-template-columns: 1fr; }
+.tb-debt .ui-field { margin: 0; min-inline-size: 0; }
+@media (min-width: 560px) {
+  .tb-debt__grid { grid-template-columns: 2fr 1fr .8fr; }
+}
+
+.tb-savebar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; position: sticky; inset-block-end: 0; padding-block: 8px; background: var(--surface-1); z-index: 1; }
+.tb-dirty { font-size: var(--step--1); color: var(--text-secondary); }
+
+/* Vəsiyyət haqqında — dərsdən hədislər */
+.tb-hadith { margin: 0; display: grid; gap: 6px; padding: 12px; border-radius: var(--radius-md, 12px); background: var(--surface-2); }
+.tb-hadith__title { font-weight: 700; color: var(--text-strong); font-size: var(--step--1); }
+.tb-hadith__ar { margin: 0; font-family: var(--font-arabic, inherit); font-size: 1.25rem; line-height: 2; color: var(--text-strong); overflow-wrap: anywhere; }
+.tb-hadith__tr { margin: 0; color: var(--text-body); line-height: 1.6; }
+.tb-hadith__src { margin: 0; color: var(--text-tertiary); font-size: var(--step--1); }
+
+/* Oxumaq üçün görünüş */
+.tb-read { display: grid; gap: 14px; }
+.tb-read__meta { margin: 0; display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; color: var(--text-secondary); font-size: var(--step--1); }
+.tb-read__block { display: grid; gap: 6px; }
+.tb-read__block + .tb-read__block { border-block-start: 1px solid var(--line); padding-block-start: 12px; }
+.tb-read__h { margin: 0; font-size: 1rem; color: var(--text-strong); }
+.tb-read__sub { margin: 4px 0 0; font-size: var(--step--1); color: var(--text-secondary); }
+.tb-read__text { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--text-body); line-height: 1.65; }
+.tb-read__debts ul { margin: 4px 0 0; padding-inline-start: 1.2em; display: grid; gap: 4px; color: var(--text-body); }
+
+/* Etibarlı şəxsə məktub */
+.tb-letter {
+  display: grid; gap: 10px; padding: 18px; border-radius: var(--radius-md, 12px); border: 1px dashed var(--line);
+  background: var(--surface-1); color: var(--text-body); line-height: 1.6;
+}
+.tb-letter p { margin: 0; }
+.tb-letter__title { margin: 0; font-size: 1.1rem; color: var(--text-strong); }
+.tb-letter__steps { margin: 0; padding-inline-start: 1.3em; display: grid; gap: 6px; }
+.tb-letter__link { display: inline-block; margin-block-start: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .85rem; overflow-wrap: anywhere; word-break: break-all; }
+.tb-letter__pass { display: grid; gap: 6px; font-weight: 600; color: var(--text-strong); }
+.tb-letter__blank { display: block; block-size: 2.2em; border-block-end: 1.5px solid var(--text-secondary); }
+.tb-letter__keep { font-size: var(--step--1); color: var(--text-secondary); }
+
+/* Çap: yalnız .tb-printable (məktub və ya oxunan qutu) */
+@media print {
+  html.tb-printing body * { visibility: hidden !important; }
+  html.tb-printing .tb-printable, html.tb-printing .tb-printable * { visibility: visible !important; color: #000 !important; }
+  html.tb-printing .tb-printable { position: absolute; inset-inline: 0; top: 0; margin: 0; padding: 0 12mm; border: 0; background: #fff !important; }
+  html.tb-printing .tb-noprint { display: none !important; }
+}
