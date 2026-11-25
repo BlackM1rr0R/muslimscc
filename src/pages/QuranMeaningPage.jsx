@@ -171,6 +171,14 @@ export default function QuranMeaningPage({ setPage }) {
   const [asked, setAsked] = useState('')
   const ctrlRef = useRef(null)
   const headRef = useRef(null)
+  // Fokus nəticə başlığı HƏQİQƏTƏN DOM-da olanda verilir (effekt). Əvvəl rAF idi — ?q= ünvan
+  // dəyişikliyi və ya gecikən commit zamanı başlıq hələ yox/yenidən qurulmuş olurdu, fokus itirdi.
+  const [wantFocus, setWantFocus] = useState(0)
+  useEffect(() => {
+    if (!wantFocus) return
+    const el = headRef.current
+    if (el && document.activeElement !== el) el.focus({ preventScroll: false })
+  }, [wantFocus, results])
   const inputRef = useRef(null)
 
   async function run(query, { focus = true } = {}) {
@@ -188,7 +196,7 @@ export default function QuranMeaningPage({ setPage }) {
       if (ctrl.signal.aborted) return
       setResults(list)
       setPhase('done')
-      if (focus) requestAnimationFrame(() => headRef.current?.focus())
+      if (focus) setWantFocus((n) => n + 1)
     } catch (e) {
       const code = errCode(e)
       if (!code || ctrl.signal.aborted) return
