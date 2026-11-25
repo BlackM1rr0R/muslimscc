@@ -1,0 +1,112 @@
+# ═══════════════════════════════════════════════════════
+# Muslims.cc — Instagram reel (günün ayəsinin videosu; docs/INSTAGRAM.md → "Reels")
+#
+# Hər gün 02:30 UTC (06:30 Asia/Baku): scripts/ig-reel/render.mjs bu günün (Bakı tarixi) reel-ini çəkir
+# (1080×1920, 30 fps, H.264 + AAC, ≤ 15 MB) və CI açarı ilə serverə yükləyir: ci-gate.sh "ig-reel" əmri faylı api
+# həcminə (/data/ig-cards/<tarix>-reel.mp4 + .json) yazır. Dərc — server/instagram.js, IG_REELS=1 olanda IG_REEL_TIME-da.
+# Video serverdə ÇƏKİLMİR (1 GB RAM). Deploy-a toxunmur: ayrı iş, ayrı concurrency qrupu, push-da işləmir.
+#
+# Sirlər — deploy ilə EYNİ (yeni sirr yoxdur): DEPLOY_HOST, DEPLOY_SSH_KEY, DEPLOY_KNOWN_HOSTS.
+# İstəyə bağlı repo dəyişəni (Settings → Variables): IG_REEL_AUDIO=none — səssiz video (tilavət səsi olmadan).
+# Əl ilə: Actions → Instagram reel → Run workflow (tarix — boş: bu gün; "upload" söndürülsə yalnız artefakt).
+# ═══════════════════════════════════════════════════════
+name: Instagram reel
+
+on:
+  schedule:
+    - cron: '30 2 * * *'
+  workflow_dispatch:
+    inputs:
+      date:
+        description: 'Tarix (YYYY-MM-DD, Asia/Baku); boş — bu gün'
+        required: false
+        default: ''
+      upload:
+        description: 'Serverə yüklə (söndürülsə — yalnız artefakt, baxış üçün)'
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ig-reel
+  cancel-in-progress: false
+
+jobs:
+  reel:
+    name: Reel-i çək və yüklə
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with: { persist-credentials: false }
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+
+      - name: ffmpeg
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends ffmpeg >/dev/null
+          ffmpeg -hide_banner -version | head -1
+
+      # Yalnız server asılılıqları (sharp — kartla eyni pango/harfbuzz); şriftlər server/fonts/-dadır
+      - name: Asılılıqlar
+        run: npm ci --prefix server --omit=dev --no-audit --no-fund
+
+      - name: Reel-i çək
+        id: render
+        env:
+          INPUT_DATE: ${{ inputs.date }}
+          IG_REEL_AUDIO: ${{ vars.IG_REEL_AUDIO }}
+        run: |
+          D="${INPUT_DATE:-$(TZ=Asia/Baku date +%F)}"
+          echo "$D" | grep -Eq '^20[0-9]{2}-[0-9]{2}-[0-9]{2}$' || { echo "tarix yararsızdır: $D"; exit 1; }
+          mkdir -p out
+          node scripts/ig-reel/render.mjs --date "$D" --out "out/$D-reel.mp4" --meta out/reel.json --frames out/frames
+          REF=$(node -p "require('./out/reel.json').ref")
+          AUDIO=$(node -p "require('./out/reel.json').audio")
+          echo "$REF" | grep -Eq '^[0-9]{1,3}:[0-9]{1,3}(-[0-9]{1,3})?$' || { echo "ref yararsızdır"; exit 1; }
+          { echo "date=$D"; echo "ref=$REF"; echo "audio=$AUDIO"; } >> "$GITHUB_OUTPUT"
+          echo "### Reel $D — $REF ($AUDIO)" >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: ig-reel-${{ steps.render.outputs.date }}
+          path: out/
+          retention-days: 7
+
+      - name: SSH
+        if: github.event_name == 'schedule' || inputs.upload
+        env:
+          KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          KNOWN: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+          HOST: ${{ secrets.DEPLOY_HOST }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$KEY" > ~/.ssh/deploy && chmod 600 ~/.ssh/deploy
+          printf '%s\n' "$KNOWN" > ~/.ssh/known_hosts
+          printf 'Host prod\n  HostName %s\n  User root\n  IdentityFile ~/.ssh/deploy\n  IdentitiesOnly yes\n  StrictHostKeyChecking yes\n  ServerAliveInterval 15\n' \
+            "$HOST" > ~/.ssh/config
+
+      # ci-gate.sh: ig-reel <tarix> <ayə> <səs> — stdin MP4. Deploy eyni anda api konteynerini dəyişirsə — təkrar cəhd.
+      - name: Serverə yüklə
+        if: github.event_name == 'schedule' || inputs.upload
+        env:
+          D: ${{ steps.render.outputs.date }}
+          REF: ${{ steps.render.outputs.ref }}
+          AUDIO: ${{ steps.render.outputs.audio }}
+        run: |
+          for i in 1 2 3; do
+            if ssh prod "ig-reel $D $REF $AUDIO" < "out/$D-reel.mp4"; then exit 0; fi
+            echo "cəhd $i alınmadı — 30 s sonra yenidən"; sleep 30
+          done
+          exit 1
+
+      - name: Təmizlə
+        if: always()
+        run: rm -f ~/.ssh/deploy

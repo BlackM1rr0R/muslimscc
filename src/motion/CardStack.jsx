@@ -12,6 +12,8 @@ import LayoutFeatures from './LayoutFeatures'
 import { SPRING, exitT, DUR, swipeDecision } from './presets'
 import { useReduced } from './reduced'
 import { motionLabels, posText } from './labels'
+// Stillər öz faylındadır (2026-11-25: giriş CSS-indən köçürüldü — yalnız bu komponentlə yüklənir)
+import '../styles/CardStack.css'
 
 export default function CardStack({ items = [], renderItem, getKey = (_, i) => i, lang = 'az', label, index, onIndexChange, visible = 2, className = '' }) {
   const reduced = useReduced()

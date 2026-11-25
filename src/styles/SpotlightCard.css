@@ -1,0 +1,30 @@
+/* SpotlightCard (src/motion/SpotlightCard.jsx). 2026-11-25: motion-kit.css-dən köçürüldü. */
+/* ── SpotlightCard: işıq (::before) + haşiyə parıltısı (::after) ── */
+.mo-spot { position: relative; isolation: isolate; --spot-c: var(--brand); }
+.mo-spot--accent { --spot-c: var(--accent); }
+.mo-spot::before,
+.mo-spot--glow::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--dur-2, 240ms) ease;
+}
+.mo-spot::before {
+  z-index: -1;
+  background: radial-gradient(var(--mo-spot-r, 260px) circle at var(--mo-sx, 50%) var(--mo-sy, 50%),
+    color-mix(in srgb, var(--spot-c) 13%, transparent), transparent 72%);
+}
+.mo-spot--glow::after {
+  z-index: 1;
+  padding: 1px;
+  background: radial-gradient(calc(var(--mo-spot-r, 260px) * 0.75) circle at var(--mo-sx, 50%) var(--mo-sy, 50%),
+    color-mix(in srgb, var(--accent) 85%, transparent), color-mix(in srgb, var(--spot-c) 40%, transparent) 40%, transparent 72%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+}
+.mo-spot[data-spot-on]::before,
+.mo-spot--glow[data-spot-on]::after { opacity: 1; }

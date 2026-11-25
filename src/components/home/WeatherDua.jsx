@@ -17,6 +17,8 @@ import { loadWeather } from '../../utils/weather'
 import { pickUi } from '../../utils/uiText'
 import { isPlainClick } from '../PageLink'
 import Icon from '../Icon'
+// Stillər öz faylındadır (2026-11-25: giriş CSS-indən köçürüldü — yalnız bu komponentlə yüklənir)
+import '../../styles/WeatherDua.css'
 
 const CHAPTER = { rain: 65, wind: 62, thunder: 63 }
 const ICON = { rain: 'drop', wind: 'leaf', thunder: 'bolt', snow: 'sparkle' }

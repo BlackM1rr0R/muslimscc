@@ -24,7 +24,7 @@ const ABOUT_LABELS = {
 function contactItems(al) {
   const items = [];
   if (BRAND.url) items.push({ key: 'website', icon: '🌐', label: `${al.website}: ${BRAND.domain}`, url: BRAND.url });
-  if (BRAND.instagram) items.push({ key: 'instagram', icon: '🔗', label: `Instagram: @${BRAND.instagram}`, url: `https://instagram.com/${BRAND.instagram}` });
+  if (BRAND.instagram) items.push({ key: 'instagram', icon: '🔗', label: `Instagram: @${BRAND.instagram}`, url: BRAND.instagramUrl });
   return items;
 }
 

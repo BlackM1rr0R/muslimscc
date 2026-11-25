@@ -3,7 +3,9 @@ import LegalDocument, { IF_EMAIL, IF_NO_EMAIL, IF_COUNTRY } from '../components/
 import { pickUi } from '../utils/uiText'
 
 // ═══════════════════════════════════════════════════════
-// İstifadə şərtləri — pulsuz, reklamsız, hesabsız xidmət üçün.
+// İstifadə şərtləri — pulsuz, reklamsız xidmət üçün (hesab istəyə bağlıdır).
+// "accounts" bölməsi — hesab və dərc olunan məzmun (dua divarı, açıq profil, icma lövhələri):
+// kodda olan moderasiya (təsdiq / rədd / gizlət / sil) və hesabın bloklanması ilə uyğun.
 // Əsas vurğu: dini məzmun və AI xəbərdarlığı (AI cavabı fətva deyil,
 // namaz vaxtı hesablamadır, Quran tərcüməsi məna tərcüməsidir).
 // "Tətbiq olunan qanun" bölməsi yalnız BRAND.legal.country doludursa görünür.
@@ -16,7 +18,7 @@ const DOC = {
     lead: '{brand} saytından və tətbiqindən istifadə qaydaları. Saytdan istifadə etməklə bu şərtləri qəbul etmiş olursunuz.',
     sections: {
       about: { h: 'Xidmət haqqında', body: [
-        '{brand} — Quran, namaz vaxtları, hədis, dua, zikr, zəkat kalkulyatoru, qiblə istiqaməti, AI köməkçi və digər İslami bilik bölmələrindən ibarət onlayn platformadır. Xidmət **pulsuzdur, reklamsızdır** və istifadə üçün hesab yaratmaq tələb olunmur.',
+        '{brand} — Quran, namaz vaxtları, hədis, dua, zikr, zəkat kalkulyatoru, qiblə istiqaməti, AI köməkçi və digər İslami bilik bölmələrindən ibarət onlayn platformadır. Xidmət **pulsuzdur, reklamsızdır**; hesab istəyə bağlıdır — saytın çox hissəsi hesabsız işləyir.',
         'Sayt heç bir ödəniş qəbul etmir. Xeyriyyə və sədəqə bölmələri yalnız məlumat və şəxsi qeyd üçündür.',
       ] },
       asis: { h: 'Xidmət "olduğu kimi" təqdim olunur', body: [
@@ -65,6 +67,16 @@ const DOC = {
           'saytın məzmununu və ya AI cavablarını təhrif edərək {brand} adından rəsmi dini rəy kimi təqdim etmək.',
         ] },
       ] },
+      accounts: { h: 'Hesabınız və dərc etdikləriniz', body: [
+        'Hesab istəyə bağlıdır. Hesab yaratsanız, giriş məlumatlarınızı qoruyun və hesabınızı başqası ilə paylaşmayın. Tanımadığınız giriş barədə məktub alsanız, həmin məktubdakı "Bu mən deyildim" keçidindən istifadə edin və ya şifrənizi dəyişin. Hesabınızı istənilən vaxt hesab səhifəsində silə bilərsiniz.',
+        'Bəzi funksiyalar məzmun dərc etməyə və ya paylaşmağa imkan verir: dua divarı istəkləri, açıq profil, namaz otağı təklifləri, cənazə elanları, könüllü işləri, ailə və qrup otaqları. Onlardan istifadə edərkən:',
+        { ul: [
+          'yalnız doğru olanı və paylaşmağa haqqınız olanı dərc edin — məsələn, cənazə elanını yalnız ailə üzvü kimi və ya ailənin razılığı ilə;',
+          'başqalarının şəxsi məlumatını, telefon nömrəsini, keçid və reklam, təhqiramiz və ya nifrət yayan heç nə yazmayın;',
+          'unutmayın ki, gizli keçidi olan hər kəs onun arxasındakını görə bilər.',
+        ] },
+        'Nəzarətçilər belə məzmunu təsdiqləyə, rədd edə, gizlədə və ya silə bilər; xidmətdən sui-istifadə edən hesabları bloklaya bilərik. Bu məlumatın necə emal olunduğu [Məxfilik siyasətində]({toPrivacy}) izah olunub.',
+      ] },
       ip: { h: 'Əqli mülkiyyət', body: [
         'Saytın dizaynı, proqram kodu, loqosu və saytın özünə məxsus mətnlər {brand} layihəsinə məxsusdur.',
         'Quran mətni, tərcümələr, qiraət səsləri, hədis tərcümələri, xəritə məlumatları, şriftlər və proqram kitabxanaları müvafiq hüquq sahiblərinə məxsusdur və onların lisenziyası ilə istifadə olunur — siyahı: [Mənbələr və lisenziyalar]({toLicenses}).',
@@ -96,7 +108,7 @@ const DOC = {
     lead: 'The rules for using the {brand} website and app. By using the site, you agree to these terms.',
     sections: {
       about: { h: 'About the service', body: [
-        '{brand} is an online platform with the Quran, prayer times, hadith, duas, dhikr, a zakat calculator, qibla direction, an AI assistant and other sections of Islamic knowledge. The service is **free and ad-free**, and no account is needed to use it.',
+        '{brand} is an online platform with the Quran, prayer times, hadith, duas, dhikr, a zakat calculator, qibla direction, an AI assistant and other sections of Islamic knowledge. The service is **free and ad-free**; an account is optional — most of the site works without one.',
         'The site accepts no payments of any kind. The charity and sadaqah sections are for information and personal notes only.',
       ] },
       asis: { h: 'Provided “as is”', body: [
@@ -145,6 +157,16 @@ const DOC = {
           'misrepresent the site’s content or AI answers as an official religious opinion on behalf of {brand}.',
         ] },
       ] },
+      accounts: { h: 'Your account and what you publish', body: [
+        'An account is optional. If you create one, keep your sign-in details safe and do not share your account with others. If you receive an email about a sign-in you do not recognise, use “This wasn’t me” in that email or change your password. You can delete your account at any time on your account page.',
+        'Some features let you publish or share content: dua wall requests, a public profile, prayer room suggestions, janaza notices, volunteer tasks, and family and group rooms. When you use them:',
+        { ul: [
+          'publish only what is true and what you are entitled to share — for example, a janaza notice only as a family member or with the family’s agreement;',
+          'do not include other people’s personal data, phone numbers, links or advertising, and nothing insulting or hateful;',
+          'remember that anyone who has a private link can see what is behind it.',
+        ] },
+        'Moderators may approve, reject, hide or delete such content, and we may block accounts that abuse the service. How this data is handled is explained in the [Privacy Policy]({toPrivacy}).',
+      ] },
       ip: { h: 'Intellectual property', body: [
         'The site’s design, software code, logo and original texts belong to the {brand} project.',
         'The Quran text, translations, recitations, hadith translations, map data, fonts and software libraries belong to their respective rights holders and are used under their licenses — see [Sources & Licenses]({toLicenses}).',
@@ -176,7 +198,7 @@ const DOC = {
     lead: 'Правила пользования сайтом и приложением {brand}. Пользуясь сайтом, вы принимаете эти условия.',
     sections: {
       about: { h: 'О сервисе', body: [
-        '{brand} — онлайн-платформа с разделами Корана, времени намаза, хадисов, дуа, зикра, калькулятором закята, направлением киблы, ИИ-помощником и другими материалами по исламу. Сервис **бесплатный и без рекламы**, для пользования не нужна учётная запись.',
+        '{brand} — онлайн-платформа с разделами Корана, времени намаза, хадисов, дуа, зикра, калькулятором закята, направлением киблы, ИИ-помощником и другими материалами по исламу. Сервис **бесплатный и без рекламы**; учётная запись необязательна — большая часть сайта работает без неё.',
         'Сайт не принимает никаких платежей. Разделы о благотворительности и садаке служат только для информации и личных заметок.',
       ] },
       asis: { h: 'Сервис предоставляется «как есть»', body: [
@@ -225,6 +247,16 @@ const DOC = {
           'искажать материалы сайта или ответы ИИ, выдавая их за официальное религиозное мнение от имени {brand}.',
         ] },
       ] },
+      accounts: { h: 'Ваш аккаунт и то, что вы публикуете', body: [
+        'Аккаунт необязателен. Если вы его создали, берегите данные для входа и не передавайте аккаунт другим. Если вам пришло письмо о входе, которого вы не узнаёте, нажмите в нём «Это был не я» или смените пароль. Удалить аккаунт можно в любой момент на странице аккаунта.',
+        'Некоторые функции позволяют публиковать материалы или делиться ими: просьбы на стене дуа, открытый профиль, предложения комнат для намаза, объявления о джаназе, задачи для волонтёров, семейные и групповые комнаты. Пользуясь ими:',
+        { ul: [
+          'публикуйте только правду и только то, чем вправе делиться, — например, объявление о джаназе только как член семьи или с согласия семьи;',
+          'не указывайте чужие персональные данные, номера телефонов, ссылки и рекламу, не пишите ничего оскорбительного или разжигающего ненависть;',
+          'помните, что всё, что открывает закрытая ссылка, видит каждый, у кого она есть.',
+        ] },
+        'Модераторы могут одобрять, отклонять, скрывать или удалять такие материалы, а аккаунты, злоупотребляющие сервисом, мы можем блокировать. Как обрабатываются эти данные, описано в [Политике конфиденциальности]({toPrivacy}).',
+      ] },
       ip: { h: 'Интеллектуальная собственность', body: [
         'Дизайн сайта, программный код, логотип и собственные тексты сайта принадлежат проекту {brand}.',
         'Текст Корана, переводы, аудиозаписи чтения, переводы хадисов, картографические данные, шрифты и программные библиотеки принадлежат соответствующим правообладателям и используются по их лицензиям — см. [Источники и лицензии]({toLicenses}).',
@@ -256,7 +288,7 @@ const DOC = {
     lead: 'قواعد استخدام موقع {brand} وتطبيقه. باستخدامك الموقع فإنك توافق على هذه الشروط.',
     sections: {
       about: { h: 'عن الخدمة', body: [
-        '{brand} منصة إلكترونية تضمّ القرآن الكريم ومواقيت الصلاة والأحاديث والأدعية والأذكار وحاسبة الزكاة واتجاه القبلة ومساعداً ذكياً وأقساماً أخرى من المعرفة الإسلامية. الخدمة **مجانية وبلا إعلانات**، ولا يلزم إنشاء حساب لاستخدامها.',
+        '{brand} منصة إلكترونية تضمّ القرآن الكريم ومواقيت الصلاة والأحاديث والأدعية والأذكار وحاسبة الزكاة واتجاه القبلة ومساعداً ذكياً وأقساماً أخرى من المعرفة الإسلامية. الخدمة **مجانية وبلا إعلانات**، والحساب اختياري — فمعظم الموقع يعمل بدونه.',
         'لا يقبل الموقع أي مدفوعات. وأقسام الصدقة والتبرع للمعلومات والتدوين الشخصي فقط.',
       ] },
       asis: { h: 'الخدمة مقدَّمة «كما هي»', body: [
@@ -305,6 +337,16 @@ const DOC = {
           'تحريف محتوى الموقع أو إجابات المساعد الذكي وتقديمها على أنها رأي ديني رسمي باسم {brand}.',
         ] },
       ] },
+      accounts: { h: 'حسابك وما تنشره', body: [
+        'الحساب اختياري. وإن أنشأت حسابًا فاحفظ بيانات دخولك ولا تشارك حسابك مع غيرك. وإن وصلتك رسالة عن تسجيل دخول لا تعرفه فاستخدم «لم أكن أنا» في تلك الرسالة أو غيّر كلمة المرور. ويمكنك حذف حسابك في أي وقت من صفحة حسابك.',
+        'تتيح بعض الميزات نشر المحتوى أو مشاركته: طلبات جدار الدعاء، والملف العام، واقتراحات المصليات، وإعلانات الجنائز، وأعمال التطوع، وغرف العائلة والمجموعات. وعند استخدامها:',
+        { ul: [
+          'لا تنشر إلا ما هو صحيح وما يحق لك مشاركته — فإعلان الجنازة مثلًا لا يُنشر إلا من أحد أفراد الأسرة أو بموافقتها؛',
+          'لا تضع بيانات شخصية لغيرك ولا أرقام هواتف ولا روابط ولا إعلانات، ولا شيئًا مسيئًا أو يحضّ على الكراهية؛',
+          'وتذكّر أن كل من لديه رابط خاص يستطيع رؤية ما وراءه.',
+        ] },
+        'يجوز للمشرفين قبول هذا المحتوى أو رفضه أو إخفاؤه أو حذفه، ويجوز لنا حظر الحسابات التي تسيء استخدام الخدمة. وطريقة معالجة هذه البيانات مشروحة في [سياسة الخصوصية]({toPrivacy}).',
+      ] },
       ip: { h: 'الملكية الفكرية', body: [
         'تصميم الموقع وشيفرته البرمجية وشعاره ونصوصه الخاصة ملك لمشروع {brand}.',
         'نص القرآن والترجمات وتسجيلات التلاوة وترجمات الأحاديث وبيانات الخرائط والخطوط والمكتبات البرمجية ملك لأصحاب حقوقها، وتُستخدم وفق تراخيصهم — انظر [المصادر والتراخيص]({toLicenses}).',
@@ -336,7 +378,7 @@ const DOC = {
     lead: '{brand} sitesi ve uygulamasının kullanım kuralları. Siteyi kullanarak bu şartları kabul etmiş olursunuz.',
     sections: {
       about: { h: 'Hizmet hakkında', body: [
-        '{brand}; Kur’an, namaz vakitleri, hadis, dua, zikir, zekât hesaplayıcı, kıble yönü, yapay zekâ asistanı ve diğer İslami bilgi bölümlerinden oluşan çevrim içi bir platformdur. Hizmet **ücretsiz ve reklamsızdır**; kullanmak için hesap açmak gerekmez.',
+        '{brand}; Kur’an, namaz vakitleri, hadis, dua, zikir, zekât hesaplayıcı, kıble yönü, yapay zekâ asistanı ve diğer İslami bilgi bölümlerinden oluşan çevrim içi bir platformdur. Hizmet **ücretsiz ve reklamsızdır**; hesap isteğe bağlıdır — sitenin büyük kısmı hesapsız çalışır.',
         'Site hiçbir ödeme kabul etmez. Hayır ve sadaka bölümleri yalnızca bilgi ve kişisel not amaçlıdır.',
       ] },
       asis: { h: 'Hizmet “olduğu gibi” sunulur', body: [
@@ -384,6 +426,16 @@ const DOC = {
           'içeriği otomatik araçlarla toplu hâlde toplamak;',
           'sitenin içeriğini veya yapay zekâ cevaplarını çarpıtarak {brand} adına resmî dinî görüş gibi sunmak.',
         ] },
+      ] },
+      accounts: { h: 'Hesabınız ve yayımladıklarınız', body: [
+        'Hesap isteğe bağlıdır. Hesap oluşturursanız giriş bilgilerinizi koruyun ve hesabınızı başkasıyla paylaşmayın. Tanımadığınız bir girişle ilgili e-posta alırsanız o e-postadaki “Bu ben değildim” bağlantısını kullanın veya şifrenizi değiştirin. Hesabınızı dilediğiniz zaman hesap sayfanızdan silebilirsiniz.',
+        'Bazı özellikler içerik yayımlamanıza veya paylaşmanıza imkân verir: dua duvarı istekleri, açık profil, namaz odası önerileri, cenaze ilanları, gönüllü işleri, aile ve grup odaları. Bunları kullanırken:',
+        { ul: [
+          'yalnızca doğru olanı ve paylaşma hakkınız olanı yayımlayın — örneğin cenaze ilanını yalnızca aile üyesi olarak veya ailenin onayıyla;',
+          'başkalarının kişisel verilerini, telefon numaralarını, bağlantı ve reklam, hakaret içeren veya nefreti körükleyen hiçbir şey yazmayın;',
+          'gizli bağlantıya sahip herkesin onun arkasındakini görebileceğini unutmayın.',
+        ] },
+        'Moderatörler bu tür içerikleri onaylayabilir, reddedebilir, gizleyebilir veya silebilir; hizmeti kötüye kullanan hesapları engelleyebiliriz. Bu verilerin nasıl işlendiği [Gizlilik Politikası]({toPrivacy}) sayfasında açıklanmıştır.',
       ] },
       ip: { h: 'Fikrî mülkiyet', body: [
         'Sitenin tasarımı, yazılım kodu, logosu ve siteye ait özgün metinler {brand} projesine aittir.',

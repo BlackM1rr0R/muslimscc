@@ -18,8 +18,9 @@
 //   GET    /api/volunteers/manage             (mosque_rep / admin) → { items (yazılanlarla), mosqueId, canPickMosque, limits }
 //   POST   /api/volunteers                    (mosque_rep / admin) → 201 { item }
 //   DELETE /api/volunteers/:id                (mosque_rep — öz məscidi / admin) → { ok }
-//   POST   /api/volunteers/:id/signup         (girişli) { name?, shareEmail?, consent? } → { item }
-//   DELETE /api/volunteers/:id/signup         (girişli) → { item }
+//   POST   /api/volunteers/:id/signup         (girişli + TƏSDİQLİ e-poçt; yoxsa 403 { code:'verify_email' })
+//                                             { name?, shareEmail?, consent? } → { item }
+//   DELETE /api/volunteers/:id/signup         (girişli; təsdiq tələb olunmur — öz yazılışını həmişə silə bilər) → { item }
 //   GET    /api/admin/volunteers              (panel, editor+) → { items }
 //   DELETE /api/admin/volunteers/:id          (panel, editor+) → { ok }
 // ═══════════════════════════════════════════════════════════════════════
@@ -213,7 +214,9 @@ function createVolunteersRouter({ db, requireUser, requireEditor = null, optiona
     res.json({ ok: true })
   })
 
-  router.post('/volunteers/:id/signup', auth, json, (req, res) => {
+  // Yazılış adı və (razılıqla) e-poçt nümayəndəyə görünür — təsdiqsiz (saxta / başqasının) e-poçtla
+  // yerləri doldurmaq olmasın (janaza / prayer-rooms ilə eyni qayda: communityKit.requireVerified)
+  router.post('/volunteers/:id/signup', auth, kit.requireVerified, json, (req, res) => {
     const id = idOf(req)
     const t = today()
     const b = req.body || {}

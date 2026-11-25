@@ -28,7 +28,7 @@ for (const m of ['./auth', './users', './security', './syncKeys', './mailer', '.
   './communityKit', './publicProfile', './familyDua', './duaWall', './mosqueRep', './weekly', './ipKey', './pushClaims', './quranMeaning',
   './duaFriend', './hajjJourney', './welcome', './mailCampaigns', './adminSso',
   './prayerRooms', './janaza', './volunteers',
-  './trustBox', './telegramBot', './prayerCities', './instagram', './instagramCard', './instagram-data']) require(m)
+  './trustBox', './telegramBot', './prayerCities', './instagram', './instagramCard', './instagram-data', './instagramReel']) require(m)
 // Paket asılılıqları da (server/package.json → npm ci) — image-də yoxdursa bazadan ƏVVƏL çöksün
 for (const m of ['@simplewebauthn/server']) require(m)
 // sharp (Instagram kartları, server/instagramCard.js) yalnız YOXLANIR (require.resolve) — libvips IG sönülüdürsə yüklənmir;
@@ -391,6 +391,8 @@ if (instagram.enabled) {
   // Token yenilənməsi (həftədə bir) + köhnə kartlar / sətirlər — saatda bir
   setInterval(() => {
     instagram.refreshTick().catch((e) => console.error('instagram refresh:', e && e.message))
+    // Öz postlarımızın statistikası — gündə bir dəfə (icazə yoxdursa yalnız vəziyyət qeyd olunur, dərc dayanmır)
+    instagram.insightsTick().catch((e) => console.error('instagram insights:', e && e.message))
     try { instagram.purge() } catch (e) { console.error('instagram purge:', e && e.message) }
   }, 3600e3).unref()
   setTimeout(() => { instagram.refreshTick().catch(() => {}) }, 60e3).unref()

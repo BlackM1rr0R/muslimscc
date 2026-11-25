@@ -10,6 +10,8 @@
 import { useLayoutEffect, useRef, useState } from 'react'
 import { m } from 'motion/react'
 import { SPRING } from './presets'
+// Stillər öz faylındadır (2026-11-25: giriş CSS-indən köçürüldü — yalnız bu komponentlə yüklənir)
+import '../styles/LimelightNav.css'
 
 const BASE_W = 100   // indikatorun öz eni (px) — scaleX = bəndin eni / BASE_W
 

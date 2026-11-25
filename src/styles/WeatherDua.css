@@ -1,0 +1,26 @@
+/* Hava duası kartı (components/home/WeatherDua.jsx). 2026-11-25: vau3.css-dən köçürüldü
+   (hero-nun hava effekti .hp-wx statik ilk ekranda da var — vau3.css-də qalır; wx-wind açar kadrları da oradadır). */
+.wxd { margin-top: var(--space-5, 20px); }
+.ui-card.wxd__card { position: relative; overflow: hidden; display: grid; gap: 10px; padding: clamp(16px, 3vw, 22px);
+  background: linear-gradient(135deg, #12324a, #0b2134); color: #fff; border: 1px solid rgba(255, 255, 255, .08); }
+.ui-card.wxd__card--wind { background: linear-gradient(135deg, #24404d, #142a33); }
+.ui-card.wxd__card--thunder { background: linear-gradient(135deg, #241f45, #120f28); }
+.wxd__fx { position: absolute; inset: -440px 0 0; pointer-events: none; opacity: .5;
+  background-image: repeating-linear-gradient(104deg, transparent 0 18px, rgba(140, 180, 230, .4) 18px 19px, transparent 19px 38px); background-size: 100% 420px; }
+.wxd__card--wind .wxd__fx { background-image: repeating-linear-gradient(176deg, transparent 0 40px, rgba(190, 210, 220, .35) 40px 41px, transparent 41px 90px); }
+.wxd__head { position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; align-items: center; }
+.wxd__head .ui-eyebrow { color: #e7c77d; }
+.wxd__ic { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: rgba(255, 255, 255, .1); color: #bfe0ff; }
+.wxd__title { margin: 2px 0 0; font-size: var(--step-1, 1.15rem); color: #fff; }
+.wxd__temp { color: rgba(255, 255, 255, .7); font-weight: 600; }
+.wxd__x { border: 0; background: rgba(255, 255, 255, .08); color: #fff; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; cursor: pointer; }
+.wxd__ar { position: relative; margin: 4px 0 0; font-family: var(--font-arabic); font-size: clamp(1.5rem, 1.2rem + 1.4vw, 2.1rem); line-height: 1.8; text-align: center; color: #fff8e6; }
+.wxd__tr { position: relative; margin: 0; text-align: center; color: rgba(255, 255, 255, .85); }
+.wxd__foot { position: relative; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; }
+.wxd__src { color: rgba(255, 255, 255, .6); max-width: 60ch; }
+.wxd .ui-btn--secondary { background: rgba(255, 255, 255, .1); color: #fff; border-color: rgba(255, 255, 255, .25); }
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-motion-user) .wxd__fx { animation: wx-fall-s 2.4s linear infinite; }
+  html:not(.a11y-motion-user) .wxd__card--wind .wxd__fx { animation: wx-wind 2.6s linear infinite; }
+}
+@keyframes wx-fall-s { to { transform: translate3d(-42px, 420px, 0); } }

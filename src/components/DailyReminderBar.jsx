@@ -16,9 +16,10 @@ import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import Icon from './Icon'
 import { useLang } from '../contexts/LangContext'
 // PERFORMANS: bütöv QUOTES/DUAS_DATA əvəzinə build zamanı hesablanmış hovuzlar
-// (vite.config.js → dailyPoolsPlugin, qayda: src/utils/dailyPools.js) —
-// ana səhifədə ~72 KB gzip əvəzinə ~40 KB, quotes/duas chunk-ları yüklənmir.
-import { AYAH_POOL, HADITH_POOL, DUA_POOL } from 'virtual:daily-pools'
+// (vite.config.js → dailyPoolsPlugin, qayda: src/utils/dailyPools.js), YALNIZ cari
+// dilin tərcüməsi ilə — "virtual:daily-pools/<dil>" (~15–17 KB gzip; əvvəl 4 dil
+// birlikdə ~38 KB, ondan da əvvəl quotes+duas ~72 KB). Yükləyici: utils/dailyPoolsStore.js.
+import { readDailyPools } from '../utils/dailyPoolsStore'
 import { DHIKRS } from '../data/dhikr'
 // PERFORMANS: adminContent (→ /api/content sorğuları) statik import edilmir —
 // zolaq ana səhifənin ən yuxarısındadır və onun chunk-ı ilk ekranda lazımdır;
@@ -31,7 +32,7 @@ import { localizeSource } from '../utils/sourceNames'
 import { isDailyBarHiddenToday, hideDailyBarForToday } from './DailyReminderBarSkeleton'
 import '../styles/DailyReminderBar.css'
 import { isLiteDevice } from '../utils/liteDevice'
-import { pickUi } from '../utils/uiText'
+import { pickUi, txt } from '../utils/uiText'
 
 const ROTATE_MS = 8000
 
@@ -81,7 +82,8 @@ export function dayNumber(d = new Date()) {
 }
 
 // Hovuzlar (AYAH_POOL, HADITH_POOL, DUA_POOL) build zamanı qurulur — qayda
-// (filtr, qısalıq həddi 140/100/140, data faylındakı sıra) src/utils/dailyPools.js-dədir.
+// (filtr, qısalıq həddi 140/100/140, data faylındakı sıra) src/utils/dailyPools.js-dədir;
+// komponentlər onları readDailyPools(lang) ilə alır (utils/dailyPoolsStore.js).
 
 const pick = (pool, day, offset = 0) =>
   pool.length ? pool[(((day + offset) % pool.length) + pool.length) % pool.length] : null
@@ -102,9 +104,15 @@ const textFor = (obj, lang, original = '') => {
  * @param {string} lang
  * @param {number} day   — dayNumber()
  * @param {object|null} admin — admin "Günün məzmunu" sənədi (subscribeToDailyContent)
+ * @param {{AYAH_POOL,HADITH_POOL,DUA_POOL}} pools — cari dilin hovuzları (readDailyPools(lang))
  * @returns {{type,page,ar,name,text,source}[]}
  */
-export function buildDailyItems(lang, day, admin) {
+export function buildDailyItems(lang, day, admin, pools) {
+  const { AYAH_POOL = [], HADITH_POOL = [], DUA_POOL = [] } = pools || {}
+  // Tərcümə (t) build zamanı dilə görə seçilib: text[lang] || text.en (utils/dailyPools.js →
+  // localizeDailyPools). Əlavə dildə (interfeys "en") lüğət əvvəlki kimi tətbiq olunur —
+  // əvvəlki pickUi(text, lang, 'en') ilə eyni nəticə.
+  const local = (t) => (lang === 'en' ? txt(t) : t)
   const items = []
 
   // 1) Günün ayəsi — admin doldurubsa onu, yoxsa QUOTES (cat: 'quran').
@@ -117,16 +125,16 @@ export function buildDailyItems(lang, day, admin) {
     items.push(adminAyah)
   } else {
     const q = pick(AYAH_POOL, day)
-    if (q) items.push({ type: 'ayah', page: 'quran', ar: q.ar, name: '', text: lang === 'ar' ? '' : (pickUi(q.text, lang, 'en')), source: q.source })
+    if (q) items.push({ type: 'ayah', page: 'quran', ar: q.ar, name: '', text: lang === 'ar' ? '' : local(q.t), source: q.source })
   }
 
   // 2) Günün hədisi — QUOTES (cat: 'hadith'), mənbəsi ilə
   const h = pick(HADITH_POOL, day, 1)
-  if (h) items.push({ type: 'hadith', page: 'hadith', ar: h.ar, name: '', text: lang === 'ar' ? '' : (pickUi(h.text, lang, 'en')), source: h.source })
+  if (h) items.push({ type: 'hadith', page: 'hadith', ar: h.ar, name: '', text: lang === 'ar' ? '' : local(h.t), source: h.source })
 
   // 3) Günün duası — DUAS_DATA
   const d = pick(DUA_POOL, day, 2)
-  if (d) items.push({ type: 'dua', page: 'duas', ar: d.ar, name: '', text: lang === 'ar' ? '' : (pickUi(d, lang, 'en')), source: d.source })
+  if (d) items.push({ type: 'dua', page: 'duas', ar: d.ar, name: '', text: lang === 'ar' ? '' : local(d.t), source: d.source })
 
   // 4) Günün zikri — admin doldurubsa onu, yoxsa DHIKRS (fəzilətin mənbəyi data/dhikr.js-dəki source sahəsidir)
   const ad = admin?.dhikr
@@ -185,6 +193,8 @@ const Cross = () => (
 
 export default function DailyReminderBar({ setPage }) {
   const { lang } = useLang()
+  // Cari dilin hovuzları; hələ yüklənməyibsə Suspense yer tutucusu (HomePage → DailyReminderBarSkeleton)
+  const pools = readDailyPools(lang)
   const L = pickUi(LABELS, lang, 'en')
   const isAr = lang === 'ar'
 
@@ -229,7 +239,7 @@ export default function DailyReminderBar({ setPage }) {
     return () => document.removeEventListener('visibilitychange', onVis)
   }, [])
 
-  const items = useMemo(() => buildDailyItems(lang, day, admin), [lang, day, admin])
+  const items = useMemo(() => buildDailyItems(lang, day, admin, pools), [lang, day, admin, pools])
   const count = items.length
   const cur = items[count ? idx % count : 0]
 

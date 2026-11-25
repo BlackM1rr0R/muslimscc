@@ -20,6 +20,14 @@
 // • Token: Instagram Login tokeni 60 gündür — həftədə bir refresh_access_token; yenilənmiş token bazada AES-256-GCM ilə
 //   (açar = env tokenindən törəmə: baza ehtiyat nüsxəsi tək başına tokeni açmır; env dəyişəndə köhnə qeyd avtomatik
 //   etibarsızdır). İstifadəçi məlumatı YOXDUR (cədvəllər users-ə bağlı deyil, ixrac/xülasəyə düşmür).
+// • REEL (IG_REELS=1, IG_REEL_TIME susmaya görə 18:00): günün ayəsinin videosu — MP4 serverdə çəkilmir, CI yazır
+//   (<cardDir>/<tarix>-reel.mp4 + .json; instagramReel.js, docs/INSTAGRAM.md → "Reels"). Fayl yoxdursa bir dəfə
+//   loglanır və atlanır. media_type=REELS + video_url (Range dəstəyi ilə xidmət olunur), share_to_feed, ~5 dəq status.
+// • BÖYÜMƏ (docs/INSTAGRAM.md → "Böyümə"): açar sözlü 1-ci sətir, növ üzrə ≤ 5 heşteq (gündən günə deterministik növbə),
+//   feed / karusel şəkillərinə alt_text (IG_ALT_TEXT=0 söndürür), IG_LOCATION_ID (feed, reel, karusel; susmaya görə yox) —
+//   Meta parametri rədd etsə onsuz təkrar göndərilir. Həftəlik karusel (IG_CAROUSEL=1, IG_CAROUSEL_DAY=5, IG_CAROUSEL_TIME=11:00):
+//   uşaq konteynerlər → media_type=CAROUSEL. İnsights (IG_INSIGHTS=0 söndürür): gündə bir dəfə reach / saves / shares →
+//   instagram_insights; icazə yoxdursa yalnız vəziyyət qeyd olunur, dərc dayanmır.
 // ═══════════════════════════════════════════════════════════════════════
 'use strict'
 
@@ -31,6 +39,7 @@ const dailyAyah = require('./daily-ayah')
 const dailyHadith = require('./daily-hadith')
 const IG_DATA = require('./instagram-data')
 const { nowAt } = require('./telegramBot')
+const REEL = require('./instagramReel')
 
 const LANGS = ['az', 'en', 'ru', 'tr', 'ar']
 const TZ = 'Asia/Baku'
@@ -61,14 +70,82 @@ const TITLES = {
 }
 const PROOF = { az: 'Dəlil', en: 'Proof', ru: 'Доказательство', tr: 'Delil', ar: 'الدليل' }
 const READ_MORE = { az: 'Saytda oxuyun', en: 'Read on the site', ru: 'Читать на сайте', tr: 'Sitede okuyun', ar: 'اقرأ في الموقع' }
+// ── Heşteqlər (docs/INSTAGRAM.md → "Böyümə"): hər növ üçün kiçik, mövzuya uyğun hovuz; 1-ci element "lövbər"dir (həmişə),
+//    qalanları günə görə deterministik növbələşir (eyni caption bloku hər gün təkrarlanmasın). Cəmi ≤ HASHTAG_MAX (#muslimscc
+//    daxil) — Instagram 2025-dən 3–5 heşteq tövsiyə edir, sonra postda ən çox 5-ə endirdi; spam / "follow4follow" tipli və
+//    yalnız nəhəng ümumi teqlər (#love, #instagood) yoxdur. az / en / ar qarışığı: əsas dil + 2-ci dil + ərəbcə.
+const HASHTAG_MAX = 5
 const HASHTAGS = {
-  az: { ayah: ['#quran', '#ayə', '#islam'], hadith: ['#hədis', '#sünnə', '#islam'], dua: ['#dua', '#zikr', '#islam'], name: ['#əsmaülhüsna', '#allahınadları', '#islam'] },
-  en: { ayah: ['#quran', '#verseoftheday', '#islam'], hadith: ['#hadith', '#sunnah', '#islam'], dua: ['#dua', '#dhikr', '#islam'], name: ['#asmaulhusna', '#namesofallah', '#islam'] },
-  ru: { ayah: ['#коран', '#аят', '#ислам'], hadith: ['#хадис', '#сунна', '#ислам'], dua: ['#дуа', '#зикр', '#ислам'], name: ['#асмаульхусна', '#именааллаха', '#ислам'] },
-  tr: { ayah: ['#kuran', '#ayet', '#islam'], hadith: ['#hadis', '#sünnet', '#islam'], dua: ['#dua', '#zikir', '#islam'], name: ['#esmaülhüsna', '#allahınisimleri', '#islam'] },
-  ar: { ayah: ['#قرآن', '#آية', '#إسلام'], hadith: ['#حديث', '#سنة', '#إسلام'], dua: ['#دعاء', '#ذكر', '#إسلام'], name: ['#أسماء_الله_الحسنى', '#إسلام'] },
+  az: {
+    ayah: ['#ayə', '#quran', '#qurani_kərim', '#gününayəsi', '#islam'],
+    hadith: ['#hədis', '#sünnə', '#peyğəmbər', '#gününhədisi', '#islam'],
+    dua: ['#dua', '#zikr', '#gününduası', '#müsəlman', '#islam'],
+    name: ['#əsmaülhüsna', '#allahınadları', '#zikr', '#islam'],
+    reel: ['#quran', '#tilavət', '#ayə', '#qurani_kərim', '#islam'],
+  },
+  en: {
+    ayah: ['#quran', '#quranverses', '#verseoftheday', '#islamicreminder', '#quranquotes'],
+    hadith: ['#hadith', '#sunnah', '#hadithoftheday', '#islamicreminder', '#prophetmuhammad'],
+    dua: ['#dua', '#dhikr', '#duaoftheday', '#islamicreminder', '#remembrance'],
+    name: ['#asmaulhusna', '#99namesofallah', '#namesofallah', '#dhikr', '#islamicreminder'],
+    reel: ['#quranrecitation', '#quran', '#tilawah', '#quranverses', '#islamicreminder'],
+  },
+  ru: {
+    ayah: ['#коран', '#аят', '#ислам', '#мусульмане'],
+    hadith: ['#хадис', '#сунна', '#ислам', '#пророк'],
+    dua: ['#дуа', '#зикр', '#ислам', '#мусульмане'],
+    name: ['#асмаульхусна', '#именааллаха', '#зикр', '#ислам'],
+    reel: ['#коран', '#чтениекорана', '#аят', '#ислам'],
+  },
+  tr: {
+    ayah: ['#kuran', '#ayet', '#kuranıkerim', '#islam'],
+    hadith: ['#hadis', '#sünnet', '#peygamber', '#islam'],
+    dua: ['#dua', '#zikir', '#müslüman', '#islam'],
+    name: ['#esmaülhüsna', '#allahınisimleri', '#zikir', '#islam'],
+    reel: ['#kuran', '#tilavet', '#kuranıkerim', '#islam'],
+  },
+  ar: {
+    ayah: ['#قرآن', '#آية', '#القرآن_الكريم', '#تدبر'],
+    hadith: ['#حديث', '#سنة', '#السنة_النبوية', '#حديث_شريف'],
+    dua: ['#دعاء', '#ذكر', '#أذكار', '#دعاء_اليوم'],
+    name: ['#أسماء_الله_الحسنى', '#ذكر', '#الله'],
+    reel: ['#تلاوة', '#قرآن', '#القرآن_الكريم', '#تلاوة_خاشعة'],
+  },
 }
 const CAPTION_MAX = 2200
+const FIRST_LINE_MAX = 140
+// alt_text (yalnız feed şəkli / karusel elementi; Meta: reel və story-də yoxdur) — kartın təsviri, elementin istinadı ilə
+const ALT_DESC = {
+  text: { az: 'ərəb mətni və tərcüməsi', en: 'Arabic text and translation', ru: 'арабский текст и перевод', tr: 'Arapça metni ve çevirisi', ar: 'النص العربي' },
+  name: { az: 'ərəbcə yazılışı, oxunuşu və mənası', en: 'Arabic script, transliteration and meaning', ru: 'арабское написание, транслитерация и значение', tr: 'Arapça yazılışı, okunuşu ve anlamı', ar: 'الاسم بالعربية' },
+}
+const ALT_MAX = 1000
+// Həftəlik karusel (IG_CAROUSEL=1): mövzu həftəyə görə növbələşir; yalnız tərcüməsi yoxlanmış mənbələr (Hisn YOX — AI tərcümə)
+const CAROUSEL_THEMES = ['name', 'hadith', 'ayah']
+const CAROUSEL_ITEMS = 5
+const CAROUSEL_MIN_ITEMS = 3
+const CAROUSEL_NAME_RE = /^(\d{4}-\d{2}-\d{2})-carousel-(\d)\.jpg$/
+const DEFAULT_CAROUSEL_TIME = '11:00'
+const DEFAULT_CAROUSEL_DAY = 5                          // cümə (0 — bazar)
+const CAROUSEL_TITLE = {
+  name: TITLES.name,
+  hadith: { az: 'Buxari və Müslimdən hədislər', en: 'Hadiths from al-Bukhari and Muslim', ru: 'Хадисы из аль-Бухари и Муслима', tr: 'Buhârî ve Müslim’den hadisler', ar: 'أحاديث من البخاري ومسلم' },
+  ayah: { az: 'Quran ayələri', en: 'Verses of the Quran', ru: 'Аяты Корана', tr: 'Kur’an ayetleri', ar: 'آيات من القرآن الكريم' },
+}
+const CAROUSEL_LINK = { name: '/names', hadith: '/hadith', ayah: '/quran' }
+const WEEKLY = { az: 'Həftənin seçməsi', en: 'Weekly selection', ru: 'Подборка недели', tr: 'Haftanın seçkisi', ar: 'مختارات الأسبوع' }
+const SWIPE = { az: 'Sürüşdürün →', en: 'Swipe →', ru: 'Листайте →', tr: 'Kaydırın →', ar: '← اسحب' }
+const CLOSING = {
+  az: 'Hər gün ayə, hədis və dua', en: 'A verse, a hadith and a dua every day', ru: 'Каждый день — аят, хадис и дуа',
+  tr: 'Her gün ayet, hadis ve dua', ar: 'كل يوم آية وحديث ودعاء',
+}
+const SITE_LINE = { az: 'Sayt', en: 'Website', ru: 'Сайт', tr: 'Site', ar: 'الموقع' }
+const IG_HANDLE = '@muslimscc'
+// İnsights (IG_INSIGHTS, susmaya görə açıq; icazə yoxdursa dərcə toxunmadan dayanır): son 30 günün postları, gündə bir dəfə
+const INSIGHT_METRICS = ['reach,saved,shares,likes,comments,views', 'reach,saved,shares,likes,comments']
+const INSIGHT_DAYS = 30
+const INSIGHT_MAX_PER_RUN = 60
+const INSIGHT_FORMATS = ['feed', 'reel', 'carousel']
 
 // ── Konfiqurasiya (env) ──
 function parseSlots(raw) {
@@ -81,6 +158,13 @@ function parseSlots(raw) {
   }
   if (!out.length || out.length > 6) return DEFAULT_SLOTS.slice()
   return out.sort()
+}
+
+/** "HH:MM" → normallaşdırılmış; yoxdur / yararsızdır → def. */
+function parseHHMM(raw, def) {
+  const m = /^(\d{1,2}):(\d{2})$/.exec(String(raw || '').trim())
+  if (!m || Number(m[1]) > 23 || Number(m[2]) > 59) return def
+  return `${m[1].padStart(2, '0')}:${m[2]}`
 }
 
 /** IG_CAPTION_LANGS: "az,en" (susmaya görə) — 1-ci əsas dil, 2-ci (istəyə bağlı) əlavə tərcümə; yalnız 5 dil, ən çox 2. */
@@ -98,12 +182,27 @@ function parseConfig(env = {}) {
   const slots = parseSlots(env.IG_SLOTS || DEFAULT_SLOTS.join(','))
   const stories = String(env.IG_STORIES == null ? '1' : env.IG_STORIES) !== '0'
   const captionLangs = parseCaptionLangs(env.IG_CAPTION_LANGS)
+  // Reel (günün ayəsinin videosu, CI-da çəkilir — instagramReel.js): IG_REELS=1 ilə, IG_REEL_TIME (susmaya görə 18:00)
+  const reels = env.IG_REELS === '1'
+  const reelTime = REEL.parseReelTime(env.IG_REEL_TIME || REEL.DEFAULT_REEL_TIME)
+  // Böyümə (docs/INSTAGRAM.md → "Böyümə"): alt_text (susmaya görə açıq), məkan (IG_LOCATION_ID — susmaya görə yox),
+  // həftəlik karusel (IG_CAROUSEL=1, susmaya görə sönülü), insights (IG_INSIGHTS=0 ilə söndürülür)
+  const altText = String(env.IG_ALT_TEXT == null ? '1' : env.IG_ALT_TEXT) !== '0'
+  const locationId = USER_ID_RE.test(String(env.IG_LOCATION_ID || '').trim()) ? String(env.IG_LOCATION_ID).trim() : null
+  const carousel = env.IG_CAROUSEL === '1'
+  const carouselTime = parseHHMM(env.IG_CAROUSEL_TIME, DEFAULT_CAROUSEL_TIME)
+  const cd = String(env.IG_CAROUSEL_DAY == null ? '' : env.IG_CAROUSEL_DAY).trim()
+  const carouselDay = /^[0-6]$/.test(cd) ? Number(cd) : DEFAULT_CAROUSEL_DAY
+  const insights = String(env.IG_INSIGHTS == null ? '1' : env.IG_INSIGHTS) !== '0'
   const configured = Boolean(token || userId)
   let reason = null
   if (env.IG_ENABLED !== '1') reason = 'disabled'
   else if (!token || !userId) reason = 'missing_credentials'
   else if (!TOKEN_RE.test(token) || !USER_ID_RE.test(userId)) reason = 'bad_format'
-  return { enabled: !reason, reason, configured, token, userId, host, version, lang, slots, stories, captionLangs }
+  return {
+    enabled: !reason, reason, configured, token, userId, host, version, lang, slots, stories, captionLangs, reels, reelTime,
+    altText, locationId, carousel, carouselTime, carouselDay, insights,
+  }
 }
 
 // ── Vaxt ──
@@ -128,12 +227,8 @@ function nextSlot(slots, now) {
   return { date: d, time: slots[0], index: 0, kind: kindFor(0, d) }
 }
 
-// ── Seçim: gün üzrə deterministik, sığmayanda sıradakı ──
-const gcd = (a, b) => (b ? gcd(b, a % b) : a)
-function rotIndex(dateKey, n, step, k) {
-  const s = gcd(step, n) === 1 ? step : 1
-  return ((((dailyAyah.dayNumber(dateKey) * s) % n) + n + k) % n)
-}
+// ── Seçim: gün üzrə deterministik, sığmayanda sıradakı (rotIndex — instagramReel.js, reel renderi ilə ortaq) ──
+const { rotIndex } = REEL
 /** Hədis: "Səhih" yalnız Buxari / Müslim (telegramBot.js ilə eyni ifadə — gradeOf-un 1-ci qaydası). */
 const isBukhariMuslim = (srcAz) => /^(Buxari|Muslim|Müslim)\b/.test(String(srcAz || '')) && !/Ədəb əl-Müfrəd/.test(String(srcAz || ''))
 const linkFor = (origin, lang, p) => `${origin}${lang === 'az' ? '' : `/${lang}`}${p}`
@@ -166,11 +261,61 @@ function ayahContent(lang, pick, data, origin) {
   return { kind: 'ayah', key: `ayah:${pick.ref}`, title: TITLES.ayah[lang], ar, text, ref: `${dailyAyah.surahLabel(lang, pick.s, data.names)} ${num}`, link: linkFor(origin, lang, dailyAyah.ayahLink('az', pick)) }
 }
 
-// ── Caption (mətn + mənbə + keçid + bir neçə heşteq; reytinq / riya dili yoxdur) ──
-function buildCaption(c, lang, { withArabic = true } = {}) {
+// ── Heşteqlər: #muslimscc + əsas dilin lövbəri + növbələşən + 2-ci dilin lövbəri + ərəbcə (və ya ingiliscə) — ≤ 5 ──
+const tagPool = (L, kind) => { const p = HASHTAGS[L] || HASHTAGS.az; return p[kind] || p.ayah }
+/** Siyahının lövbərdən sonrakı hissəsindən seed-ə görə n element (növbə ilə). */
+function rotate(list, n, seed) {
+  const rest = list.slice(1)
+  const out = []
+  for (let i = 0; i < Math.min(n, rest.length); i++) out.push(rest[(seed + i) % rest.length])
+  return out
+}
+/**
+ * hashtagsFor(kind, langs, day) → ['#muslimscc', …] (≤ HASHTAG_MAX, təkrarsız). Eyni gün — eyni nəticə (deterministik),
+ * gündən günə növbələşir. kind: ayah | hadith | dua | name | reel.
+ */
+function hashtagsFor(kind, langs = ['az'], day = null) {
+  const seed = day && DATE_RE.test(String(day)) ? Math.abs(dailyAyah.dayNumber(day)) : 0
+  const L1 = LANGS.includes(langs[0]) ? langs[0] : 'az'
+  const L2 = langs[1] && langs[1] !== L1 && LANGS.includes(langs[1]) ? langs[1] : null
+  const p1 = tagPool(L1, kind)
+  const mix = tagPool(L1 === 'ar' || L2 === 'ar' ? 'en' : 'ar', kind)
+  const out = ['#muslimscc']
+  const add = (t) => { if (t && !out.includes(t) && out.length < HASHTAG_MAX) { out.push(t); return true } return false }
+  add(p1[0])
+  if (L2) add(tagPool(L2, kind)[0])
+  const rot = rotate(p1, p1.length, seed)
+  let want = L2 ? 1 : 2
+  for (const t of rot) { if (want <= 0) break; if (add(t)) want-- }
+  for (let i = 0; i < mix.length; i++) if (add(mix[(seed + i) % mix.length])) break
+  for (const t of rot) add(t)
+  return out
+}
+
+/** 1-ci sətir (Instagram axtarışı caption-u indeksləyir): "Günün ayəsi: Əhzab 33:3 | Verse of the Day". */
+function firstLine(p, s = null) {
+  const key = p.kind === 'name' ? (p.tl || '') : (p.ref || '')
+  let line = key ? `${p.title}: ${key}` : p.title
+  if (s && s.title && s.title !== p.title) line += ` | ${s.title}`
+  return line.length <= FIRST_LINE_MAX ? line : p.title
+}
+
+/** alt_text: "Günün ayəsi: Əhzab 33:3 — ərəb mətni və tərcüməsi" (kartın dilində; dini mətn deyil — təsvirdir). */
+function altTextFor(c, lang) {
+  if (!c) return ''
   const L = LANGS.includes(lang) ? lang : 'az'
-  const tags = ['#muslimscc', ...((HASHTAGS[L] || HASHTAGS.az)[c.kind] || [])]
-  const parts = [c.title]
+  const out = c.kind === 'name'
+    ? `${c.title}: ${c.tl || c.ar} — ${ALT_DESC.name[L]}`
+    : `${c.title}: ${c.ref} — ${ALT_DESC.text[L]}`
+  return out.replace(/\s+/g, ' ').trim().slice(0, ALT_MAX)
+}
+
+// ── Caption (mətn + mənbə + keçid + bir neçə heşteq; reytinq / riya dili yoxdur) ──
+// opts.day — heşteq növbəsi üçün tarix; opts.tagKind — heşteq hovuzu (susmaya görə c.kind; reel üçün 'reel')
+function buildCaption(c, lang, { withArabic = true, day = null, tagKind = null } = {}) {
+  const L = LANGS.includes(lang) ? lang : 'az'
+  const tags = hashtagsFor(tagKind || c.kind, [L], day)
+  const parts = [firstLine(c)]
   if (c.kind === 'name') parts.push([c.ar, c.tl, c.text].filter(Boolean).join('\n'))
   else {
     if (withArabic || !c.text) parts.push(c.ar)
@@ -181,7 +326,7 @@ function buildCaption(c, lang, { withArabic = true } = {}) {
   parts.push(tags.join(' '))
   const out = parts.filter(Boolean).join('\n\n')
   if (out.length <= CAPTION_MAX) return out
-  return withArabic && c.text && c.kind !== 'name' ? buildCaption(c, lang, { withArabic: false }) : null
+  return withArabic && c.text && c.kind !== 'name' ? buildCaption(c, lang, { withArabic: false, day, tagKind }) : null
 }
 
 /**
@@ -190,18 +335,35 @@ function buildCaption(c, lang, { withArabic = true } = {}) {
  * 2-ci dildə mətn yoxdursa və ya 2200 simvolu keçirsə — yalnız əsas dil (buildCaption). Heç vaxt tərcümə edilmir.
  * content.variant(L) — eyni elementin L dilində məzmunu (instagram.js → candidate); yoxdursa content özü işlədilir.
  */
-function buildCaptionMulti(content, langs = ['az', 'en']) {
+function buildCaptionMulti(content, langs = ['az', 'en'], { day = null, tagKind = null } = {}) {
   const [L1, L2] = langs
   const variant = typeof content.variant === 'function' ? content.variant : null
   const p = (variant && variant(L1)) || content
   const lang1 = variant && variant(L1) ? L1 : (LANGS.includes(L1) ? L1 : 'az')
   const s = L2 && L2 !== lang1 && variant ? variant(L2) : null
-  const mono = () => buildCaption(p, lang1)
+  const mono = () => buildCaption(p, lang1, { day, tagKind })
   if (!s || !s.text || !p.text) return mono()
-  const tags = [...new Set(['#muslimscc', ...((HASHTAGS[lang1] || HASHTAGS.az)[p.kind] || []), ...((HASHTAGS[L2] || HASHTAGS.en)[p.kind] || []).slice(0, 2)])].slice(0, 6)
+  const tags = hashtagsFor(tagKind || p.kind, [lang1, L2], day)
   const head = p.kind === 'name' ? [p.ar, p.tl].filter(Boolean).join('\n') : p.ar
-  const out = [p.title, head, `${p.text}\n—\n${s.text}`, `— ${p.ref}`, `${READ_MORE[lang1]}: ${p.link}`, tags.join(' ')].filter(Boolean).join('\n\n')
+  const out = [firstLine(p, s), head, `${p.text}\n—\n${s.text}`, `— ${p.ref}`, `${READ_MORE[lang1]}: ${p.link}`, tags.join(' ')].filter(Boolean).join('\n\n')
   return out.length <= CAPTION_MAX ? out : mono()
+}
+
+/**
+ * Karusel caption-u: 1-ci sətir (açar sözlər), elementlərin siyahısı (yalnız istinad / ad — mətnlər kartlardadır), keçid,
+ * heşteqlər. items — əsas dildəki məzmun; second — 2-ci dil (başlıq üçün, istəyə bağlı). 2200-ü keçirsə null.
+ */
+function buildCarouselCaption(theme, items, langs = ['az', 'en'], { day = null, origin = 'https://muslims.cc' } = {}) {
+  const L1 = LANGS.includes(langs[0]) ? langs[0] : 'az'
+  const L2 = langs[1] && langs[1] !== L1 && LANGS.includes(langs[1]) ? langs[1] : null
+  const t1 = CAROUSEL_TITLE[theme][L1]
+  const head = `${WEEKLY[L1]} — ${t1}${L2 ? ` | ${CAROUSEL_TITLE[theme][L2]}` : ''}`
+  const list = items.map((c, i) => {
+    if (theme === 'name') return `${i + 1}. ${[c.tl, c.ar].filter(Boolean).join(' · ')}${c.text ? ` — ${c.text}` : ''}`
+    return `${i + 1}. ${c.ref}`
+  }).join('\n')
+  const out = [head, list, `${READ_MORE[L1]}: ${linkFor(origin, L1, CAROUSEL_LINK[theme])}`, hashtagsFor(theme, L2 ? [L1, L2] : [L1], day).join(' ')].join('\n\n')
+  return out.length <= CAPTION_MAX ? out : null
 }
 
 // ── Graph API xətalarının növü ──
@@ -282,6 +444,21 @@ function createInstagram(opts = {}) {
     UNIQUE (day, slot, format)
   )`)
   raw.exec('CREATE TABLE IF NOT EXISTS instagram_state (k TEXT PRIMARY KEY, v TEXT NOT NULL, at INTEGER NOT NULL) WITHOUT ROWID')
+  // Öz postlarımızın statistikası (Graph API insights) — istifadəçi məlumatı yoxdur; 180 gündən köhnələr silinir
+  raw.exec(`CREATE TABLE IF NOT EXISTS instagram_insights (
+    ig_media_id TEXT PRIMARY KEY,
+    day TEXT NOT NULL,
+    slot TEXT NOT NULL,
+    format TEXT NOT NULL,
+    kind TEXT NOT NULL,
+    reach INTEGER,
+    saved INTEGER,
+    shares INTEGER,
+    likes INTEGER,
+    comments INTEGER,
+    views INTEGER,
+    fetched_at INTEGER NOT NULL
+  ) WITHOUT ROWID`)
   const q = {
     claim: raw.prepare(`INSERT OR IGNORE INTO instagram_posts (day, slot, format, kind, status, attempts, created_at, updated_at)
       VALUES (?, ?, ?, ?, 'claimed', 1, ?, ?)`),
@@ -295,6 +472,17 @@ function createInstagram(opts = {}) {
     stGet: raw.prepare('SELECT v, at FROM instagram_state WHERE k = ?'),
     stSet: raw.prepare('INSERT INTO instagram_state (k, v, at) VALUES (?, ?, ?) ON CONFLICT(k) DO UPDATE SET v = excluded.v, at = excluded.at'),
     stClaim: raw.prepare('INSERT OR IGNORE INTO instagram_state (k, v, at) VALUES (?, ?, ?)'),
+    insTargets: raw.prepare(`SELECT ig_media_id, day, slot, format, kind FROM instagram_posts
+      WHERE status = 'published' AND ig_media_id IS NOT NULL AND format IN ('feed', 'reel', 'carousel') AND day >= ? AND updated_at < ?
+      ORDER BY id DESC LIMIT ?`),
+    insSet: raw.prepare(`INSERT INTO instagram_insights (ig_media_id, day, slot, format, kind, reach, saved, shares, likes, comments, views, fetched_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(ig_media_id) DO UPDATE SET reach = excluded.reach, saved = excluded.saved,
+      shares = excluded.shares, likes = excluded.likes, comments = excluded.comments, views = excluded.views, fetched_at = excluded.fetched_at`),
+    insByKind: raw.prepare(`SELECT kind, format, COUNT(*) AS posts, ROUND(AVG(reach)) AS reach, ROUND(AVG(saved), 1) AS saved, ROUND(AVG(shares), 1) AS shares
+      FROM instagram_insights WHERE day >= ? GROUP BY kind, format ORDER BY reach DESC`),
+    insBySlot: raw.prepare(`SELECT slot, COUNT(*) AS posts, ROUND(AVG(reach)) AS reach, ROUND(AVG(saved), 1) AS saved, ROUND(AVG(shares), 1) AS shares
+      FROM instagram_insights WHERE day >= ? AND format = 'feed' GROUP BY slot ORDER BY reach DESC`),
+    insPurge: raw.prepare('DELETE FROM instagram_insights WHERE fetched_at < ?'),
   }
 
   let authBlocked = false
@@ -331,25 +519,88 @@ function createInstagram(opts = {}) {
     throw new GraphError(classifyError(e, r.status), r.status, Number(e.code) || 0, Number(e.error_subcode) || 0)
   }
 
-  async function publishImage(imageUrl, { story = false, caption = '' } = {}) {
+  const imageDelays = () => Array.from({ length: pollTries }, () => pollMs)
+
+  /** Feed şəkli: + alt_text (IG_ALT_TEXT), + location_id (IG_LOCATION_ID). Story: yalnız şəkil (Meta: caption / alt / məkan yoxdur). */
+  async function publishImage(imageUrl, { story = false, caption = '', altText = '' } = {}) {
     const params = story ? { image_url: imageUrl, media_type: 'STORIES' } : { image_url: imageUrl, caption }
-    const c = await graph('POST', `/${cfg.userId}/media`, params)
-    const cid = String((c && c.id) || '')
-    if (!/^\d{1,40}$/.test(cid)) throw new GraphError('fatal', 200, 0, 0)
-    let ready = false
-    for (let i = 0; i < pollTries; i++) {
+    return publishContainer(params, imageDelays(), story ? {} : optionalParams({ altText }))
+  }
+
+  /** Reel: media_type=REELS + video_url; video emalı uzundur — ~5 dəq artan fasilə ilə yoxlanır (REEL_POLL_SEC). */
+  async function publishReel(videoUrl, { caption, thumbOffsetMs = null } = {}) {
+    const params = { media_type: 'REELS', video_url: videoUrl, caption, share_to_feed: 'true' }
+    if (Number.isInteger(thumbOffsetMs) && thumbOffsetMs >= 0) params.thumb_offset = String(thumbOffsetMs)
+    return publishContainer(params, (opts.reelPollMs || REEL.REEL_POLL_SEC.map((s) => s * 1000)), optionalParams({}))
+  }
+
+  /**
+   * Karusel (Meta Content Publishing): hər şəkil üçün uşaq konteyner (is_carousel_item=true [+ alt_text]) → hamısı FINISHED →
+   * ana konteyner media_type=CAROUSEL, children=<id,id,…>, caption [+ location_id] → FINISHED → media_publish.
+   */
+  async function publishCarousel(urls, { caption, alts = [] } = {}) {
+    if (!Array.isArray(urls) || urls.length < 2 || urls.length > 10) throw failure('fatal', 'carousel needs 2-10 items')
+    const children = []
+    for (let i = 0; i < urls.length; i++) {
+      children.push(await createContainer({ image_url: urls[i], is_carousel_item: 'true' }, optionalParams({ altText: alts[i] || '', location: false })))
+    }
+    for (const cid of children) await waitReady(cid, imageDelays())
+    const parent = await createContainer({ media_type: 'CAROUSEL', children: children.join(','), caption }, optionalParams({}))
+    await waitReady(parent, imageDelays())
+    return publishCreation(parent)
+  }
+
+  // ── İstəyə bağlı parametrlər (alt_text, location_id): Meta onları rədd etsə (kod 100, alt kod yoxdur) bu proses daxilində
+  //    həmin parametr olmadan təkrar göndərilir və bir dəfə loglanır — dərc heç vaxt bunlara görə dayanmır. ──
+  const dropped = new Set()
+  function optionalParams({ altText = '', location = true } = {}) {
+    const o = {}
+    if (cfg.altText && altText && !dropped.has('alt_text')) o.alt_text = String(altText).slice(0, ALT_MAX)
+    if (location && cfg.locationId && !dropped.has('location_id')) o.location_id = cfg.locationId
+    return o
+  }
+  async function createContainer(params, optional = {}) {
+    // Sıra: hamısı → məkansız → heç biri (məkan ən çox rədd olunan parametrdir)
+    const order = ['location_id', 'alt_text'].filter((k) => k in optional)
+    let extra = { ...optional }
+    for (let i = 0; ; i++) {
+      try {
+        const c = await graph('POST', `/${cfg.userId}/media`, { ...params, ...extra })
+        const cid = String((c && c.id) || '')
+        if (!/^\d{1,40}$/.test(cid)) throw new GraphError('fatal', 200, 0, 0)
+        return cid
+      } catch (e) {
+        const k = order[i]
+        if (!k || !(e instanceof GraphError) || e.kind !== 'fatal' || e.code !== 100 || e.sub) throw e
+        if (!dropped.has(k)) { dropped.add(k); log.warn(`Instagram: Meta "${k}" parametrini qəbul etmədi — bu proses onsuz dərc edir (docs/INSTAGRAM.md → Böyümə)`) }
+        extra = { ...extra }
+        delete extra[k]
+      }
+    }
+  }
+  async function waitReady(cid, delays) {
+    for (let i = 0; i < delays.length; i++) {
       const s = await graph('GET', `/${cid}`, { fields: 'status_code' })
       const st = s && s.status_code
-      if (st === 'FINISHED') { ready = true; break }
+      if (st === 'FINISHED') return
       if (st === 'ERROR' || st === 'EXPIRED') throw new GraphError('media', 200, 0, 0)
       if (st === 'PUBLISHED') throw new GraphError('fatal', 200, 0, 0)
-      await sleep(pollMs)
+      await sleep(delays[i])
     }
-    if (!ready) throw new GraphError('transient', 200, 0, 0)
+    throw new GraphError('transient', 200, 0, 0)
+  }
+  async function publishCreation(cid) {
     const p = await graph('POST', `/${cfg.userId}/media_publish`, { creation_id: cid })
     const mid = String((p && p.id) || '')
     if (!/^\d{1,40}$/.test(mid)) throw new GraphError('fatal', 200, 0, 0)
     return mid
+  }
+
+  /** Konteyner → status_code FINISHED (hər yoxlamadan sonra delays[i] ms fasilə) → media_publish → media id. */
+  async function publishContainer(params, delays, optional = {}) {
+    const cid = await createContainer(params, optional)
+    await waitReady(cid, delays)
+    return publishCreation(cid)
   }
 
   // ── Məzmun ──
@@ -413,7 +664,7 @@ function createInstagram(opts = {}) {
       // Ərəb mətni şriftlə düzgün çəkilə bilmirsə (qlif yoxdur / yetim hərəkə) — atlanır, mətn dəyişdirilmir
       const issues = checkArabic(content)
       if (issues.length) { skipLog(content.key, issues); continue }
-      const caption = buildCaptionMulti(content, cfg.captionLangs)
+      const caption = buildCaptionMulti(content, cfg.captionLangs, { day: dateKey })
       if (!caption) continue
       const cards = {}
       let ok = true
@@ -429,7 +680,7 @@ function createInstagram(opts = {}) {
   // ── Kart faylları ──
   const cardName = (dateKey, slotIndex, format) => `${dateKey}-${slotIndex}-${format}.jpg`
   function writeCard(name, buf) {
-    if (!CARD_NAME_RE.test(name)) throw new Error('bad card name')
+    if (!CARD_NAME_RE.test(name) && !CAROUSEL_NAME_RE.test(name)) throw new Error('bad card name')
     fs.mkdirSync(cardDir, { recursive: true, mode: 0o700 })
     const tmp = path.join(cardDir, `.${name}.${process.pid}.tmp`)
     fs.writeFileSync(tmp, buf, { mode: 0o644 })
@@ -440,7 +691,7 @@ function createInstagram(opts = {}) {
     let list = []
     try { list = fs.readdirSync(cardDir) } catch { return 0 }
     for (const f of list) {
-      const m = CARD_NAME_RE.exec(f)
+      const m = CARD_NAME_RE.exec(f) || CAROUSEL_NAME_RE.exec(f) || REEL.REEL_MP4_RE.exec(f) || REEL.REEL_META_RE.exec(f)
       const p = path.join(cardDir, f)
       try {
         const old = m ? Date.parse(`${m[1]}T00:00:00Z`) < t - CARD_TTL_MS : (f.endsWith('.tmp') && fs.statSync(p).mtimeMs < t - 3600e3)
@@ -465,20 +716,259 @@ function createInstagram(opts = {}) {
       const name = cardName(dateKey, slotIndex, format)
       writeCard(name, prep.cards[format])
       const url = `${origin}/api/ig/card/${name}`
-      const mid = await publishImage(url, { story: format === 'story', caption: prep.caption })
+      const mid = await publishImage(url, { story: format === 'story', caption: prep.caption, altText: altTextFor(prep.content, cfg.lang) })
       q.done.run(mid, prep.content.key, now(), row.id)
       log.log(`Instagram: ${format} dərc olundu — ${dateKey} ${slotKey} ${prep.content.key}`)
       return true
     } catch (e) {
-      const kind = (e && e.kind) || 'transient'
-      if (!(e && e.kind)) log.error('Instagram:', e && e.message)
-      const attempts = Number(row.attempts) || 1
-      if (kind === 'auth') blockAuth(format)
-      const retry = (kind === 'transient' || kind === 'rate' || kind === 'media') && attempts < MAX_ATTEMPTS
-      const nextAt = retry ? now() + BACKOFF_MIN[Math.min(attempts - 1, BACKOFF_MIN.length - 1)] * 60e3 : null
-      q.fail.run(retry ? 'retry' : 'failed', String(e && e.message || kind).slice(0, 200), null, nextAt, now(), row.id)
-      if (kind !== 'auth') log.warn(`Instagram: ${format} ${dateKey} ${slotKey} — ${kind}${retry ? `, təkrar ${Math.round((nextAt - now()) / 60e3)} dəq sonra` : ', dayandı'}`)
-      return false
+      return recordFailure(row, e, format, dateKey, slotKey)
+    }
+  }
+
+  /** Xəta → sətir "retry" (fasilə ilə) və ya "failed"; avtorizasiya xətası planlayıcını dayandırır. Həmişə false. */
+  function recordFailure(row, e, format, dateKey, slotKey) {
+    const kind = (e && e.kind) || 'transient'
+    if (!(e && e.kind)) log.error('Instagram:', e && e.message)
+    const attempts = Number(row.attempts) || 1
+    if (kind === 'auth') blockAuth(format)
+    const retry = (kind === 'transient' || kind === 'rate' || kind === 'media') && attempts < MAX_ATTEMPTS
+    const nextAt = retry ? now() + BACKOFF_MIN[Math.min(attempts - 1, BACKOFF_MIN.length - 1)] * 60e3 : null
+    q.fail.run(retry ? 'retry' : 'failed', String(e && e.message || kind).slice(0, 200), null, nextAt, now(), row.id)
+    if (kind !== 'auth') log.warn(`Instagram: ${format} ${dateKey} ${slotKey} — ${kind}${retry ? `, təkrar ${Math.round((nextAt - now()) / 60e3)} dəq sonra` : ', dayandı'}`)
+    return false
+  }
+
+  // ── Reel: günün ayəsinin videosu (instagramReel.js). MP4 serverdə ÇƏKİLMİR — CI (.github/workflows/ig-reel.yml)
+  //    hazırlayır, ci-gate.sh "ig-reel" onu <cardDir>/<tarix>-reel.mp4 + <tarix>-reel.json kimi yazır. ──
+  const reelPath = (dateKey, ext) => path.join(cardDir, `${dateKey}-reel.${ext}`)
+  /** → { size, ref, audio, durationMs } | null (fayl yoxdur, ölçüsü / meta / MP4 başlığı yararsızdır) */
+  function reelInfo(dateKey) {
+    if (!DATE_RE.test(String(dateKey || ''))) return null
+    let st, meta, head
+    try { st = fs.statSync(reelPath(dateKey, 'mp4')) } catch { return null }
+    if (!st.isFile() || st.size < 1024 || st.size > REEL.REEL_MAX_BYTES) return null
+    try { meta = REEL.parseMeta(fs.readFileSync(reelPath(dateKey, 'json'), 'utf8')) } catch { return null }
+    if (!meta) return null
+    try {
+      const fd = fs.openSync(reelPath(dateKey, 'mp4'), 'r')
+      try { head = Buffer.alloc(Math.min(st.size, 512 * 1024)); fs.readSync(fd, head, 0, head.length, 0) } finally { fs.closeSync(fd) }
+    } catch { return null }
+    // faststart: moov faylın əvvəlindədir (Meta-nın tələbi) — müddət oxunmursa fayl yararsız sayılır
+    const durationMs = REEL.mp4DurationMs(head)
+    if (!durationMs || durationMs < 3000 || durationMs > 90e3) return null
+    return { size: st.size, ref: meta.ref, audio: meta.audio, durationMs }
+  }
+
+  const reelMissing = new Set()
+  async function runReel(row, dateKey, slotKey) {
+    try {
+      const info = reelInfo(dateKey)
+      if (!info) throw failure('fatal', 'reel file missing')
+      const pick = { ...dailyAyah.parseRef(info.ref), ref: info.ref }
+      const data = await ayahData(pick)
+      if (!data) throw failure('transient', 'ayah source unavailable')
+      const content = withVariant(ayahContent(cfg.lang, pick, data, origin), (L) => ayahContent(L, pick, data, origin))
+      if (!content) throw failure('fatal', 'no content')
+      const caption = REEL.reelCaption(buildCaptionMulti(content, cfg.captionLangs, { day: dateKey, tagKind: 'reel' }), info.audio, cfg.captionLangs)
+      if (!caption) throw failure('fatal', 'caption too long')
+      // Üz qabığı: son saniyə — bütün mətn (ərəbcə, tərcümə, istinad) görünür
+      const mid = await publishReel(`${origin}/api/ig/card/${dateKey}-reel.mp4`, { caption, thumbOffsetMs: Math.max(0, info.durationMs - 1000) })
+      q.done.run(mid, content.key, now(), row.id)
+      log.log(`Instagram: reel dərc olundu — ${dateKey} ${slotKey} ${content.key}`)
+      return true
+    } catch (e) {
+      return recordFailure(row, e, 'reel', dateKey, slotKey)
+    }
+  }
+
+  /** Reel yuvası (tick içindən): fayl yoxdursa bir dəfə loglanır və atlanır (sətir tutulmur). */
+  async function reelTick(t) {
+    const sm = toMin(cfg.reelTime), cur = toMin(t.hhmm)
+    if (cur < sm || cur > sm + CATCHUP_MIN) return 0
+    if (!reelInfo(t.dateKey)) {
+      if (!reelMissing.has(t.dateKey)) {
+        if (reelMissing.size > 10) reelMissing.clear()
+        reelMissing.add(t.dateKey)
+        log.warn(`Instagram: ${t.dateKey} reel faylı yoxdur və ya yararsızdır — reel atlandı (.github/workflows/ig-reel.yml)`)
+      }
+      return 0
+    }
+    const row = claimRow(t.dateKey, cfg.reelTime, 'reel', 'ayah')
+    return row && await runReel(row, t.dateKey, cfg.reelTime) ? 1 : 0
+  }
+
+  // ── Həftəlik karusel (IG_CAROUSEL=1; susmaya görə cümə 11:00 Asia/Baku): üz qabığı + 5 element + bağlanış kartı.
+  //    Mövzu həftəyə görə növbələşir: Allahın adları → Buxari / Müslim hədisləri → Quran ayələri. Mənbələr yalnız tərcüməsi
+  //    yoxlanmış sayt məlumatıdır (names99, daily-hadith-data, alquran.cloud) — Hisnul-Müslim (AI tərcümə) YOX. ──
+  const renderText = opts.renderText || ((c, o) => require('./instagramCard').renderTextCard(c, o))
+  const weekOf = (dateKey) => Math.floor(dailyAyah.dayNumber(dateKey) / 7)
+  const weekday = (dateKey) => new Date(`${dateKey}T00:00:00Z`).getUTCDay()
+  const mod = (a, n) => ((a % n) + n) % n
+  const carouselTheme = (dateKey) => CAROUSEL_THEMES[mod(weekOf(dateKey), CAROUSEL_THEMES.length)]
+  let bmList = null
+  const bukhariMuslim = () => (bmList || (bmList = dailyHadith.LIST.filter((h) => isBukhariMuslim(h.src.az))))
+  let ayahPool = null
+  const carouselAyahRefs = () => (ayahPool || (ayahPool = dailyAyah.AYAH_REFS.filter((r) => { const p = dailyAyah.parseRef(r); return p && !(p.a === 1 && p.s >= 67) })))
+  const retitle = (c, theme, L) => (c ? { ...c, title: CAROUSEL_TITLE[theme][L] } : c)
+
+  /** Həftənin k-cı elementi (null — yararsız; throw — ayə mənbəyi əlçatmazdır). */
+  async function carouselCandidate(theme, dateKey, k, lang) {
+    const i = (n) => mod(weekOf(dateKey) * CAROUSEL_ITEMS + k, n)
+    if (theme === 'name') {
+      const n = IG_DATA.names[i(IG_DATA.names.length)]
+      return withVariant(nameContent(lang, n, origin), (L) => nameContent(L, n, origin))
+    }
+    if (theme === 'hadith') {
+      const list = bukhariMuslim()
+      if (!list.length) return null
+      const h = list[i(list.length)]
+      return withVariant(retitle(hadithContent(lang, h, origin), theme, lang), (L) => retitle(hadithContent(L, h, origin), theme, L))
+    }
+    // Qısa surələrin yalnız 1-ci ayəsi (81:1, 80:1 …) karuseldə kontekstsiz qalır — onlar atlanır
+    const refs = carouselAyahRefs()
+    const ref = refs[i(refs.length)]
+    const pick = { ...dailyAyah.parseRef(ref), ref }
+    const data = await ayahData(pick)
+    if (!data) throw failure('transient', 'ayah source unavailable')
+    return withVariant(retitle(ayahContent(lang, pick, data, origin), theme, lang), (L) => retitle(ayahContent(L, pick, data, origin), theme, L))
+  }
+
+  const itemLabel = (c, lang) => (c.kind === 'name' ? (lang === 'ar' ? c.ar : (c.tl || c.ar)) : c.ref)
+
+  /** → { theme, items, caption, cards: [üz, …elementlər, bağlanış], alts } | null (kifayət qədər sığan element yoxdur) */
+  async function prepareCarousel(dateKey, { lang = cfg.lang } = {}) {
+    const theme = carouselTheme(dateKey)
+    const items = [], cards = []
+    for (let k = 0; items.length < CAROUSEL_ITEMS && k < CAROUSEL_ITEMS + MAX_PICK_TRIES; k++) {
+      const c = await carouselCandidate(theme, dateKey, k, lang)
+      if (!c) continue
+      const issues = checkArabic(c)
+      if (issues.length) { skipLog(c.key, issues); continue }
+      const buf = await render(c, { format: 'feed', theme: 'day', lang })
+      if (!buf) continue
+      items.push(c); cards.push(buf)
+    }
+    if (items.length < CAROUSEL_MIN_ITEMS) return null
+    const L1 = cfg.captionLangs[0]
+    const caption = buildCarouselCaption(theme, items.map((c) => (c.variant && c.variant(L1)) || c), cfg.captionLangs, { day: dateKey, origin })
+    if (!caption) return null
+    const labels = items.map((c) => itemLabel(c, lang))
+    const cover = await renderText({ eyebrow: WEEKLY[lang], headline: CAROUSEL_TITLE[theme][lang], lines: labels, footer: SWIPE[lang] }, { theme: 'day', lang })
+    const closing = await renderText({ eyebrow: '', headline: CLOSING[lang], lines: [IG_HANDLE, `${SITE_LINE[lang]}: muslims.cc`], footer: '' }, { theme: 'night', lang })
+    if (!cover || !closing) return null
+    const alts = [
+      `${WEEKLY[lang]} — ${CAROUSEL_TITLE[theme][lang]}: ${labels.join(', ')}`.slice(0, ALT_MAX),
+      ...items.map((c) => altTextFor(c, lang)),
+      `${CLOSING[lang]} — ${IG_HANDLE}, muslims.cc`,
+    ]
+    return { theme, items, caption, cards: [cover, ...cards, closing], alts }
+  }
+
+  async function runCarousel(row, dateKey, slotKey) {
+    try {
+      const prep = await prepareCarousel(dateKey)
+      if (!prep) throw failure('fatal', 'no fitting carousel items')
+      const urls = prep.cards.map((buf, i) => {
+        const name = `${dateKey}-carousel-${i}.jpg`
+        writeCard(name, buf)
+        return `${origin}/api/ig/card/${name}`
+      })
+      const mid = await publishCarousel(urls, { caption: prep.caption, alts: prep.alts })
+      const item = `carousel:${prep.items.map((c) => c.key).join(',')}`.slice(0, 300)
+      q.done.run(mid, item, now(), row.id)
+      log.log(`Instagram: karusel dərc olundu — ${dateKey} ${slotKey} ${prep.theme} (${prep.items.length} element)`)
+      return true
+    } catch (e) {
+      return recordFailure(row, e, 'carousel', dateKey, slotKey)
+    }
+  }
+
+  async function carouselTick(t) {
+    if (weekday(t.dateKey) !== cfg.carouselDay) return 0
+    const sm = toMin(cfg.carouselTime), cur = toMin(t.hhmm)
+    if (cur < sm || cur > sm + CATCHUP_MIN) return 0
+    const row = claimRow(t.dateKey, cfg.carouselTime, 'carousel', carouselTheme(t.dateKey))
+    return row && await runCarousel(row, t.dateKey, cfg.carouselTime) ? 1 : 0
+  }
+
+  /** Növbəti karusel günü (bu gün — vaxt keçməyibsə) və mövzusu. */
+  function nextCarousel() {
+    const t = nowAt(TZ, now())
+    for (let i = 0; i < 8; i++) {
+      const d = addDays(t.dateKey, i)
+      if (weekday(d) !== cfg.carouselDay) continue
+      if (i === 0 && toMin(t.hhmm) > toMin(cfg.carouselTime) + CATCHUP_MIN) continue
+      return { date: d, time: cfg.carouselTime, theme: carouselTheme(d) }
+    }
+    return null
+  }
+
+  function carouselStatus() {
+    const next = nextCarousel()
+    const day = nowAt(TZ, now()).dateKey
+    const row = q.get.get(day, cfg.carouselTime, 'carousel')
+    return {
+      enabled: cfg.carousel, day: cfg.carouselDay, time: cfg.carouselTime, next,
+      post: row ? { status: row.status, error: row.error ? String(row.error).slice(0, 120) : null, ig_media_id: row.ig_media_id } : null,
+    }
+  }
+
+  // ── İnsights (öz postlarımızın reach / saves / shares): gündə bir dəfə, 05:00-dan sonra; icazə yoxdursa (kod 10 / 200–299)
+  //    vəziyyət "no_permission" olur və admin panelində izah göstərilir. Dərcə heç vaxt təsir etmir (planlayıcını dayandırmır). ──
+  const insState = () => { const r = q.stGet.get('insights_status'); try { return r ? { ...JSON.parse(r.v), at: r.at } : null } catch { return null } }
+  const setInsState = (state) => q.stSet.run('insights_status', JSON.stringify({ state }), now())
+  const metricNum = (m) => {
+    const v = m && (Array.isArray(m.values) && m.values[0] ? m.values[0].value : (m.total_value ? m.total_value.value : null))
+    const n = Number(v)
+    return Number.isFinite(n) && n >= 0 ? Math.round(n) : null
+  }
+  function parseInsights(j) {
+    const out = { reach: null, saved: null, shares: null, likes: null, comments: null, views: null }
+    for (const m of (j && Array.isArray(j.data) ? j.data : [])) if (m && Object.hasOwn(out, m.name)) out[m.name] = metricNum(m)
+    return out
+  }
+  let insBusy = false
+  async function insightsTick() {
+    if (!cfg.enabled || !cfg.insights || authBlocked || insBusy) return 0
+    const t = now()
+    const bt = nowAt(TZ, t)
+    if (toMin(bt.hhmm) < 5 * 60) return 0
+    if (q.stClaim.run(`insights:${bt.dateKey}`, '1', t).changes !== 1) return 0
+    insBusy = true
+    let n = 0
+    try {
+      const rows = q.insTargets.all(addDays(bt.dateKey, -INSIGHT_DAYS), t - 6 * 3600e3, INSIGHT_MAX_PER_RUN)
+      for (const r of rows) {
+        if (!INSIGHT_FORMATS.includes(r.format) || !/^\d{1,40}$/.test(String(r.ig_media_id))) continue
+        let j = null
+        for (const metric of INSIGHT_METRICS) {
+          try { j = await graph('GET', `/${r.ig_media_id}/insights`, { metric }); break } catch (e) {
+            if (e && e.kind === 'auth') { setInsState(e.code === 190 ? 'token_error' : 'no_permission'); log.warn(`Instagram insights: ${e.code === 190 ? 'token' : 'icazə yoxdur (instagram_manage_insights)'} — statistika toplanmır, dərc davam edir`); return n }
+            if (!(e && e.code === 100)) break                 // metrika bu media növündə yoxdur → qısa siyahı; başqa xəta → atla
+          }
+        }
+        if (!j) continue
+        const v = parseInsights(j)
+        q.insSet.run(String(r.ig_media_id), r.day, r.slot, r.format, r.kind, v.reach, v.saved, v.shares, v.likes, v.comments, v.views, t)
+        n++
+      }
+      if (n) setInsState('ok')
+    } catch (e) {
+      log.warn('Instagram insights:', e && (e.kind || e.message))
+    } finally { insBusy = false }
+    return n
+  }
+
+  function insightsStatus() {
+    const st = insState()
+    const since = addDays(nowAt(TZ, now()).dateKey, -INSIGHT_DAYS)
+    const byKind = q.insByKind.all(since).map((r) => ({ ...r }))
+    const bySlot = q.insBySlot.all(since).map((r) => ({ ...r }))
+    const best = (list) => (list.find((r) => r.posts >= 2) || list[0] || null)
+    const bk = best(byKind), bs = best(bySlot)
+    return {
+      enabled: cfg.insights, state: st ? st.state : null, checkedAt: st ? st.at : null, days: INSIGHT_DAYS, byKind, bySlot,
+      best: { kind: bk ? { kind: bk.kind, format: bk.format } : null, slot: bs ? bs.slot : null },
     }
   }
 
@@ -509,6 +999,8 @@ function createInstagram(opts = {}) {
           if (row && await runFormat(row, t.dateKey, i, cfg.slots[i], format)) n++
         }
       }
+      if (cfg.reels && !authBlocked) n += await reelTick(t)
+      if (cfg.carousel && !authBlocked) n += await carouselTick(t)
     } catch (e) {
       log.error('Instagram tick:', e && e.message)
     } finally { busy = false }
@@ -565,7 +1057,8 @@ function createInstagram(opts = {}) {
   function purge(t = now()) {
     let n = 0
     try { n += q.purge.run(t - ROW_TTL_MS).changes } catch (e) { log.error('Instagram purge:', e && e.message) }
-    try { raw.prepare("DELETE FROM instagram_state WHERE (k LIKE 'refresh:%') AND at < ?").run(t - 30 * 864e5) } catch { /* */ }
+    try { raw.prepare("DELETE FROM instagram_state WHERE (k LIKE 'refresh:%' OR k LIKE 'insights:%') AND at < ?").run(t - 30 * 864e5) } catch { /* */ }
+    try { n += q.insPurge.run(t - ROW_TTL_MS).changes } catch (e) { log.error('Instagram insights purge:', e && e.message) }
     return n + purgeCards(t)
   }
 
@@ -601,6 +1094,23 @@ function createInstagram(opts = {}) {
       next: cfg.enabled ? nextSlot(cfg.slots, now()) : null,
       token: cfg.enabled ? { source: rec ? 'refreshed' : 'env', refreshedAt: rec ? rec.refreshedAt : null, expiresAt: rec ? (rec.expiresAt || null) : null } : null,
       posts: q.recent.all(30).map((r) => ({ ...r, error: r.error ? String(r.error).slice(0, 120) : null })),
+      reel: reelStatus(),
+      carousel: carouselStatus(),
+      insights: insightsStatus(),
+      growth: { altText: cfg.altText, location: Boolean(cfg.locationId), hashtagsMax: HASHTAG_MAX },
+    }
+  }
+
+  /** Bu günün reel-i: fayl (CI yükləyib?), dərc sətri; url — yalnız fayl varsa (admin önizləmə keçidi). */
+  function reelStatus() {
+    const day = nowAt(TZ, now()).dateKey
+    const info = reelInfo(day)
+    const row = q.get.get(day, cfg.reelTime, 'reel')
+    return {
+      enabled: cfg.reels, time: cfg.reelTime, date: day,
+      file: info ? { size: info.size, ref: info.ref, audio: info.audio, durationMs: info.durationMs } : null,
+      post: row ? { status: row.status, error: row.error ? String(row.error).slice(0, 120) : null, ig_media_id: row.ig_media_id, attempts: row.attempts } : null,
+      url: info && cfg.enabled ? `/api/ig/card/${day}-reel.mp4` : null,
     }
   }
 
@@ -615,12 +1125,27 @@ function createInstagram(opts = {}) {
 
   // ── HTTP ──
   const router = express.Router()
+  // 404 KEŞLƏNMƏSİN (no-store): kart adı proqnozlaşdırılandır (tarix-yuva-format) və .jpg-dir — Cloudflare
+  // 404-ü də keşləyirdi (2026-11-25 yoxlandı: ikinci sorğu HIT). Kimsə gələcək kartın URL-ini əvvəlcədən
+  // istəyib 404-ü keşdə saxlasa, Meta şəkli çəkəndə onu alardı → dərc "media" xətası ilə alınmazdı.
+  const notFound = (res) => res.status(404).set('Cache-Control', 'no-store').json({ error: 'Not found' })
   router.get('/ig/card/:name', (req, res) => {
-    if (!cfg.enabled) return res.status(404).json({ error: 'Not found' })
+    if (!cfg.enabled) return notFound(res)
     const name = String(req.params.name || '')
-    if (!CARD_NAME_RE.test(name)) return res.status(404).json({ error: 'Not found' })
+    // Reel videosu: Range sorğuları (206) — Meta videonu hissə-hissə çəkə bilər; qısa keş (eyni gün yenidən yüklənə bilər)
+    if (REEL.REEL_MP4_RE.test(name)) {
+      return res.sendFile(name, {
+        root: cardDir, dotfiles: 'deny', acceptRanges: true, cacheControl: false, etag: true, lastModified: true,
+        headers: { 'Content-Type': 'video/mp4', 'Cache-Control': 'public, max-age=300', 'X-Robots-Tag': 'noindex', 'X-Content-Type-Options': 'nosniff' },
+      }, (e) => {
+        if (!e || res.headersSent) return
+        if (e.status === 416 || e.statusCode === 416) return res.status(416).set('Cache-Control', 'no-store').end()   // Content-Range: bytes */<ölçü> — send qoyur
+        notFound(res)
+      })
+    }
+    if (!CARD_NAME_RE.test(name) && !CAROUSEL_NAME_RE.test(name)) return notFound(res)
     let buf
-    try { buf = fs.readFileSync(path.join(cardDir, name)) } catch { return res.status(404).json({ error: 'Not found' }) }
+    try { buf = fs.readFileSync(path.join(cardDir, name)) } catch { return notFound(res) }
     res.set({ 'Content-Type': 'image/jpeg', 'Cache-Control': 'public, max-age=86400', 'X-Robots-Tag': 'noindex', 'X-Content-Type-Options': 'nosniff' })
     res.send(buf)
   })
@@ -685,12 +1210,14 @@ function createInstagram(opts = {}) {
   }
 
   return {
-    enabled: cfg.enabled, config: cfg, router, adminRouter, tick, refreshTick, purge, purgeCards, publishNow, preview, status,
-    tokenInfo, prepare, cardDir, _q: q, _graph: graph, _publishImage: publishImage,
+    enabled: cfg.enabled, config: cfg, router, adminRouter, tick, refreshTick, insightsTick, purge, purgeCards, publishNow, preview, status,
+    tokenInfo, prepare, prepareCarousel, carouselTheme, cardDir, reelInfo, _q: q, _graph: graph, _publishImage: publishImage, _publishReel: publishReel,
+    _publishCarousel: publishCarousel,
   }
 }
 
 module.exports = {
   createInstagram, parseConfig, parseSlots, parseCaptionLangs, kindFor, themeFor, nextSlot, buildCaption, buildCaptionMulti, classifyError, isBukhariMuslim,
   hadithContent, duaContent, nameContent, ayahContent, sealToken, openToken, CARD_NAME_RE, SLOT_KINDS, DEFAULT_SLOTS, LANGS,
+  hashtagsFor, firstLine, altTextFor, buildCarouselCaption, CAROUSEL_NAME_RE, CAROUSEL_THEMES, HASHTAG_MAX, HASHTAGS, CAPTION_MAX,
 }

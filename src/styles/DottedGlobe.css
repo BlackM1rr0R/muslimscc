@@ -1,0 +1,4 @@
+/* DottedGlobe (src/motion/DottedGlobe.jsx). 2026-11-25: motion-kit.css-dən köçürüldü. */
+/* ── DottedGlobe ── */
+.mo-globe { width: min(100%, var(--globe, 320px)); aspect-ratio: 1; }
+.mo-globe__cv { display: block; width: 100%; height: 100%; }

@@ -114,7 +114,7 @@ function Footer({ setPage }) {
             <div className="ft-col">
               <h2>{fl.contact}</h2>
               {filled(BRAND.instagram) && (
-                <a href={`https://instagram.com/${BRAND.instagram}`} target="_blank" rel="noopener noreferrer"><Icon name="instagram" size={16} /><span>Instagram</span></a>
+                <a href={BRAND.instagramUrl} target="_blank" rel="noopener noreferrer" data-testid="footer-instagram"><Icon name="instagram" size={16} /><span>Instagram</span></a>
               )}
               {navLink('about')}
             </div>

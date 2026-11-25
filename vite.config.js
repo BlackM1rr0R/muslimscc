@@ -5,35 +5,47 @@ import { pathToFileURL } from 'url'
 // Əlavə dillərin interfeys lüğəti — 5 dilli obyektlərin qeydiyyatı (src/utils/uiText.js)
 import uiDictPlugin from './scripts/vite-ui-dict-plugin.mjs'
 
-// ── PERFORMANS: "virtual:daily-pools" ──
+// ── PERFORMANS: "virtual:daily-pools/<dil>" ──
 // NƏ: ana səhifənin "Günün xatırlatmaları" zolağı (DailyReminderBar) üçün
 // hovuzlar build zamanı src/data/quotes.js + duas.js-dən hesablanır
-// (src/utils/dailyPools.js) və kiçik JSON modulu kimi verilir.
+// (src/utils/dailyPools.js) və hər dil üçün ayrıca kiçik JSON modulu kimi verilir
+// (yalnız ərəbcə, mənbə və HƏMIN dilin tərcüməsi — localizeDailyPools).
 // NİYƏ: əvvəl zolaq ana səhifədə bütöv quotes (~56 KB gzip) + duas (~16 KB
-// gzip) chunk-larını yükləyirdi; hovuz modulu ~40 KB gzip-dir, quotes/duas
-// chunk-ları isə yalnız onlara ehtiyacı olan səhifələrdə yüklənir.
-// Data faylları DƏYİŞMİR. Dev-də fayl dəyişəndə modul yenidən qurulur.
-const DAILY_POOLS_ID = 'virtual:daily-pools'
+// gzip) chunk-larını yükləyirdi; sonra 4 dilli hovuz modulu ~38 KB gzip idi;
+// indi cari dil ~15–17 KB (ar ~8 KB). Yükləyici: src/utils/dailyPoolsStore.js.
+// Chunk adı "daily-pools-<dil>". Data faylları DƏYİŞMİR. Dev-də fayl dəyişəndə
+// modullar yenidən qurulur.
+const DAILY_POOLS_PREFIX = 'virtual:daily-pools/'
+const DAILY_POOL_LANGS = ['az', 'en', 'ru', 'tr', 'ar'] // = src/utils/dailyPools.js → POOL_LANGS
 function dailyPoolsPlugin() {
-  const resolved = '\0' + DAILY_POOLS_ID
   const files = ['src/data/quotes.js', 'src/data/duas.js', 'src/utils/dailyPools.js'].map(f => path.resolve(f))
   // Node ESM keşini aşmaq üçün sorğu sətri (dev-də dəyişiklik görünsün)
   const load = (f) => import(pathToFileURL(f).href + '?t=' + Date.now())
+  let cache = null // bir build-də hovuzlar bir dəfə hesablanır (5 dil modulu üçün)
   return {
     name: 'muslims-daily-pools',
-    resolveId(id) { return id === DAILY_POOLS_ID ? resolved : null },
+    buildStart() { cache = null },
+    resolveId(id) {
+      if (!id.startsWith(DAILY_POOLS_PREFIX)) return null
+      return DAILY_POOL_LANGS.includes(id.slice(DAILY_POOLS_PREFIX.length)) ? '\0' + id + '.js' : null
+    },
     async load(id) {
-      if (id !== resolved) return null
+      if (!id.startsWith('\0' + DAILY_POOLS_PREFIX)) return null
+      const lang = id.slice(1 + DAILY_POOLS_PREFIX.length, -3)
       files.forEach(f => this.addWatchFile(f))
-      const [{ QUOTES }, { DUAS_DATA }, { buildDailyPools }] = await Promise.all(files.map(load))
-      const pools = buildDailyPools(QUOTES, DUAS_DATA)
-      return Object.entries(pools)
+      if (!cache) {
+        const [{ QUOTES }, { DUAS_DATA }, { buildDailyPools, localizeDailyPools }] = await Promise.all(files.map(load))
+        cache = { pools: buildDailyPools(QUOTES, DUAS_DATA), localizeDailyPools }
+      }
+      return Object.entries(cache.localizeDailyPools(cache.pools, lang))
         .map(([k, v]) => `export const ${k} = JSON.parse(${JSON.stringify(JSON.stringify(v))})`)
         .join('\n')
     },
     handleHotUpdate({ file, server }) {
-      if (files.includes(path.resolve(file))) {
-        const mod = server.moduleGraph.getModuleById(resolved)
+      if (!files.includes(path.resolve(file))) return
+      cache = null
+      for (const l of DAILY_POOL_LANGS) {
+        const mod = server.moduleGraph.getModuleById('\0' + DAILY_POOLS_PREFIX + l + '.js')
         if (mod) server.moduleGraph.invalidateModule(mod)
       }
     },
@@ -123,6 +135,31 @@ function nawawiHomePlugin() {
   }
 }
 
+// ── PERFORMANS: dinamik import-ların preload siyahısı (__vite__mapDeps) ──
+// NƏ: giriş chunk-ında (index-*.js) Vite ~130 tənbəl səhifənin hər import()-u üçün chunk + statik
+// asılılıqlar + CSS siyahısı yazır (2026-11-25: cədvəldə 507 fayl, ~17 KB xam; çağırışlardakı indekslərlə
+// birlikdə giriş JS-inin ~10 KB gzip-i). Giriş chunk-ı və onun STATİK asılılıqları (react, router)
+// istənilən dinamik import-dan ƏVVƏL artıq yüklənib — siyahıda onlara ehtiyac yoxdur (preload köməkçisi
+// onsuz da "artıq var" deyib keçirdi). Siyahının qalanı (səhifə chunk-ları, CSS) DƏYİŞMİR.
+// Bu plagin vite:build-import-analysis-dən (Vite-in "post" plaginləri) ƏVVƏL işləyir.
+const ALWAYS_LOADED = new Set()
+function entryClosurePlugin() {
+  return {
+    name: 'muslims-entry-closure',
+    apply: 'build',
+    generateBundle(_, bundle) {
+      ALWAYS_LOADED.clear()
+      const walk = (f) => {
+        const c = bundle[f]
+        if (ALWAYS_LOADED.has(f) || !c || c.type !== 'chunk') return
+        ALWAYS_LOADED.add(f)
+        c.imports.forEach(walk)
+      }
+      for (const c of Object.values(bundle)) if (c.type === 'chunk' && c.isEntry) walk(c.fileName)
+    },
+  }
+}
+
 // ── Versiya nömrəsi (ana ekrandakı tətbiqin yenilənməsi üçün) ──
 // Hər build-in unikal ID-si koda (__BUILD_ID__) və dist/version.json-a yazılır.
 // Açıq tətbiq vaxtaşırı version.json-u oxuyur; fərqlidirsə yeni versiya
@@ -151,7 +188,7 @@ if (process.platform === 'win32' && /^[a-z]:/.test(process.cwd())) process.chdir
 const ADMIN_PATH_BUILD = process.env.VITE_ADMIN_PATH || loadEnv('production', process.cwd(), 'VITE_ADMIN_PATH').VITE_ADMIN_PATH || ''
 
 export default defineConfig({
-  plugins: [uiDictPlugin(), react(), dailyPoolsPlugin(), hadithLangPlugin(), nawawiHomePlugin(), versionFilePlugin()],
+  plugins: [uiDictPlugin(), react(), dailyPoolsPlugin(), hadithLangPlugin(), nawawiHomePlugin(), versionFilePlugin(), entryClosurePlugin()],
   define: { __BUILD_ID__: JSON.stringify(BUILD_ID), __ADMIN_PATH__: JSON.stringify(ADMIN_PATH_BUILD) },
 
   // Yalnız bir React nüsxəsi olsun deyə
@@ -179,6 +216,11 @@ export default defineConfig({
     // həmin səhifənin chunk-ı və CSS-i üçün preload yazmaq üçün oxuyur (bax orada).
     // Fayl nöqtəli qovluqdadır — nginx onu vermir (location ~ /\.).
     manifest: true,
+    // Dinamik import-ların preload siyahısından həmişə yüklü olanlar çıxarılır (yuxarıda: entryClosurePlugin).
+    // HTML-in öz modulepreload-larına (hostType 'html' — react, router) TOXUNULMUR.
+    modulePreload: {
+      resolveDependencies: (_file, deps, { hostType }) => (hostType === 'js' ? deps.filter((d) => !ALWAYS_LOADED.has(d)) : deps),
+    },
     rollupOptions: {
       output: {
         // Vendor kitabxanalarini ayrica chunk-a cixar: bunlar nadir deyisir,
@@ -186,6 +228,8 @@ export default defineConfig({
         manualChunks(id) {
           // Hədis dil modulları: sabit ad "hadiths-<dil>" (prerender preload-u tapır)
           if (id.startsWith('\0' + HADITH_PREFIX)) return 'hadiths-' + id.slice(1 + HADITH_PREFIX.length, -3)
+          // Günün xatırlatmaları hovuzu — dil başına (oxunaqlı ad; "az-…js" i18n lüğəti ilə qarışmasın)
+          if (id.startsWith('\0' + DAILY_POOLS_PREFIX)) return 'daily-pools-' + id.slice(1 + DAILY_POOLS_PREFIX.length, -3)
           if (!id.includes('node_modules')) return
           if (id.includes('react-router')) return 'router'
           if (id.includes('/react/') || id.includes('/react-dom/') ||

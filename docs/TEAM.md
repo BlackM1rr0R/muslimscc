@@ -64,5 +64,15 @@ unless the lead explicitly says so in the task.**
 - CSRF: state-changing requests need `X-Requested-With: fetch` and an allowed Origin.
 - Pentesting only against a local server or the owner's own site with non-destructive requests; never DoS, never brute-force production, never touch real users' data.
 
+## Lessons: e2e flakiness (CI history, 2026-11-25)
+- **Reproduce before fixing:** `E2E_CPU_THROTTLE=2 npx playwright test <spec>:<line> --repeat-each=10 --workers=4` (fixtures.js, Chromium CDP; off by default; ×4 = stress). A wrong state or a strict-mode error is a race. A "Test timeout" inside `goto`/`click` while the trace has no new screencast frames is local machine load, not a race.
+- **Seed storage before page scripts:** `page.addInitScript(() => { if (!localStorage.getItem(k)) localStorage.setItem(k, v) })`. Never `goto → evaluate(setItem) → reload`: the page's mount effect can write its empty state after your setItem (hadith favourites, charity log).
+- **DeferRender sections:** `const el = await reach(page, 'test-id')` (fixtures.js) scrolls each `.defer-ph` placeholder into view in turn. No blind `mouse.wheel`/`scrollBy` loops: `settle()` can return while the page is still short, the first scroll lands on the footer, and scroll anchoring keeps it there while content grows above. Reload scroll restoration does the same.
+- **`settle()` is a heuristic.** Wait for a concrete element before changing the environment (`setOffline`, clock, storage). Going offline before the route chunk arrived left the reader stuck on a spinner.
+- **Page transitions:** the old `<main>` stays until its exit animation ends. If both pages share test ids, scope to the new one: `getByRole('main').filter({ has: getByRole('heading', { level: 1, name }) })`.
+- **Closed overlays pop their history entry asynchronously** (useBackToClose → `setTimeout` → `history.back()`). Before clicking a link or calling `goto`: `await page.waitForFunction(() => !history.state?.qmOverlay)`.
+- **`<head>` is written lazily** (seoApply.js). Use `await expect(meta).toHaveAttribute(...)`, never a one-shot `getAttribute` (robots, title, canonical).
+- **Real-time UI** (sky positions, prayer times, weekday cards): fix the clock with `page.clock.setFixedTime`. Sirius sitting at 0° altitude failed CI at 18:29 UTC.
+
 ## Reporting
 Report to the lead: what changed (files), how it was verified (commands + results), what was not verified, risks, and new UI strings. Be factual; flaky ≠ passing.

@@ -3,15 +3,18 @@
 // • İctimai: açıq ehtiyaclar (tarixi keçənlər avtomatik arxivdə) və YALNIZ "M yerdən N-i dolub" —
 //   ad, reytinq, lövhə yoxdur.
 // • Girişli istifadəçi yazılır / ləğv edir; nümayəndəyə görünən ad + istəyə görə e-poçt (razılıqla).
+//   E-poçtu təsdiqlənməmiş hesab (server 403/400 verify_email) — forma bağlanır, "e-poçtu təsdiqləyin" qeydi
+//   (məktubu yenidən göndər + "Hesabıma keç"); fokus qeydə keçir ki, ekran oxuyucu onu oxusun.
 // • Rolu mosque_rep (öz məscidi) və ya admin olan hesab: "Məscidimin ehtiyacları" — yerləşdir, yazılanları gör, sil.
 // ═══════════════════════════════════════════════════════
-import { useCallback, useEffect, useId, useState } from 'react'
+import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import { useLang } from '../contexts/LangContext'
 import { pickUi } from '../utils/uiText'
 import { pathFor } from '../seo/routes'
 import Icon from '../components/Icon'
 import { useAuthUser, refreshMe } from '../api/userSession'
 import { apiErrCode } from '../components/account/communityText'
+import VerifyEmailNote from '../components/account/VerifyEmailNote'
 import { Msg, Confirm, fmtDay } from '../components/community/CommunityUi'
 import { VO } from '../components/boards/boardsText'
 import {
@@ -47,6 +50,7 @@ export default function VolunteersPage() {
   const refresh = () => { load(); if (signedIn) loadMine() }
 
   const loginHref = `${pathFor('login', siteLang)}?next=${encodeURIComponent(pathFor('volunteers', siteLang))}`
+  const accountHref = pathFor('account', siteLang)
   return (
     <div className="acc-account cb-page" data-testid="volunteers-page">
       <section className="ui-page-hero">
@@ -81,7 +85,7 @@ export default function VolunteersPage() {
           )}
           {data && data.items.length > 0 && (
             <ul className="cb-grid" data-testid="vo-list">
-              {data.items.map((n) => <NeedCard key={n.id} n={n} t={t} lang={lang} signedIn={signedIn} loginHref={loginHref} defaultName={user?.displayName || ''} onChange={refresh} />)}
+              {data.items.map((n) => <NeedCard key={n.id} n={n} t={t} lang={lang} signedIn={signedIn} loginHref={loginHref} accountHref={accountHref} defaultName={user?.displayName || ''} onChange={refresh} />)}
             </ul>
           )}
         </section>
@@ -128,7 +132,7 @@ function Slots({ n, t }) {
   )
 }
 
-function NeedCard({ n, t, lang, signedIn, loginHref, defaultName, onChange }) {
+function NeedCard({ n, t, lang, signedIn, loginHref, accountHref, defaultName, onChange }) {
   const uid = useId()
   const [open, setOpen] = useState(false)
   const [name, setName] = useState(defaultName)
@@ -136,10 +140,18 @@ function NeedCard({ n, t, lang, signedIn, loginHref, defaultName, onChange }) {
   const [consent, setConsent] = useState(false)
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState(null)
+  const [needVerify, setNeedVerify] = useState(false)   // server verify_email — e-poçt təsdiqlənməyib
+  const verifyRef = useRef(null)
+  // Forma bağlananda fokus itməsin: qeydin özünə keçir (ekran oxuyucu mətni oxuyur)
+  useEffect(() => { if (needVerify) verifyRef.current?.focus() }, [needVerify])
   const full = n.filled >= n.slots
   const act = async (fn) => {
     setBusy(true); setMsg(null)
-    try { await fn(); setOpen(false); onChange() } catch (err) { setMsg({ tone: 'bad', text: t.err[apiErrCode(err)] || t.err.generic }) } finally { setBusy(false) }
+    try { await fn(); setOpen(false); onChange() } catch (err) {
+      const c = apiErrCode(err)
+      if (c === 'verify_email') { setOpen(false); setNeedVerify(true) }
+      else setMsg({ tone: 'bad', text: t.err[c] || t.err.generic })
+    } finally { setBusy(false) }
   }
   return (
     <li className="ui-card cb-card" data-testid="vo-card">
@@ -161,6 +173,10 @@ function NeedCard({ n, t, lang, signedIn, loginHref, defaultName, onChange }) {
         <p className="rt-note">{t.full}</p>
       ) : !signedIn ? (
         <a className="ui-btn ui-btn--primary ui-btn--sm" href={loginHref}><Icon name="enter" className="ui-btn__icon ui-flip-rtl" /> {t.signup}</a>
+      ) : needVerify ? (
+        <div ref={verifyRef} tabIndex={-1} className="vo-verify">
+          <VerifyEmailNote lang={lang} testId="vo-verify" accountHref={accountHref} />
+        </div>
       ) : open ? (
         <div className="cb-report">
           <label className="ui-field" htmlFor={`${uid}-n`}>

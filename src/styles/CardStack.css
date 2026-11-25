@@ -1,0 +1,17 @@
+/* CardStack (src/motion/CardStack.jsx). 2026-11-25: motion-kit.css-dən köçürüldü. */
+/* ── CardStack ── */
+.mo-stack { display: grid; gap: 12px; justify-items: center; }
+.mo-stack__deck { position: relative; display: grid; width: 100%; padding-bottom: 20px; }
+.mo-stack__deck > * { grid-area: 1 / 1; }
+.mo-stack__ghost {
+  pointer-events: none;
+  z-index: calc(10 - var(--depth));
+  transform: translate3d(0, calc(var(--depth) * 10px), 0) scale(calc(1 - var(--depth) * 0.05));
+  transform-origin: 50% 100%;
+  opacity: calc(1 - var(--depth) * 0.3);
+  filter: saturate(0.8);
+}
+.mo-stack__card { position: relative; z-index: 20; touch-action: pan-y; cursor: grab; }
+.mo-stack__nav { display: flex; align-items: center; gap: 12px; }
+.mo-stack__btn { min-width: 44px; min-height: 44px; }
+.mo-stack__pos { min-width: 4.5ch; text-align: center; color: var(--text-secondary); font-variant-numeric: tabular-nums; }

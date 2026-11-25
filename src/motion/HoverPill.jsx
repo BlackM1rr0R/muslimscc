@@ -9,6 +9,8 @@ import { useEffect, useState } from 'react'
 import { m } from 'motion/react'
 import { SPRING } from './presets'
 import { isFinePointer, isReduced } from './reduced'
+// Stillər öz faylındadır (2026-11-25: giriş CSS-indən köçürüldü — yalnız bu komponentlə yüklənir)
+import '../styles/HoverPill.css'
 
 function offsetIn(el, box) {
   let x = 0, y = 0, n = el

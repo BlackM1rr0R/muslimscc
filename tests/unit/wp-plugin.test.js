@@ -12,6 +12,7 @@ import {
 } from '../../scripts/build-wp-plugin.mjs'
 import { wpWidgetUrl, wpShortcode, citySlug, WP_PLUGIN_VERSION, WP_PLUGIN_SLUG, WP_COMPACT_HEIGHT } from '../../src/utils/wpPlugin.js'
 import { PRAYER_CITIES } from '../../src/data/prayerCities.js'
+import { AUTOHEIGHT_JS_BODY, autoHeightScript } from '../../src/utils/embedHeight.js'
 
 const ROOT = path.resolve(__dirname, '../..')
 const rd = (f) => fs.readFileSync(f, 'utf8').replace(/\r\n/g, '\n')
@@ -103,11 +104,35 @@ describe('plagin faylları', () => {
     expect(Number(m[1])).toBe(WP_COMPACT_HEIGHT)
     expect(WP_COMPACT_HEIGHT).toBeGreaterThanOrEqual(500)
     // İstifadəçinin hündürlüyü (200–1200) üstündür, boşdursa standart
-    expect(render).toContain("( $o['height'] ? $o['height'] : MUSLIMSCC_PRAYER_COMPACT_HEIGHT )")
+    expect(render).toContain("$min   = $o['height'] ? $o['height'] : MUSLIMSCC_PRAYER_COMPACT_HEIGHT;")
     expect(render).not.toMatch(/: 300 \)/)
     const settings = rd(path.join(PLUGIN_DIR, 'includes/settings.php'))
     expect(settings).toContain(`(${WP_COMPACT_HEIGHT} px for compact, 16:9 for full)`)
     expect(rd(path.join(PLUGIN_DIR, 'readme.txt'))).toContain(`compact layout is ${WP_COMPACT_HEIGHT} px high`)
+  })
+
+  it('avtomatik hündürlük: inline dinləyici = src/utils/embedHeight.js (eyni mətn), yalnız yığcam görünüşdə', () => {
+    const render = rd(path.join(PLUGIN_DIR, 'includes/render.php'))
+    // PHP sabiti JS gövdəsinin hərfi surətidir (tək dırnaqlı PHP sətri — içində ' və \ yoxdur)
+    expect(render).toContain(`const MUSLIMSCC_PRAYER_AUTOHEIGHT_JS = '${AUTOHEIGHT_JS_BODY}';`)
+    // Bükücü də eynidir: təkrar qoşulmaya qarşı bayraq + mənşə wp_json_encode ilə (slash qaçırılmadan)
+    expect(render).toContain("return '(function(){if(window.muslimsccPrayerHeight){return;}window.muslimsccPrayerHeight=1;'")
+    expect(render).toContain("'var O=' . wp_json_encode( MUSLIMSCC_PRAYER_BASE, JSON_UNESCAPED_SLASHES ) . ';'")
+    expect(render).toContain("MUSLIMSCC_PRAYER_AUTOHEIGHT_JS . '}());'")
+    expect(autoHeightScript()).toBe('(function(){if(window.muslimsccPrayerHeight){return;}window.muslimsccPrayerHeight=1;var O="https://muslims.cc";' + AUTOHEIGHT_JS_BODY + '}());')
+    // Faylsız tutacaq, altbilgidə, nonce-suz; yalnız yığcam qolda qoşulur və minimum atributu qaçırılır
+    expect(render).toContain("wp_register_script( 'muslimscc-prayer-height', false, array(), MUSLIMSCC_PRAYER_VERSION, true );")
+    expect(render).toContain("wp_add_inline_script( 'muslimscc-prayer-height', muslimscc_prayer_autoheight_js() );")
+    expect(render).not.toMatch(/nonce/i)
+    const compact = render.slice(render.indexOf('} else {', render.indexOf("if ( 'full' === $o['layout'] ) {")))
+    expect(compact.slice(0, 400)).toContain('muslimscc_prayer_enqueue_autoheight();')
+    expect(compact.slice(0, 400)).toContain(`' data-muslimscc-min="' . esc_attr( (string) $min ) . '"'`)
+    expect(render.slice(render.indexOf("if ( 'full' === $o['layout'] ) {"), render.indexOf('} else {', render.indexOf("if ( 'full' === $o['layout'] ) {")))).not.toContain('enqueue')
+    // readme: FAQ + xarici xidmətlər bölməsi bunu açıq deyir
+    const readme = rd(path.join(PLUGIN_DIR, 'readme.txt'))
+    expect(readme).toContain('= The widget is cut off or shows a scrollbar. =')
+    expect(readme).toContain('accepts these messages only from `https://muslims.cc`')
+    expect(readme).not.toContain('No scripts or styles are added to your pages.')
   })
 
   it('istinad linki susmaya görə SÖNÜKDÜR (qayda 10) və iframe çıxışı qaçırılır', () => {

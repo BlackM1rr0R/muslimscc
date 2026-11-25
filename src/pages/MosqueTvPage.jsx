@@ -41,6 +41,7 @@ import '../styles/ToolsMotion.css'
 import RollingDigits from '../components/prayer/RollingDigits'
 import { pickUi } from '../utils/uiText'
 import PresenceSwap from '../motion/PresenceSwap'
+import { contentHeight, heightMessage, EMBED_THROTTLE_MS } from '../utils/embedHeight'
 
 const STORE_KEY = 'muslim_cc_mosque_tv'
 // Qoşulu rejimin yazıları (server/mosqueRep.js)
@@ -490,6 +491,42 @@ export default function MosqueTvPage({ setPage }) {
     } catch { /* dəstəklənmir */ }
   }
   const fsSupported = typeof document !== 'undefined' && !!document.fullscreenEnabled
+
+  // ── Vidcet (iframe, ?compact=1): məzmunun hündürlüyünü ana səhifəyə bildir ──
+  // WordPress plagini və /widget-dəki dinləyici iframe-i bu rəqəmə qədər böyüdür (460–520 px enində
+  // 3 sütunlu cədvəl 500 px-ə sığmırdı). Mesajda yalnız rəqəm var (utils/embedHeight.js); hədəf '*' —
+  // hündürlük sirr deyil. Sətirlər (başlıq, saat, vaxtlar) ResizeObserver ilə izlənir, mesajlar
+  // seyrəkləşdirilir və yalnız ≥ 2 px fərqdə göndərilir. Yalnız başqa səhifənin içində olanda.
+  useEffect(() => {
+    if (!compact || window.parent === window || typeof ResizeObserver !== 'function') return
+    const root = rootRef.current
+    if (!root) return
+    let last = 0
+    let lastAt = 0
+    let timer = 0
+    const send = () => {
+      timer = 0
+      lastAt = Date.now()
+      const boxes = []
+      for (const el of root.children) {
+        const s = getComputedStyle(el)
+        if (s.display === 'none' || s.position === 'absolute' || s.position === 'fixed') continue
+        boxes.push(el.getBoundingClientRect())
+      }
+      const cs = getComputedStyle(root)
+      const h = contentHeight(boxes, parseFloat(cs.paddingTop), parseFloat(cs.paddingBottom))
+      if (!h || Math.abs(h - last) < 2) return
+      last = h
+      try { window.parent.postMessage(heightMessage(h), '*') } catch { /* ana səhifə əlçatmazdır */ }
+    }
+    const schedule = () => {
+      if (!timer) timer = setTimeout(send, Math.max(0, EMBED_THROTTLE_MS - (Date.now() - lastAt)))
+    }
+    const ro = new ResizeObserver(schedule)
+    ro.observe(root)
+    for (const el of root.children) ro.observe(el)
+    return () => { ro.disconnect(); clearTimeout(timer) }
+  }, [compact])
 
   // ── İdarəetmə düymələri: hərəkətsizlikdə gizlənir; kiosk-da yalnız düymə ilə ──
   const [settingsOpen, setSettingsOpen] = useState(false)

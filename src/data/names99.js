@@ -1,7 +1,7 @@
 // Allahın 99 gözəl adı (Əsmaül Hüsna) — az / en / ru / tr + ərəb
 // DİQQƏT: "tr" sahəsi türkcə DEYİL — latın transliterasiyasıdır (Ar-Rahman),
 // hər dildə adın altında göstərilir. Türkcə məna "tr_meaning"-dədir.
-// NamesPage.jsx-dən çıxarıldı ki, Node skriptləri (məs. scripts/social)
+// NamesPage.jsx-dən çıxarıldı ki, Node skriptləri (məs. server/scripts/build-instagram-data)
 // də oxuya bilsin — JSX faylından import etmək mümkün deyil.
 //
 // SİYAHININ MƏNBƏYİ:

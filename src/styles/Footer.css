@@ -1,3 +1,25 @@
+/* ── 2026-11-25: vau3.css §5-dən köçürüldü (footer-dəki dil zolağının başlığı) — faylın ƏVVƏLİNDƏ:
+   əvvəl giriş CSS-ində bu faylın qaydalarından əvvəl gəlirdi (kaskad sırası saxlanır). ── */
+/* ══════════════════════════════════════════════════════════
+   §5  FOOTER v5
+   ══════════════════════════════════════════════════════════ */
+/* Dil zolağı footer-də */
+.vx-ft-langs { max-width: var(--container, 1200px); margin: 28px auto 0; padding: 0 var(--page-gutter); }
+.vx-ft-langs__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  font-family: var(--font-label);
+  font-size: var(--step--2);
+  font-weight: 600;
+  letter-spacing: var(--tracking-wide, .05em);
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+.vx-ft-langs__head svg { color: var(--accent); }
+.vx-ft-langs__head b { color: var(--brand); font-variant-numeric: tabular-nums; }
+
 /* ══════════════════════════════════════════════════════
    FOOTER — Muslims.cc  |  dizayn sistemi v2 (v3: sakit kağız footer)
 

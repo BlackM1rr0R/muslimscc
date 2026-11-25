@@ -7,6 +7,8 @@
 import { forwardRef } from 'react'
 import { m } from 'motion/react'
 import { SPRING } from './presets'
+// Stillər öz faylındadır (2026-11-25: giriş CSS-indən köçürüldü — yalnız bu komponentlə yüklənir)
+import '../styles/ShineButton.css'
 
 const ShineButton = forwardRef(function ShineButton({ as = 'button', variant = 'primary', size = 'md', icon = null, className = '', children, ...rest }, ref) {
   const Tag = as === 'a' ? m.a : m.button

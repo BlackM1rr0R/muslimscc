@@ -386,6 +386,25 @@ describe('icma lövhələri HTTP', () => {
       expect((await (await get('/api/volunteers/mine', c.cookie)).json()).items[0]).toMatchObject({ id: item.id, myName: 'O.' })
     })
 
+    it('yazılış: girişsiz 401, təsdiqsiz e-poçt 403 verify_email (yer tutulmur); ləğv təsdiqsiz də mümkündür', async () => {
+      const rep = await signup(); role(rep, 'mosque_rep', 'm888')
+      const { item } = await (await call('/api/volunteers', { cookie: rep.cookie, body: NEED() })).json()
+      expect((await call(`/api/volunteers/${item.id}/signup`, { body: {} })).status).toBe(401)
+      const u = await signup('Təsdiqsiz', { verified: false })
+      const r = await call(`/api/volunteers/${item.id}/signup`, { cookie: u.cookie, body: { shareEmail: true, consent: true } })
+      expect([r.status, (await r.json()).code]).toEqual([403, 'verify_email'])
+      expect((await (await get('/api/volunteers')).json()).items.find((x) => x.id === item.id).filled).toBe(0)
+      expect(db.raw.prepare('SELECT COUNT(*) AS n FROM volunteer_signups WHERE user_id = ?').get(u.id).n).toBe(0)
+      // Dəyişiklikdən ƏVVƏL yazılmış təsdiqsiz hesab öz yazılışını yenə silə bilir (məlumatını geri götürmək)
+      db.raw.prepare('INSERT INTO volunteer_signups (need_id, user_id, name, share_email, consent_at, created_at) VALUES (?, ?, ?, 0, NULL, ?)').run(item.id, u.id, 'Təsdiqsiz', clock)
+      expect((await call(`/api/volunteers/${item.id}/signup`, { method: 'DELETE', cookie: u.cookie })).status).toBe(200)
+      // Təsdiqdən sonra yazılış alınır
+      store.markVerified(u.id)
+      const ok = await call(`/api/volunteers/${item.id}/signup`, { cookie: u.cookie, body: {} })
+      expect(ok.status).toBe(200)
+      expect((await ok.json()).item).toMatchObject({ filled: 1, signedUp: true })
+    })
+
     it('IDOR: başqa məscidin nümayəndəsi nə siyahını görür, nə silə bilir', async () => {
       const rep1 = await signup('R1'); role(rep1, 'mosque_rep', 'm444')
       const rep2 = await signup('R2'); role(rep2, 'mosque_rep', 'm555')

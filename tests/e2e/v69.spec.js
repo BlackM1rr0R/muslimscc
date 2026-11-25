@@ -3,7 +3,7 @@
 // hədis əzbərləmə, İsra və Merac, zikr mozaikası
 // ═══════════════════════════════════════════════════════
 import AxeBuilder from '@axe-core/playwright'
-import { test, expect, settle, expectCleanConsole } from './fixtures.js'
+import { test, expect, settle, expectCleanConsole, reach } from './fixtures.js'
 
 const axe = async (page, sel) => {
   const { violations } = await new AxeBuilder({ page }).include(sel)
@@ -23,6 +23,9 @@ test('tam mətn: rəsmi az tərcüməsi və şərh (HadeethEnc), ravi keçidi s�
   await expect(dlg.getByRole('link', { name: 'Mənbədə aç' })).toHaveAttribute('href', /hadeethenc\.com\/az\/browse\/hadith\/\d+/)
   await page.keyboard.press('Escape')
   await expect(dlg).toBeHidden()
+  // Bağlanan pəncərə öz tarixçə girişini history.back() ilə (setTimeout 0) götürür. Ondan ƏVVƏL
+  // linkə basılsa, gecikmiş back() yeni /sahaba girişindən /hadith/14-ə qaytarır — bölmə heç gəlmir
+  await page.waitForFunction(() => !history.state?.qmOverlay)
   await card.getByRole('link', { name: 'Əbu Hureyrə' }).click()
   await expect(page).toHaveURL(/\/sahaba\/abu-hurairah$/)
   const n = page.getByTestId('sahaba-narrations')
@@ -34,9 +37,13 @@ test('tam mətn: rəsmi az tərcüməsi və şərh (HadeethEnc), ravi keçidi s�
 })
 
 test('hədis əzbərləmə: sevimlilər → kart, ərəbcə, "Bildim" növbəni azaldır', async ({ page }) => {
+  // Səhifə skriptlərindən ƏVVƏL yaz. goto → setItem → reload ardıcıllığında HadithPage-in [favs]
+  // effekti (mount-da localStorage-ə yazır) boş massivi setItem-dən SONRA yaza bilirdi → reload-dan
+  // sonra sevimli yoxdur, əzbər zolağı görünmür (CI mobil, 3 dəfə, 2026-11-25)
+  await page.addInitScript(() => {
+    if (!localStorage.getItem('hadith_favs')) localStorage.setItem('hadith_favs', '[1,3]')
+  })
   await page.goto('/hadith')
-  await page.evaluate(() => { localStorage.setItem('hadith_favs', '[1,3]'); localStorage.removeItem('hadith_srs_v1') })
-  await page.reload()
   await settle(page)
   await page.locator('.hadith-chip-fav').click()
   const bar = page.getByTestId('hadith-mem-bar')
@@ -61,14 +68,9 @@ for (const theme of ['light', 'dark']) {
     await page.emulateMedia({ colorScheme: theme })
     await page.goto('/history')
     await settle(page)
-    await page.locator('.history-maps-pair').scrollIntoViewIfNeeded()
-    const j = page.getByTestId('isra-journey')
-    // DeferRender — bölmə ekrana yaxınlaşanda yüklənir: addım-addım aşağı
-    for (let i = 0; i < 30 && !(await j.count()); i++) {
-      await page.evaluate(() => window.scrollBy(0, 500))
-      await page.waitForTimeout(200)
-    }
-    await j.scrollIntoViewIfNeeded()
+    // DeferRender — yer tutucuya qədər gətirilir (fixtures.js → reach). Əvvəl .history-maps-pair-ə
+    // scrollIntoViewIfNeeded + kor scrollBy idi: yuxarıda bölmələr qurulduqca element "stable" olmurdu
+    const j = await reach(page, 'isra-journey')
     await expect(j.locator('.isj__stop')).toHaveCount(9)
     await expect(j.locator('.isj__ar')).toContainText('ٱلْمَسْجِدِ ٱلْأَقْصَا')
     await expect(j.locator('.isj__stop').nth(8)).toContainText('İbrahim')
@@ -77,9 +79,9 @@ for (const theme of ['light', 'dark']) {
 
   test(`Nur mozaikası (zikr): say və əlçatanlıq (${theme})`, async ({ page }) => {
     await page.emulateMedia({ colorScheme: theme })
+    // səhifə skriptlərindən əvvəl yaz (goto → setItem → reload yox — TEAM.md, e2e dərsləri)
+    await page.addInitScript(() => { if (!localStorage.getItem('dhikr_count_total')) localStorage.setItem('dhikr_count_total', '245') })
     await page.goto('/dhikr')
-    await page.evaluate(() => localStorage.setItem('dhikr_count_total', '245'))
-    await page.reload()
     await settle(page)
     const m = page.getByTestId('nur-mosaic')
     await m.scrollIntoViewIfNeeded()
@@ -100,6 +102,8 @@ test('isnad zənciri, kartın şərh üzü və Story düyməsi', async ({ page, 
   await expect(chain.locator('.isn__node').last()).toContainText('Peyğəmbər')
   expect(await axe(page, '[role=dialog]')).toEqual([])
   await page.keyboard.press('Escape')
+  // pəncərənin gecikmiş history.back()-i yeni goto ilə toqquşmasın
+  await page.waitForFunction(() => !history.state?.qmOverlay)
   await page.goto('/hadith/14')
   await settle(page)
   const c14 = page.getByTestId('hadith-focus').locator('article.hadith-card')
@@ -135,9 +139,7 @@ for (const theme of ['light', 'dark']) {
     await page.emulateMedia({ colorScheme: theme })
     await page.goto('/qibla#sema')
     await settle(page)
-    const s = page.getByTestId('sky-planetarium')
-    for (let i = 0; i < 40 && !(await s.count()); i++) { await page.evaluate(() => window.scrollBy(0, 600)); await page.waitForTimeout(150) }
-    await s.scrollIntoViewIfNeeded()
+    const s = await reach(page, 'sky-planetarium')
     await expect(s.locator('canvas')).toBeVisible()
     const label = s.locator('.skyp__time b')
     const before = await label.textContent()
@@ -154,9 +156,7 @@ test('usturlab: Günəşi üfüqə gətirəndə vaxt Bakının çıxış/batış
   await page.clock.setFixedTime(new Date('2026-11-15T19:30:00Z'))
   await page.goto('/history#elm')
   await settle(page)
-  const a = page.getByTestId('astrolabe')
-  for (let i = 0; i < 60 && !(await a.count()); i++) { await page.evaluate(() => window.scrollBy(0, 600)); await page.waitForTimeout(150) }
-  await a.scrollIntoViewIfNeeded()
+  const a = await reach(page, 'astrolabe')
   await a.getByRole('button', { name: 'Günəş çıxır' }).click()
   await expect(a.getByTestId('al-time')).toHaveText(/07:2\d/)
   await a.getByRole('button', { name: 'Günəş batır' }).click()
@@ -168,8 +168,7 @@ test('usturlab: Günəşi üfüqə gətirəndə vaxt Bakının çıxış/batış
 test('"Məscidi qur": sürüşdürdükcə addımlar 1 → 7, əlçatanlıq', async ({ page, consoleProblems }) => {
   await page.goto('/mosques')
   await settle(page)
-  const m = page.getByTestId('mosque-builder')
-  for (let i = 0; i < 60 && !(await m.count()); i++) { await page.evaluate(() => window.scrollBy(0, 600)); await page.waitForTimeout(150) }
+  const m = await reach(page, 'mosque-builder')
   const step = m.getByTestId('mosque-step')
   const go = async (f) => {
     await m.evaluate((el, ff) => { const r = el.getBoundingClientRect(); window.scrollTo(0, r.top + window.scrollY + (el.offsetHeight - window.innerHeight) * ff) }, f)

@@ -22,6 +22,41 @@ const MUSLIMSCC_PRAYER_LAYOUTS = array( 'compact', 'full' );
 const MUSLIMSCC_PRAYER_COMPACT_HEIGHT = 500;
 
 /**
+ * Auto-height listener for the compact layout (inline, no external file). The embedded page posts only
+ * its content height — window.postMessage( { type: 'muslimscc:height', h: <number> } ) — and this listener
+ * grows the iframe that sent it, so nothing is cut off in 460–520 px wide columns. It accepts messages
+ * only from https://muslims.cc (see muslimscc_prayer_autoheight_js()), finds the iframe by
+ * event.source === iframe.contentWindow, clamps the height to 200–1600 px and never goes below the
+ * iframe's own height (data-muslimscc-min: the configured height or the 500 px default).
+ * Mirrors AUTOHEIGHT_JS_BODY in src/utils/embedHeight.js on the muslims.cc side (unit test).
+ */
+const MUSLIMSCC_PRAYER_AUTOHEIGHT_JS = 'window.addEventListener("message",function(e){var d=e.data,l,f,i,m,h;if(e.origin!==O||!d||d.type!=="muslimscc:height"||typeof d.h!=="number"||!isFinite(d.h)){return;}l=document.getElementsByTagName("iframe");for(i=0;i<l.length;i++){f=l[i];if(f.contentWindow!==e.source){continue;}m=parseInt(f.getAttribute("data-muslimscc-min")||f.getAttribute("height"),10)||200;h=Math.max(m,Math.min(1600,Math.max(200,Math.round(d.h))));if(f.style.height!==h+"px"){f.style.height=h+"px";}return;}});';
+
+/**
+ * The listener script with the allowed origin filled in (a static string — nothing from the request).
+ *
+ * @return string JavaScript.
+ */
+function muslimscc_prayer_autoheight_js() {
+	return '(function(){if(window.muslimsccPrayerHeight){return;}window.muslimsccPrayerHeight=1;'
+		. 'var O=' . wp_json_encode( MUSLIMSCC_PRAYER_BASE, JSON_UNESCAPED_SLASHES ) . ';'
+		. MUSLIMSCC_PRAYER_AUTOHEIGHT_JS . '}());';
+}
+
+/**
+ * Add the auto-height listener once, in the footer, only on pages that show a compact widget.
+ * A script handle without a file (src = false) carries the inline code.
+ */
+function muslimscc_prayer_enqueue_autoheight() {
+	if ( wp_script_is( 'muslimscc-prayer-height', 'enqueued' ) ) {
+		return;
+	}
+	wp_register_script( 'muslimscc-prayer-height', false, array(), MUSLIMSCC_PRAYER_VERSION, true );
+	wp_enqueue_script( 'muslimscc-prayer-height' );
+	wp_add_inline_script( 'muslimscc-prayer-height', muslimscc_prayer_autoheight_js() );
+}
+
+/**
  * City list: key (lowercase, as in the shortcode) => id, English label, country, has a city page.
  *
  * @return array<string, array{id: string, label: string, country: string, page: bool}>
@@ -155,12 +190,17 @@ function muslimscc_prayer_render( $atts ) {
 	$name = isset( $atts['name'] ) ? muslimscc_prayer_sanitize_name( $atts['name'] ) : '';
 	$url  = muslimscc_prayer_url( $city['id'], $o['lang'], $o['theme'], $o['layout'], $name );
 
+	$min_attr = '';
 	if ( 'full' === $o['layout'] ) {
 		$style = $o['height']
 			? 'display:block;width:100%;height:' . $o['height'] . 'px;border:0;border-radius:12px'
 			: 'display:block;width:100%;aspect-ratio:16/9;min-height:420px;height:auto;border:0;border-radius:12px';
 	} else {
-		$style = 'display:block;width:100%;height:' . ( $o['height'] ? $o['height'] : MUSLIMSCC_PRAYER_COMPACT_HEIGHT ) . 'px;border:0;border-radius:12px';
+		$min   = $o['height'] ? $o['height'] : MUSLIMSCC_PRAYER_COMPACT_HEIGHT;
+		$style = 'display:block;width:100%;height:' . $min . 'px;border:0;border-radius:12px';
+		// The set (or default) height is the minimum; the listener only lets the iframe grow to fit.
+		$min_attr = ' data-muslimscc-min="' . esc_attr( (string) $min ) . '"';
+		muslimscc_prayer_enqueue_autoheight();
 	}
 
 	/* translators: %s: city name, e.g. "Baku". */
@@ -172,6 +212,7 @@ function muslimscc_prayer_render( $atts ) {
 		. ' loading="lazy"'
 		. ' referrerpolicy="strict-origin-when-cross-origin"'
 		. ' sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"'
+		. $min_attr
 		. ' style="' . esc_attr( $style ) . '"></iframe>';
 
 	if ( $o['credit'] ) {

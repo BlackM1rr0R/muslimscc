@@ -22,6 +22,7 @@ import Icon from '../Icon'
 import { pathFor } from '../../seo/routes'
 import { isPlainClick } from '../PageLink'
 import { buildDailyItems, dayNumber } from '../DailyReminderBar'
+import { readDailyPools } from '../../utils/dailyPoolsStore'
 import { localizeSource } from '../../utils/sourceNames'
 import { gregorianToHijri, fromLocalDate, formatHijri, formatGregorian, weekdayName, isApproximate } from '../../utils/hijri'
 import '../../styles/HomeToday.css'
@@ -106,6 +107,8 @@ function useCopy() {
 export default function HomeToday({ cells = TODAY_CELLS }) {
   const order = cells
   const { lang } = useLang()
+  // Günün ayəsi — zolağın hovuzundan (cari dil); hələ yoxdursa Suspense yer tutucusu (HomePage)
+  const pools = readDailyPools(lang)
   const l = pickUi(LABELS, lang, 'en')
   const isAr = lang === 'ar'
   const navigate = useNavigate()
@@ -132,7 +135,7 @@ export default function HomeToday({ cells = TODAY_CELLS }) {
   }, [])
 
   const h = nawawi && nawawi.length ? nawawi[((day % nawawi.length) + nawawi.length) % nawawi.length] : null
-  const ayah = useMemo(() => buildDailyItems(lang, day, null).find(i => i.type === 'ayah') || null, [lang, day])
+  const ayah = useMemo(() => buildDailyItems(lang, day, null, pools).find(i => i.type === 'ayah') || null, [lang, day, pools])
 
   const g = fromLocalDate(new Date())
   const hijri = gregorianToHijri(g)

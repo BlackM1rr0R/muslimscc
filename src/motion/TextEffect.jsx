@@ -15,6 +15,8 @@ import { isReduced } from './reduced'
 import { inFirstPaint } from '../utils/wow'
 import { measureSoon } from './measure'
 import { splitText } from './format'
+// Stillər öz faylındadır (2026-11-25: giriş CSS-indən köçürüldü — yalnız bu komponentlə yüklənir)
+import '../styles/TextEffect.css'
 
 const useIso = typeof window === 'undefined' ? useEffect : useLayoutEffect
 export default function TextEffect({ as: Tag = 'span', children, per = 'word', preset = 'blur', step, delay = 0, className = '', style, ...rest }) {

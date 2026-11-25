@@ -1,0 +1,88 @@
+/* Səhifə köməkçisi (components/PageHelp.jsx). 2026-11-25: vau3.css §8-dən köçürüldü — yalnız tənbəl chunk ilə gəlir. */
+/* ══════════════════════════════════════════════════════════
+   §8  SƏHİFƏ KÖMƏKÇİSİ — "Necə işləyir?" (components/PageHelp.jsx)
+   Başlıqdakı ⓘ düyməsi / "?" düyməsi. Telefonda aşağıdan vərəq,
+   ≥768px-də mərkəzdə pəncərə (ui.css → .ui-dialog--sheet).
+   ══════════════════════════════════════════════════════════ */
+.vx-help { width: min(560px, calc(100vw - 32px)); }
+.vx-help .ui-dialog__head { gap: 14px; padding-block: 16px 14px; }
+.vx-help__ic { width: 46px; height: 46px; }
+.vx-help__titles { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.vx-help__titles .ui-dialog__title { font-size: var(--step-2); }
+.vx-help__body { display: grid; gap: 20px; padding-top: 18px; }
+.vx-help__lead { margin: 0; font-size: var(--step-0); line-height: var(--lh-body, 1.7); color: var(--text-body); }
+.vx-help__sec { display: grid; gap: 10px; }
+.vx-help__h {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-family: var(--font-label);
+  font-size: var(--step--2);
+  font-weight: 600;
+  letter-spacing: var(--tracking-wide, .05em);
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+.vx-help__h svg { color: var(--accent); }
+.vx-help__how {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: var(--brand-soft);
+  border-inline-start: 3px solid var(--brand);
+  font-size: var(--step--1);
+  line-height: 1.65;
+  color: var(--text-body);
+}
+.vx-help__toc { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; }
+.vx-help__toc button {
+  width: 100%;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: none;
+  color: var(--text-strong);
+  font: inherit;
+  font-size: var(--step--1);
+  font-weight: 500;
+  text-align: start;
+  cursor: pointer;
+  transition: background-color .2s ease;
+}
+.vx-help__toc button > span:nth-child(2) { flex: 1; min-width: 0; }
+.vx-help__n {
+  flex-shrink: 0;
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--surface-2);
+  color: var(--brand);
+  font-size: var(--step--2);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.vx-help__chev { color: var(--text-tertiary); }
+@media (hover: hover) { .vx-help__toc button:hover { background: var(--surface-2); } }
+.vx-help__rel { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr)); gap: 8px; }
+.vx-help__rel a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line);
+  color: var(--text-strong);
+  font-size: var(--step--1);
+  font-weight: 500;
+  text-decoration: none;
+  transition: border-color .2s ease, background-color .2s ease;
+}
+@media (hover: hover) { .vx-help__rel a:hover { border-color: var(--brand-soft-2); background: var(--brand-soft); } }

@@ -56,7 +56,8 @@ for (const [lang, dir, sessions, signOut] of [['de', 'ltr', 'Sitzungen', 'Abmeld
     await settle(page)
     const text = await page.locator('main').innerText()
     expect(text).not.toMatch(AZ)
-    expect(await page.locator('meta[name="robots"]').getAttribute('content')).toMatch(/noindex/)
+    // seoApply.js tənbəldir — noindex bir az sonra yazılır; bir dəfəlik oxu yox, gözləyən yoxlama
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', /noindex/)
     expectCleanConsole(consoleProblems)
   })
 }

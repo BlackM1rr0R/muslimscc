@@ -12,6 +12,8 @@ import { useEffect, useRef } from 'react'
 import { spherePoints, projectPoint, MAKKAH } from './format'
 import { useReduced } from './reduced'
 import useOffscreenPause from './useOffscreenPause'
+// Stillər öz faylındadır (2026-11-25: giriş CSS-indən köçürüldü — yalnız bu komponentlə yüklənir)
+import '../styles/DottedGlobe.css'
 
 const css = (el, name, fb) => (getComputedStyle(el).getPropertyValue(name).trim() || fb)
 

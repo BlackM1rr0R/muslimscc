@@ -42,12 +42,15 @@ const ALL_TIMES = ['fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha']
 
 // saytın hədis kartındakı dərəcə adı (src/pages/HadithPage.jsx → GRADE_UI.s)
 const SAHIH = { az: 'Səhih', en: 'Sahih', ru: 'Сахих', ar: 'صحيح', tr: 'Sahih' }
+// Rəsmi Instagram hesabı (src/config/brand.js → BRAND.instagramUrl ilə eyni) — /start mesajında
+const INSTAGRAM_URL = 'https://www.instagram.com/muslimscc/'
 const SUNRISE = { az: 'Günəş', en: 'Sunrise', ru: 'Восход', ar: 'الشروق', tr: 'Güneş' }
 
 const TEXT = {
   az: {
     welcome: 'Əssalamu aleykum! Bu, muslims.cc saytının botudur: namaz vaxtları, növbəti namaza qalan vaxt, günün ayəsi və hədisi, istəsəniz hər azan vaxtında xatırlatma.',
     consent: 'Şəhər seçsəniz, bot serverimizdə yalnız söhbət nömrənizi, dilinizi, şəhəri və xatırlatma seçimini saxlayır (şifrələnmədən). Mesajlarınız saxlanmır. /stop — hamısını silir.',
+    instagram: 'Hər gün ayə, hədis və dua kartları Instagram-da:',
     chooseCountry: 'Ölkəni seçin:', chooseCity: (c) => `${c} — şəhəri seçin:`,
     citySet: (c) => `✅ Şəhər: ${c}`, noCity: 'Əvvəlcə şəhəri seçin — /city',
     next: (n, t, left) => `⏳ Növbəti namaz: ${n} — ${t} (${left} sonra)`, tomorrow: 'sabah',
@@ -63,6 +66,7 @@ const TEXT = {
   en: {
     welcome: 'Assalamu alaykum! This is the muslims.cc bot: prayer times, time left until the next prayer, the verse and hadith of the day and, if you like, a reminder at every adhan time.',
     consent: 'If you choose a city, the bot stores only your chat number, language, city and reminder choice on our server (unencrypted). Your messages are not stored. /stop deletes everything.',
+    instagram: 'Daily verse, hadith and dua cards on Instagram:',
     chooseCountry: 'Choose a country:', chooseCity: (c) => `${c} — choose a city:`,
     citySet: (c) => `✅ City: ${c}`, noCity: 'Choose a city first — /city',
     next: (n, t, left) => `⏳ Next prayer: ${n} — ${t} (in ${left})`, tomorrow: 'tomorrow',
@@ -78,6 +82,7 @@ const TEXT = {
   ru: {
     welcome: 'Ассаляму алейкум! Это бот сайта muslims.cc: время намаза, сколько осталось до следующего намаза, аят и хадис дня и, по желанию, напоминание в каждое время азана.',
     consent: 'Если вы выберете город, бот хранит на нашем сервере только номер чата, язык, город и настройку напоминаний (без шифрования). Ваши сообщения не сохраняются. /stop удаляет всё.',
+    instagram: 'Карточки с аятом, хадисом и дуа каждый день — в Instagram:',
     chooseCountry: 'Выберите страну:', chooseCity: (c) => `${c} — выберите город:`,
     citySet: (c) => `✅ Город: ${c}`, noCity: 'Сначала выберите город — /city',
     next: (n, t, left) => `⏳ Следующий намаз: ${n} — ${t} (через ${left})`, tomorrow: 'завтра',
@@ -93,6 +98,7 @@ const TEXT = {
   tr: {
     welcome: 'Esselâmu aleyküm! Bu, muslims.cc sitesinin botudur: namaz vakitleri, sonraki namaza kalan süre, günün ayeti ve hadisi ve dilerseniz her ezan vaktinde hatırlatma.',
     consent: 'Bir şehir seçerseniz bot sunucumuzda yalnızca sohbet numaranızı, dilinizi, şehri ve hatırlatma tercihini saklar (şifrelenmeden). Mesajlarınız saklanmaz. /stop hepsini siler.',
+    instagram: 'Her gün ayet, hadis ve dua kartları Instagram’da:',
     chooseCountry: 'Ülke seçin:', chooseCity: (c) => `${c} — şehir seçin:`,
     citySet: (c) => `✅ Şehir: ${c}`, noCity: 'Önce şehir seçin — /city',
     next: (n, t, left) => `⏳ Sonraki namaz: ${n} — ${t} (${left} sonra)`, tomorrow: 'yarın',
@@ -108,6 +114,7 @@ const TEXT = {
   ar: {
     welcome: 'السلام عليكم! هذا بوت موقع muslims.cc: مواقيت الصلاة، والوقت المتبقي حتى الصلاة القادمة، وآية اليوم وحديث اليوم، وإن شئت تذكير عند كل أذان.',
     consent: 'إذا اخترت مدينة يحفظ البوت على خادمنا رقم المحادثة واللغة والمدينة وخيار التذكير فقط (دون تشفير). لا تُحفظ رسائلك. الأمر /stop يحذف كل شيء.',
+    instagram: 'بطاقات الآية والحديث والدعاء كل يوم على إنستغرام:',
     chooseCountry: 'اختر الدولة:', chooseCity: (c) => `${c} — اختر المدينة:`,
     citySet: (c) => `✅ المدينة: ${c}`, noCity: 'اختر المدينة أولًا — /city',
     next: (n, t, left) => `⏳ الصلاة القادمة: ${n} — ${t} (بعد ${left})`, tomorrow: 'غدًا',
@@ -399,7 +406,7 @@ function createTelegramBot({
     const city = row ? CITY_BY_ID.get(row.city) : null
     switch (cmd) {
       case 'start':
-        return send(chatId, `${esc(T.welcome)}\n\n${esc(T.consent)}\n\n${esc(T.chooseCountry)}`, { reply_markup: countriesKb(L) })
+        return send(chatId, `${esc(T.welcome)}\n\n${esc(T.consent)}\n\n${esc(T.instagram)} <a href="${INSTAGRAM_URL}">@muslimscc</a>\n\n${esc(T.chooseCountry)}`, { reply_markup: countriesKb(L) })
       case 'city':
         return send(chatId, esc(T.chooseCountry), { reply_markup: countriesKb(L) })
       case 'times': case 'next': {

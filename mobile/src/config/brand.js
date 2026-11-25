@@ -71,9 +71,10 @@ export const BRAND = {
   // Ev ekranı ikonu altındakı ad (PWA short_name) — ~12 simvoldan sonra kəsilir
   iconLabel: 'Muslims.cc',
 
-  // Instagram avtoposter
+  // Rəsmi Instagram hesabı — footer, Organization sameAs, llms.txt, hüquqi sənədlər, avtoposter
   hashtag: '#muslimscc',
-  instagram: 'muslims_cc',
+  instagram: 'muslimscc',
+  instagramUrl: 'https://www.instagram.com/muslimscc/',
 
   // AI köməkçinin görünən adı
   aiName: {
@@ -107,7 +108,7 @@ export const BRAND = {
     operator: { az: 'Elçin Abdullayev', en: 'Elchin Abdullayev', ru: 'Эльчин Абдуллаев', ar: 'Elchin Abdullayev', tr: 'Elçin Abdullayev' }, // lang-ok: şəxs adı ərəb mətnində latınca qalır (pasportdakı yazılış)
     email: 'abdllyevv@gmail.com',
     country: { az: 'Azərbaycan Respublikası', en: 'the Republic of Azerbaijan', ru: 'Азербайджанская Республика', ar: 'جمهورية أذربيجان', tr: 'Azerbaycan Cumhuriyeti' },
-    effectiveDate: '2026-11-01',
+    effectiveDate: '2026-11-25',
   },
 }
 
@@ -190,7 +191,7 @@ export function siteJsonLd(lang = 'az') {
         url: BRAND.url + '/',
         logo: BRAND.url + '/android-chrome-512x512.png',
         image: BRAND.url + '/og-image.png',
-        sameAs: [`https://instagram.com/${BRAND.instagram}`],
+        sameAs: [BRAND.instagramUrl],
       },
     ],
   }

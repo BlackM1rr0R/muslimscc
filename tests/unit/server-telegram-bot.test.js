@@ -153,6 +153,9 @@ describe('telegramBot — webhook', () => {
     expect(f.calls.map((c) => c.method)).toEqual(['sendMessage'])
     expect(f.calls[0].body.chat_id).toBe(1001)
     expect(f.calls[0].body.reply_markup.inline_keyboard.length).toBeGreaterThan(0)
+    // /start: rəsmi Instagram hesabına keçid (HTML, önizləməsiz)
+    expect(f.calls[0].body.text).toContain('<a href="https://www.instagram.com/muslimscc/">@muslimscc</a>')
+    expect(f.calls[0].body.disable_web_page_preview).toBe(true)
     // Gövdəsiz / pis gövdə — yenə 200 (Telegram təkrar göndərməsin), heç nə göndərilmir
     const bad = await fetch(`${s.url}/api/telegram/webhook`, { method: 'POST', headers: { 'X-Telegram-Bot-Api-Secret-Token': SECRET } })
     expect(bad.status).toBe(200)

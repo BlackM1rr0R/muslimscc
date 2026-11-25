@@ -7,6 +7,8 @@
 import { m, useMotionValue, useSpring } from 'motion/react'
 import { SPRING } from './presets'
 import { isFinePointer, isReduced } from './reduced'
+// Stillər öz faylındadır (2026-11-25: giriş CSS-indən köçürüldü — yalnız bu komponentlə yüklənir)
+import '../styles/MagneticButton.css'
 
 export default function MagneticButton({ strength = 0.25, max = 8, className = '', children, ...rest }) {
   const x = useMotionValue(0)

@@ -45,8 +45,18 @@ $muslimscc_out = do_shortcode( '[muslimscc_prayer]' );
 muslimscc_smoke_check( 'default iframe URL', muslimscc_smoke_has( $muslimscc_out, '<iframe src="https://muslims.cc/en/mosque-tv?city=Baku&#038;lang=en&#038;theme=light&#038;compact=1"' ) );
 muslimscc_smoke_check( 'lazy loading', muslimscc_smoke_has( $muslimscc_out, 'loading="lazy"' ) );
 muslimscc_smoke_check( 'compact default height 500px', muslimscc_smoke_has( $muslimscc_out, 'height:500px' ) && 500 === MUSLIMSCC_PRAYER_COMPACT_HEIGHT );
+muslimscc_smoke_check( 'compact: default height is the auto-height minimum', muslimscc_smoke_has( $muslimscc_out, 'data-muslimscc-min="500"' ) );
+// Auto-height listener: enqueued once (footer, no file), inline code accepts only https://muslims.cc.
+muslimscc_smoke_check( 'auto-height script enqueued for compact', wp_script_is( 'muslimscc-prayer-height', 'enqueued' ) );
+$muslimscc_inline = implode( "\n", (array) wp_scripts()->get_data( 'muslimscc-prayer-height', 'after' ) );
+muslimscc_smoke_check( 'auto-height: origin check + message type', muslimscc_smoke_has( $muslimscc_inline, 'var O="https://muslims.cc";' ) && muslimscc_smoke_has( $muslimscc_inline, 'e.origin!==O' ) && muslimscc_smoke_has( $muslimscc_inline, 'd.type!=="muslimscc:height"' ) );
+muslimscc_smoke_check( 'auto-height: matched by event.source, clamped 200–1600', muslimscc_smoke_has( $muslimscc_inline, 'f.contentWindow!==e.source' ) && muslimscc_smoke_has( $muslimscc_inline, 'Math.min(1600,Math.max(200,' ) );
+do_shortcode( '[muslimscc_prayer city="ganja"]' );
+muslimscc_smoke_check( 'auto-height inline code added once for several widgets', 1 === count( (array) wp_scripts()->get_data( 'muslimscc-prayer-height', 'after' ) ) );
+muslimscc_smoke_check( 'auto-height script is not in the widget markup', ! muslimscc_smoke_has( $muslimscc_out, '<script' ) );
 $muslimscc_out = do_shortcode( '[muslimscc_prayer height="360"]' );
 muslimscc_smoke_check( 'height override wins over the default', muslimscc_smoke_has( $muslimscc_out, 'height:360px' ) && ! muslimscc_smoke_has( $muslimscc_out, 'height:500px' ) );
+muslimscc_smoke_check( 'set height is the auto-height minimum', muslimscc_smoke_has( $muslimscc_out, 'data-muslimscc-min="360"' ) );
 $muslimscc_out = do_shortcode( '[muslimscc_prayer height="50"]' );
 muslimscc_smoke_check( 'too small override clamped to 200', muslimscc_smoke_has( $muslimscc_out, 'height:200px' ) );
 muslimscc_smoke_check( 'credit link off by default', ! muslimscc_smoke_has( $muslimscc_out, 'muslimscc-prayer__credit' ) );
@@ -63,6 +73,7 @@ $muslimscc_out = muslimscc_prayer_render(
 );
 muslimscc_smoke_check( 'az has no language prefix, city id encoded', muslimscc_smoke_has( $muslimscc_out, 'https://muslims.cc/mosque-tv?city=New%20York&#038;lang=az&#038;theme=dark' ) );
 muslimscc_smoke_check( 'full layout → kiosk=1', muslimscc_smoke_has( $muslimscc_out, 'kiosk=1' ) );
+muslimscc_smoke_check( 'full layout has no auto-height minimum', ! muslimscc_smoke_has( $muslimscc_out, 'data-muslimscc-min' ) );
 muslimscc_smoke_check( 'no <script> in output', ! muslimscc_smoke_has( strtolower( $muslimscc_out ), '<script' ) );
 muslimscc_smoke_check( 'no <img> in output', ! muslimscc_smoke_has( strtolower( $muslimscc_out ), '<img' ) );
 muslimscc_smoke_check( 'exactly one iframe', 1 === substr_count( $muslimscc_out, '<iframe' ) );

@@ -112,7 +112,9 @@ describe('instagram — konfiqurasiya və sönülü rejim', () => {
     const app = express(); app.use('/api', m.router)
     const srv = await listen(app)
     try {
-      expect((await fetch(`${srv.url}/api/ig/card/2026-11-25-0-feed.jpg`)).status).toBe(404)
+      const r = await fetch(`${srv.url}/api/ig/card/2026-11-25-0-feed.jpg`)
+      expect(r.status).toBe(404)
+      expect(r.headers.get('cache-control')).toBe('no-store')
     } finally { await srv.close() }
   })
 })
@@ -175,7 +177,7 @@ describe('instagram — məzmun, caption, "Səhih" qaydası', () => {
     expect(ig.parseCaptionLangs('xx,,')).toEqual(['az', 'en'])
   })
 
-  it('ikidilli caption: az + "—" + en (eyni elementin sayt mətni), az mənbə və keçid, ≤ 6 heşteq', () => {
+  it('ikidilli caption: az + "—" + en (eyni elementin sayt mətni), az mənbə və keçid, ≤ 5 heşteq', () => {
     const h = LIST.find((x) => /^Buxari/.test(x.src.az))
     const c = ig.hadithContent('ru', h, 'https://muslims.cc')
     c.variant = (L) => ig.hadithContent(L, h, 'https://muslims.cc')
@@ -187,7 +189,8 @@ describe('instagram — məzmun, caption, "Səhih" qaydası', () => {
     expect(cap).toContain('https://muslims.cc/hadith/' + h.id)
     expect(cap).not.toContain('/en/hadith/')
     const tags = cap.split('\n').at(-1).split(' ')
-    expect(tags.length).toBeLessThanOrEqual(6)
+    expect(tags.length).toBeLessThanOrEqual(ig.HASHTAG_MAX)
+    expect(ig.HASHTAG_MAX).toBeLessThanOrEqual(5)
     expect(new Set(tags).size).toBe(tags.length)
     expect(tags).toEqual(expect.arrayContaining(['#muslimscc', '#hadith']))
     // 2-ci dil olmadan — yalnız az
@@ -261,9 +264,14 @@ describe('instagram — dərc axını', () => {
       expect(r.status).toBe(200)
       expect(r.headers.get('content-type')).toBe('image/jpeg')
       expect(Buffer.from(await r.arrayBuffer())).toEqual(JPEG)
+      expect(r.headers.get('cache-control')).toBe('public, max-age=86400')
       for (const bad of ['..%2F..%2Ftest.db', '2026-11-25-0-feed.png', '2026-11-25-9-feed.jpg', '%2e%2e', 'x.jpg']) {
         expect((await fetch(`${srv.url}/api/ig/card/${bad}`)).status).toBe(404)
       }
+      // Hələ yazılmamış (gələcək) kart: 404 KEŞLƏNMİR — Cloudflare-də əvvəlcədən "zəhərlənə" bilməsin
+      const future = await fetch(`${srv.url}/api/ig/card/2026-11-26-0-feed.jpg`)
+      expect(future.status).toBe(404)
+      expect(future.headers.get('cache-control')).toBe('no-store')
     } finally { await srv.close() }
   })
 

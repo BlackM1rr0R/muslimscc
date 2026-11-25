@@ -15,6 +15,8 @@ import Icon from '../Icon'
 import { pickUi } from '../../utils/uiText'
 import { partOfDay } from '../../utils/greeting'
 import { loadSnapshot, loadHayd, computeStreak, toKey, PRAYER_SYNC_EVENT } from '../../utils/prayerTracker'
+// Stillər öz faylındadır (2026-11-25: giriş CSS-indən köçürüldü — yalnız bu komponentlə yüklənir)
+import '../../styles/HeroGreeting.css'
 
 const NAME_KEY = 'qm_name_v1'
 const T = {

@@ -16,6 +16,8 @@ import { BentoGrid, KpiCard, makeFormat } from '../viz'
 import { PRAYER_SYNC_EVENT } from '../../utils/prayerTracker'
 import { isPlainClick } from '../PageLink'
 import Icon from '../Icon'
+// Stillər öz faylındadır (2026-11-25: giriş CSS-indən köçürüldü — yalnız bu komponentlə yüklənir)
+import '../../styles/MyDay.css'
 
 const L = {
   az: { title: 'Mənim həftəm', sub: 'son 7 gün', vs: 'əvvəlki 7 günə görə', prayer: 'Namaz', active: 'Aktiv gün', quran: 'Quran günü', dhikr: 'Zikr', more: 'Ətraflı statistika', trend: 'gündəlik trend' },

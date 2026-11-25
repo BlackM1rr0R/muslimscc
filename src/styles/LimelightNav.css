@@ -1,0 +1,34 @@
+/* LimelightNav (src/motion/LimelightNav.jsx). 2026-11-25: motion-kit.css-dən köçürüldü. */
+/* ── LimelightNav: üstdə qızılı zolaq + aşağı düşən işıq konusu ── */
+.mo-lime { position: relative; }
+.mo-lime__light {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  transform-origin: 50% 0;
+}
+.mo-lime__light::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 18%;
+  right: 18%;
+  height: 3px;
+  border-radius: 0 0 3px 3px;
+  background: linear-gradient(90deg, transparent, var(--accent) 20%, var(--accent) 80%, transparent);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--accent) 70%, transparent);
+}
+.mo-lime__light::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 6%;
+  right: 6%;
+  height: 78%;
+  background: linear-gradient(to bottom, color-mix(in srgb, var(--accent) 24%, transparent), transparent);
+  clip-path: polygon(14% 0, 86% 0, 100% 100%, 0 100%);
+}
+.mo-lime__link { position: relative; z-index: 1; }

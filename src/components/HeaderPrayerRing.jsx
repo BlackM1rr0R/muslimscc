@@ -9,6 +9,8 @@ import usePrayerTimes, { PRAYER_NAMES } from '../hooks/usePrayerTimes'
 import { useLang } from '../contexts/LangContext'
 import { pathFor } from '../seo/routes'
 import Icon from './Icon'
+// Stillər öz faylındadır (2026-11-25: giriş CSS-indən köçürüldü — yalnız bu komponentlə yüklənir)
+import '../styles/HeaderPrayerRing.css'
 
 const ICON = { fajr: 'sunrise', dhuhr: 'sun', asr: 'sunLow', maghrib: 'sunset', isha: 'moon' }
 const R = 15

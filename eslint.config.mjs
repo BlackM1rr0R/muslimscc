@@ -12,7 +12,7 @@ export default [
     ignores: [
       'dist/**', 'node_modules/**', 'mobile/**', 'public/**',
       'test-results/**', 'playwright-report/**', 'blob-report/**',
-      'scripts/.icon-preview/**', 'scripts/social/out/**',
+      'scripts/.icon-preview/**',
       'server/eclipse-lib.js',   // avtomatik yığılır (scripts/build-server-eclipse.mjs)
     ],
   },

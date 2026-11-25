@@ -22,7 +22,8 @@ import { BRAND, brandName, tr } from '../config/brand'
 import usePrayerTimes, { PRAYER_NAMES } from '../hooks/usePrayerTimes'
 import { DailyReminderBarSkeleton } from '../components/DailyReminderBarSkeleton'
 import Icon from '../components/Icon'
-import { pathFor } from '../seo/routes'
+import { pathFor, parsePath, uiLang } from '../seo/routes'
+import { preloadDailyPools } from '../utils/dailyPoolsStore'
 import CityPicker from '../components/CityPicker'
 import HeroGreeting from '../components/home/HeroGreeting'
 import { lazyWhenIdle } from '../utils/idle'
@@ -54,9 +55,16 @@ const CV = {
   names: { '--cv-h': '680px' },
   cta:   { '--cv-h': '420px' },
 }
-// Günün xatırlatmaları zolağı quotes.js və duas.js-i (~235 KB) yükləyir —
-// tənbəl yüklənir; yer tutucu (skeleton) hündürlüyü əvvəlcədən saxlayır.
-const DailyReminderBar = lazy(() => import('../components/DailyReminderBar'))
+// Günün xatırlatmaları zolağı — tənbəl yüklənir; yer tutucu (skeleton) hündürlüyü əvvəlcədən saxlayır.
+// Hovuzlar YALNIZ cari dildə (utils/dailyPoolsStore → "daily-pools-<dil>" chunk-ı, ~15 KB gzip) —
+// zolağın chunk-ı ilə PARALEL başlayır (ardıcıl gediş-gəliş olmasın). Dil ünvandandır (LangContext kimi).
+const pageLang = () => { try { return uiLang(parsePath(window.location.pathname).lang) } catch { return 'az' } }
+const withPools = (load) => () => { preloadDailyPools(pageLang()); return load() }
+// Modul yüklənəndə (ilk render-dən ƏVVƏL, main.jsx → preloadInitialPage) başlat: Vite-in preload köməkçisi
+// asılılığı olmayan import()-u bir mikrotapşırıq gecikdirir — render içində çağırılanda sorğu ana səhifənin
+// bütün sinxron render-i bitəndən sonra gedirdi (CPU ×4-də ~230 ms, zolağın chunk-ından SONRA; ölçülüb).
+if (typeof window !== 'undefined') preloadDailyPools(pageLang())
+const DailyReminderBar = lazy(withPools(() => import('../components/DailyReminderBar')))
 // PERFORMANS: bu 5 bölmə admin məzmununu serverdən (/api/content) çəkir və
 // ekranın ALTINDADIR — chunk-ları və sorğuları yalnız bölgəyə yaxınlaşanda
 // (DeferRender idle={false}) başlayır; əvvəl boş vaxtda (sürüşdürülməsə də)
@@ -75,11 +83,11 @@ const TadabburCard = lazy(() => import('../components/TadabburCard'))
 // v5.8: "bir gün" sürüşmə hekayəsi — bölməyə yaxınlaşanda
 const DayStory = lazy(() => import('../components/home/DayStory'))
 // v5.9: günün ayəsi/hədisi/duası/zikri — "story" dairələri
-const DayStories = lazy(() => import('../components/home/DayStories'))
+const DayStories = lazy(withPools(() => import('../components/home/DayStories')))
 // v3.2: "Bu gün" bento paneli (günün hədisi — Nəvəvi 40, günün ayəsi, davam et,
 // hicri tarix). Hero-nun düz altındadır — lazy, amma idle gözləmədən; yer
 // tutucu hündürlüyü saxlayır (CLS olmasın). Bax: components/home/HomeToday.jsx
-const HomeToday = lazy(() => import('../components/home/HomeToday'))
+const HomeToday = lazy(withPools(() => import('../components/home/HomeToday')))
 // 'İndi sizin üçün' — vaxta görə 1–3 təklif (mount-dan sonra; yer tutucu eyni hündürlükdədir)
 const NowForYou = lazy(() => import('../components/home/NowForYou').catch(() => ({ default: NowFallback })))
 // "Davam et" — qaldığınız yerlər (yalnız tərəqqi varsa görünür; hesabla sinxronlanır)
@@ -419,17 +427,27 @@ export default function HomePage({ setPage }) {
 
   const heroRef = useRef(null)
   // Statik ilk ekrandan keçid: hero animasiyaları statik blokun başladığı yerdən davam edir (yuxarıda)
+  // PERFORMANS (2026-11-25): getAnimations() bütün sənədin stilini (konteyner sorğuları üçün layout-u da)
+  // DƏRHAL hesablatdırır. Commit-in içində (useLayoutEffect) bu, React-in qoşulmasını CPU ×4-də ~240 ms
+  // gecikdirirdi (trace: UpdateLayoutTree 163 ms + Layout 79 ms). İndi növbəti kadrın requestAnimationFrame-
+  // ində: rAF boyamadan ƏVVƏL işləyir (stil → layout → boyama ondan sonradır) — yenidən başlamış animasiya
+  // heç bir kadrda görünmür, iş isə həmin kadrın öz stil hesabı ilə birləşir. Görünüş dəyişmir.
   useLayoutEffect(() => {
-    if (!staticHero) return
-    staticHero = false
+    if (!staticHero) return undefined
     const el = heroRef.current
-    const t = staticElapsed()
-    if (!el || !t || typeof el.getAnimations !== 'function') return
-    for (const a of el.getAnimations({ subtree: true })) {
-      // Xatəmin çəkilişi və parıltı statik blokda YOXDUR (HomePage.css → .qm-home-first) — onlar indi başlayır
-      if (/^(hero-orn-draw|hero-shine|hp-orn-spin)$/.test(a.animationName || '')) continue
-      try { a.currentTime = (Number(a.currentTime) || 0) + t } catch { /* animasiya sadəcə bəzəkdir */ }
-    }
+    if (!el || typeof el.getAnimations !== 'function' || typeof requestAnimationFrame !== 'function') { staticHero = false; return undefined }
+    // staticHero rAF-ın içində sıfırlanır: StrictMode-da (dev) effekt təmizlənib yenidən işləyəndə də bir dəfə icra olunur
+    const id = requestAnimationFrame(() => {
+      staticHero = false
+      const t = staticElapsed()
+      if (!t || !el.isConnected) return
+      for (const a of el.getAnimations({ subtree: true })) {
+        // Xatəmin çəkilişi və parıltı statik blokda YOXDUR (HomePage.css → .qm-home-first) — onlar indi başlayır
+        if (/^(hero-orn-draw|hero-shine|hp-orn-spin)$/.test(a.animationName || '')) continue
+        try { a.currentTime = (Number(a.currentTime) || 0) + t } catch { /* animasiya sadəcə bəzəkdir */ }
+      }
+    })
+    return () => cancelAnimationFrame(id)
   }, [])
 
   // App-in navigate() səhifəni özü yuxarı qaldırır

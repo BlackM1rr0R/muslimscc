@@ -308,7 +308,9 @@ test.describe('dillər', () => {
       await expect(page.locator('html')).toHaveAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr')
       const text = await page.locator('main').innerText()
       expect(text).not.toMatch(bad)
-      expect(await page.locator('meta[name="robots"]').getAttribute('content')).toBe('noindex, nofollow')
+      // <head>-i yazan seoApply.js tənbəldir (6db48b9) — preview /tr/login-ə ana səhifənin qabığını verir
+      // (index, follow), noindex bir az sonra yazılır. Bir dəfəlik oxu yarışırdı — gözləyən yoxlama
+      await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'noindex, nofollow')
       expectCleanConsole(consoleProblems)
     })
   }

@@ -14,6 +14,8 @@ import { orbitPositions } from './presets'
 import { useReduced } from './reduced'
 import useOffscreenPause from './useOffscreenPause'
 import { motionLabels } from './labels'
+// Stillər öz faylındadır (2026-11-25: giriş CSS-indən köçürüldü — yalnız bu komponentlə yüklənir)
+import '../styles/OrbitalTimeline.css'
 
 export default function OrbitalTimeline({ items = [], value, onChange, label, lang = 'az', className = '', centerFallback = null }) {
   const [own, setOwn] = useState(null)

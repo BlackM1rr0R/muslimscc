@@ -118,7 +118,63 @@ systemctl enable --now muslimscc-backup.timer
 systemctl start muslimscc-backup.service && journalctl -u muslimscc-backup -n 5   # bir dəfə əl ilə sına
 ls -l /opt/muslimscc/backups/
 ```
-Hər gün 02:30 UTC: `/opt/muslimscc/backups/muslims-YYYYMMDD.db.gz` (600), son 14 gün. Cron istəyirsənsə: `30 2 * * * /opt/muslimscc/backup.sh`. Tövsiyə: ehtiyat qovluğunu ara-sıra serverdən kənara da köçür (`scp`/rclone).
+Hər gün 02:30 UTC: `/opt/muslimscc/backups/muslims-YYYYMMDD.db.gz` (600), son 14 gün. Cron istəyirsənsə: `30 2 * * * /opt/muslimscc/backup.sh`.
+
+**Bərpa yoxlaması (ayda bir):** `/opt/muslimscc/backup.sh --verify [arxiv]` — son (və ya verilən) arxivi `/tmp`-də
+müvəqqəti açır, canlı api image-i ilə (şəbəkəsiz, read-only konteyner) `integrity_check`, sxem versiyası və
+tətbiqin öz `openDb`-si ilə yoxlayır, sonra surəti silir. Canlı bazaya və konteynerlərə toxunmur.
+2026-11-25: 25.11 və 10.11 arxivləri bu yolla yoxlanıb — ikisi də sağlam.
+
+**Diqqət:** yerli nüsxələr serverlə EYNİ diskdədir — disk / server itsə, nüsxələr də itir. Aşağıdakı off-site surəti qurun.
+
+### Serverdən kənar nüsxə (off-site, şifrəli) — sahib açır
+
+`backup.sh` hər gecə yerli arxivi **age** ilə şifrələyib **rclone** ilə bucket-ə yükləyə bilər. Susmaya görə
+SÖNÜLÜDÜR (`/opt/muslimscc/offsite.env` yoxdursa heç nə etmir). Serverdə yalnız **açıq** açar olur — server
+(və ya oğurlanmış bucket açarı) köhnə nüsxələri aça bilmir; açmaq üçün gizli açar sahibdədir.
+
+1. **Şifrə açarı — sahibin kompüterində** (serverdə YOX): `age-keygen -o muslimscc-backup.key`. Faylı parol
+   menecerində + ikinci yerdə (USB / kağız) saxlayın — itərsə nüsxələr açılmır. Çıxışdakı `age1…` açıq açardır.
+   İki açar (`age1… age1…`) da vermək olar — biri ehtiyat üçün.
+2. **Bucket** — Cloudflare R2 (hesab artıq var; 10 GB pulsuz, nüsxə gündə ~150 KB): R2 → bucket
+   `muslimscc-backups` → *Settings → Object lifecycle rules*: 90 gündən köhnəni sil; istəyə görə *Bucket lock*
+   (məs. 30 gün — server ələ keçsə də nüsxələr silinə bilməz). *Manage R2 API tokens* → yalnız bu bucket,
+   "Object Read & Write". (Alternativ: Backblaze B2 — `deleteFiles` hüququ OLMAYAN application key + lifecycle.)
+3. **Serverdə** (root):
+   ```sh
+   apt-get install -y age rclone
+   install -d -m 700 /root/.config/rclone
+   install -m 600 /dev/null /root/.config/rclone/rclone.conf && nano /root/.config/rclone/rclone.conf
+   install -m 600 /dev/null /opt/muslimscc/offsite.env && nano /opt/muslimscc/offsite.env
+   ```
+   `rclone.conf` (açarlar yalnız bu faylda — əmr sətrinə / tarixçəyə düşməsin):
+   ```
+   [offsite]
+   type = s3
+   provider = Cloudflare
+   access_key_id = <R2 token: Access Key ID>
+   secret_access_key = <R2 token: Secret Access Key>
+   endpoint = https://<account_id>.r2.cloudflarestorage.com
+   region = auto
+   no_check_bucket = true
+   ```
+   `offsite.env` (fayl icra olunmur, yalnız bu açarlar oxunur və yoxlanılır; `export` yazmayın):
+   ```
+   OFFSITE_ENABLED=1
+   OFFSITE_REMOTE='offsite:muslimscc-backups/db'
+   OFFSITE_AGE_RECIPIENTS='age1…'
+   OFFSITE_PRUNE_DAYS=
+   ```
+   `OFFSITE_PRUNE_DAYS` boş qalsın (silməni bucket lifecycle edir); rəqəm (≥ 7) yazılsa, skript özü silir.
+4. Sına: `systemctl start muslimscc-backup.service && journalctl -u muslimscc-backup -n 20` → `off-site OK: …`.
+   Alınmasa yerli nüsxə yenə yazılır, vahid `failed` olur (`systemctl --failed`), səbəb jurnalda.
+
+**Off-site-dan bərpa** (sahibin kompüterində — gizli açar orada):
+```sh
+rclone copyto offsite:muslimscc-backups/db/muslims-YYYYMMDD-HHMMSS.db.gz.age ./x.age
+age -d -i muslimscc-backup.key -o muslims-YYYYMMDD.db.gz x.age
+scp muslims-YYYYMMDD.db.gz root@<server>:/opt/muslimscc/backups/    # sonra aşağıdakı "Ehtiyat nüsxədən bərpa"
+```
 
 ### Volume icazəsi
 Volume ilk dəfə **yeni** image ilə yarananda `/data` sahibi `node` olur. Səhvən köhnə image ilə yaranıbsa (log: `verilənlər bazası açılmadı … readonly/EACCES`):
@@ -128,10 +184,14 @@ docker run --rm -v muslimscc_api-data:/data alpine chown 1000:1000 /data
 
 ### Ehtiyat nüsxədən bərpa
 ```sh
-cd /opt/muslimscc && export TAG=$(cat .current_tag)
-docker compose stop api
-gunzip -c backups/muslims-YYYYMMDD.db.gz > /tmp/restore.db
-docker run --rm -v muslimscc_api-data:/data -v /tmp/restore.db:/restore.db:ro alpine \
-  sh -c 'rm -f /data/muslims.db-wal /data/muslims.db-shm && cp /restore.db /data/muslims.db && chown 1000:1000 /data/muslims.db'
-docker compose up -d api && rm /tmp/restore.db
+cd /opt/muslimscc && export TAG=$(cat .current_tag) && umask 077
+./backup.sh --verify backups/muslims-YYYYMMDD.db.gz          # əvvəl arxivi yoxla (canlıya toxunmur)
+gunzip -c backups/muslims-YYYYMMDD.db.gz > /root/restore.db
+docker compose stop api                                       # sayt açıq qalır, API bu müddətdə 502
+# api image-i (alpine çəkməyə ehtiyac yoxdur); indiki baza muslims.db.pre-restore kimi saxlanılır
+docker run --rm --user 0 --network none -v muslimscc_api-data:/data -v /root/restore.db:/restore.db:ro \
+  --entrypoint sh "muslimscc-api:$TAG" -c 'cp -a /data/muslims.db /data/muslims.db.pre-restore; \
+  rm -f /data/muslims.db-wal /data/muslims.db-shm && cp /restore.db /data/muslims.db && chown 1000:1000 /data/muslims.db'
+docker compose start api && shred -u /root/restore.db
 ```
+Hər şey qaydasındadırsa, sonra `muslims.db.pre-restore`-u silin (volume-da qalır). `docker compose up -d` (seçimsiz) İŞLƏTMƏYİN.

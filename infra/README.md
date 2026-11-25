@@ -94,9 +94,17 @@ TAG=$(cat .current_tag) docker compose up -d api
 ```
 
 ### SSL
-Sertifikat Let's Encrypt-dəndir, certbot (host-da) özü yeniləyir; yeni sertifikatı
+Sertifikat Let's Encrypt-dəndir, certbot (host-da, `certbot.timer` gündə 2 dəfə) özü yeniləyir (webroot
+`/var/www/certbot` → web konteyneri `/.well-known/acme-challenge/`-i oradan verir); yeni sertifikatı
 `/etc/letsencrypt/renewal-hooks/deploy/muslimscc.sh` (`infra/certbot-deploy-hook.sh`)
 `certs/`-ə köçürüb nginx-i kəsintisiz yenidən yükləyir. Yoxlama: `certbot renew --dry-run`.
+
+**`/etc/letsencrypt/renewal/muslims.cc.conf`-da `installer = None` olmalıdır.** Host-un öz nginx-i İŞLƏMİR
+(80/443 edge-dədir). 2026-11-25-ə qədər orada `installer = nginx` idi: sertifikat yenilənir və hook onu
+köçürürdü, amma sonra certbot host nginx-ini başlatmağa çalışıb "Address already in use" alır, yenilənməni
+"failed" sayır və `certbot.service` failed qalırdı (+ edge-in portları buraxdığı anda host nginx-i 80/443-ü
+tuta bilərdi). Düzəldilib (köhnəsi `/root/mcc-audit-20261125/`-də), `certbot renew --dry-run` uğurlu.
+Cari sertifikat 2027-02-23-ə qədərdir; növbəti avtomatik yenilənmə ~2027-01-24.
 
 ### Cloudflare IP-ləri
 nginx yalnız Cloudflare-dən gələn bağlantıları qəbul edir (`infra/nginx/cloudflare.conf`).

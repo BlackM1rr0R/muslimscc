@@ -10,6 +10,8 @@ import { memo, useMemo, useRef } from 'react'
 import { useReduced } from './reduced'
 import useOffscreenPause from './useOffscreenPause'
 import { flowPath } from './format'
+// Stillər öz faylındadır (2026-11-25: giriş CSS-indən köçürüldü — yalnız bu komponentlə yüklənir)
+import '../styles/BackgroundPaths.css'
 
 const Layer = memo(function Layer({ n, offset, className }) {
   return (

@@ -125,7 +125,10 @@ test('son 10 gecə: önizləmədə geri sayım, işarələr bağlıdır; İmsaki
   // İki səhifə arasında keçid (SPA)
   await page.getByTestId('rpp-switch-road').click()
   await expect(page).toHaveURL(/\/en\/road-to-ramadan$/)
-  await expect(page.getByTestId('rpp-days-left')).toHaveText('76 days until Ramadan')
+  // Səhifə keçidində (PageTransition, AnimatePresence) köhnə <main> çıxış animasiyası bitənə qədər DOM-da
+  // qalır — iki səhifədə də rpp-days-left var (strict mode, CI mobil). Yeni səhifənin <main>-inə bağla.
+  const road = page.getByRole('main').filter({ has: page.getByRole('heading', { level: 1, name: 'Road to Ramadan' }) })
+  await expect(road.getByTestId('rpp-days-left')).toHaveText('76 days until Ramadan')
 
   // İmsakiyyə səhifəsindən keçidlər
   await page.goto('/en/ramadan')

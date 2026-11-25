@@ -1,0 +1,31 @@
+/* TextEffect (src/motion/TextEffect.jsx). 2026-11-25: motion-kit.css-dən köçürüldü — "hərəkəti azalt" qaydaları sonda. */
+/* ── TextEffect ── */
+.mo-te__p { display: inline-block; }
+.mo-te.is-armed .mo-te__p { opacity: 0; transform: translate3d(0, 0.35em, 0); }
+.mo-te--blur.is-armed .mo-te__p { filter: blur(6px); }
+.mo-te.is-in .mo-te__p {
+  animation: mo-te-in 720ms var(--wow-ease, cubic-bezier(.16, 1, .3, 1)) both;
+  animation-delay: calc(var(--te-delay, 0ms) + var(--i, 0) * var(--te-step, 60ms));
+}
+.mo-te--blur.is-in .mo-te__p { animation-name: mo-te-in-blur; }
+/* İlk kadr (LCP): opacity toxunulmur — mətn dərhal boyanır, yalnız yerinə oturur */
+.mo-te.is-lcp .mo-te__p {
+  animation: mo-te-lcp 760ms var(--wow-ease, cubic-bezier(.16, 1, .3, 1)) both;
+  animation-delay: calc(var(--te-delay, 0ms) + var(--i, 0) * var(--te-step, 60ms));
+}
+.mo-te--blur.is-lcp .mo-te__p { animation-name: mo-te-lcp-blur; }
+@keyframes mo-te-in { from { opacity: 0; transform: translate3d(0, 0.35em, 0); } to { opacity: 1; transform: none; } }
+@keyframes mo-te-in-blur { from { opacity: 0; transform: translate3d(0, 0.35em, 0); filter: blur(6px); } to { opacity: 1; transform: none; filter: blur(0); } }
+@keyframes mo-te-lcp { from { transform: translate3d(0, 0.28em, 0); } to { transform: none; } }
+@keyframes mo-te-lcp-blur { from { transform: translate3d(0, 0.28em, 0); filter: blur(3px); } to { transform: none; filter: blur(0); } }
+/* Telefonda blur yox (bahalıdır) */
+@media (pointer: coarse) {
+  .mo-te--blur.is-armed .mo-te__p { filter: none; }
+  .mo-te--blur.is-in .mo-te__p { animation-name: mo-te-in; }
+  .mo-te--blur.is-lcp .mo-te__p { animation-name: mo-te-lcp; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mo-te__p { animation: none !important; opacity: 1 !important; transform: none !important; filter: none !important; }
+}
+html.a11y-motion-user .mo-te__p { animation: none !important; opacity: 1 !important; transform: none !important; filter: none !important; }

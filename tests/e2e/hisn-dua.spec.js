@@ -69,7 +69,8 @@ test('başqa dildə ünvan siyahıya keçir; yoxlanmamış bənd 404-dür', asyn
   await page.goto('/en/hisnul-muslim/28-10')
   await expect(page).toHaveURL(/\/en\/hisnul-muslim$/)
   await expect(page.locator('.hs-dua')).toHaveCount(0)
-  await page.goto('/ar/hisnul-muslim/2-1')
+  // 2-3 hisnmuslim.com mətni ilə tutuşmur (Dice 0.68) — səhifəsi yoxdur
+  await page.goto('/ar/hisnul-muslim/2-3')
   await settle(page)
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', /noindex/)
   await expect(page.locator('.hs-dua')).toHaveCount(0)

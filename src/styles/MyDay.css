@@ -1,0 +1,101 @@
+/* "Mənim günüm" + "Mənim həftəm" (components/home/MyDay.jsx, MyWeek.jsx). 2026-11-25: vau3.css §15, v5.3, §15b-dən köçürüldü. */
+/* ══════════════════════════════════════════════════════════
+   §15  "MƏNİM GÜNÜM" (components/home/MyDay.jsx)
+   ══════════════════════════════════════════════════════════ */
+.vx-md-grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)); margin: 0; padding: 0; list-style: none; }
+.vx-md-grid > li { display: flex; }
+.vx-md-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-height: 172px;
+  padding: 18px;
+  color: var(--text-body);
+  text-decoration: none;
+}
+.vx-md-lbl { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-label); font-size: var(--step--1); font-weight: 600; color: var(--text-secondary); }
+.vx-md-lbl svg { color: var(--accent); }
+.vx-md-main { display: flex; align-items: center; gap: 16px; flex: 1; }
+.vx-md-main--center { justify-content: center; position: relative; }
+.vx-md-ringwrap { position: relative; width: 84px; height: 84px; flex-shrink: 0; }
+.vx-md-ring { width: 84px; height: 84px; }
+.vx-md-ring circle { fill: none; stroke: var(--surface-3); stroke-width: 7; stroke-linecap: round; transition: stroke .6s var(--vx-ease); }
+.vx-md-ring circle.is-done { stroke: var(--brand); }
+.vx-md-ringnum {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  font-family: var(--font-num, var(--font-heading));
+  font-size: var(--step-2);
+  font-weight: 700;
+  color: var(--text-strong);
+  font-variant-numeric: tabular-nums;
+}
+.vx-md-ringnum { grid-auto-flow: column; align-items: baseline; }
+.vx-md-ringnum small { font-size: .6em; font-weight: 500; color: var(--text-tertiary); }
+.vx-md-ring--gold circle.is-done { stroke: var(--accent); }
+.vx-md-ringnum--abs { pointer-events: none; }
+.vx-md-prayers { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; font-size: var(--step--1); color: var(--text-tertiary); }
+.vx-md-prayers li { display: flex; align-items: center; gap: 6px; }
+.vx-md-prayers li.is-done { color: var(--brand); font-weight: 600; }
+.vx-md-big { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.vx-md-big b { font-size: clamp(2rem, 1.4rem + 1.6vw, 2.6rem); font-weight: 700; line-height: 1; color: var(--text-strong); letter-spacing: -.02em; }
+.vx-md-big span { color: var(--text-secondary); font-size: var(--step--1); }
+.vx-md-spark { margin-top: auto; display: grid; gap: 2px; color: var(--brand); }
+.vx-md-spark small { color: var(--text-tertiary); font-size: var(--step--2); }
+.vx-md-today {
+  margin-top: auto;
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+  color: var(--text-secondary);
+  font-size: var(--step--1);
+  font-weight: 500;
+}
+.vx-md-today.is-done { background: var(--brand-soft); color: var(--brand); }
+/* v5.7: azkar kafeli (səhər/axşam) və nişan keçidi */
+.vx-md-adhkar { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; }
+.vx-md-links { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.vx-md-big b small { font-size: .5em; font-weight: 500; color: var(--text-tertiary); }
+.vx-md-badges .bdg-medal { width: 18px; height: 18px; }
+.vx-md-badges .bdg-medal::before { inset: -2px; }
+.vx-md-badges .bdg-medal::after { inset: 2px; }
+
+/* v5.3: "Mənim ilim" keçidi (MyDay başlığında) — dekabrda qızılı, parıltı ilə */
+.vx-md-year {
+  display: inline-flex; align-items: center; gap: 8px; align-self: end;
+  min-height: 40px; padding: 8px 16px; border-radius: 999px;
+  border: 1px solid var(--accent-line, rgba(184, 134, 43, 0.4));
+  background: var(--accent-soft, rgba(216, 169, 59, 0.1));
+  color: var(--accent-text); font: 600 var(--step--1)/1.2 var(--font-label); text-decoration: none;
+  transition: transform .2s var(--ease-out, ease), box-shadow .2s ease;
+}
+.vx-md-year:hover { transform: translateY(-1px); box-shadow: var(--shadow-2); }
+.vx-md-year.is-dec { background: linear-gradient(135deg, #0d3b2e, #155a45); color: #f3d77a; border-color: rgba(212, 175, 55, 0.5); position: relative; overflow: hidden; }
+.vx-md-year.is-dec::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(100deg, transparent 30%, rgba(255, 246, 214, 0.35) 50%, transparent 70%);
+  transform: translateX(-120%);
+}
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .vx-md-year.is-dec::after { animation: vx-shine 3.6s ease-in-out infinite; }
+}
+@keyframes vx-shine { 0%, 55% { transform: translateX(-120%); } 100% { transform: translateX(120%); } }
+
+/* ── §15b "Mənim həftəm" (components/home/MyWeek.jsx) — MyDay kafellərinin altında
+   kompakt KPI zolağı (viz v2 KpiCard); son 14 gündə qeyd yoxdursa render olunmur ── */
+.vx-mw { margin-top: 20px; }
+.vx-mw__head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 16px; margin-bottom: 10px; }
+.vx-mw__title { margin: 0; color: var(--text-strong); font-family: var(--font-heading); font-size: var(--step-1); font-weight: 600; }
+.vx-mw__sub { color: var(--text-tertiary); font-family: var(--font-sans); font-size: var(--step--1); font-weight: 500; }
+.vx-mw__more { font-size: var(--step--1); font-weight: 600; }
+@media (min-width: 720px) and (max-width: 1099.98px) {
+  .vz-bento.vx-mw__grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .vz-bento.vx-mw__grid > .vz-kpi { grid-column: span 1; }
+}

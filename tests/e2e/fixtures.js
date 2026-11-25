@@ -132,6 +132,10 @@ export const test = base.extend({
   },
 
   page: async ({ page }, use) => {
+    // CI yükünü lokalda təqlid (flaky testi tapmaq üçün): E2E_CPU_THROTTLE=4 npx playwright test … --repeat-each=10.
+    // Susmaya görə sönükdür; yalnız Chromium (CDP). GitHub runner-in 4 vCPU / 4 işçisi lokal maşından xeyli yavaşdır.
+    const cpuRate = Number(process.env.E2E_CPU_THROTTLE || 0)
+    if (cpuRate > 1) await (await page.context().newCDPSession(page)).send('Emulation.setCPUThrottlingRate', { rate: cpuRate })
     // Tutulmamış öz API sorğusu — İLK qeyd olunur (Playwright-da ən aşağı prioritet: aşağıdakı bütün
     // saxtalar və spec-lərin öz route-ları ondan əvvəl işləyir). Əvvəllər belə sorğu vite preview-un
     // proksisi ilə CANLI sayta gedirdi. İndi 599 alır, test sonunda uğursuz olur (yeni endpoint → saxta əlavə et).
@@ -382,4 +386,31 @@ export function expectCleanConsole(problems) {
 export async function settle(page) {
   await page.waitForLoadState('load').catch(() => {})
   await page.waitForLoadState('networkidle', { timeout: 3000 }).catch(() => {})
+}
+
+/**
+ * DeferRender (components/DeferRender) içindəki bölməni tap və ekrana gətir.
+ * Hədəf DOM-da yoxdursa, hələ qurulmamış İLK yer tutucunu (.defer-ph) ekranın ortasına gətirir və
+ * hədəf görünənə qədər təkrarlayır. İlk yer tutucu qurulmayınca növbətisinə keçilmir — heç bir bölmə
+ * atlanmır. Yer tutucu qalmayıbsa — hədəf tənbəl chunk-dadır, sadəcə gözlənilir. rAF gözləmir
+ * (page.clock.install ilə də işləyir); fasilələr Node tərəfindədir.
+ * NİYƏ kor sürüşmə (mouse.wheel / scrollBy dövrü) yox: settle() səhifə hələ qurularkən qayıda bilir;
+ * onda ilk sürüşmə qısa səhifənin footer-inə düşür, məzmun yuxarıda böyüyəndə brauzerin scroll
+ * anchoring-i footer-i yerində saxlayır → bölmə ekranın ÜSTÜNDƏ qalır və heç vaxt yüklənmir
+ * (kaaba-3d, CPU ×4-də 10/10, 2026-11-25). Reload-dan sonra brauzerin sürüşmə bərpası da eyni effekti verir.
+ * target — data-testid və ya Locator. Qaytarır: Locator.
+ */
+export async function reach(page, target, { timeout = 20_000 } = {}) {
+  const loc = typeof target === 'string' ? page.getByTestId(target) : target
+  await expect(async () => {
+    if (await loc.count()) return
+    await page.evaluate(() => {
+      const ph = [...document.querySelectorAll('.defer-ph')].find((el) => el.getClientRects().length)
+      ph?.scrollIntoView({ block: 'center' })
+    })
+    expect(await loc.count(), `${target} hələ DOM-da yoxdur`).toBeGreaterThan(0)
+  }).toPass({ timeout, intervals: [100, 250, 500] })
+  // scrollIntoViewIfNeeded "stable" gözləyir — yuxarıda bölmələr qurulduqca element sürüşür
+  await loc.first().evaluate((el) => el.scrollIntoView({ block: 'center' }))
+  return loc
 }

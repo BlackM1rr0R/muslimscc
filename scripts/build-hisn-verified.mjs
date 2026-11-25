@@ -68,14 +68,12 @@ export function dice(a, b) {
 export const fingerprint = (ar) => crypto.createHash('sha1').update(normAr(ar)).digest('hex').slice(0, 12)
 
 /**
- * Mətni uyğun gəlsə də SƏHİFƏSİ YARADILMAYAN bəndlər — { fəsil: səbəb } (2026-11-24 yoxlaması).
- * Fəsil 2: ar.json-da təxric sürüşüb — 1-ci və 2-ci bəndin "src"-i söz izahıdır ("* أي الموت المجازي…"),
- * Buxari 11/113 + Müslim 4/2083 (kitabda 1-ci bəndin təxrici) 3-cü bəndə, Tirmizi 5/473 ("عافاني"-nin
- * təxrici) 4-cü bəndə (Ali-İmran ayələri) düşüb. ar.json düzələnə qədər bu fəslin səhifəsi yoxdur.
+ * Mətni uyğun gəlsə də SƏHİFƏSİ YARADILMAYAN fəsillər — { fəsil: səbəb }. Məzmun yoxlaması bir fəslin
+ * təxricində (src) səhv tapanda buraya yazılır; düzələndən sonra silinir və skript yenidən işlədilir.
+ * Hazırda boşdur. (Fəsil 2-nin 2026-11-24 saxlanması — ar.json-da təxric sürüşməsi — 5 dildə düzəldi
+ * (6db48b9) və götürüldü: 2-1, 2-2, 2-4 yoxlanmışdır; 2-3 Dice həddinin altındadır, özü kənarda qalır.)
  */
-export const HOLD = {
-  2: 'takhrij misaligned in ar.json (glosses as src on items 1-2; Bukhari 11/113 on item 3, Tirmidhi 5/473 on item 4)',
-}
+export const HOLD = {}
 
 /** Slug: fəsil id + bəndin fəsildəki 1-dən başlayan sırası ("27-1"). */
 export const slugOf = (chapterId, index0) => `${chapterId}-${index0 + 1}`

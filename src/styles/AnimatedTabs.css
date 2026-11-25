@@ -1,0 +1,38 @@
+/* AnimatedTabs (src/motion/AnimatedTabs.jsx). 2026-11-25: motion-kit.css-dən köçürüldü. */
+/* ── AnimatedTabs ── */
+.mo-tabs { display: flex; gap: 2px; max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+.mo-tabs::-webkit-scrollbar { display: none; }
+.mo-tabs--pill { display: inline-flex; padding: 3px; border-radius: var(--radius-md); background: var(--surface-2); }
+.mo-tabs--underline { border-bottom: 1px solid var(--line); }
+.mo-tab {
+  position: relative;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: calc(var(--radius-md) - 3px);
+  background: transparent;
+  color: var(--text-secondary);
+  font: 600 var(--step--1) / 1.2 var(--font-label);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color var(--dur-1, 150ms) ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.mo-tabs--lg .mo-tab { min-height: 42px; padding: 0 18px; font-size: var(--step-0); }
+@media (pointer: coarse) { .mo-tab { min-height: 44px; } }
+.mo-tab.is-active { color: var(--text-strong); }
+@media (hover: hover) { .mo-tab:hover:not(.is-active):not(:disabled) { color: var(--text-strong); } }
+.mo-tab:disabled { opacity: 0.45; cursor: not-allowed; }
+.mo-tab:focus-visible { outline-offset: -2px; }
+.mo-tab__label, .mo-tab__count { position: relative; z-index: 1; display: inline-flex; align-items: center; gap: 6px; }
+.mo-tab__count { color: var(--text-tertiary); font-weight: 500; font-variant-numeric: tabular-nums; }
+.mo-tab.is-active .mo-tab__count { color: var(--brand); }
+.mo-tab__ind { position: absolute; z-index: 0; pointer-events: none; }
+.mo-tabs--pill .mo-tab__ind { inset: 0; border-radius: inherit; background: var(--surface-1); box-shadow: var(--shadow-1); }
+[data-theme="dark"] .mo-tabs--pill .mo-tab__ind { background: var(--surface-3); }
+.mo-tabs--underline .mo-tab { border-radius: var(--radius-sm); }
+.mo-tabs--underline .mo-tab__ind { inset-inline: 8px; bottom: 0; height: 2px; border-radius: 2px 2px 0 0; background: var(--brand); }

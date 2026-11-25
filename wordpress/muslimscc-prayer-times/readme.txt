@@ -31,7 +31,7 @@ For cities in Azerbaijan, times are calculated with the same method as the Abu B
 * `theme` — `light` or `dark`.
 * `layout` — `compact` or `full`.
 * `name` — optional mosque name shown in the widget header.
-* `height` — optional height in pixels (200–1200). By default the compact layout is 500 px high (all prayer rows fit in a narrow sidebar) and the full layout is 16:9.
+* `height` — optional height in pixels (200–1200). By default the compact layout is 500 px high (all prayer rows fit in a narrow sidebar) and the full layout is 16:9. The compact layout grows by itself when its content needs more room, so for it this height is the minimum.
 
 Any option you leave out uses the default from Settings → Muslims.cc.
 
@@ -46,6 +46,7 @@ This plugin displays content from an external service, **muslims.cc** (operated 
 * **What is loaded and when:** whenever a page with the block, widget or shortcode is viewed, the visitor's browser loads `https://muslims.cc/mosque-tv` (or `/en/mosque-tv`, `/ru/mosque-tv` …) with the chosen city, language, theme, layout and optional mosque name in the address.
 * **What is sent:** only what any web page request sends — the visitor's IP address, browser user agent and the address of your page as the referrer (origin only, by the `strict-origin-when-cross-origin` policy). The plugin itself sends nothing from your WordPress server.
 * **No cookies, no tracking:** the embedded page sets no cookies, shows no ads and sends no analytics when it is embedded in another site. It may keep display preferences in the browser's local storage, which browsers keep separate per embedding site.
+* **Height messages:** the embedded compact display tells your page its content height — a plain number sent with `postMessage` — so the iframe can grow to fit. The plugin's small inline listener accepts these messages only from `https://muslims.cc` and only for the iframe that sent them. Nothing is sent from your page to muslims.cc this way.
 * **Error reports:** if the embedded page hits a JavaScript error, it sends an anonymous error report to muslims.cc (error message, script file and line, page path — no query string, cookies or personal data).
 * For cities outside Azerbaijan, the embedded page fetches the day's times from the [aladhan.com](https://aladhan.com) API in the visitor's browser (coordinates, time zone and date only).
 
@@ -69,7 +70,11 @@ Use the *full* layout — it shows adhan and iqamah times and the Friday khutbah
 
 = Does it slow my site down? =
 
-No scripts or styles are added to your pages. The iframe is loaded lazily, only when it scrolls into view.
+No external scripts or styles are added to your pages. Pages that show the compact layout get one tiny inline script (well under 1 KB) that lets the widget grow to fit its content. The iframe is loaded lazily, only when it scrolls into view.
+
+= The widget is cut off or shows a scrollbar. =
+
+The compact layout adjusts its height automatically: when the times wrap onto two rows (for example in columns 460–520 px wide), the widget grows so that nothing is cut off. The height from Settings → Muslims.cc or the `height` option is used as the minimum. If a caching or optimization plugin delays or removes inline scripts, exclude the small `muslimscc-prayer-height` script — or set a larger `height`.
 
 = Does the plugin add a link to my site? =
 
@@ -90,6 +95,7 @@ Yes. There is no paid version, no account and no API key.
 
 = 1.0.0 =
 * First release: block, classic widget and shortcode; compact and full layouts; 5 languages; light and dark themes; opt-in credit link.
+* The compact layout grows to fit its content (no clipping in 460–520 px wide columns); the set height is the minimum.
 
 == Upgrade Notice ==
 

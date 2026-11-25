@@ -288,5 +288,6 @@ html[data-theme="dark"] .acc-btn-danger { color: #240806; }
 /* "E-poçtu təsdiqləyin" qeydi (components/account/VerifyEmailNote.jsx) */
 .acc-verify-note { margin-block: 10px; }
 .acc-verify-note__text { margin: 0 0 8px; font-weight: 600; color: var(--text-strong); }
+.acc-verify-note__actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .acc-verify-note .rt-note { margin: 6px 0 0; }
 .acc-verify-note .rt-note:empty { margin: 0; }   /* aria-live sahəsi gizlədilmir — yalnız boşluq yoxdur */

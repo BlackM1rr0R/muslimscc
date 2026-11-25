@@ -25,7 +25,7 @@
 // dildə eyni hədisdir, sevimlilər (id) dil dəyişəndə itmir.
 //
 // Bu fayl React-dan asılı deyil: HadithPage, axtarış (utils/search.js) və
-// Instagram hovuzu (scripts/social/content.mjs, Node) eyni qaydanı işlədir.
+// Instagram hovuzu (scripts/build-instagram-data.mjs, Node) eyni qaydanı işlədir.
 // ═══════════════════════════════════════════════════════
 
 // Hərəkələr (U+064B–U+065F), üst əlif (U+0670), tətvil (U+0640), Quran işarələri

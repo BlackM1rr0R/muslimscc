@@ -18,6 +18,9 @@ import { pickUi } from '../../utils/uiText'
 import { Sparkline } from '../viz'
 import { isPlainClick } from '../PageLink'
 import Icon from '../Icon'
+// Stillər öz faylındadır (2026-11-25: giriş CSS-indən köçürüldü — yalnız bu komponentlə yüklənir).
+// BadgeShelf.css-dən ƏVVƏL — əvvəlki kaskad sırası (giriş CSS-i → BadgeShelf.css) saxlanır.
+import '../../styles/MyDay.css'
 import '../../styles/BadgeShelf.css'
 
 // v5.9: "Mənim həftəm" — ayrıca kiçik chunk; məlumat yoxdursa heç nə göstərmir

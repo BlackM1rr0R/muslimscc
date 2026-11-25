@@ -9,6 +9,8 @@
 import { useLayoutEffect, useRef, useState } from 'react'
 import { useReduced } from './reduced'
 import useOffscreenPause from './useOffscreenPause'
+// Stillər öz faylındadır (2026-11-25: giriş CSS-indən köçürüldü — yalnız bu komponentlə yüklənir)
+import '../styles/MoMarquee.css'
 
 export default function Marquee({ children, speed = 40, reverse = false, gap = 12, label, className = '' }) {
   const decorOff = useReduced('decor')

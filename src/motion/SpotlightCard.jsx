@@ -10,6 +10,8 @@
 // ═══════════════════════════════════════════════════════
 import { forwardRef, useRef } from 'react'
 import { isFinePointer, isReduced } from './reduced'
+// Stillər öz faylındadır (2026-11-25: giriş CSS-indən köçürüldü — yalnız bu komponentlə yüklənir)
+import '../styles/SpotlightCard.css'
 
 const SpotlightCard = forwardRef(function SpotlightCard({ as: Tag = 'div', glow = true, radius = 260, tone = 'brand', className = '', style, onPointerMove, onPointerLeave, children, ...rest }, outer) {
   const el = useRef(null)

@@ -1,11 +1,9 @@
 // v6.2: hilalın görünmə xəritəsi, Quranın səması AR, məxrəc kəsiyi, ayə tapmacası,
 // qiraətçiləri müqayisə, 3D kitab rəfi, səhv səcdəsi bələdçisi
-import { test, expect, settle } from './fixtures.js'
+import { test, expect, settle, reach } from './fixtures.js'
 
-const scrollTo = async (page, loc) => {
-  for (let i = 0; i < 60 && !(await loc.count()); i++) { await page.mouse.wheel(0, 700); await page.waitForTimeout(150) }
-  await loc.scrollIntoViewIfNeeded()
-}
+// DeferRender bölmələri: kor mouse.wheel dövrü yox — fixtures.js → reach (yer tutucuları növbə ilə ekrana gətirir)
+const scrollTo = (page, loc) => reach(page, loc)
 function silentWav(sec = 0.6) {
   const n = Math.round(8000 * sec), b = Buffer.alloc(44 + n * 2)
   b.write('RIFF', 0); b.writeUInt32LE(36 + n * 2, 4); b.write('WAVE', 8); b.write('fmt ', 12)
@@ -33,6 +31,10 @@ test('Hilal xəritəsi: birləşmə vaxtı, 3 axşam, şəhər və seçilmiş n�
 
 test('Quranın səması AR: Ay, Günəş, əş-Şira — ayə və keçid', async ({ page }, info) => {
   test.skip(info.project.name !== 'mobile', 'yalnız toxunma ekranı')
+  // Sirius-un yeri real saatdan asılı idi: üfüqə yaxın olanda (göstərilən hündürlük 0°) nə "üfüqün altında",
+  // nə də "tapıldı" olur və ayələr açılmır — 2026-11-19 18:29 UTC-də CI məhz belə yıxıldı (Bakıda Sirius doğurdu).
+  // Saat sabitdir: Bakıda gecə 02:30 — Sirius ~30° yüksəklikdə, Günəş üfüqün altında.
+  await page.clock.setFixedTime(new Date('2026-11-15T22:30:00Z'))
   await page.addInitScript(() => {
     navigator.mediaDevices.getUserMedia = async () => { const c = document.createElement('canvas'); c.width = 4; c.height = 4; return c.captureStream(1) }
   })
@@ -44,12 +46,13 @@ test('Quranın səması AR: Ay, Günəş, əş-Şira — ayə və keçid', async
   await ar.getByTestId('sky-sirius').click()
   await expect(ar.getByTestId('sky-ayahs')).toContainText('53:49')
   await expect(ar.getByTestId('sky-ayahs').locator('a')).toHaveAttribute('href', /\/quran\/53[^?]*\?a=49$/)
-  const txt = await ar.getByTestId('hlr-data').textContent()
-  const [az, alt] = [...txt.matchAll(/(-?\d+)°/g)].map(m => Number(m[1]))
-  if (alt > 0) {
-    for (let i = 0; i < 40; i++) {
-      await page.evaluate(([a, b]) => window.dispatchEvent(Object.assign(new Event('deviceorientationabsolute'), { alpha: (360 - a) % 360, beta: 90 + b, gamma: 0, absolute: true })), [az, alt])
-    }
+  // Ayələr cisim seçilən render-də dəyişir, mövqe sətri isə effektdə — hələ Ayın sətrini ("… % işıqlı") oxumayaq
+  const data = ar.getByTestId('hlr-data')
+  await expect(data).not.toContainText('işıqlı')
+  const [az, alt] = [...(await data.textContent()).matchAll(/(-?\d+)°/g)].map(m => Number(m[1]))
+  expect(alt, 'Sirius sabit saatda üfüqdən yüksəkdə olmalıdır').toBeGreaterThan(10)
+  for (let i = 0; i < 40; i++) {
+    await page.evaluate(([a, b]) => window.dispatchEvent(Object.assign(new Event('deviceorientationabsolute'), { alpha: (360 - a) % 360, beta: 90 + b, gamma: 0, absolute: true })), [az, alt])
   }
   await expect(ar.getByTestId('sky-ayahs')).toHaveClass(/is-open/, { timeout: 5000 })
   await ar.getByTestId('sky-sun').click()

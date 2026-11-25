@@ -37,7 +37,11 @@ describe('brand.js', () => {
       const types = d['@graph'].map(n => n['@type'])
       expect(types).toEqual(['WebSite', 'Organization'])
       expect(d['@graph'][0].inLanguage).toBe(l)
+      // Rəsmi Instagram hesabı (@muslimscc) — Organization.sameAs
+      expect(d['@graph'][1].sameAs).toEqual(['https://www.instagram.com/muslimscc/'])
     }
+    expect(BRAND.instagram).toBe('muslimscc')
+    expect(BRAND.instagramUrl).toBe(`https://www.instagram.com/${BRAND.instagram}/`)
   })
 })
 

@@ -1,0 +1,47 @@
+/* BackgroundPaths (src/motion/BackgroundPaths.jsx). 2026-11-25: motion-kit.css-dən köçürüldü. */
+/* ── BackgroundPaths ── */
+.mo-paths {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  color: var(--accent);
+}
+.mo-paths--brand { color: var(--brand); }
+.mo-paths--muted { color: var(--text-tertiary); }
+.mo-paths__l {
+  position: absolute;
+  top: -8%;
+  left: -12%;
+  width: 124%;
+  height: 116%;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1;
+  opacity: 0;
+  animation: mo-paths-in 1.4s ease-out 0.25s forwards, mo-paths-drift 26s ease-in-out 1.6s infinite alternate;
+}
+.mo-paths__l--b { transform: scaleX(-1); animation: mo-paths-in 1.4s ease-out 0.45s forwards, mo-paths-drift-b 32s ease-in-out 1.8s infinite alternate; }
+.mo-paths__l path {
+  vector-effect: non-scaling-stroke;
+  stroke-opacity: var(--po, 0.2);
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: mo-path-draw 2.2s var(--wow-ease, cubic-bezier(.16, 1, .3, 1)) forwards;
+  animation-delay: calc(var(--pi, 0) * 55ms);
+}
+.mo-paths.is-paused .mo-paths__l,
+.mo-paths.is-paused .mo-paths__l path { animation-play-state: paused; }
+.mo-paths.is-static .mo-paths__l { opacity: 1; animation: none; }
+.mo-paths.is-static .mo-paths__l path { stroke-dashoffset: 0; animation: none; }
+@keyframes mo-paths-in { to { opacity: 1; } }
+@keyframes mo-paths-drift { from { transform: translate3d(-3%, 0, 0); } to { transform: translate3d(3%, 1.5%, 0); } }
+@keyframes mo-paths-drift-b { from { transform: scaleX(-1) translate3d(-3%, 1%, 0); } to { transform: scaleX(-1) translate3d(3%, -1%, 0); } }
+@keyframes mo-path-draw { to { stroke-dashoffset: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .mo-paths__l { opacity: 1; animation: none; }
+  .mo-paths__l path { stroke-dashoffset: 0; animation: none; }
+}
+html.a11y-reduce-motion .mo-paths__l { opacity: 1; animation: none; }
+html.a11y-reduce-motion .mo-paths__l path { stroke-dashoffset: 0; animation: none; }

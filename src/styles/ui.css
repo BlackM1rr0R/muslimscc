@@ -1214,7 +1214,6 @@ button.ui-card:active,
   .ui-toast__progress { display: none; }
 }
 
-
 /* ── .ui-cv — ekrandan kənar bölmələrin render-ini təxirə sal ──
    PERFORMANS: content-visibility: auto — bölmə görünən sahədən uzaqda
    olanda brauzer onun daxili style/layout/paint işini atlayır (ana səhifədə
@@ -1230,7 +1229,6 @@ button.ui-card:active,
   content-visibility: auto;
   contain-intrinsic-size: auto var(--cv-h, 600px);
 }
-
 
 /* ══ 13. v3 KOMPONENTLƏRİ ══════════════════════════════════════════
    Səhifə agentləri üçün hazır naxışlar — öz kartını/cədvəlini/sekməsini
@@ -1811,109 +1809,16 @@ button.ui-card:active,
    Əl ilə yazılmış SVG/HTML, kitabxana yoxdur. Rənglər --viz-1…4 (sabit
    sıra), iz/şəbəkə --viz-track/--viz-grid; mətn HƏMİŞƏ mətn tokenlərində.
    Əlçatanlıq: hər qrafik <figure> + başlıq; dəyərlər görünən mətn kimi də
-   var (etiket/legend) — rəng tək daşıyıcı deyil. */
-
-/* Üfüqi zolaq qrafiki (BarChart) — HTML, RTL avtomatik */
-.ui-viz-bars-wrap { container-type: inline-size; }
-.ui-viz-bars { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
-.ui-viz-bar {
-  display: grid;
-  grid-template-columns: minmax(0, var(--bar-label-w, 34%)) minmax(0, 1fr);
-  align-items: center;
-  gap: 4px 12px;
-}
-.ui-viz-bar__label { color: var(--text-secondary); font-size: var(--step--1); line-height: 1.35; overflow-wrap: anywhere; }
-.ui-viz-bar__track { display: flex; align-items: center; gap: 8px; min-height: 18px; min-width: 0; }
-.ui-viz-bar__fill {
-  flex: 0 1 auto;
-  width: var(--w, 0%);
-  min-width: 2px;
-  height: 12px;
-  border-radius: 2px 4px 4px 2px;
-  background: var(--bar-color, var(--viz-1));
-  transition: width var(--dur-4, 560ms) var(--ease-out, ease);
-}
-[dir="rtl"] .ui-viz-bar__fill { border-radius: 4px 2px 2px 4px; }
-.ui-viz-bar__value {
-  flex-shrink: 0;
-  color: var(--text-strong);
-  font-family: var(--font-num);
-  font-size: var(--step--1);
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-.ui-viz-bar__note { grid-column: 2; color: var(--text-tertiary); font-size: var(--step--2); }
-.ui-viz-bar.is-muted .ui-viz-bar__fill { background: var(--line-strong); }
-@container (max-width: 420px) {
-  .ui-viz-bar { grid-template-columns: minmax(0, 1fr); }
-  .ui-viz-bar__note { grid-column: 1; }
-}
-
-/* Şaquli sütun qrafiki (ColumnChart) — HTML flex, kateqoriya azdırsa (≤ 12) */
-.ui-viz-cols {
-  --cols-h: 140px;
-  display: flex;
-  align-items: flex-end;
-  gap: clamp(4px, 1.5vw, 12px);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-.ui-viz-col { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 4px; }
-.ui-viz-col__bar {
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  width: 100%;
-  height: var(--cols-h);
-  border-bottom: 1px solid var(--viz-grid);
-}
-.ui-viz-col__fill {
-  width: min(100%, 32px);
-  height: var(--h, 0%);
-  min-height: 2px;
-  border-radius: 4px 4px 0 0;
-  background: var(--bar-color, var(--viz-1));
-}
-.ui-viz-col__value { color: var(--text-strong); font-family: var(--font-num); font-size: var(--step--2); font-weight: 600; font-variant-numeric: tabular-nums; }
-.ui-viz-col__label { color: var(--text-tertiary); font-size: var(--step--2); line-height: 1.2; text-align: center; overflow-wrap: anywhere; }
-.ui-viz-col.is-current .ui-viz-col__label { color: var(--text-strong); font-weight: 600; }
-.ui-viz-col.is-muted .ui-viz-col__fill { background: var(--line-strong); }
-
-/* Dairəvi qrafik (Donut) və halqa (ProgressRing) — SVG */
-.ui-viz-donut { display: flex; flex-wrap: wrap; align-items: center; gap: 16px 24px; }
-.ui-viz-donut svg, .ui-viz-ring svg { display: block; flex-shrink: 0; }
-.ui-viz-donut .ui-legend { margin: 0; flex-direction: column; flex-wrap: nowrap; gap: 8px; }
-.ui-viz-arc { fill: none; transition: stroke-dasharray var(--dur-4, 560ms) var(--ease-out, ease); }
-.ui-viz-track { fill: none; stroke: var(--viz-track); }
-.ui-viz-center-num { fill: var(--text-strong); font-family: var(--font-num); font-weight: 600; }
-.ui-viz-center-label { fill: var(--text-tertiary); font-family: var(--font-sans); }
-.ui-viz-ring { display: inline-flex; align-items: center; gap: 12px; }
-.ui-viz-ring__text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.ui-viz-ring__label { color: var(--text-strong); font-family: var(--font-heading); font-size: var(--step--1); font-weight: 600; }
-.ui-viz-ring__sub { color: var(--text-tertiary); font-size: var(--step--2); }
-.ui-viz-ring .ui-viz-arc { stroke-linecap: round; }
-
-/* Kiçik xətt qrafiki (Sparkline) — SVG; --flip: RTL-də zaman sağdan sola */
-.ui-viz-spark { display: block; overflow: visible; }
-.ui-viz-spark__line { fill: none; stroke: var(--spark-color, var(--viz-1)); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
-.ui-viz-spark__area { fill: color-mix(in srgb, var(--spark-color, var(--viz-1)) 12%, transparent); stroke: none; }
-.ui-viz-spark__dot { fill: var(--spark-color, var(--viz-1)); stroke: var(--surface-1); stroke-width: 2; vector-effect: non-scaling-stroke; }
-[dir="rtl"] .ui-viz-spark--flip { transform: scaleX(-1); }
-
-/* Bir zolaqda paylar (StackedBar) — tərkib (miras payları, günün bölgüsü) */
-.ui-viz-stack { display: flex; gap: 2px; height: 14px; border-radius: 4px; overflow: hidden; background: var(--viz-track); }
-.ui-viz-stack > span { flex: 0 0 auto; width: var(--w); min-width: 2px; background: var(--bar-color, var(--viz-1)); }
+   var (etiket/legend) — rəng tək daşıyıcı deyil.
+   PERFORMANS (2026-11-25): .ui-viz-* qaydaları viz.css-in əvvəlinə köçürüldü (components/viz
+   import edir) — bu fayl giriş CSS-indədir, qrafik isə yalnız bəzi səhifələrdədir. */
 
 @media (prefers-reduced-motion: reduce) {
-  .ui-viz-bar__fill, .ui-viz-arc, .ui-meter__fill, .ui-tab::after { transition: none; }
+  .ui-meter__fill, .ui-tab::after { transition: none; }
 }
 @media (forced-colors: active) {
-  .ui-viz-bar__fill, .ui-viz-col__fill, .ui-meter__fill, .ui-swatch, .ui-viz-stack > span { background: CanvasText; }
-  .ui-viz-arc, .ui-viz-spark__line { stroke: CanvasText; }
+  .ui-meter__fill, .ui-swatch { background: CanvasText; }
 }
-
 
 /* ══ 15. v3.2 — "KİÇİKDƏN BÖYÜYƏ MODERN" ═══════════════════════════
    Sahibin istəyi (2026-11): alt-alta uzun siyahı/akkordeon sətirləri yox —

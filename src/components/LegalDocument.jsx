@@ -149,6 +149,29 @@ export const NAMES = {
   sw: 'service worker',
   ip: 'IP',
   gdpr: 'GDPR',
+  // Hesab, məktub və əlavə xidmətlər (Məxfilik siyasəti, 2026-11-25)
+  resend: 'Resend',
+  google: 'Google',
+  telegram: 'Telegram',
+  wordpress: 'WordPress',
+  quranenc: 'QuranEnc',
+  hadeethenc: 'HadeethEnc',
+  jsdelivr: 'jsDelivr',
+  github: 'GitHub',
+  openfoodfacts: 'Open Food Facts',
+  chatgpt: 'ChatGPT',
+  perplexity: 'Perplexity',
+  // Texniki adlar — hər dildə eyni yazılır (server/users.js, server/security.js)
+  cookieuser: '__Host-mcc_user',
+  cookiedev: '__Host-mcc_dev',
+  httponly: 'HttpOnly',
+  scrypt: 'scrypt',
+  pbkdf2: 'PBKDF2-SHA256',
+  aesgcm: 'AES-256-GCM',
+  sha256: 'SHA-256',
+  csp: 'CSP',
+  devlabel: 'Chrome · Android',
+  profilepath: '/u/…',
 }
 
 // Şərtli bloklar üçün sabitlər (mətn obyektlərində sətir yazılmasın deyə —

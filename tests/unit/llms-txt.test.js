@@ -11,6 +11,10 @@ describe('llms.txt', () => {
   it('əsas bölmələr ingiliscə ünvanla', () => {
     for (const p of ['/en/quran', '/en/prayer', '/en/hadith', '/en/duas', '/en/qibla', '/en/zakat']) expect(s).toContain(`https://muslims.cc${p})`)
   })
+  it('əlaqə: rəsmi Instagram hesabı', () => {
+    expect(s).toContain('## Contact')
+    expect(s).toContain('- Instagram: https://www.instagram.com/muslimscc/ (@muslimscc)')
+  })
   it('admin və noindex səhifələr yoxdur', () => {
     expect(s).not.toMatch(/admin/)
     expect(INDEXABLE.length).toBeGreaterThan(40)

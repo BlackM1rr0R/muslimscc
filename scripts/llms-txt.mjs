@@ -13,6 +13,7 @@
 import { SITE, INDEXABLE, DETAILS, LANGS, ALL_LANGS, EXTRA_CODES, pathFor, detailParams } from '../src/seo/routes.js'
 import { pickMeta } from '../src/seo/meta.js'
 import { CALC_METHODS } from '../src/utils/prayCalc.js'
+import { BRAND } from '../src/config/brand.js'
 
 // Bölmələr — qruplar (key-lər routes.js PAGES-dən). Siyahıda olmayan indekslənən səhifə "Other"-ə düşür.
 const GROUPS = [
@@ -110,6 +111,10 @@ export function buildLlmsTxt({ date } = {}) {
     if (DETAILS[k]) out.push(`- ${SITE}${pathFor(k, l)}/<slug>: ${note}`)
   }
   out.push(`- Sitemap: ${SITE}/sitemap.xml`)
+  out.push('')
+  out.push('## Contact')
+  out.push('')
+  out.push(`- Instagram: ${BRAND.instagramUrl} (@${BRAND.instagram}) — daily verse, hadith and dua cards with their sources, taken from the site's own texts`)
   out.push('')
   out.push('## Optional')
   out.push('')

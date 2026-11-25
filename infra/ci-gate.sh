@@ -18,6 +18,8 @@
 #                            Tapılmasa çıxış kodu 3 ("miss") — CI onda adi upload edir.
 #   deploy <TAG>             /opt/muslimscc/deploy.sh <TAG>
 #   status                   cari versiya + konteynerlərin vəziyyəti
+#   ig-reel <TARİX> <AYƏ> <alafasy|none>
+#                            stdin (MP4, ≤ 15 MB) → api həcmi /data/ig-cards/<TARİX>-reel.mp4 + .json (Instagram reel)
 # TAG: 7-40 simvollu git hash (yalnız [0-9a-f]) — yol hücumu mümkün deyil. SRC: 40 simvollu git hash.
 # ═══════════════════════════════════════════════════════
 set -eu
@@ -63,6 +65,31 @@ case "$CMD" in
     valid_tag "$TAG" || deny
     logger -t ci-gate "deploy $TAG"
     exec /opt/muslimscc/deploy.sh "$TAG"
+    ;;
+  ig-reel)
+    # Instagram reel (.github/workflows/ig-reel.yml → server/instagram.js, docs/INSTAGRAM.md → "Reels"):
+    #   ig-reel <YYYY-MM-DD> <surə:ayə[-son]> <alafasy|none>   stdin → MP4 (≤ 15 MB)
+    # İşləyən api konteynerinin /data/ig-cards/ qovluğuna <tarix>-reel.mp4 + <tarix>-reel.json yazılır (atomik mv).
+    # Deploy-a toxunmur, image / konfiqurasiya dəyişmir; konteyner tapılmasa — çıxış 1 (CI yenidən cəhd edir).
+    DATE="$TAG"; REF="$NAME"; AUDIO="$SRC"
+    echo "$DATE" | grep -Eq '^20[0-9]{2}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$' || deny
+    echo "$REF" | grep -Eq '^[0-9]{1,3}:[0-9]{1,3}(-[0-9]{1,3})?$' || deny
+    case "$AUDIO" in alafasy|none) ;; *) deny ;; esac
+    TMP=$(mktemp /tmp/ig-reel.XXXXXX)
+    trap 'rm -f "$TMP"' EXIT
+    head -c 15728641 > "$TMP"
+    SIZE=$(wc -c < "$TMP")
+    [ "$SIZE" -ge 10240 ] && [ "$SIZE" -le 15728640 ] || { echo "ölçü yararsızdır: $SIZE" >&2; exit 1; }
+    [ "$(dd if="$TMP" bs=1 skip=4 count=4 2>/dev/null)" = ftyp ] || { echo "MP4 deyil" >&2; exit 1; }
+    CUR=$(cat .current_tag 2>/dev/null || true)
+    [ -n "$CUR" ] || { echo "cari versiya yoxdur" >&2; exit 1; }
+    C=$(TAG="$CUR" docker compose ps -q --status running api 2>/dev/null | head -n 1)
+    [ -n "$C" ] || { echo "api konteyneri işləmir" >&2; exit 1; }
+    D=/data/ig-cards
+    printf '{"ref":"%s","audio":"%s"}\n' "$REF" "$AUDIO" | docker exec -i "$C" sh -c "mkdir -p $D && cat > $D/.$DATE-reel.json.tmp && mv $D/.$DATE-reel.json.tmp $D/$DATE-reel.json"
+    docker exec -i "$C" sh -c "cat > $D/.$DATE-reel.mp4.tmp && mv $D/.$DATE-reel.mp4.tmp $D/$DATE-reel.mp4" < "$TMP"
+    logger -t ci-gate "ig-reel $DATE $REF $AUDIO $SIZE"
+    echo "reel yazıldı: $DATE ($REF, $AUDIO, $SIZE bayt)"
     ;;
   status)
     CUR=$(cat .current_tag 2>/dev/null || true)

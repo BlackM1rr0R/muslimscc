@@ -8,6 +8,9 @@
 //   Azərbaycan şəhəri — data-city (vidcet özü hesablayır, prayCalc ilə eyni);
 //   digər şəhərlər — data-lat/data-lng/data-tz (aladhan, Diyanət metodu).
 // • Alternativ: iframe — məscid ekranının yığcam görünüşü (/mosque-tv?compact=1).
+//   İstəyə bağlı ikinci sətir — avtomatik hündürlük dinləyicisi (utils/embedHeight.js → autoHeightScript,
+//   WordPress plagininin inline skripti ilə EYNİ): iframe məzmununa qədər böyüyür, yalnız muslims.cc-dən
+//   gələn rəqəmi qəbul edir. Səhifədəki önizləmə də eyni qaydanı işlədir (öz mənşəyindən).
 // • WordPress plagini (eyni iframe) — components/widget/WpPluginSection.jsx, wordpress/muslimscc-prayer-times/.
 // Vidcetin mənbəyi: src/widget/widget.src.js → node scripts/build-widget.mjs
 // ═══════════════════════════════════════════════════════
@@ -26,9 +29,14 @@ import { m } from 'motion/react'
 import { SPRING } from '../motion/presets'
 import WpPluginSection from '../components/widget/WpPluginSection'
 import { wpShortcode } from '../utils/wpPlugin'
+import { autoHeightScript, clampEmbedHeight, isHeightMessage } from '../utils/embedHeight'
 
 // Məscid ekranının yolu (seo/routes.js-də 'mosquetv' → 'mosque-tv')
 const TV_PATH = '/mosque-tv'
+// iframe kodunun və önizləmənin başlanğıc hündürlüyü — avtomatik hündürlükdə minimum (WidgetPage.css ilə eyni)
+const IFRAME_H = 280
+// Əl ilə yerləşdirmə üçün dinləyici (WordPress plagininin inline skripti ilə eyni mətn)
+const AUTO_HEIGHT_CODE = `<script>${autoHeightScript(SITE)}</script>`
 const SCRIPT_SRC = '/widget.js'
 
 // Dizayn v3: "necə işlədilir", açar rəqəmlər və 3 addım (5 dil)
@@ -83,6 +91,7 @@ const LABELS = {
     iframeTitle: 'Başqa yol:',
     iframeText: 'Saytınıza skript əlavə etmək mümkün deyilsə, məscid ekranının yığcam görünüşünü çərçivə kodu ilə yerləşdirin. Orada iqamə vaxtları da göstərilir.',
     iframeTitleAttr: 'Namaz vaxtları',
+    iframeAuto: 'İstəyə bağlı: saytınız skriptə icazə verirsə, çərçivənin altına bu sətri də əlavə edin — çərçivə məzmununa görə özü uzanacaq (dar sütunda vaxtlar iki cərgəyə keçir). Skript yalnız muslims.cc-dən gələn hündürlük rəqəmini qəbul edir.',
     tvTitle: 'Məscid televizoru üçün',
     tvText: 'Məscidinizdəki ekranda böyük saat, azan və iqamə vaxtları, cümə xütbəsi, ayə və zikrlər göstərin. Bütün ayarlar linkin içində saxlanılır.',
     tvBtn: 'Məscid ekranını aç',
@@ -115,6 +124,7 @@ const LABELS = {
     iframeTitle: 'Alternative:',
     iframeText: 'If you can’t add a script to your site, embed the compact view of the mosque display with an iframe. It also shows iqamah times.',
     iframeTitleAttr: 'Prayer times',
+    iframeAuto: 'Optional: if your site allows scripts, add this line below the frame too — the frame then grows to fit its content (in narrow columns the times wrap onto two rows). The script accepts only a height number sent by muslims.cc.',
     tvTitle: 'For the mosque TV',
     tvText: 'Show a large clock, adhan and iqamah times, the Friday khutbah, verses and remembrance on your mosque’s screen. All settings are stored in the link.',
     tvBtn: 'Open the mosque display',
@@ -148,6 +158,7 @@ const LABELS = {
     iframeTitle: 'Альтернатива:',
     iframeText: 'Если на сайт нельзя добавить скрипт, встройте компактный вид экрана мечети через встроенный фрейм. В нём также показывается время икамы.',
     iframeTitleAttr: 'Время намаза',
+    iframeAuto: 'По желанию: если сайт разрешает скрипты, добавьте под фреймом и эту строку — фрейм сам вытянется по содержимому (в узкой колонке время переносится на два ряда). Скрипт принимает только число высоты от muslims.cc.',
     tvTitle: 'Для телевизора в мечети',
     tvText: 'Показывайте на экране мечети большие часы, время азана и икамы, пятничную хутбу, аяты и зикры. Все настройки хранятся в ссылке.',
     tvBtn: 'Открыть экран мечети',
@@ -181,6 +192,8 @@ const LABELS = {
     iframeTitle: 'بديل:',
     iframeText: 'إن لم يكن بالإمكان إضافة سكربت إلى موقعك، فضمّن العرض المختصر لشاشة المسجد بإطار مضمّن. ويعرض أيضًا أوقات الإقامة.',
     iframeTitleAttr: 'مواقيت الصلاة',
+    // lang-ok[muslims.cc]: اسم الموقع
+    iframeAuto: 'اختياري: إن كان موقعك يسمح بالسكربتات فأضف هذا السطر أيضًا تحت الإطار، فيطول الإطار تلقائيًا بحسب محتواه (في العمود الضيّق تنتقل الأوقات إلى صفّين). ولا يقبل السكربت إلا رقم الارتفاع المرسَل من muslims.cc.',
     tvTitle: 'لشاشة المسجد',
     tvText: 'اعرض على شاشة مسجدك ساعة كبيرة وأوقات الأذان والإقامة وخطبة الجمعة وآيات وأذكارًا. جميع الإعدادات محفوظة في الرابط.',
     tvBtn: 'افتح شاشة المسجد',
@@ -213,6 +226,7 @@ const LABELS = {
     iframeTitle: 'Alternatif:',
     iframeText: 'Sitenize betik eklemek mümkün değilse cami ekranının sade görünümünü iframe ile yerleştirin. Orada kamet vakitleri de gösterilir.',
     iframeTitleAttr: 'Namaz vakitleri',
+    iframeAuto: 'İsteğe bağlı: siteniz betiklere izin veriyorsa çerçevenin altına bu satırı da ekleyin — çerçeve içeriğine göre kendiliğinden uzar (dar sütunda vakitler iki sıraya geçer). Betik yalnızca muslims.cc’den gelen yükseklik sayısını kabul eder.',
     tvTitle: 'Cami televizyonu için',
     tvText: 'Caminizin ekranında büyük saat, ezan ve kamet vakitleri, cuma hutbesi, ayet ve zikirler gösterin. Tüm ayarlar bağlantının içinde saklanır.',
     tvBtn: 'Cami ekranını aç',
@@ -313,7 +327,24 @@ export default function WidgetPage({ setPage }) {
   const opts = useMemo(() => widgetOpts(city, wLang, theme), [city, wLang, theme])
   const code = useMemo(() => embedCode(opts), [opts])
   const tvQuery = useMemo(() => iframeQuery(city, wLang, theme), [city, wLang, theme])
-  const iframeCode = `<iframe src="${SITE}${TV_PATH}?${attrEsc(tvQuery)}" width="100%" height="280" style="border:0;border-radius:12px" title="${attrEsc(l.iframeTitleAttr)}" loading="lazy"></iframe>`
+  const iframeCode = `<iframe src="${SITE}${TV_PATH}?${attrEsc(tvQuery)}" width="100%" height="${IFRAME_H}" style="border:0;border-radius:12px" title="${attrEsc(l.iframeTitleAttr)}" loading="lazy"></iframe>`
+
+  // ── Önizləmə iframe-i: məzmunun hündürlüyü (mosque-tv → postMessage) — dinləyici skriptlə eyni qayda ──
+  // Hündürlük seçimə bağlıdır (q): seçim dəyişəndə iframe yenidən yaranır və öz başlanğıc hündürlüyündən başlayır.
+  const frameRef = useRef(null)
+  const [frameH, setFrameH] = useState({ q: '', h: 0 })
+  useEffect(() => {
+    const onMsg = (e) => {
+      const f = frameRef.current
+      if (!f || e.source !== f.contentWindow || e.origin !== window.location.origin || !isHeightMessage(e.data)) return
+      const h = clampEmbedHeight(e.data.h, IFRAME_H)
+      const q = f.getAttribute('data-q') || ''
+      setFrameH(prev => (prev.q === q && prev.h === h ? prev : { q, h }))
+    }
+    window.addEventListener('message', onMsg)
+    return () => window.removeEventListener('message', onMsg)
+  }, [])
+  const previewH = frameH.q === tvQuery ? frameH.h : 0
 
   // ── Canlı görünüş ──
   const previewRef = useRef(null)
@@ -469,12 +500,18 @@ export default function WidgetPage({ setPage }) {
           <h2 id="wg-iframe-title" className="ui-title ui-title--sm" data-reveal>{l.iframeTitle} <code dir="ltr" className="wg-tag">iframe</code></h2>
           <p className="wg-hint">{l.iframeText}</p>
           <CopyBox code={iframeCode} l={l} id="wg-code-iframe" />
+          <p className="wg-hint">{l.iframeAuto}</p>
+          <CopyBox code={AUTO_HEIGHT_CODE} l={l} id="wg-code-iframe-auto" />
           <div className="wg-iframe-frame">
             <iframe
               key={tvQuery}
+              ref={frameRef}
+              data-q={tvQuery}
               src={`${TV_PATH}?${tvQuery}`}
               title={l.iframeTitleAttr}
               loading="lazy"
+              style={previewH ? { height: `${previewH}px` } : undefined}
+              data-testid="wg-iframe-preview"
             />
           </div>
         </section>

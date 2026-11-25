@@ -2,6 +2,8 @@
 // /volunteers — məscid könüllüləri (server/volunteers.js; burada server yoxdur — /api saxtası)
 //   • girişsiz: yalnız "N of M slots filled" — ad yoxdur; "Sign up" → giriş keçidi
 //   • girişli: yazıl (ad, e-poçt yalnız razılıqla) → "You are signed up" → ləğv (DELETE)
+//   • e-poçtu təsdiqlənməmiş hesab: server 403 verify_email → forma bağlanır, qeyd (fokus onda) +
+//     "məktubu yenidən göndər" + "Hesabıma keç"; yazılış olmur, ümumi xəta göstərilmir
 //   • nümayəndə (mosque_rep): ehtiyac yerləşdir (mosqueId GÖNDƏRİLMİR), yazılanların adları yalnız burada
 //   • axe, 360px daşma yoxdur
 // ═══════════════════════════════════════════════════════
@@ -45,6 +47,8 @@ async function attach(page, st) {
     const mm = /^\/api\/volunteers\/(\d+)\/signup$/.exec(p)
     if (mm) {
       const n = st.needs.find((x) => x.id === Number(mm[1]))
+      // server/volunteers.js: təsdiqlənməmiş e-poçtla yazılış → 403 { code: 'verify_email' }
+      if (m === 'POST' && st.unverified) return route.fulfill({ status: 403, json: { error: 'verify_email', code: 'verify_email' } })
       if (m === 'POST') n.signups.push({ name: body.name, email: body.shareEmail ? 'user@example.com' : null, me: true })
       else n.signups = n.signups.filter((s) => !s.me)
       return route.fulfill({ json: { item: { ...pub(n), signedUp: m === 'POST' } } })
@@ -91,6 +95,32 @@ test('girişli: yazıl (e-poçt yalnız razılıqla) → ləğv', async ({ page,
   expect(st.bodies.some((b) => b.m === 'DELETE' && b.path === '/api/volunteers/21/signup')).toBe(true)
   // Nümayəndə deyil — idarə bölməsi yoxdur
   await expect(page.getByTestId('vo-manage')).toHaveCount(0)
+  expectCleanConsole(consoleProblems)
+})
+
+test('e-poçt təsdiqlənməyib (403 verify_email): qeyd + məktubu yenidən göndər + hesab keçidi', async ({ page, consoleProblems }) => {
+  const auth = await fakeUserSession(page, { signedIn: true, user: { emailVerified: false, displayName: 'Ali' } })
+  await page.addInitScript(() => localStorage.setItem('mcc_logged_in', '1'))
+  const st = { bodies: [], needs: [NEED()], signedIn: true, rep: false, unverified: true }
+  await attach(page, st)
+  await page.goto('/en/volunteers')
+  await settle(page)
+  await page.getByTestId('vo-signup').click()
+  await page.getByTestId('vo-confirm').click()
+  const note = page.getByTestId('vo-verify')
+  await expect(note).toContainText('Confirm your email to use this.')
+  // Forma bağlanıb, ümumi "alınmadı" xətası yoxdur; fokus qeyddədir (ekran oxuyucu oxuyur)
+  await expect(page.getByTestId('vo-name')).toHaveCount(0)
+  await expect(page.getByTestId('vo-msg')).toHaveCount(0)
+  await expect(page.locator('.vo-verify')).toBeFocused()
+  await expect(note.getByTestId('vo-verify-account')).toHaveAttribute('href', '/en/account')
+  await note.getByTestId('vo-verify-resend').click()
+  await expect(note).toContainText('Confirmation email sent. Check your inbox.')
+  expect(auth.requests).toContain('POST /api/auth/verify/resend')
+  // Yazılış olmadı — say dəyişmir
+  await expect(page.getByTestId('vo-slots').first()).toHaveText('2 of 5 slots filled')
+  expect(await serious(page, ['main'])).toEqual([])
+  expect(await noOverflow(page)).toBe(true)
   expectCleanConsole(consoleProblems)
 })
 

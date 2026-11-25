@@ -1,0 +1,15 @@
+/* Ana səhifə hero-sunda şəxsi salam (components/home/HeroGreeting.jsx). 2026-11-25: vau3.css-dən köçürüldü. */
+/* v5.7: ana səhifə hero-sunda şəxsi salam (components/home/HeroGreeting) */
+.hg { display: grid; gap: 6px; margin-bottom: 18px; }
+@media (max-width: 767.98px) { .hg { order: 1; margin-bottom: 10px; } }
+.hg-hi { margin: 0; font-family: var(--font-display, inherit); font-size: clamp(1.05rem, .95rem + .5vw, 1.3rem); font-weight: 700; color: var(--text-strong); line-height: 1.35; }
+.hg-part { color: var(--accent-text); }
+.hg-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; font-size: var(--step--1); }
+.hg-streak { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 99px; background: var(--accent-soft); color: var(--accent-text); font-weight: 700; }
+.hg-edit { display: inline-flex; align-items: center; gap: 5px; border: 0; padding: 2px 0; background: none; font: inherit; color: var(--text-secondary); cursor: pointer; text-decoration: underline dotted; text-underline-offset: 3px; }
+.hg-form { display: flex; gap: 6px; align-items: center; }
+.hg-input { max-width: 180px; min-height: 34px; padding: 4px 10px; }
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-motion-user) .hg-w { display: inline-block; animation: hg-word .6s cubic-bezier(.22, 1, .36, 1) calc(var(--wi, 0) * 90ms) both; }
+}
+@keyframes hg-word { from { opacity: 0; transform: translate3d(0, .5em, 0); } }

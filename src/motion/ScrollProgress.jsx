@@ -7,6 +7,8 @@
 // ═══════════════════════════════════════════════════════
 import { m, useScroll, useSpring } from 'motion/react'
 import { useReduced } from './reduced'
+// Stillər öz faylındadır (2026-11-25: giriş CSS-indən köçürüldü — yalnız bu komponentlə yüklənir)
+import '../styles/ScrollProgress.css'
 
 export default function ScrollProgress({ target, container, fixed = false, className = '' }) {
   const reduced = useReduced()

@@ -19,6 +19,8 @@ import Icon, { hasIcon } from './Icon'
 import { useBackToClose } from '../utils/useBackToClose'
 import { pickUi } from '../utils/uiText'
 import { openTour } from '../utils/tour'
+// Stillər öz faylındadır (2026-11-25: giriş CSS-indən köçürüldü — yalnız bu komponentlə yüklənir)
+import '../styles/PageHelp.css'
 
 // Mətnlər saytda artıq var (44 lüğətdə tərcüməsi hazırdır)
 const L = {

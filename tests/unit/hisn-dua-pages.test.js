@@ -52,14 +52,19 @@ describe('ərəbcə mətnin tutuşdurulması (normAr + Dice)', () => {
 })
 
 describe('commit olunmuş siyahı (seo-data/hisn-verified.json → src/seo/hisnIds.js)', () => {
-  it('255 bənd yoxlanıb, səhifə alanlar = HISN_DUA_IDS (fəsil 2 saxlanılır)', () => {
+  it('255 bənd yoxlanıb, səhifə alanlar = HISN_DUA_IDS (saxlanılan fəsil yoxdur)', () => {
     expect(REPORT.total).toBe(293)
     expect(REPORT.verified).toBe(255)
+    expect(REPORT.published).toBe(255)
     expect(HISN_DUA_IDS).toEqual(REPORT.items.filter(x => x.published).map(x => x.slug))
     expect(HISN_DUA_IDS.length).toBe(REPORT.published)
     for (const x of REPORT.items) if (x.published) expect(x.verified && x.score >= DICE_MIN, x.slug).toBe(true)
-    expect(Object.keys(HOLD)).toContain('2')
-    expect(HISN_DUA_IDS.some(id => id.startsWith('2-'))).toBe(false)
+    // Fəsil 2-nin saxlanması (ar.json-da təxric sürüşməsi) düzələndən sonra götürülüb — 2026-11-25
+    expect(HOLD).toEqual({})
+    expect(REPORT.items.some(x => x.hold)).toBe(false)
+    // 2-1, 2-2, 2-4 yoxlanmışdır; 2-3 (Dice 0.68) yoxlanmamış kimi özü kənarda qalır
+    expect(HISN_DUA_IDS.filter(id => id.startsWith('2-'))).toEqual(['2-1', '2-2', '2-4'])
+    expect(REPORT.items.find(x => x.slug === '2-3')).toMatchObject({ verified: false, published: false })
     // Fəsil 1 (zikrin fəziləti) hisnmuslim.com API-də yoxdur — səhifəsi də yoxdur
     expect(HISN_DUA_IDS.some(id => id.startsWith('1-'))).toBe(false)
   })
@@ -68,6 +73,13 @@ describe('commit olunmuş siyahı (seo-data/hisn-verified.json → src/seo/hisnI
     let n = 0
     for (const c of AR) c.items.forEach((it, i) => { n++; expect(fingerprint(it.ar), slugOf(c.id, i)).toBe(fp.get(slugOf(c.id, i))) })
     expect(n).toBe(REPORT.total)
+  })
+  it('fəsil 2: təxric öz bəndindədir (sürüşmə düzəlib) — Buxari 11/113 1-ci, Tirmizi 5/473 2-ci bənddə', () => {
+    expect(hisnInfo('2-1').src).toContain('11/ 113')
+    expect(hisnInfo('2-1').src).toContain('2083')
+    expect(hisnInfo('2-2').src).toContain('الترمذي 5/ 473')
+    expect(hisnInfo('2-4').src).toContain('8/ 337')
+    for (const id of ['2-1', '2-2', '2-4']) expect(hisnInfo(id).src, id).not.toMatch(/^\s*\*|أي /)
   })
   it('hər səhifənin ərəb mətni və təxrici var', () => {
     for (const id of HISN_DUA_IDS) {
@@ -91,9 +103,10 @@ describe('marşrut — yalnız ərəbcə', () => {
     expect(parsePath('/ar/hisnul-muslim/27-1')).toEqual({ lang: 'ar', key: 'hisn', known: true, param: '27-1' })
     expect(parsePath('/hisnul-muslim/27-1')).toMatchObject({ lang: 'az', key: 'hisn', known: true, fallback: true })
     expect(parsePath('/ru/hisnul-muslim/27-1')).toMatchObject({ fallback: true })
-    // Yoxlanmamış / saxlanılan bənd → 404
+    // Yoxlanmamış bənd → 404; fəsil 2-nin yoxlanmış bəndi → səhifə
     expect(parsePath('/ar/hisnul-muslim/1-1').known).toBe(false)
-    expect(parsePath('/ar/hisnul-muslim/2-1').known).toBe(false)
+    expect(parsePath('/ar/hisnul-muslim/2-3').known).toBe(false)
+    expect(parsePath('/ar/hisnul-muslim/2-1')).toEqual({ lang: 'ar', key: 'hisn', known: true, param: '2-1' })
     expect(parsePath('/ar/hisnul-muslim/27-99').known).toBe(false)
     // Siyahı səhifəsi əvvəlki kimi bütün dillərdə
     expect(parsePath('/hisnul-muslim')).toEqual({ lang: 'az', key: 'hisn', known: true, param: null })
@@ -172,7 +185,7 @@ describe('meta, sxem, statik blok', () => {
     // Ərəbcə siyahı — hər zikr səhifəsinə link
     const list = staticBodyFor('hisn', 'ar')
     for (const id of HISN_DUA_IDS) expect(list).toContain(`href="/ar/hisnul-muslim/${id}"`)
-    expect(list).not.toContain('href="/ar/hisnul-muslim/2-1"')
+    expect(list).not.toContain('href="/ar/hisnul-muslim/2-3"')
   })
   it('llms-full.txt: hər zikr ərəbcə başlıqla, /ar ünvanı ilə', () => {
     const txt = buildLlmsFullTxt(detail, {})

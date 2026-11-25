@@ -17,6 +17,7 @@ import Icon from '../Icon'
 import { pickUi } from '../../utils/uiText'
 import { pathFor } from '../../seo/routes'
 import { buildDailyItems, dayNumber } from '../DailyReminderBar'
+import { readDailyPools } from '../../utils/dailyPoolsStore'
 import { localizeSource } from '../../utils/sourceNames'
 import '../../styles/DayStories.css'
 
@@ -128,8 +129,10 @@ function Viewer({ items, start, lang, t, onClose, onSeen }) {
 
 export default function DayStories({ lang = 'az' }) {
   const t = pickUi(T, lang)
+  // Cari dilin hovuzları (zolaqla ortaq yaddaş); hələ yoxdursa — Suspense yer tutucusu (HomePage)
+  const pools = readDailyPools(lang)
   const day = useMemo(() => dayNumber(), [])
-  const items = useMemo(() => buildDailyItems(lang, day, null).filter(x => ICON[x.type]).slice(0, 4), [lang, day])
+  const items = useMemo(() => buildDailyItems(lang, day, null, pools).filter(x => ICON[x.type]).slice(0, 4), [lang, day, pools])
   const [seen, setSeen] = useState(() => new Set())
   const [open, setOpen] = useState(-1)
   useEffect(() => { setSeen(readSeen(day)) }, [day])

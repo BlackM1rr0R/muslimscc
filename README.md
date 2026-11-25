@@ -10,7 +10,7 @@ Canlı sayt: <https://muslims.cc>
 src/          Sayt — React 18 + Vite (səhifələr src/pages, məlumat src/data)
 server/       API — Node 22 + Express, SQLite (node:sqlite), Web Push, AI köməkçi
 public/       Statik fayllar (service worker sw.js, audio, təfsir, şəkillər)
-scripts/      Build köməkçiləri (prerender, dil yoxlaması), scripts/social — sosial şəbəkə postları
+scripts/      Build köməkçiləri (prerender, dil yoxlaması); Instagram avtoposteri — server/instagram.js
 infra/        Docker, nginx, deploy və ehtiyat nüsxə skriptləri (canlı server)
 mobile/       Mobil tətbiq (Expo / React Native)
 tests/        unit (Vitest), e2e (Playwright)

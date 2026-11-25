@@ -92,5 +92,6 @@ export function refsFromPool(pool) {
   return out
 }
 
-/** Hovuz ayrıca chunk-dır (ana səhifənin "günün ayəsi" ilə eyni modul) — yalnız lazım olanda */
-export const loadCuratedRefs = () => import('virtual:daily-pools').then((m) => refsFromPool(m.AYAH_POOL))
+/** Hovuz ayrıca chunk-dır (ana səhifənin "günün ayəsi" ilə eyni modul) — yalnız lazım olanda.
+ *  Yalnız mənbələr oxunur: ən kiçik dil modulu (ərəbcə — tərcüməsiz, ~8 KB gzip); sıra bütün dillərdə eynidir. */
+export const loadCuratedRefs = () => import('virtual:daily-pools/ar').then((m) => refsFromPool(m.AYAH_POOL))

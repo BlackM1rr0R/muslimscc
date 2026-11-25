@@ -6,6 +6,8 @@
 import { memo } from 'react'
 import { useLang } from '../contexts/LangContext'
 import { LANGS, EXTRA_CODES, EXTRA_LANGS, hasPageInLang, pathFor } from '../seo/routes'
+// Stillər öz faylındadır (2026-11-25: giriş CSS-indən köçürüldü — yalnız bu komponentlə yüklənir)
+import '../styles/LangMarquee.css'
 
 const CORE_NATIVE = { az: 'Azərbaycanca', en: 'English', ru: 'Русский', ar: 'العربية', tr: 'Türkçe' }
 

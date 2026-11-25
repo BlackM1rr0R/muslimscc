@@ -1,5 +1,5 @@
 // v5.9 (1-ci partiya): səcdə anı, hicri doğum günü, günün hekayələri
-import { test, expect, settle } from './fixtures.js'
+import { test, expect, settle, reach } from './fixtures.js'
 
 test('Səcdə anı: səcdə ayəsində nişan, ekranda qalanda an açılır (Hisnul-Müslim duası), bir dəfə', async ({ page }) => {
   // Fatihənin 5-ci ayəsini test üçün "səcdə ayəsi" kimi işarələ (real API-də sajda sahəsi)
@@ -33,9 +33,8 @@ test('Səcdə anı: səcdə ayəsində nişan, ekranda qalanda an açılır (His
 test('Hicri doğum günü: tarix → hicri tarix, yaşlar, növbəti doğum günü, yaddaşda qalır', async ({ page }) => {
   await page.goto('/hijri-converter')
   await settle(page)
-  const box = page.getByTestId('hijri-birthday')
-  for (let i = 0; i < 30 && !(await box.count()); i++) { await page.mouse.wheel(0, 600); await page.waitForTimeout(150) }
-  await box.scrollIntoViewIfNeeded()
+  // DeferRender: fixtures.js → reach (kor mouse.wheel səhifə hələ qurularkən footer-ə düşə bilirdi)
+  const box = await reach(page, 'hijri-birthday')
   await box.getByTestId('hbd-input').fill('1990-05-15')
   await expect(box.getByTestId('hbd-hijri')).toContainText('1410')
   await expect(box).toContainText('Hicri yaş')
@@ -43,10 +42,8 @@ test('Hicri doğum günü: tarix → hicri tarix, yaşlar, növbəti doğum gün
   await page.reload()
   await settle(page)
   // brauzer köhnə sürüşmə mövqeyini bərpa edir; tənbəl bölmələr (footer və s.) sonra gəldiyi
-  // üçün o mövqe blokdan AŞAĞI düşə bilər — yuxarıdan aşağı axtar
-  await page.evaluate(() => window.scrollTo(0, 0))
-  for (let i = 0; i < 30 && !(await box.count()); i++) { await page.mouse.wheel(0, 600); await page.waitForTimeout(150) }
-  await box.scrollIntoViewIfNeeded()
+  // üçün o mövqe blokdan AŞAĞI düşə bilər — reach yer tutucunu özü ekrana gətirir (mövqedən asılı deyil)
+  await reach(page, box)
   await expect(box.getByTestId('hbd-hijri')).toContainText('1410', { timeout: 10000 })
 })
 

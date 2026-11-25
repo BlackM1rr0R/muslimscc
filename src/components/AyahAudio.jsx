@@ -10,6 +10,8 @@ import { ayahSources, readAudioPrefs } from '../utils/quranAudio'
 import { SURAH_START, AYAH_COUNTS } from '../utils/quranMap'
 import { pickUi } from '../utils/uiText'
 import Icon from './Icon'
+// Stillər öz faylındadır (2026-11-25: giriş CSS-indən köçürüldü — yalnız bu komponentlə yüklənir)
+import '../styles/AyahAudio.css'
 
 const L = {
   az: { play: 'Ayəni dinlə', pause: 'Dayandır' },

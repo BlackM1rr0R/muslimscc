@@ -525,7 +525,9 @@ Köməkçilər: `presets.js` — `DUR`, `EASE`, `SPRING`, `enterT`, `exitT`, `ex
 `fadeUp/fadeIn/blurIn/scaleIn/slideStart`, `pageVariants`, `dockScale`, `orbitPositions`, `swipeDecision`;
 `format.js` — `formatTicker`, `localeFor`, `spherePoints`, `projectPoint`, `MAKKAH`, `splitText`, `flowPath`;
 `reduced.js` — `useReduced`, `isReduced`, `isFinePointer`; `useEntrance`, `useOffscreenPause`, `useMotionReady`.
-Stillər: `src/styles/motion-kit.css` (`.mo-*`). Testlər: `tests/unit/motion-*.test.js`.
+Stillər: hər komponentin öz faylı — `src/styles/<Komponent>.css` (`.mo-*`; komponent özü import edir, səhifənin
+chunk-ı ilə gəlir; Marquee → `MoMarquee.css`). `src/styles/motion-kit.css`-də (giriş CSS-i, hər səhifədə render-blocking)
+yalnız qabığın qaydaları qalır: `.mo-sr`, `PageTransition`, `.mo-ticker` (2026-11-25). Testlər: `tests/unit/motion-*.test.js`.
 İmport: komponenti öz faylından (`import Reveal from '../motion/Reveal'`) və ya barrel-dən (`from '../motion'`).
 
 ## 8. Vacib texniki qaydalar
@@ -582,6 +584,11 @@ Qat wow.css-dən sonra yüklənir və ortaq siniflərə işləyir — yeni səhi
 | **Footer v5** | `Footer.jsx` | CTA zolağı (ana səhifədə gizli — orada öz CTA-sı var) · dil zolağı · iri söz-nişanı (görünəndə dolur) |
 | **Navbar kapsulu** | `.nav-desktop` (≥1024px) | şüşə kapsul + kursor işığı; `.header.scrolled`-də qalxır; loqo ulduzu 45° fırlanır |
 | **Səhifə köməkçisi** | `components/PageHelp.jsx` (başlıqdakı ⓘ, klaviatura `?`) | avtomatik: bölmənin adı + SEO təsviri + hero-dakı `.ui-page-hero__how` + h2-lərdən içindəkilər + eyni qrupun bölmələri. Ana səhifədə yoxdur |
+
+PERFORMANS (2026-11-25): `vau3.css` giriş CSS-indədir (hər səhifədə render-blocking) — burada yalnız ortaq siniflər qalır.
+Bir komponentə aid bölmələr onun öz faylındadır: dil zolağı `LangMarquee.css`, footer başlığı `Footer.css`, səhifə köməkçisi
+`PageHelp.css`, başlıq halqası `HeaderPrayerRing.css`, "Ayəni dinlə" `AyahAudio.css`, günün ayəsi `HomeToday.css`,
+"Mənim günüm/həftəm" `MyDay.css`, salam `HeroGreeting.css`, hava kartı `WeatherDua.css`; qrafiklər (`.ui-viz-*`) `viz.css`.
 
 Qaydalar: scroll-driven hər şey `@supports (animation-timeline: view())` + `prefers-reduced-motion: no-preference` +
 `html:not(.a11y-reduce-motion)` içindədir — dəstək yoxdursa/hərəkəti azaltda **statik və tam görünən** olur.

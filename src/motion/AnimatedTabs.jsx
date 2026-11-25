@@ -11,6 +11,8 @@ import { useId, useRef } from 'react'
 import { LayoutGroup, m } from 'motion/react'
 import LayoutFeatures from './LayoutFeatures'
 import { SPRING } from './presets'
+// Stillər öz faylındadır (2026-11-25: giriş CSS-indən köçürüldü — yalnız bu komponentlə yüklənir)
+import '../styles/AnimatedTabs.css'
 
 export default function AnimatedTabs({ tabs = [], value, onChange, label, idBase, variant = 'pill', className = '', size = 'md' }) {
   const uid = useId()
