@@ -502,6 +502,9 @@ export default function DhikrPage({ setPage }) {
                 <span key={count} className="dhikr-tap-count ui-num">{count}</span>
                 <span className="dhikr-tap-target ui-num">/ {dhikr.target}</span>
               </button>
+              {/* Screen readers: the focused button's name change is not announced on tap —
+                  a polite live count gives feedback (only after the first tap). */}
+              <span className="ui-sr-only" aria-live="polite" aria-atomic="true" data-testid="dhikr-live">{count > 0 ? `${count} / ${dhikr.target}` : ''}</span>
             </div>
             {/* Fiziki təsbeh: hər toxunuşda bir muncuq sürüşür */}
             <TasbihBeads count={count} target={dhikr.target} className="dhikr-beads" />

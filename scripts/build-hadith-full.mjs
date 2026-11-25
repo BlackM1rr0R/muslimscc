@@ -108,24 +108,96 @@ async function heGet(rel) {
   return j
 }
 const heTitles = new Map()
+const heAzOk = new Set() // az tərcüməsi olan hədis id-ləri (API-nin translations siyahısı)
 const useHe = !process.argv.includes('--no-he')
 if (useHe) {
   for (const c of (await heGet('/categories/roots/?language=ar')) || []) {
     for (let page = 1; ; page++) {
       const l = await heGet(`/hadeeths/list/?language=ar&category_id=${c.id}&page=${page}&per_page=100`)
-      for (const x of l?.data || []) heTitles.set(x.id, norm(x.title))
+      for (const x of l?.data || []) { heTitles.set(x.id, norm(x.title)); if ((x.translations || []).includes('az')) heAzOk.add(x.id) }
       if (!l || page >= Number(l.meta?.last_page || 1)) break
     }
   }
 }
-function heMatch(ar) {
+const words = (s) => norm(s).split(' ').filter(w => w.length > 1)
+function wordDice(a, b) {
+  const A = words(a), B = words(b)
+  if (!A.length || !B.length) return 0
+  const m = new Map(); for (const w of B) m.set(w, (m.get(w) || 0) + 1)
+  let i = 0; for (const w of A) if (m.get(w) > 0) { i++; m.set(w, m.get(w) - 1) }
+  return 2 * i / (A.length + B.length)
+}
+// Mərhələ 1 (köhnə qayda, DƏYİŞMƏYİB): ifadə başlığa bütöv keçir (≥5 söz) ya da ≥8 sözdə ≥90% söz. BÜTÜN başlıqlar
+// arasında ən yaxşı seçilir; ən yaxşının az nəşri yoxdursa MATÇ YOXDUR (az olan daha zəif variantına keçmək
+// "قام رمضان" → "صام رمضان" kimi fərqli hədislərə səbəb olur).
+// Mərhələ 2 (yeni, yalnız az nəşri OLAN hədislər arasında; birmənalı olmalıdır — bərabər uyğun 2+ id varsa BURAXILIR):
+//   a) normallaşdırılmış mətn başlıqla EYNİDİR (≥2 söz); b) ifadə başlığın içindədir (≥3 söz) və başlıq ifadədən
+//   çox uzun deyil (≤1.5n+1 söz); c) nömrə ilə təsdiqlənmiş hadith-api rəvayətində (at) başlığın BÜTÜN sözləri
+//   var və söz Dice ≥0.85.
+// Rəvayətçi (səhabə) uyğunluğu — hər iki mərhələ üçün: HadeethEnc ərəb mətninin "رضي الله عنه"-dən əvvəlki adı
+// nömrə ilə təsdiqlənmiş hadith-api mətnində də keçməlidir (məs. "لا ضرر": Übadə/İbn Abbas ≠ Əbu Səid).
+const NAME_STOP = new Set(['عن', 'ابن', 'بن', 'ابي', 'ابو', 'عبد', 'الله', 'ام', 'ابا', 'حدثنا', 'قال', 'ان', 'رسول'])
+// at.text-in səhabə hissəsi: "…، عن X، أن رسول الله" → X (isnadın əvvəlki raviləri sayılmır)
+function companionWords(atText) {
+  const t = norm(atText), m = t.match(/ (?:ان رسول الله|ان النبي|قال رسول الله|قال النبي|سمعت رسول الله|سمعت النبي)/)
+  if (!m) return null
+  const seg = t.slice(0, m.index).split(' عن ').pop()
+  return new Set(words(seg).filter(w => w.length > 2 && !NAME_STOP.has(w)))
+}
+// Əl ilə yoxlanmış eyni-səhabə halları (söz müqayisəsi tutmur): "kitab nömrə|HadeethEnc id" → səbəb.
+//  Buxari 6488: bizdə "Abdullah", HE "İbn Məsud" (eyni səhabə, Buxari 6488 İbn Məsuddandır);
+//  Buxari 574: bizdə oğul Əbu Bəkr "atam"dan, HE "Əbu Musa" (Buxari 574 Əbu Musa əl-Əşəridəndir).
+const NARRATOR_SAME = new Set(['Buxari 6488|3581', 'Buxari 574|4198'])
+const nameKey = (w) => w.replace(/^ال/, '').replace(/ا$/, '')
+function nameMatch(a, b) {
+  const x = nameKey(a), y = nameKey(b)
+  return x === y || (x.length >= 4 && y.length >= 4 && (x.startsWith(y) || y.startsWith(x)))
+}
+async function narratorOk(id, atText, source) {
+  if (NARRATOR_SAME.has(`${source}|${id}`)) return true
+  const atWords = atText ? companionWords(atText) : null
+  if (!atWords || !atWords.size) return true
+  const one = await heGet(`/hadeeths/one/?language=ar&id=${id}`)
+  const t = norm(one?.hadeeth || '')
+  const i = t.indexOf(' رضي ')
+  if (i < 0) return true
+  const names = words(t.slice(0, i)).filter(w => w.length > 2 && !NAME_STOP.has(w))
+  return !names.length || names.some(w => [...atWords].some(a => nameMatch(w, a)))
+}
+async function heMatch(ar, atText, source) {
   const f = norm(ar), n = wc(ar)
+  const atWords = atText ? new Set(words(atText)) : null
   let best = null
   for (const [id, t] of heTitles) {
     const s = (n >= 5 && t.includes(f)) ? 1 : (n >= 8 ? score(ar, t) : 0)
     if (s >= 0.9 && (!best || s > best.s)) best = { id, s }
   }
-  return best?.id || null
+  if (best) return heAzOk.has(best.id) && (await narratorOk(best.id, atText, source)) ? best.id : null
+  const found = new Set()
+  for (const id of heAzOk) {
+    const t = heTitles.get(id), tw = words(t)
+    if (!tw.length) continue
+    const ok = (t === f && n >= 2) ||
+      (n >= 3 && t.includes(f) && tw.length <= 1.5 * n + 1) ||
+      (atWords && n >= 3 && tw.every(w => atWords.has(w)) && wordDice(ar, t) >= 0.85)
+    if (ok) found.add(id)
+  }
+  if (found.size !== 1) return null
+  const id = [...found][0]
+  return (await narratorOk(id, atText, source)) ? id : null
+}
+// Tərcümə versiyası (HadeethEnc şərt 3–4): API versiya vermir, amma rəsmi yükləmə linki versiyalı fayla yönləndirir
+// (https://hadeethenc.com/az/browse/download/az/csv → .../HadeethEnc.com_az-v1.31.0.csv).
+let heVersion = null
+if (useHe) {
+  try {
+    const r = await fetch('https://hadeethenc.com/az/browse/download/az/csv', { redirect: 'manual' })
+    heVersion = (r.headers.get('location') || '').match(/HadeethEnc\.com_az-v(\d+(?:\.\d+)+)\.csv$/)?.[1] || null
+  } catch { /* şəbəkə yoxdursa köhnə dəyəri saxla */ }
+  if (!heVersion) {
+    const old = fs.existsSync(path.join(ROOT, 'src/data/hadithFull.js')) && fs.readFileSync(path.join(ROOT, 'src/data/hadithFull.js'), 'utf8').match(/az: '([\d.]+)'/)
+    heVersion = old ? old[1] : null
+  }
 }
 const clean = (s) => String(s || '').split('\r').join('').trim()
 let heAz = 0, heOnly = 0
@@ -176,7 +248,7 @@ for (const h of RAW) {
     else if (nar) narrators[nar] = (narrators[nar] || 0) + 1
   }
   // HadeethEnc — rəsmi az tərcüməsi və şərh
-  const heId = useHe ? heMatch(h.ar) : null
+  const heId = useHe ? await heMatch(h.ar, hit?.at?.text, h.source) : null
   if (heId) {
     const az = await heGet(`/hadeeths/one/?language=az&id=${heId}`)
     if (az?.hadeeth) {
@@ -202,6 +274,8 @@ ${Object.entries(index).map(([k, v]) => `  ${k}: '${v}',`).join('\n')}
 }
 // Rəsmi Azərbaycan şərhi olan hədislər (HadeethEnc.com) — kartın arxa üzü
 export const HADITH_HE_EXPL = new Set(${JSON.stringify(heIds)})
+// HadeethEnc.com tərcümə versiyası (rəsmi yükləmə faylının adından) — şərtlər 3–4: mənbədə göstərilir
+export const HADITH_HE_VERSION = { az: ${heVersion ? `'${heVersion}'` : 'null'} }
 `)
 console.log(`hadith-full: nömrə ilə ${byNum}, axtarışla ${bySearch}, HadeethEnc az ${heAz} (yalnız HE ${heOnly}), tapılmadı ${miss}; ravisi tanınmayan ${Object.values(narrators).reduce((a, b) => a + b, 0)}`)
 if (process.argv.includes('--narrators')) console.log(Object.entries(narrators).sort((a, b) => b[1] - a[1]).map(([k, v]) => `${v}\t${k}`).join('\n'))

@@ -15,6 +15,13 @@ const MUSLIMSCC_PRAYER_THEMES  = array( 'light', 'dark' );
 const MUSLIMSCC_PRAYER_LAYOUTS = array( 'compact', 'full' );
 
 /**
+ * Default height of the compact layout in pixels. Measured on muslims.cc: all six prayer rows fit
+ * without clipping in sidebars 280–400 px wide (and in 600–800 px content columns).
+ * Mirrors WP_COMPACT_HEIGHT in src/utils/wpPlugin.js on the muslims.cc side.
+ */
+const MUSLIMSCC_PRAYER_COMPACT_HEIGHT = 500;
+
+/**
  * City list: key (lowercase, as in the shortcode) => id, English label, country, has a city page.
  *
  * @return array<string, array{id: string, label: string, country: string, page: bool}>
@@ -153,7 +160,7 @@ function muslimscc_prayer_render( $atts ) {
 			? 'display:block;width:100%;height:' . $o['height'] . 'px;border:0;border-radius:12px'
 			: 'display:block;width:100%;aspect-ratio:16/9;min-height:420px;height:auto;border:0;border-radius:12px';
 	} else {
-		$style = 'display:block;width:100%;height:' . ( $o['height'] ? $o['height'] : 300 ) . 'px;border:0;border-radius:12px';
+		$style = 'display:block;width:100%;height:' . ( $o['height'] ? $o['height'] : MUSLIMSCC_PRAYER_COMPACT_HEIGHT ) . 'px;border:0;border-radius:12px';
 	}
 
 	/* translators: %s: city name, e.g. "Baku". */

@@ -20,6 +20,9 @@ export const WP_BASE = 'https://muslims.cc'
 export const WP_LANGS = ['az', 'en', 'ru', 'ar', 'tr']
 export const WP_THEMES = ['light', 'dark']
 export const WP_LAYOUTS = ['compact', 'full']
+// Yığcam görünüşün susmaya görə hündürlüyü (px) — PHP MUSLIMSCC_PRAYER_COMPACT_HEIGHT ilə EYNİ (unit test).
+// Ölçülüb: 280–400 px enli yan paneldə 6 namaz sırasının hamısı kəsilmədən görünür.
+export const WP_COMPACT_HEIGHT = 500
 
 /** Şəhər id-si → shortcode açarı: 'New York' → 'new-york' (PHP sanitize_key ilə uyğun). */
 export function citySlug(id) {

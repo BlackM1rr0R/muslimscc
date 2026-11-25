@@ -10,7 +10,7 @@ import {
   createZip, readZip, crc32, collectFiles, buildPluginZip, readPluginVersion,
   renderCitiesPhp, renderPot, pluginCities, CITIES_PHP, POT_FILE, PLUGIN_DIR,
 } from '../../scripts/build-wp-plugin.mjs'
-import { wpWidgetUrl, wpShortcode, citySlug, WP_PLUGIN_VERSION, WP_PLUGIN_SLUG } from '../../src/utils/wpPlugin.js'
+import { wpWidgetUrl, wpShortcode, citySlug, WP_PLUGIN_VERSION, WP_PLUGIN_SLUG, WP_COMPACT_HEIGHT } from '../../src/utils/wpPlugin.js'
 import { PRAYER_CITIES } from '../../src/data/prayerCities.js'
 
 const ROOT = path.resolve(__dirname, '../..')
@@ -94,6 +94,20 @@ describe('plagin faylları', () => {
       const src = rd(path.join(PLUGIN_DIR, f))
       expect(src, f).toMatch(f === 'uninstall.php' ? /WP_UNINSTALL_PLUGIN/ : /defined\( 'ABSPATH' \) \|\| exit;/)
     }
+  })
+
+  it('yığcam görünüşün susmaya görə hündürlüyü: PHP = JS, dar yan paneldə 6 sıra sığır (≥ 500), override işləyir', () => {
+    const render = rd(path.join(PLUGIN_DIR, 'includes/render.php'))
+    const m = /const MUSLIMSCC_PRAYER_COMPACT_HEIGHT = (\d+);/.exec(render)
+    expect(m).not.toBe(null)
+    expect(Number(m[1])).toBe(WP_COMPACT_HEIGHT)
+    expect(WP_COMPACT_HEIGHT).toBeGreaterThanOrEqual(500)
+    // İstifadəçinin hündürlüyü (200–1200) üstündür, boşdursa standart
+    expect(render).toContain("( $o['height'] ? $o['height'] : MUSLIMSCC_PRAYER_COMPACT_HEIGHT )")
+    expect(render).not.toMatch(/: 300 \)/)
+    const settings = rd(path.join(PLUGIN_DIR, 'includes/settings.php'))
+    expect(settings).toContain(`(${WP_COMPACT_HEIGHT} px for compact, 16:9 for full)`)
+    expect(rd(path.join(PLUGIN_DIR, 'readme.txt'))).toContain(`compact layout is ${WP_COMPACT_HEIGHT} px high`)
   })
 
   it('istinad linki susmaya görə SÖNÜKDÜR (qayda 10) və iframe çıxışı qaçırılır', () => {

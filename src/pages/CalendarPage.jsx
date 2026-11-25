@@ -369,7 +369,7 @@ function MonthsGuide({ lang }) {
           <p className="ui-lead">{pick(g.lead, lang)}</p>
         </div>
 
-        <nav className="cal-guide-nav" aria-label={pick(g.contents, lang)}>
+        <nav className="cal-guide-nav" aria-label={`${pick(g.title, lang)}: ${pick(g.contents, lang)}`}>
           <ul className="cal-guide-nav__list">
             {CAL_MONTHS_GUIDE.map(s => (
               <li key={s.id}>

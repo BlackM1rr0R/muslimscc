@@ -228,7 +228,7 @@ function QiblaGuide({ lang }) {
           <p className="ui-lead">{pick(g.lead, lang)}</p>
         </div>
 
-        <nav className="qb-guide-nav" aria-label={pick(g.contents, lang)}>
+        <nav className="qb-guide-nav" aria-label={`${pick(g.title, lang)}: ${pick(g.contents, lang)}`}>
           <ul className="qb-guide-nav__list">
             {QIBLA_GUIDE.map(s => (
               <li key={s.id}>

@@ -175,7 +175,7 @@ function RoadView({ lang, t, st, store, say }) {
   return (
     <div className="rpp-roadwrap">
       <section className="rpp-today" aria-labelledby="rpp-today-h" data-testid="rpp-today">
-        <p className="rpp-today__kicker"><Icon name="sparkle" size={16} /> <span id="rpp-today-h">{t.today}</span></p>
+        <p className="rpp-today__kicker" role="heading" aria-level={2}><Icon name="sparkle" size={16} /> <span id="rpp-today-h">{t.today}</span></p>
         <ol className="rpp-road rpp-road--today">
           {todayStep && (
             <RoadStep step={todayStep} lang={lang} t={t} state="today" doneDay={done[todayStep.n]} onToggle={toggle}

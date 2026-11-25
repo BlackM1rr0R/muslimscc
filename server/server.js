@@ -28,9 +28,15 @@ for (const m of ['./auth', './users', './security', './syncKeys', './mailer', '.
   './communityKit', './publicProfile', './familyDua', './duaWall', './mosqueRep', './weekly', './ipKey', './pushClaims', './quranMeaning',
   './duaFriend', './hajjJourney', './welcome', './mailCampaigns', './adminSso',
   './prayerRooms', './janaza', './volunteers',
-  './trustBox', './telegramBot', './prayerCities']) require(m)
+  './trustBox', './telegramBot', './prayerCities', './instagram', './instagramCard', './instagram-data']) require(m)
 // Paket asılılıqları da (server/package.json → npm ci) — image-də yoxdursa bazadan ƏVVƏL çöksün
 for (const m of ['@simplewebauthn/server']) require(m)
+// sharp (Instagram kartları, server/instagramCard.js) yalnız YOXLANIR (require.resolve) — libvips IG sönülüdürsə yüklənmir;
+// kart şriftləri (server/fonts, Dockerfile → COPY fonts) da
+require.resolve('sharp')
+for (const f of ['Amiri-Regular.ttf', 'Amiri-Bold.ttf', 'MccInter-Regular.ttf', 'MccInter-SemiBold.ttf', 'fonts.conf']) {
+  if (!require('node:fs').existsSync(require('node:path').join(__dirname, 'fonts', f))) { console.error(`FATAL: server/fonts/${f} yoxdur (Dockerfile → COPY fonts)`); process.exit(1) }
+}
 
 // ─── Verilənlər bazası (SQLite, node:sqlite) ─────────────────────────
 const { openDb } = require('./db')
@@ -73,6 +79,8 @@ app.use('/api/singletons', limit(60000, 300))
 app.use('/api/push', limit(60000, 30))
 // Telegram botu (server/telegramBot.js) — sorğular Telegram serverlərindən gəlir (çox istifadəçi, az IP)
 app.use('/api/telegram', limit(60000, 600))
+// Instagram kartları (server/instagram.js) — Instagram serverləri image_url-i buradan çəkir
+app.use('/api/ig', limit(60000, 60))
 
 // ─── Admin girişi (server/auth.js) ───────────────────────────────────
 const authLib = require('./auth')
@@ -370,6 +378,22 @@ app.use('/api', telegramBot.router)
 if (telegramBot.enabled) {
   // Azan xatırlatması: 20 saniyədə bir; bir dəfə göndəriş — pushClaims (kəsintisiz deploy)
   setInterval(() => { telegramBot.tick().catch((e) => console.error('telegram tick:', e && e.message)) }, 20000).unref()
+}
+
+// ─── Instagram avtoposteri (server/instagram.js, docs/INSTAGRAM.md) — api.env-də IG_ENABLED=1 + IG_ACCESS_TOKEN + IG_USER_ID
+// yoxdursa tam sönülüdür (/api/ig/* → 404, şəbəkə sorğusu yoxdur). Admin bölməsi (status — admin+, önizləmə / dərc — superadmin).
+const instagram = require('./instagram').createInstagram({ db, env: { ...process.env, DB_PATH }, publicOrigin: PUBLIC_ORIGIN })
+app.use('/api', instagram.router)
+app.use('/api', instagram.adminRouter({ requireAdmin, adminRoleOf: usersStore.adminRole }))
+if (instagram.enabled) {
+  // Yuvalar (Asia/Baku): 30 saniyədə bir; bir dəfə dərc — instagram_posts UNIQUE (kəsintisiz deploy)
+  setInterval(() => { instagram.tick().catch((e) => console.error('instagram tick:', e && e.message)) }, 30000).unref()
+  // Token yenilənməsi (həftədə bir) + köhnə kartlar / sətirlər — saatda bir
+  setInterval(() => {
+    instagram.refreshTick().catch((e) => console.error('instagram refresh:', e && e.message))
+    try { instagram.purge() } catch (e) { console.error('instagram purge:', e && e.message) }
+  }, 3600e3).unref()
+  setTimeout(() => { instagram.refreshTick().catch(() => {}) }, 60e3).unref()
 }
 
 app.use(express.json())

@@ -102,13 +102,13 @@ msgid "Title"
 msgstr ""
 
 #. translators: %s: city name, e.g. "Baku".
-#: includes/render.php:160
+#: includes/render.php:167
 #, php-format
 msgid "Prayer times — %s"
 msgstr ""
 
 #. translators: Credit link under the widget. "muslims.cc" is the site name.
-#: includes/render.php:174
+#: includes/render.php:181
 msgid "Prayer times by muslims.cc"
 msgstr ""
 
@@ -137,7 +137,7 @@ msgid "Height (px)"
 msgstr ""
 
 #: includes/settings.php:157
-msgid "Leave empty for automatic height (300 px for compact, 16:9 for full)."
+msgid "Leave empty for automatic height (500 px for compact, 16:9 for full)."
 msgstr ""
 
 #: includes/settings.php:161

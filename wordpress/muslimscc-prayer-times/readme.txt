@@ -31,7 +31,7 @@ For cities in Azerbaijan, times are calculated with the same method as the Abu B
 * `theme` — `light` or `dark`.
 * `layout` — `compact` or `full`.
 * `name` — optional mosque name shown in the widget header.
-* `height` — optional height in pixels (200–1200).
+* `height` — optional height in pixels (200–1200). By default the compact layout is 500 px high (all prayer rows fit in a narrow sidebar) and the full layout is 16:9.
 
 Any option you leave out uses the default from Settings → Muslims.cc.
 

@@ -70,7 +70,7 @@ function MosqueGuide({ lang }) {
           <p className="ui-lead">{pick(g.lead, lang)}</p>
         </div>
 
-        <nav className="mf-guide-nav" aria-label={pick(g.contents, lang)}>
+        <nav className="mf-guide-nav" aria-label={`${pick(g.title, lang)}: ${pick(g.contents, lang)}`}>
           <ul className="mf-guide-nav__list">
             {MOSQUE_GUIDE.map(s => (
               <li key={s.id}>

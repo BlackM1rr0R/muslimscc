@@ -73,6 +73,8 @@ test('yeni cihaz: şifrə ilə giriş → kod açılır, məlumat bərpa olunur,
   const sync = JSON.parse(await ls(page, 'muslim_cc_sync'))
   expect(sync).toMatchObject({ code: acc.code, acct: 12, auto: true })
   await expect(page.getByTestId('autosync-toast')).toHaveAttribute('data-kind', 'restored')
+  // Ekran oxuyucusu: elan həmişə DOM-da olan canlı sahədən gəlir (a11y auditi 2026-11-25)
+  await expect(page.getByTestId('autosync-live')).toHaveText('Tərəqqiniz hesabınızdan bərpa olundu.')
 
   // Server heç vaxt kodu və ya açıq məlumatı görmür
   const sent = JSON.stringify([state.bodies, [...store.values()]])

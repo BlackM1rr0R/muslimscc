@@ -204,7 +204,8 @@
 [dir="rtl"] .drb-next svg { transform: none; }
 
 .drb-dot {
-  width: 20px;
+  /* 24×24 — WCAG 2.2 target size (2.5.8) on desktop too */
+  width: 24px;
   height: 24px;
 }
 .drb-dot span {

@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<!--
+  PHPCS — WordPress Coding Standards (WPCS) təhlükəsizlik sniff-ləri, plagin qovluğu üçün.
+  CI: .github/workflows/wp-plugin.yml ("phpcs" işi). Yalnız ERROR işi yıxır, xəbərdarlıqlar göstərilir.
+  Bu fayl plagin qovluğundan kənardadır → zip-ə düşmür.
+-->
+<ruleset name="muslimscc-prayer-times-security">
+	<description>WPCS security sniffs for the Muslims.cc Prayer Times plugin.</description>
+
+	<file>./muslimscc-prayer-times</file>
+
+	<arg name="extensions" value="php"/>
+	<arg name="basepath" value="."/>
+	<arg value="sp"/>
+
+	<!-- Xəbərdarlıqlar göstərilir, amma çıxış kodunu dəyişmir -->
+	<config name="ignore_warnings_on_exit" value="1"/>
+	<config name="minimum_wp_version" value="6.3"/>
+
+	<rule ref="WordPress.Security.EscapeOutput"/>
+	<rule ref="WordPress.Security.NonceVerification"/>
+	<rule ref="WordPress.Security.ValidatedSanitizedInput"/>
+</ruleset>

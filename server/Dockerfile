@@ -21,6 +21,8 @@ RUN npm ci --omit=dev && npm cache clean --force
 COPY *.js ./
 # Admin/xidmət skriptləri (admin-user.js, backup-db.js, gen-vapid.js)
 COPY scripts ./scripts
+# Instagram kartlarının şriftləri + fontconfig (server/instagramCard.js; server.js başlanğıcda yoxlayır)
+COPY fonts ./fonts
 
 # /data sahibi "node" olsun: yeni named volume ilk dəfə bu image ilə qoşulanda
 # Docker qovluğun sahibini/icazəsini volume-a köçürür

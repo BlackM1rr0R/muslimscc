@@ -354,7 +354,10 @@
 
 .qm-sn-group.is-expanded .qm-sn-items-wrap {
   grid-template-rows: 1fr;
-  visibility: visible;
+  /* inherit, NOT visible: a child with visibility:visible overrides the closed
+     drawer's visibility:hidden — the off-screen links of open groups stayed
+     in the Tab order and the screen-reader tree (a11y audit 2026-11-25). */
+  visibility: inherit;
   transition:
     grid-template-rows 0.26s var(--qm-sn-ease),
     visibility 0s linear 0s;

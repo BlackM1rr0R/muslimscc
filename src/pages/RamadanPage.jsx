@@ -252,7 +252,7 @@ function RamadanGuide({ lang, todayJuz }) {
           <p className="ui-lead">{pick(GT.lead, lang)}</p>
         </div>
 
-        <nav className="rp-guide-nav" aria-label={pick(GT.contents, lang)} ref={navRef}>
+        <nav className="rp-guide-nav" aria-label={`${pick(GT.title, lang)}: ${pick(GT.contents, lang)}`} ref={navRef}>
           <ul className="rp-guide-nav__list">
             {RAMADAN_GUIDE.map(s => (
               <li key={s.id}>

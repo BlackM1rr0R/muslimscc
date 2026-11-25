@@ -1,0 +1,155 @@
+# ═══════════════════════════════════════════════════════
+# WordPress plagini (wordpress/muslimscc-prayer-times) — PHP yoxlamaları
+#
+# Lokal maşında PHP yoxdur → plagin yalnız burada, GitHub runner-lərində yoxlanır.
+# ci.yml-dən AYRIDIR: deploy bu workflow-u gözləmir, uğursuz olsa da sayt deploy olunur.
+#
+#   readme       readme.txt (wordpress.org qaydaları) + wordpress/assets ölçüləri — scripts/check-wp-readme.mjs
+#   php-lint     php -l bütün PHP faylları, PHP 7.4 (Requires PHP) və 8.3
+#   phpcs        WPCS təhlükəsizlik sniff-ləri (EscapeOutput, NonceVerification, ValidatedSanitizedInput) —
+#                wordpress/phpcs.xml.dist; yalnız ERROR işi yıxır
+#   plugin-check rəsmi WordPress Plugin Check (wp-env-də ən son WordPress) — buraxılış zip-inin özü
+#                (scripts/build-wp-plugin.mjs) açılıb yoxlanır; sonra real WordPress-də shortcode/blok/vidcet
+#                smoke testi (wordpress/ci/smoke.php)
+#
+# Əl ilə: GitHub → Actions → "WordPress plugin" → Run workflow (və ya `gh workflow run wp-plugin.yml`).
+# Action-lar commit SHA ilə bərkidilib (ci.yml kimi); Dependabot yeniləyir, security-reviewer yoxlayır.
+# ═══════════════════════════════════════════════════════
+name: WordPress plugin
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'wordpress/**'
+      - 'scripts/build-wp-plugin.mjs'
+      - 'scripts/check-wp-readme.mjs'
+      - '.github/workflows/wp-plugin.yml'
+  pull_request:
+    paths:
+      - 'wordpress/**'
+      - 'scripts/build-wp-plugin.mjs'
+      - 'scripts/check-wp-readme.mjs'
+      - '.github/workflows/wp-plugin.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: wp-plugin-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '22'
+  PLUGIN_SLUG: muslimscc-prayer-times
+
+jobs:
+  readme:
+    name: readme.txt + assets
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      # Asılılıqsız skriptlər — npm ci lazım deyil
+      - name: readme.txt qaydaları və wordpress/assets
+        run: node scripts/check-wp-readme.mjs
+      - name: Zip-də assets yoxdur
+        run: |
+          node scripts/build-wp-plugin.mjs --out "$RUNNER_TEMP/wpzip"
+          unzip -Z1 "$RUNNER_TEMP/wpzip/downloads/$PLUGIN_SLUG.zip" | tee "$RUNNER_TEMP/zip-list.txt"
+          if grep -Eiq '(^|/)assets/|\.(png|jpe?g|gif|webp)$' "$RUNNER_TEMP/zip-list.txt"; then
+            echo "::error::Plagin zip-ində wordpress.org assets/şəkil faylı var"
+            exit 1
+          fi
+
+  php-lint:
+    name: php -l (PHP ${{ matrix.php }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['7.4', '8.3']
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+          tools: none
+      - name: Sintaksis yoxlaması
+        run: |
+          set -o pipefail
+          php -v
+          find wordpress -type f -name '*.php' -print0 | sort -z | xargs -0 -n1 php -d display_errors=1 -l
+
+  phpcs:
+    name: PHPCS (WPCS security)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version: '8.3'
+          coverage: none
+          tools: composer
+      # WPCS repodan kənarda quraşdırılır (composer.json/vendor repoya düşmür); versiyalar bərkidilib
+      - name: WPCS quraşdır
+        run: |
+          mkdir -p "$RUNNER_TEMP/phpcs" && cd "$RUNNER_TEMP/phpcs"
+          composer init --no-interaction --name=muslimscc/phpcs-runner --type=project
+          composer config allow-plugins.dealerdirect/phpcodesniffer-composer-installer true
+          composer require --dev --no-interaction --no-progress \
+            "wp-coding-standards/wpcs:3.4.1" "dealerdirect/phpcodesniffer-composer-installer:1.2.1"
+          vendor/bin/phpcs -i
+      - name: PHPCS (yalnız ERROR yıxır)
+        run: |
+          cd wordpress
+          "$RUNNER_TEMP/phpcs/vendor/bin/phpcs" --standard=phpcs.xml.dist --report=full
+
+  plugin-check:
+    name: Plugin Check + smoke (WordPress latest)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      # İstifadəçilərə gedən zip-in özünü yoxlayırıq (repo qovluğunu yox)
+      - name: Buraxılış zip-ini qur və aç
+        run: |
+          node scripts/build-wp-plugin.mjs --out "$RUNNER_TEMP/wpzip"
+          mkdir -p _wpcheck
+          unzip -q "$RUNNER_TEMP/wpzip/downloads/$PLUGIN_SLUG.zip" -d _wpcheck
+          ls -R _wpcheck
+      - name: WordPress Plugin Check
+        uses: wordpress/plugin-check-action@10857da14b6c2246d15402b3e69f777edcf8c12e # v1.1.9
+        with:
+          build-dir: _wpcheck/${{ env.PLUGIN_SLUG }}
+          # PR şərhi yazmırıq (pull-requests: write icazəsi verilmir)
+          repo-token: ''
+      # Plugin Check plagini aktivləşdirib; wp-env hələ işləyir → real WordPress-də render yoxlaması
+      - name: Smoke test (shortcode, blok, vidcet, ayarlar)
+        run: |
+          set -o pipefail
+          cp wordpress/ci/smoke.php "_wpcheck/$PLUGIN_SLUG/ci-smoke.php"
+          wp-env run cli wp plugin is-active "$PLUGIN_SLUG"
+          wp-env run cli wp eval-file "wp-content/plugins/$PLUGIN_SLUG/ci-smoke.php" | tee "$RUNNER_TEMP/smoke.txt"
+          grep -q '^SMOKE OK' "$RUNNER_TEMP/smoke.txt"
+      - name: wp-env-i dayandır
+        if: always()
+        run: wp-env stop || true

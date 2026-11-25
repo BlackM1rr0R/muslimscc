@@ -976,7 +976,7 @@ export default function PrayerPage({ setPage }) {
       </section>
 
       {/* ── Aylıq cədvəl (.ui-table) ── */}
-      <section className="ui-section ui-section--tight pp-month" aria-labelledby="pp-month-title">
+      <section className="ui-section ui-section--tight pp-month">
         <div className="ui-container">
           <div className="ui-section-head" data-reveal>
             <span className="ui-eyebrow">{P(V3.monthEyebrow)}</span>
@@ -1089,7 +1089,7 @@ export default function PrayerPage({ setPage }) {
       </section>
 
       {/* ── Vaxtların sərhədləri (Müslim 612) + nafilə qılınmayan vaxtlar ── */}
-      <section className="ui-section ui-section--tight ui-section--alt pp-bounds" aria-labelledby="pp-bounds-title">
+      <section className="ui-section ui-section--tight ui-section--alt pp-bounds">
         <div className="ui-container">
           <div className="ui-section-head" data-reveal>
             <span className="ui-eyebrow">{P(V3.boundsEyebrow)}</span>
@@ -1177,7 +1177,7 @@ export default function PrayerPage({ setPage }) {
               <p className="pp-card-sub">{P(V3.weekLead)}</p>
               <div className="prayer-week-grid" role="table" aria-label={sl.weeklyTitle}>
                 <div className="pw-header" role="row">
-                  <div className="pw-label" role="columnheader"></div>
+                  <div className="pw-label" role="columnheader"><span className="ui-sr-only">{P(V3.colPrayer)}</span></div>
                   {weeklyStats.map((d, i) => (
                     <div key={i} role="columnheader" className={`pw-day-label${i === weeklyStats.length - 1 ? ' is-today' : ''}`}>{sl.days[d.day]}</div>
                   ))}

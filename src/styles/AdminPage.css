@@ -1486,3 +1486,22 @@ button.admin-stat-card:active { transform: scale(0.98); }
 @media (max-width: 640px) {
   .admin-audit li { grid-template-columns: 1fr; }
 }
+
+/* Instagram bölməsi (components/admin/InstagramManager.jsx) */
+.ig-facts { display: grid; gap: 8px; margin: 0; }
+.ig-facts > div { display: grid; grid-template-columns: minmax(120px, 180px) 1fr; gap: 12px; }
+.ig-facts dt { color: var(--text-secondary); font-size: 14px; }
+.ig-facts dd { margin: 0; color: var(--text-body); overflow-wrap: anywhere; }
+.ig-row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; margin-bottom: 12px; }
+.ig-field { display: grid; gap: 4px; font-size: 14px; color: var(--text-secondary); }
+.ig-preview { display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start; margin-top: 12px; }
+.ig-preview img { max-width: 100%; height: auto; border-radius: var(--radius-md); box-shadow: 0 0 0 1px var(--line); }
+.ig-preview > div { flex: 1 1 260px; min-width: 0; }
+.ig-caption-title { font-size: 14px; margin: 0 0 6px; color: var(--text-secondary); }
+.ig-caption { white-space: pre-wrap; overflow-wrap: anywhere; margin: 0; padding: 12px; border-radius: var(--radius-sm); background: var(--surface-2); color: var(--text-body); font: inherit; font-size: 14px; line-height: 1.6; }
+.ig-table-wrap { overflow-x: auto; }
+.ig-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.ig-table td { padding: 8px 10px; border-top: 1px solid var(--line); vertical-align: top; color: var(--text-body); }
+@media (max-width: 640px) {
+  .ig-facts > div { grid-template-columns: 1fr; gap: 2px; }
+}

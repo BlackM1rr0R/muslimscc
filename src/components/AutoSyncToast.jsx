@@ -99,7 +99,10 @@ export default function AutoSyncToast() {
     return () => clearTimeout(id)
   }, [kind])
 
-  if (!kind) return null
+  // Screen readers: the live region is ALWAYS in the DOM — a role=status created together with
+  // its text (the old toast) was often not announced by NVDA/VoiceOver. The visible toast is not live.
+  const live = <p className="ui-sr-only" aria-live="polite" data-testid="autosync-live">{kind ? t[kind] : ''}</p>
+  if (!kind) return live
   const text = t[kind]
   const toAccount = kind === 'needCode' || kind === 'choose'
   const goAccount = (e) => {
@@ -107,11 +110,13 @@ export default function AutoSyncToast() {
     e.preventDefault(); setKind(null); navigate(pathFor('account', siteLang))
   }
   return (
-    <div className="ob ob--sync" role="status" data-testid="autosync-toast" data-kind={kind}>
+    <>{live}
+    <div className="ob ob--sync" data-testid="autosync-toast" data-kind={kind}>
       <span>{text}</span>
       {(kind === 'pulled' || kind === 'restored' || kind === 'merged') && <button type="button" className="ob__btn" onClick={() => window.location.reload()}>{t.reload}</button>}
       {toAccount && <a className="ob__btn" href={pathFor('account', siteLang)} onClick={goAccount}>{t.open}</a>}
       <button type="button" className="ob__x" onClick={() => setKind(null)} aria-label={t.close}><Icon name="close" size={14} /></button>
     </div>
+    </>
   )
 }

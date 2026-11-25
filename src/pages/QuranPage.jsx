@@ -663,7 +663,7 @@ const AyahCard = memo(function AyahCard({ verse, surahNum, lang, trLang = lang, 
       </div>
       <div className="ayah-actions">
         <button type="button" className={`ayah-play press ${playing ? 'playing' : ''}`} onClick={() => onToggle(verse.n)}
-          aria-label={playLabel} title={playLabel} aria-pressed={playing}>
+          aria-label={`${playLabel} — ${numLabel}`} title={playLabel} aria-pressed={playing}>
           <PlayIcon playing={playing} />
         </button>
         {onKaraoke && (
@@ -1511,7 +1511,7 @@ export default function QuranPage() {
               <Icon name="target" size={16} /><span className="ctrl-jump__label">{jl.jump}</span>
             </button>
             {/* v5.7: Zen — tam ekran dinləmə (components/quran/QuranZen) */}
-            <button type="button" className="ctrl-btn ctrl-zen" disabled={!ready} title={xl.zenHint} aria-label={xl.zenHint}
+            <button type="button" className="ctrl-btn ctrl-zen" disabled={!ready} title={xl.zenHint} aria-label={`${xl.zen} — ${xl.zenHint}`}
               onClick={() => { haptic(); setZen(true) }} data-testid="zen-open">
               <Icon name="moonStar" size={16} /><span className="ctrl-memo__label">{xl.zen}</span>
             </button>

@@ -147,7 +147,8 @@ export default function AdhanWave({ lang = 'az' }) {
       </svg>
       <div className="aw__bar">
         <span className="aw__clock ui-num">{playing ? '' : <span className="aw__live">{t.live}</span>} {time} {t.utc}</span>
-        <span className="aw__now" aria-live="polite">{t.now(calling.length)}
+        {/* No aria-live: the text changes every 30 s and on every frame of "play" — a live region flooded screen readers (a11y audit 2026-11-25) */}
+        <span className="aw__now">{t.now(calling.length)}
           {calling.length > 0 && <>: {calling.slice(0, 4).map(c => `${c.name} (${t.names[c.a]})`).join(', ')}{calling.length > 4 ? '…' : ''}</>}
         </span>
         <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm" onClick={play} disabled={playing} data-testid="adhan-play">

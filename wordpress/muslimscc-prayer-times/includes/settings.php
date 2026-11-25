@@ -154,7 +154,7 @@ function muslimscc_prayer_settings_page() {
 					<th scope="row"><label for="muslimscc-height"><?php esc_html_e( 'Height (px)', 'muslimscc-prayer-times' ); ?></label></th>
 					<td>
 						<input type="number" id="muslimscc-height" name="<?php echo esc_attr( $name . '[height]' ); ?>" value="<?php echo esc_attr( $o['height'] ? (string) $o['height'] : '' ); ?>" min="200" max="1200" step="10" class="small-text" aria-describedby="muslimscc-height-desc" />
-						<p class="description" id="muslimscc-height-desc"><?php esc_html_e( 'Leave empty for automatic height (300 px for compact, 16:9 for full).', 'muslimscc-prayer-times' ); ?></p>
+						<p class="description" id="muslimscc-height-desc"><?php esc_html_e( 'Leave empty for automatic height (500 px for compact, 16:9 for full).', 'muslimscc-prayer-times' ); ?></p>
 					</td>
 				</tr>
 				<tr>
