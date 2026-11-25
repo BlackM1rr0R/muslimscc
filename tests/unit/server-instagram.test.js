@@ -10,7 +10,8 @@ import { buildInstagramData } from '../../scripts/build-instagram-data.mjs'
 
 const { openDb } = require('../../server/db.js')
 const ig = require('../../server/instagram.js')
-const { renderCard } = require('../../server/instagramCard.js')
+const card = require('../../server/instagramCard.js')
+const { renderCard } = card
 const LIST = require('../../server/daily-hadith-data.js')
 const IG_DATA = require('../../server/instagram-data.js')
 
@@ -165,6 +166,47 @@ describe('instagram — məzmun, caption, "Səhih" qaydası', () => {
     // Çox uzun: əvvəl ərəbcə çıxarılır, yenə sığmırsa null (mətn qısaldılmır)
     const long = { ...c, text: 'x '.repeat(1200) }
     expect(ig.buildCaption(long, 'az')).toBeNull()
+  })
+
+  it('IG_CAPTION_LANGS: susmaya görə az,en; yalnız 5 dil, ən çox 2', () => {
+    expect(ig.parseConfig(ENV).captionLangs).toEqual(['az', 'en'])
+    expect(ig.parseCaptionLangs('ru')).toEqual(['ru'])
+    expect(ig.parseCaptionLangs('en,az,ru')).toEqual(['en', 'az'])
+    expect(ig.parseCaptionLangs('xx,,')).toEqual(['az', 'en'])
+  })
+
+  it('ikidilli caption: az + "—" + en (eyni elementin sayt mətni), az mənbə və keçid, ≤ 6 heşteq', () => {
+    const h = LIST.find((x) => /^Buxari/.test(x.src.az))
+    const c = ig.hadithContent('ru', h, 'https://muslims.cc')
+    c.variant = (L) => ig.hadithContent(L, h, 'https://muslims.cc')
+    const cap = ig.buildCaptionMulti(c, ['az', 'en'])
+    expect(cap.startsWith('Günün hədisi')).toBe(true)
+    expect(cap).toContain(h.t.ar)
+    expect(cap).toContain(h.t.az + '\n—\n' + h.t.en)
+    expect(cap).toContain('— ' + h.src.az + ' · Səhih')
+    expect(cap).toContain('https://muslims.cc/hadith/' + h.id)
+    expect(cap).not.toContain('/en/hadith/')
+    const tags = cap.split('\n').at(-1).split(' ')
+    expect(tags.length).toBeLessThanOrEqual(6)
+    expect(new Set(tags).size).toBe(tags.length)
+    expect(tags).toEqual(expect.arrayContaining(['#muslimscc', '#hadith']))
+    // 2-ci dil olmadan — yalnız az
+    expect(ig.buildCaptionMulti(c, ['az'])).toBe(ig.buildCaption(ig.hadithContent('az', h, 'https://muslims.cc'), 'az'))
+  })
+
+  it('ikidilli caption: ingiliscə sayt mətni yoxdursa və ya 2200-ü keçirsə — yalnız az (tərcümə edilmir)', () => {
+    const d = IG_DATA.duas[0]
+    const az = ig.duaContent('az', d, 'https://muslims.cc')
+    const noEn = { ...az }
+    Object.defineProperty(noEn, 'variant', { value: (L) => (L === 'en' ? { ...az, text: '' } : az) })
+    expect(ig.buildCaptionMulti(noEn, ['az', 'en'])).toBe(ig.buildCaption(az, 'az'))
+    const long = { ...az }
+    Object.defineProperty(long, 'variant', { value: (L) => (L === 'en' ? { ...az, text: 'word '.repeat(450) } : az) })
+    const cap = ig.buildCaptionMulti(long, ['az', 'en'])
+    expect(cap).toBe(ig.buildCaption(az, 'az'))
+    expect(cap.length).toBeLessThanOrEqual(2200)
+    // variant yoxdursa (köhnə çağırış) — content özü, monodil
+    expect(ig.buildCaptionMulti(az, ['az', 'en'])).toBe(ig.buildCaption(az, 'az'))
   })
 
   it('xəta növləri: avtorizasiya, limit, keçici', () => {
@@ -358,6 +400,66 @@ describe('instagram — admin marşrutları', () => {
       expect(ok.status).toBe(202)
     } finally { await sup.close() }
   })
+})
+
+describe('instagram — ərəb mətninin çəkilməsi (Quran işarələri)', () => {
+  it('Quran mətni (ayə, ad) — Amiri Quran; hədis / dua — Amiri', () => {
+    expect(card.arabicFontFor('ayah')).toBe('quran')
+    expect(card.arabicFontFor('name')).toBe('quran')
+    expect(card.arabicFontFor('hadith')).toBe('ar')
+    expect(card.arabicFontFor('dua')).toBe('ar')
+    expect(card.FONT.quran.family).toBe('Amiri Quran')
+  })
+
+  it('Amiri Quran bütün Uthmani işarələrini əhatə edir (cmap)', () => {
+    const has = card.fontCoverage('AmiriQuran.ttf')
+    for (let cp = 0x06d6; cp <= 0x06ed; cp++) expect(has(cp), cp.toString(16)).toBe(true)
+    for (const cp of [0x0670, 0x0671, 0x064b, 0x0652, 0x0651]) expect(has(cp)).toBe(true)
+    expect(card.fontCoverage('Amiri-Regular.ttf')(0x0416)).toBe(false)   // Ж — Amiri-də yoxdur
+    expect(card.fontCoverage('MccInter-Regular.ttf')(0x0259)).toBe(true)  // ə
+  })
+
+  it('displayArabic: yalnız dayanma işarəsindən əvvəlki boşluq — hərf və işarələr eynidir', () => {
+    const raw = 'وَتَوَكَّلْ عَلَى ٱللَّهِ ۚ وَكَفَىٰ بِٱللَّهِ وَكِيلًۭا'
+    const out = card.displayArabic(raw)
+    expect(out).toBe('وَتَوَكَّلْ عَلَى ٱللَّهِۚ وَكَفَىٰ بِٱللَّهِ وَكِيلًۭا')
+    expect(out.replace(/\s/g, '')).toBe(raw.replace(/\s/g, ''))
+    expect(card.displayArabic('ٱلۡمُعۡطِي')).toBe('ٱلۡمُعۡطِي')
+  })
+
+  it('arabicIssues: yetim hərəkə (◌) və şriftdə olmayan simvol', () => {
+    expect(card.arabicIssues('وَتَوَكَّلْ عَلَى ٱللَّهِ ۚ وَكَفَىٰ', 'quran')).toEqual([])
+    expect(card.arabicIssues('َ بِسْمِ', 'ar')).toEqual(['orphan-mark:U+064E'])
+    expect(card.arabicIssues('بِسْمِ ْ ٱللَّهِ', 'quran')).toEqual(['orphan-mark:U+0652'])
+    expect(card.arabicIssues('بِسْمِ Ж', 'ar')).toEqual(['missing:U+0416'])
+  })
+
+  it('bütün adlar, dualar və hədislər yoxlamadan keçir (heç biri atlanmır)', () => {
+    const bad = []
+    for (const n of IG_DATA.names) if (card.contentIssues(ig.nameContent('az', n, '')).length) bad.push('name:' + n.n)
+    for (const d of IG_DATA.duas) if (card.contentIssues(ig.duaContent('az', d, '')).length) bad.push('dua:' + d.id)
+    for (const h of LIST) if (card.contentIssues(ig.hadithContent('az', h, '')).length) bad.push('hadith:' + h.id)
+    expect(bad).toEqual([])
+  })
+
+  it('yoxlamadan keçməyən element atlanır, bir dəfə loglanır, sıradakı götürülür', async () => {
+    const { db, cardDir } = setup()
+    const warns = []
+    const log = { error: () => {}, warn: (m) => warns.push(m), log: () => {} }
+    let first = null
+    const m = ig.createInstagram({ db, cardDir, env: ENV, now: () => T0, fetchImpl: fakeFetch(), sleep: async () => {}, log, pollMs: 0,
+      render: async () => JPEG, checkArabic: (c) => { if (!first) first = c.key; return c.key === first ? ['orphan-mark:U+06DA'] : [] } })
+    const p = await m.prepare('2026-11-25', 1, { formats: ['feed'] })
+    expect(p.content.key).not.toBe(first)
+    await m.prepare('2026-11-25', 1, { formats: ['feed'] })
+    expect(warns.filter((w) => w.includes(first))).toHaveLength(1)
+    expect(warns[0]).toContain('orphan-mark:U+06DA')
+  })
+
+  it('fontconfig hər ailə adına ayrı üz verir (Amiri Quran ≠ Amiri ≠ Amiri Bold, MccInter ≠ Amiri)', async () => {
+    const r = await card.fontSelfTest()
+    expect(r.distinct).toEqual({ quranVsAmiri: true, quranVsBold: true, amiriVsBold: true, interVsAmiri: true })
+  }, 30000)
 })
 
 describe('instagram — kartın çəkilməsi (sharp)', () => {

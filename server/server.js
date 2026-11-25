@@ -34,7 +34,7 @@ for (const m of ['@simplewebauthn/server']) require(m)
 // sharp (Instagram kartları, server/instagramCard.js) yalnız YOXLANIR (require.resolve) — libvips IG sönülüdürsə yüklənmir;
 // kart şriftləri (server/fonts, Dockerfile → COPY fonts) da
 require.resolve('sharp')
-for (const f of ['Amiri-Regular.ttf', 'Amiri-Bold.ttf', 'MccInter-Regular.ttf', 'MccInter-SemiBold.ttf', 'fonts.conf']) {
+for (const f of ['AmiriQuran.ttf', 'Amiri-Regular.ttf', 'Amiri-Bold.ttf', 'MccInter-Regular.ttf', 'MccInter-SemiBold.ttf', 'fonts.conf']) {
   if (!require('node:fs').existsSync(require('node:path').join(__dirname, 'fonts', f))) { console.error(`FATAL: server/fonts/${f} yoxdur (Dockerfile → COPY fonts)`); process.exit(1) }
 }
 

@@ -2,7 +2,7 @@
 
 Kod: `server/instagram.js` (planlayıcı, Graph API, kart marşrutu, admin API), `server/instagramCard.js` (kartın çəkilməsi —
 sharp/libvips, ərəbcə Amiri ilə düzgün birləşir), `server/instagram-data.js` (dualar + Allahın 99 adı; yaradan:
-`node scripts/build-instagram-data.mjs`), `server/fonts/` (Amiri + MccInter, OFL 1.1; yaradan: `python scripts/build-ig-fonts.py`),
+`node scripts/build-instagram-data.mjs`), `server/fonts/` (Amiri Quran + Amiri + MccInter, OFL 1.1; yaradan: `python scripts/build-ig-fonts.py`),
 `server/scripts/instagram.js` (CLI), `src/components/admin/InstagramManager.jsx` (admin bölməsi).
 Testlər: `tests/unit/server-instagram.test.js`.
 
@@ -29,8 +29,12 @@ Gündə 3 yuva (`IG_SLOTS`, susmaya görə `08:00,13:00,20:00`, **Asia/Baku**). 
 - Mətn **qısaldılmır**. Kartda oxunaqlı ölçüdə sığmırsa (məs. Ayətül-Kürsi feed-də), sıradakı element götürülür.
 - 20:00 yuvası — gecə rəngi, digərləri — zümrüd. Kartda: xatəm ornamenti, ərəbcə mətn, tərcümə (`IG_LANG`, susmaya görə az),
   mənbə, "muslims.cc".
-- Caption (yalnız feed; story caption qəbul etmir): başlıq, ərəbcə, tərcümə, `— mənbə`, saytdakı səhifənin dil prefiksli linki,
-  4 heşteq. Reytinq, "bəyən / izlə" dili yoxdur.
+- Caption (yalnız feed; story caption qəbul etmir) **ikidillidir** (`IG_CAPTION_LANGS`, susmaya görə `az,en`): başlıq,
+  ərəbcə, az tərcümə, `—`, ingiliscə tərcümə, sonra `— mənbə` (az), saytdakı səhifənin az linki, ≤ 6 heşteq (2-si ingiliscə).
+  Hər iki tərcümə eyni elementin saytdakı mətnidir: ayə — alquran.cloud `en.asad` (saytın Quran oxuyucusu ilə eyni nəşr),
+  hədis — `daily-hadith-data.js`, dua / ad — `instagram-data.js`. Elementin ingiliscə sayt mətni yoxdursa və ya caption
+  2200 simvolu keçirsə, həmin post yalnız az olur — heç vaxt tərcümə edilmir. **Kart** təkdillidir (`IG_LANG`).
+  Reytinq, "bəyən / izlə" dili yoxdur.
 - Server yuva vaxtı işləmirdisə (deploy, restart) **90 dəqiqə** ərzində tutur; sonra həmin yuva buraxılır.
 
 ## Necə işləyir (Meta-nın rəsmi Content Publishing API-si)
@@ -101,7 +105,8 @@ IG_ACCESS_TOKEN=<Generate token-in verdiyi token>
 IG_USER_ID=<user_id, yalnız rəqəmlər>
 IG_ENABLED=1
 # istəyə bağlı:
-# IG_LANG=az                    # az | en | ru | tr | ar — kartın və caption-un dili
+# IG_LANG=az                    # az | en | ru | tr | ar — KARTIN dili
+# IG_CAPTION_LANGS=az,en        # caption: 1-ci əsas dil (mənbə, link), 2-ci — əlavə tərcümə; "az" — yalnız az
 # IG_SLOTS=08:00,13:00,20:00    # Asia/Baku, ən çox 6; 1-ci ayə, 2-ci hədis, 3-cü dua/ad (sonra təkrarlanır)
 # IG_STORIES=1                  # 0 — yalnız feed postu
 # IG_API_VERSION=v27.0          # Meta versiyanı köhnəltsə yeniləyin
@@ -151,6 +156,19 @@ TAG=$(cat .current_tag) docker compose exec -T api node scripts/instagram.js pre
 - Tam: `IG_*` sətirlərini silin; Meta tətbiqində **Instagram → API setup → Remove account** (token etibarsız olur).
   Cədvəllər (`instagram_posts`, `instagram_state`) istifadəçi məlumatı saxlamır; silmək üçün:
   `TAG=$(cat .current_tag) docker compose exec -T api node -e "const d=new (require('node:sqlite').DatabaseSync)(process.env.DB_PATH);d.exec('DELETE FROM instagram_state; DELETE FROM instagram_posts')"`
+
+## Ərəb mətninin çəkilməsi
+
+- Quran mətni (ayə, Allahın adları — Uthmani yazılışı) **Amiri Quran** ilə, hədis və dua **Amiri** ilə çəkilir (saytın
+  özü də Amiri işlədir). Amiri Quran dayanma işarələrini, xəncər əlifi (ٰ), kiçik hərfləri düzgün oturdur. ۡ (U+06E1) mushafdakı
+  kimi "xa başı" formasındadır — bu, sükunun Uthmani yazılışıdır, xəta deyil.
+- alquran.cloud dayanma işarəsini (ۚ ۖ ۗ …) sözdən boşluqla ayırır. Kartda həmin boşluq göstərilmir (Tanzil / mushafdakı kimi
+  işarə sözün üstündədir) — hərflər və işarələr eynidir, caption-da mətn olduğu kimidir. Əks halda sətir işarə ilə başlaya
+  bilirdi və HarfBuzz ona ◌ (U+25CC) qoyurdu (99 ayədən 36-sı bəzi enlərdə).
+- Hər element çəkilməzdən əvvəl yoxlanır: şriftdə olmayan simvol və ya söz əvvəlində duran hərəkə varsa element **atlanır**
+  (loga bir dəfə: `Instagram: <açar> atlandı — …`), sıradakı götürülür. Mətn heç vaxt dəyişdirilmir.
+- Bütün hovuzu yoxlamaq (deploy-dan sonra konteynerdə bir dəfə; fontconfig-in hər ailə adına düzgün üz verdiyini də yoxlayır):
+  `TAG=$(cat .current_tag) docker compose exec -T api node scripts/instagram.js check-glyphs` (`--render` — hamısını çəkir, yavaş).
 
 ## Məhdudiyyətlər
 

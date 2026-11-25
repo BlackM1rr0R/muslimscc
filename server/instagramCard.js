@@ -5,8 +5,15 @@
 //     feed 1080×1350 (4:5), story 1080×1920 (9:16). null — mətn oxunaqlı ölçüdə sığmır (çağıran başqa
 //     element seçir; mətn heç vaxt qısaldılmır və dəyişdirilmir).
 //
-// • sharp (libvips + pango/harfbuzz): ərəb mətni Amiri ilə düzgün birləşir (shaping), latın/kiril — MccInter
-//   (saytın Inter-i, "ə" daxil). Şriftlər server/fonts/ (OFL 1.1). Fon — yalnız fiqurlu SVG (mətnsiz).
+// • sharp (libvips + pango/harfbuzz). Quran mətni (ayə, Allahın adları — Uthmani işarələri: ۡ ۚ ٰ ۭ …) — "Amiri Quran"
+//   (Amiri layihəsinin Quran üçün variantı: dayanma işarələri, kiçik hərflər, xəncər əlif düzgün oturur); hədis / dua —
+//   Amiri; latın/kiril — MccInter (saytın Inter-i, "ə" daxil). Şriftlər server/fonts/ (OFL 1.1). Fon — fiqurlu SVG.
+// • Ərəb mətninin yoxlanması (arabicIssues): şriftdə olmayan simvol (→ "tofu") və ya sətir / söz əvvəlində duran hərəkə
+//   (HarfBuzz ona ◌ — U+25CC — qoyur) varsa kart ÇƏKİLMİR (null), çağıran sıradakı elementi götürür. Mətn dəyişdirilmir.
+//   Yeganə görüntü normallaşdırması (displayArabic): alquran.cloud dayanma işarəsini (U+06D6–U+06DC) sözdən BOŞLUQLA
+//   ayırır ("ٱللَّهِ ۚ"); Tanzil / mushafdakı kimi sözə bitişik çəkilir ("ٱللَّهِۚ") — hərf və işarələr eynidir, yalnız
+//   aradakı boşluq kartda göstərilmir (caption-da mətn olduğu kimidir). Əks halda işarə sətrin üstündə "uçur" və ya
+//   sətir sonunda tək qalır.
 // • sharp TƏNBƏL yüklənir: IG sönülüdürsə API prosesi libvips-i heç yükləmir (konteyner mem_limit 320m).
 // • Dizayn: saytın palitrası (zümrüd #0f5a47 / qum #e6cc95, gecə variantı), xatəm ornamenti, "muslims.cc".
 // ═══════════════════════════════════════════════════════════════════════
@@ -16,6 +23,7 @@ const path = require('node:path')
 
 const FONT_DIR = path.join(__dirname, 'fonts')
 const FONT = {
+  quran: { family: 'Amiri Quran', file: 'AmiriQuran.ttf' },
   ar: { family: 'Amiri', file: 'Amiri-Regular.ttf' },
   arBold: { family: 'Amiri Bold', file: 'Amiri-Bold.ttf' },
   ui: { family: 'MccInter', file: 'MccInter-Regular.ttf' },
@@ -52,11 +60,82 @@ const esc = (s) => String(s == null ? '' : s)
 const clean = (s) => String(s == null ? '' : s).replace(/[\u0000-\u0008\u000b-\u001f\u007f]/g, '').replace(/\s+/g, ' ').trim()
 const HAS_ARABIC = /[؀-ۿݐ-ݿﭐ-﷿ﹰ-﻿]/
 
+// ── Şriftin cmap-ı (format 4 / 12) — hansı simvolların qlifi var ──
+const cmapCache = new Map()
+function fontCoverage(file) {
+  if (cmapCache.has(file)) return cmapCache.get(file)
+  const b = require('node:fs').readFileSync(path.join(FONT_DIR, file))
+  const n = b.readUInt16BE(4)
+  let cmap = -1
+  for (let i = 0; i < n; i++) if (b.toString('latin1', 12 + i * 16, 16 + i * 16) === 'cmap') cmap = b.readUInt32BE(12 + i * 16 + 8)
+  if (cmap < 0) throw new Error(`cmap yoxdur: ${file}`)
+  const subs = []
+  for (let i = 0, k = b.readUInt16BE(cmap + 2); i < k; i++) {
+    const o = cmap + 4 + i * 8
+    subs.push({ pid: b.readUInt16BE(o), eid: b.readUInt16BE(o + 2), off: cmap + b.readUInt32BE(o + 4) })
+  }
+  const pick = subs.find((x) => x.pid === 3 && x.eid === 10) || subs.find((x) => x.pid === 0 && b.readUInt16BE(x.off) === 12) ||
+    subs.find((x) => x.pid === 3 && x.eid === 1) || subs.find((x) => x.pid === 0)
+  const ranges = []   // [start, end] — qlif id 0 olmayan aralıqlar (format 4-də idRangeOffset nəzərə alınır)
+  const fmt = b.readUInt16BE(pick.off)
+  if (fmt === 12) {
+    for (let i = 0, g = b.readUInt32BE(pick.off + 12); i < g; i++) {
+      const o = pick.off + 16 + i * 12
+      ranges.push([b.readUInt32BE(o), b.readUInt32BE(o + 4)])
+    }
+  } else if (fmt === 4) {
+    const seg = b.readUInt16BE(pick.off + 6) / 2
+    const ends = pick.off + 14, starts = ends + seg * 2 + 2, deltas = starts + seg * 2, ros = deltas + seg * 2
+    for (let i = 0; i < seg; i++) {
+      const end = b.readUInt16BE(ends + i * 2), start = b.readUInt16BE(starts + i * 2)
+      const delta = b.readInt16BE(deltas + i * 2), ro = b.readUInt16BE(ros + i * 2)
+      if (start === 0xffff) continue
+      for (let c = start; c <= end; c++) {
+        let g
+        if (!ro) g = (c + delta) & 0xffff
+        else { g = b.readUInt16BE(ros + i * 2 + ro + (c - start) * 2); if (g) g = (g + delta) & 0xffff }
+        if (g) { const last = ranges[ranges.length - 1]; if (last && last[1] === c - 1) last[1] = c; else ranges.push([c, c]) }
+      }
+    }
+  } else throw new Error(`cmap formatı ${fmt}: ${file}`)
+  const has = (cp) => { for (const [a, z] of ranges) if (cp >= a && cp <= z) return true; return false }
+  cmapCache.set(file, has)
+  return has
+}
+
+// Quran dayanma işarələri U+06D6–U+06DC (ۖ ۗ ۘ ۙ ۚ ۛ ۜ)
+const PAUSE_BEFORE_RE = /\s+([ۖ-ۜ])/gu
+/** Kartda göstərmə: sözdən boşluqla ayrılmış dayanma işarəsini sözə bitişdir (hərf / işarə dəyişmir). */
+const displayArabic = (s) => clean(s).replace(PAUSE_BEFORE_RE, '$1')
+const MARK_RE = /\p{M}/u
+const IGNORABLE = new Set([0x20, 0xa0, 0x200c, 0x200d, 0x200e, 0x200f, 0x2060])
+
+/**
+ * Ərəb mətni kartda düzgün çəkilə bilərmi? → problemlərin siyahısı (boş — hər şey qaydasındadır).
+ *   missing:U+XXXX — şriftdə qlif yoxdur (tofu / başqa şriftə düşmə → hərəkə öz hərfinə bağlanmır);
+ *   orphan-mark:U+XXXX — hərəkə mətnin / sözün əvvəlindədir (HarfBuzz ◌ U+25CC qoyur).
+ */
+function arabicIssues(text, font = 'ar') {
+  const f = FONT[font] || FONT.ar
+  const has = fontCoverage(f.file)
+  const out = new Set()
+  const s = displayArabic(text)
+  const cps = [...s]
+  for (let i = 0; i < cps.length; i++) {
+    const cp = cps[i].codePointAt(0)
+    const hex = 'U+' + cp.toString(16).toUpperCase().padStart(4, '0')
+    if (!IGNORABLE.has(cp) && !has(cp)) out.add(`missing:${hex}`)
+    if (MARK_RE.test(cps[i]) && (i === 0 || /\s/u.test(cps[i - 1]))) out.add(`orphan-mark:${hex}`)
+  }
+  return [...out]
+}
+
 /** Bir mətn qatı (şəffaf PNG) → { data, w, h } */
 async function textLayer({ text, font, size, color, width, spacing, letter = 0 }) {
   const sharp = loadSharp()
   const f = FONT[font]
-  const attrs = `foreground="${color}"${letter ? ` letter_spacing="${Math.round(letter * 1024)}"` : ''}`
+  const arabic = font === 'ar' || font === 'arBold' || font === 'quran'
+  const attrs = `foreground="${color}"${arabic ? ' lang="ar"' : ''}${letter ? ` letter_spacing="${Math.round(letter * 1024)}"` : ''}`
   const { data, info } = await sharp({
     text: {
       text: `<span ${attrs}>${esc(text)}</span>`,
@@ -124,9 +203,12 @@ async function renderCard(content, { format = 'feed', theme = 'day', lang = 'az'
   const width = W - 2 * fr.padX
   const isAr = lang === 'ar'
   const ui = isAr ? 'ar' : 'ui', uiSemi = isAr ? 'arBold' : 'uiSemi'
-  const ar = clean(content && content.ar), text = clean(content && content.text)
+  const ar = displayArabic(content && content.ar), text = clean(content && content.text)
   if (!ar || ar.length > MAX_TEXT || text.length > MAX_TEXT) return null
   const isName = content.kind === 'name'
+  const arFont = arabicFontFor(content.kind)
+  // Şriftdə olmayan simvol / yetim hərəkə — kart çəkilmir (çağıran loglayır və sıradakını götürür)
+  if (arabicIssues(ar, arFont).length) return null
 
   // ── Başlıq, istinad, nişan ──
   const titleText = isAr ? clean(content.title) : clean(content.title).toLocaleUpperCase(lang === 'tr' || lang === 'az' ? 'tr' : lang)
@@ -150,13 +232,13 @@ async function renderCard(content, { format = 'feed', theme = 'day', lang = 'az'
     if (isName) {
       const size = Math.round(fr.name * s)
       if (size < fr.nameMin) break
-      parts.push({ layer: await textLayer({ text: ar, font: 'arBold', size, color: t.ar, width }), gap: 34 })
+      parts.push({ layer: await textLayer({ text: ar, font: arFont, size, color: t.ar, width }), gap: 34 })
       if (content.tl) parts.push({ layer: await textLayer({ text: clean(content.tl), font: 'uiSemi', size: Math.round(46 * Math.max(s, 0.8)), color: t.gold, width, letter: 1 }), gap: 30 })
       if (text) parts.push({ layer: await textLayer({ text, font: ui, size: Math.max(Math.round(fr.tr * s), fr.trMin), color: t.text, width, spacing: Math.max(Math.round(fr.tr * s), fr.trMin) * 0.3 }), gap: 0 })
     } else {
       const arSize = Math.round(fr.ar * (text ? s : Math.min(1.15, s * 1.15)))
       if (arSize < fr.arMin) break
-      parts.push({ layer: await textLayer({ text: ar, font: 'ar', size: arSize, color: t.ar, width }), gap: 0, sepAfter: Boolean(text) })
+      parts.push({ layer: await textLayer({ text: ar, font: arFont, size: arSize, color: t.ar, width }), gap: 0, sepAfter: Boolean(text) })
       if (text) {
         const trSize = Math.max(Math.round(fr.tr * s), fr.trMin)
         parts.push({ layer: await textLayer({ text, font: ui, size: trSize, color: t.text, width, spacing: isAr ? 0 : trSize * 0.3 }), gap: 0 })
@@ -193,4 +275,30 @@ async function renderCard(content, { format = 'feed', theme = 'day', lang = 'az'
 /** Kartın ölçüsü (testlər, CLI). */
 const sizeOf = (format) => SIZES[format] || SIZES.feed
 
-module.exports = { renderCard, sizeOf, SIZES, THEMES, HAS_ARABIC, loadSharp, _esc: esc, _clean: clean }
+/** Ərəb mətninin şrifti: Quran mətni (ayə, Allahın adları — Uthmani yazılışı) — Amiri Quran; hədis / dua — Amiri. */
+const arabicFontFor = (kind) => (kind === 'ayah' || kind === 'name' ? 'quran' : 'ar')
+
+/** content → problemlər (boş — çəkilə bilər). instagram.js atlananı loglamaq üçün çağırır. */
+const contentIssues = (content) => arabicIssues(content && content.ar, arabicFontFor(content && content.kind))
+
+/**
+ * Şrift seçiminin özünü yoxlama (CLI check-glyphs, testlər): fontconfig hər ailə adına HƏQİQƏTƏN fərqli üz verirmi?
+ * Eyni nümunə üç ərəb ailəsi ilə çəkilir — çıxışlar cüt-cüt fərqli olmalıdır (eynidirsə — bir ailə başqasına düşüb).
+ */
+async function fontSelfTest() {
+  const probe = 'وَكَفَىٰ بِٱللَّهِۚ'
+  const hash = async (font) => {
+    const l = await textLayer({ text: probe, font, size: 60, color: '#000000', width: 900 })
+    return require('node:crypto').createHash('sha256').update(l.data).digest('hex')
+  }
+  const r = { quran: await hash('quran'), ar: await hash('ar'), arBold: await hash('arBold') }
+  const lat = { ui: await textLayer({ text: 'Hamburgefonstiv əğış', font: 'ui', size: 40, color: '#000000', width: 900 }),
+    ar: await textLayer({ text: 'Hamburgefonstiv əğış', font: 'ar', size: 40, color: '#000000', width: 900 }) }
+  const ok = r.quran !== r.ar && r.quran !== r.arBold && r.ar !== r.arBold && !lat.ui.data.equals(lat.ar.data)
+  return { ok, distinct: { quranVsAmiri: r.quran !== r.ar, quranVsBold: r.quran !== r.arBold, amiriVsBold: r.ar !== r.arBold, interVsAmiri: !lat.ui.data.equals(lat.ar.data) } }
+}
+
+module.exports = {
+  renderCard, sizeOf, SIZES, THEMES, HAS_ARABIC, loadSharp, arabicIssues, contentIssues, displayArabic, arabicFontFor, fontSelfTest,
+  fontCoverage, FONT, _textLayer: textLayer, _esc: esc, _clean: clean,
+}

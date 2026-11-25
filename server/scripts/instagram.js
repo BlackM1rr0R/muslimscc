@@ -10,6 +10,10 @@
 //         — hesab adı, IG_USER_ID uyğunluğu, 24 saatlıq dərc kvotası, token mənbəyi / bitmə tarixi (token çap olunmur)
 //     TAG=$(cat .current_tag) docker compose exec -T api node scripts/instagram.js preview 0 --format story > card.jpg
 //         — yuvanın kartı (JPEG stdout-a və ya --out faylına), caption stderr-ə. Dərc ETMİR, bazaya yazmır.
+//     TAG=$(cat .current_tag) docker compose exec api node scripts/instagram.js check-glyphs [--render]
+//         — bütün hovuzların ərəb mətni (99 ayə — alquran.cloud, 99 ad, dualar, hədislər): şriftdə olmayan simvol / yetim
+//           hərəkə (◌) varsa siyahı; həmin elementlər dərcdə avtomatik atlanır. Əvvəlcə fontconfig yoxlaması (hər ailə
+//           adı ayrı üzə düşürmü). --render — hər elementin kartı da çəkilir (yavaş). Bazaya toxunmur.
 //     TAG=$(cat .current_tag) docker compose exec api node scripts/instagram.js publish-now --slot 1 --yes
 //         — bu günün 1-ci yuvasını İNDİ dərc et (gündə yuva başına bir dəfə; IG_ENABLED=1 lazımdır)
 //
@@ -27,13 +31,15 @@ const USAGE = 'İstifadə:\n' +
   '  node scripts/instagram.js status\n' +
   '  node scripts/instagram.js token-info\n' +
   '  node scripts/instagram.js preview <yuva 0-5> [--format feed|story] [--lang az|en|ru|tr|ar] [--date YYYY-MM-DD] [--out fayl.jpg]\n' +
-  '  node scripts/instagram.js publish-now --slot <0-5> --yes'
+  '  node scripts/instagram.js publish-now --slot <0-5> --yes\n' +
+  '  node scripts/instagram.js check-glyphs [--render]'
 
 function parse(argv) {
   const o = { _: [], flags: new Set() }
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i]
     if (a === '--yes') o.flags.add('yes')
+    else if (a === '--render') o.flags.add('render')
     else if (/^--(format|lang|date|out|slot)$/.test(a)) o[a.slice(2)] = argv[++i]
     else if (a.startsWith('--')) throw new Error(`Naməlum seçim: ${a}`)
     else o._.push(a)
@@ -55,7 +61,8 @@ async function main() {
   let o
   try { o = parse(process.argv.slice(2)) } catch (e) { console.error(e.message + '\n' + USAGE); return 2 }
   const cmd = o._[0]
-  if (!['status', 'token-info', 'preview', 'publish-now'].includes(cmd)) { console.error(USAGE); return 2 }
+  if (!['status', 'token-info', 'preview', 'publish-now', 'check-glyphs'].includes(cmd)) { console.error(USAGE); return 2 }
+  if (cmd === 'check-glyphs') return checkGlyphs(o.flags.has('render'))
   const memory = cmd === 'preview'
   const db = openDb(memory)
   const ig = createInstagram({ db, env: process.env, publicOrigin: process.env.PUBLIC_ORIGIN || 'https://muslims.cc' })
@@ -105,6 +112,49 @@ async function main() {
     try { db.close() } catch { /* */ }
   }
   return 0
+}
+
+/** Bütün hovuzların ərəb mətni şriftlə düzgün çəkilə bilərmi (instagramCard.contentIssues). */
+async function checkGlyphs(withRender) {
+  const card = require('../instagramCard')
+  const dailyAyah = require('../daily-ayah')
+  const LIST = require('../daily-hadith-data')
+  const DATA = require('../instagram-data')
+  const ig = require('../instagram')
+  const self = await card.fontSelfTest()
+  console.log(`fontconfig: ${self.ok ? 'OK — hər ailə ayrı üzdür' : 'XƏTA'} ${JSON.stringify(self.distinct)}`)
+  const items = []
+  for (const n of DATA.names) items.push(ig.nameContent('az', n, ''))
+  for (const d of DATA.duas) items.push(ig.duaContent('az', d, ''))
+  for (const h of LIST) items.push(ig.hadithContent('az', h, ''))
+  let fetchFail = 0
+  for (const ref of dailyAyah.AYAH_REFS) {
+    const pick = { ...dailyAyah.parseRef(ref), ref }
+    const parts = []
+    for (let a = pick.a; a <= pick.to; a++) {
+      try {
+        const r = await fetch(dailyAyah.ayahApiUrl(pick.s, a), { signal: AbortSignal.timeout(15000) })
+        parts.push(r.ok ? dailyAyah.parseAyahResponse(await r.json(), pick.s, a) : null)
+      } catch { parts.push(null) }
+    }
+    const data = dailyAyah.mergeAyahParts(parts)
+    if (!data) { fetchFail++; console.log(`  ayah:${ref} — alquran.cloud cavab vermədi (yoxlanmadı)`); continue }
+    items.push(ig.ayahContent('az', pick, data, ''))
+  }
+  const bad = []
+  let rendered = 0, unfit = 0
+  for (const c of items.filter(Boolean)) {
+    const issues = card.contentIssues(c)
+    if (issues.length) { bad.push(c.key); console.log(`  ATLANIR ${c.key}: ${issues.join(', ')}`); continue }
+    if (withRender) {
+      const ok = await card.renderCard(c, { format: 'story', lang: 'az' })
+      rendered++
+      if (!ok) unfit++
+    }
+  }
+  console.log(`Yoxlandı: ${items.filter(Boolean).length} element · atlanan: ${bad.length}${fetchFail ? ` · yoxlanmayan ayə: ${fetchFail}` : ''}` +
+    (withRender ? ` · çəkildi: ${rendered} (story-yə sığmayan: ${unfit})` : ''))
+  return self.ok && !fetchFail ? 0 : 1
 }
 
 main().then((code) => process.exit(code), (e) => { console.error('Xəta:', e && e.message); process.exit(1) })

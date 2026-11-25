@@ -9,6 +9,8 @@
 #   MccInter-Regular.ttf   — ailə "MccInter"      (wght 400)
 #   MccInter-SemiBold.ttf  — ailə "MccInterSemi"  (wght 600) — ayrı ailə adı: pango-da üslub seçimi lazım olmasın
 # Amiri (ərəb mətni) — assets/fonts/Amiri-*.ttf, dəyişdirilmədən köçürülür.
+# AmiriQuran.ttf + OFL-Amiri.txt bu skriptlə YARADILMIR: Amiri 1.003 rəsmi buraxılışından (github.com/aliftype/amiri/releases)
+# olduğu kimi köçürülüb (server/fonts/README.md).
 # Lisenziya: hər ikisi SIL Open Font License 1.1 (mətn şriftin "name" cədvəlindədir, ID 13/14; server/fonts/README.md).
 # ═══════════════════════════════════════════════════════
 import os

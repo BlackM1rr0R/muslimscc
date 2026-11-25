@@ -83,6 +83,12 @@ function parseSlots(raw) {
   return out.sort()
 }
 
+/** IG_CAPTION_LANGS: "az,en" (susmaya görə) — 1-ci əsas dil, 2-ci (istəyə bağlı) əlavə tərcümə; yalnız 5 dil, ən çox 2. */
+function parseCaptionLangs(raw) {
+  const list = [...new Set(String(raw == null || raw === '' ? 'az,en' : raw).split(',').map((x) => x.trim()).filter((x) => LANGS.includes(x)))]
+  return list.length ? list.slice(0, 2) : ['az', 'en']
+}
+
 function parseConfig(env = {}) {
   const token = String(env.IG_ACCESS_TOKEN || '').trim()
   const userId = String(env.IG_USER_ID || '').trim()
@@ -91,12 +97,13 @@ function parseConfig(env = {}) {
   const lang = LANGS.includes(env.IG_LANG) ? env.IG_LANG : 'az'
   const slots = parseSlots(env.IG_SLOTS || DEFAULT_SLOTS.join(','))
   const stories = String(env.IG_STORIES == null ? '1' : env.IG_STORIES) !== '0'
+  const captionLangs = parseCaptionLangs(env.IG_CAPTION_LANGS)
   const configured = Boolean(token || userId)
   let reason = null
   if (env.IG_ENABLED !== '1') reason = 'disabled'
   else if (!token || !userId) reason = 'missing_credentials'
   else if (!TOKEN_RE.test(token) || !USER_ID_RE.test(userId)) reason = 'bad_format'
-  return { enabled: !reason, reason, configured, token, userId, host, version, lang, slots, stories }
+  return { enabled: !reason, reason, configured, token, userId, host, version, lang, slots, stories, captionLangs }
 }
 
 // ── Vaxt ──
@@ -177,6 +184,26 @@ function buildCaption(c, lang, { withArabic = true } = {}) {
   return withArabic && c.text && c.kind !== 'name' ? buildCaption(c, lang, { withArabic: false }) : null
 }
 
+/**
+ * İkidilli caption (IG_CAPTION_LANGS, məs. az,en): başlıq + ərəbcə + əsas dilin tərcüməsi + "—" + 2-ci dilin tərcüməsi
+ * (hər ikisi saytın öz mətni, eyni element), sonra əsas dilin mənbəsi, keçidi, heşteqlər (≤ 6, 2-ci dildən 2 əlavə).
+ * 2-ci dildə mətn yoxdursa və ya 2200 simvolu keçirsə — yalnız əsas dil (buildCaption). Heç vaxt tərcümə edilmir.
+ * content.variant(L) — eyni elementin L dilində məzmunu (instagram.js → candidate); yoxdursa content özü işlədilir.
+ */
+function buildCaptionMulti(content, langs = ['az', 'en']) {
+  const [L1, L2] = langs
+  const variant = typeof content.variant === 'function' ? content.variant : null
+  const p = (variant && variant(L1)) || content
+  const lang1 = variant && variant(L1) ? L1 : (LANGS.includes(L1) ? L1 : 'az')
+  const s = L2 && L2 !== lang1 && variant ? variant(L2) : null
+  const mono = () => buildCaption(p, lang1)
+  if (!s || !s.text || !p.text) return mono()
+  const tags = [...new Set(['#muslimscc', ...((HASHTAGS[lang1] || HASHTAGS.az)[p.kind] || []), ...((HASHTAGS[L2] || HASHTAGS.en)[p.kind] || []).slice(0, 2)])].slice(0, 6)
+  const head = p.kind === 'name' ? [p.ar, p.tl].filter(Boolean).join('\n') : p.ar
+  const out = [p.title, head, `${p.text}\n—\n${s.text}`, `— ${p.ref}`, `${READ_MORE[lang1]}: ${p.link}`, tags.join(' ')].filter(Boolean).join('\n\n')
+  return out.length <= CAPTION_MAX ? out : mono()
+}
+
 // ── Graph API xətalarının növü ──
 function classifyError(err, status) {
   const code = Number(err && err.code), sub = Number(err && err.error_subcode)
@@ -228,6 +255,13 @@ function createInstagram(opts = {}) {
   const origin = String(publicOrigin || 'https://muslims.cc').replace(/\/+$/, '')
   const cardDir = opts.cardDir || path.join(path.dirname(path.resolve(env.DB_PATH || '/data/muslims.db')), 'ig-cards')
   const render = opts.render || ((c, o) => require('./instagramCard').renderCard(c, o))
+  const checkArabic = opts.checkArabic || ((c) => require('./instagramCard').contentIssues(c))
+  const skipped = new Set()
+  const skipLog = (key, issues) => {
+    if (skipped.has(key)) return
+    skipped.add(key)
+    log.warn(`Instagram: ${key} atlandı — ərəb mətni kartda düzgün çəkilmir (${issues.join(', ')})`)
+  }
   if (cfg.configured && !cfg.enabled) log.warn(`Instagram: avtoposter sönülüdür (${cfg.reason})`)
 
   const raw = db.raw || db
@@ -338,6 +372,9 @@ function createInstagram(opts = {}) {
   }
 
   /** k-cı namizəd (0 — günün öz elementi). null — bu namizəd yararsızdır; throw — şəbəkə (ayə). */
+  // Eyni elementin başqa dildə məzmunu (caption üçün) — yalnız saytın öz mətni, tərcümə edilmir
+  const withVariant = (c, variant) => (c ? Object.defineProperty(c, 'variant', { value: variant, enumerable: false }) : c)
+
   async function candidate(kind, dateKey, k, lang) {
     if (kind === 'ayah') {
       const refs = dailyAyah.AYAH_REFS
@@ -345,16 +382,24 @@ function createInstagram(opts = {}) {
       const pick = { ...dailyAyah.parseRef(ref), ref }
       const data = await ayahData(pick)
       if (!data) throw failure('transient', 'ayah source unavailable')
-      return ayahContent(lang, pick, data, origin)
+      return withVariant(ayahContent(lang, pick, data, origin), (L) => ayahContent(L, pick, data, origin))
     }
     if (kind === 'hadith') {
       const list = dailyHadith.LIST
-      return list.length ? hadithContent(lang, list[rotIndex(dateKey, list.length, 389, k)], origin) : null
+      if (!list.length) return null
+      const h = list[rotIndex(dateKey, list.length, 389, k)]
+      return withVariant(hadithContent(lang, h, origin), (L) => hadithContent(L, h, origin))
     }
     // dua / ad: hər 2 gündən biri — gün nömrəsinin yarısı ilə sırala
     const half = addDays('1970-01-01', Math.floor(dailyAyah.dayNumber(dateKey) / 2))
-    if (kind === 'dua') return IG_DATA.duas.length ? duaContent(lang, IG_DATA.duas[rotIndex(half, IG_DATA.duas.length, 31, k)], origin) : null
-    if (kind === 'name') return IG_DATA.names.length ? nameContent(lang, IG_DATA.names[(Math.floor(dailyAyah.dayNumber(dateKey) / 2) + k) % IG_DATA.names.length], origin) : null
+    if (kind === 'dua' && IG_DATA.duas.length) {
+      const d = IG_DATA.duas[rotIndex(half, IG_DATA.duas.length, 31, k)]
+      return withVariant(duaContent(lang, d, origin), (L) => duaContent(L, d, origin))
+    }
+    if (kind === 'name' && IG_DATA.names.length) {
+      const n = IG_DATA.names[(Math.floor(dailyAyah.dayNumber(dateKey) / 2) + k) % IG_DATA.names.length]
+      return withVariant(nameContent(lang, n, origin), (L) => nameContent(L, n, origin))
+    }
     return null
   }
 
@@ -365,7 +410,10 @@ function createInstagram(opts = {}) {
     for (let k = 0; k < MAX_PICK_TRIES; k++) {
       const content = await candidate(kind, dateKey, k, lang)
       if (!content) continue
-      const caption = buildCaption(content, lang)
+      // Ərəb mətni şriftlə düzgün çəkilə bilmirsə (qlif yoxdur / yetim hərəkə) — atlanır, mətn dəyişdirilmir
+      const issues = checkArabic(content)
+      if (issues.length) { skipLog(content.key, issues); continue }
+      const caption = buildCaptionMulti(content, cfg.captionLangs)
       if (!caption) continue
       const cards = {}
       let ok = true
@@ -548,7 +596,7 @@ function createInstagram(opts = {}) {
     const rec = cfg.token ? tokenRecord() : null
     return {
       enabled: cfg.enabled, reason: authBlocked ? 'auth_error' : cfg.reason, configured: cfg.configured,
-      lang: cfg.lang, stories: cfg.stories, host: cfg.host, timezone: TZ,
+      lang: cfg.lang, captionLangs: cfg.captionLangs, stories: cfg.stories, host: cfg.host, timezone: TZ,
       slots: cfg.slots.map((s, i) => ({ time: s, kind: SLOT_KINDS[i % SLOT_KINDS.length] })),
       next: cfg.enabled ? nextSlot(cfg.slots, now()) : null,
       token: cfg.enabled ? { source: rec ? 'refreshed' : 'env', refreshedAt: rec ? rec.refreshedAt : null, expiresAt: rec ? (rec.expiresAt || null) : null } : null,
@@ -643,6 +691,6 @@ function createInstagram(opts = {}) {
 }
 
 module.exports = {
-  createInstagram, parseConfig, parseSlots, kindFor, themeFor, nextSlot, buildCaption, classifyError, isBukhariMuslim,
+  createInstagram, parseConfig, parseSlots, parseCaptionLangs, kindFor, themeFor, nextSlot, buildCaption, buildCaptionMulti, classifyError, isBukhariMuslim,
   hadithContent, duaContent, nameContent, ayahContent, sealToken, openToken, CARD_NAME_RE, SLOT_KINDS, DEFAULT_SLOTS, LANGS,
 }
