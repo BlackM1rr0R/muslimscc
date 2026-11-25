@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, lazy, Suspense } from "react";
+import { useState, useEffect, useLayoutEffect, useRef, useCallback, lazy, Suspense } from "react";
 import { useLang } from "../contexts/LangContext";
 import { brandName } from "../config/brand";
 import { PRIMARY_NAV, navShortLabel } from "../data/navigation";
@@ -8,7 +8,6 @@ import { useScrollDirection } from "../hooks/useScrollDirection";
 // Tənbəl chunk (LazySideNav.jsx): telefonda menyu boş vaxtda əvvəlcədən qurulur (aşağıda)
 import SideNav from "./LazySideNav";
 import Icon, { BrandMark } from "./Icon";
-import LimelightNav from "../motion/LimelightNav";
 // Hesab düyməsi (≥1024px) — kiçik; ağır hissə (formalar, passkey, Google) yalnız /login, /account-da
 import HeaderAccount from "./HeaderAccount";
 import "../styles/Header.css";
@@ -189,6 +188,47 @@ function BurgerIcon() {
   );
 }
 
+// ── Navbar A (2026-11-24): 5 əsas link + altında linkdən linkə sürüşən qızılı xətt (ortasında nöqtə).
+// Ölçü yalnız ≥1024px-də (telefonda nav gizlidir — layout oxunuşu yoxdur); ResizeObserver şrift
+// yüklənəndə / en dəyişəndə yenidən ölçür. Yalnız transform + kiçik mütləq elementin eni.
+// İlk ölçüdə xətt yerində doğulur (keçidsiz), sonrakı keçidlər yumşaq sürüşür.
+function PrimaryNav({ items, current, label }) {
+  const ref = useRef(null);
+  const [ind, setInd] = useState(null);
+  useLayoutEffect(() => {
+    const box = ref.current;
+    if (!box || typeof window === "undefined" || !window.matchMedia?.(DESKTOP_MQ).matches) return undefined;
+    const measure = () => {
+      const a = box.querySelector('[aria-current="page"]');
+      if (!a || !a.offsetWidth) { setInd(p => (p ? null : p)); return; }
+      const x = a.offsetLeft + 14, w = Math.max(8, a.offsetWidth - 28);
+      setInd(p => (p && p.x === x && p.w === w ? p : { x, w, moved: Boolean(p) }));
+    };
+    measure();
+    if (typeof ResizeObserver !== "function") return undefined;
+    const ro = new ResizeObserver(measure);
+    ro.observe(box);
+    return () => ro.disconnect();
+  }, [current, items.length]);
+  return (
+    <nav ref={ref} aria-label={label} className="nav-desktop">
+      {items.map(it => {
+        const on = it.key === current;
+        return (
+          <a key={it.key} href={it.href} onClick={it.onClick} aria-current={on ? "page" : undefined} className={`nav-link${on ? " active" : ""}`}>
+            {it.label}
+          </a>
+        );
+      })}
+      <span
+        className={`nav-ind${ind ? " is-on" : ""}${ind?.moved ? " is-moving" : ""}`}
+        style={ind ? { transform: `translateX(${ind.x}px)`, width: `${ind.w}px` } : undefined}
+        aria-hidden="true"
+      />
+    </nav>
+  );
+}
+
 function Header({ currentPage, setPage }) {
   const [langOpen, setLangOpen] = useState(false);
   const [focusInside, setFocusInside] = useState(false);
@@ -228,9 +268,8 @@ function Header({ currentPage, setPage }) {
   const langRef = useRef(null);
   const langBtnRef = useRef(null);
 
-  // ── Aktiv link göstəricisi (≥1024px) — v6: LimelightNav (src/motion): başlığın
-  // yuxarı kənarından aktiv linkin üstünə düşən "projektor" işığı, linkdən linkə
-  // YAYLA sürüşür (yalnız transform). Ölçü/ResizeObserver komponentin içindədir.
+  // ── Aktiv link göstəricisi (≥1024px) — Navbar A: linkin altında qızılı xətt + nöqtə,
+  // linkdən linkə sürüşür (PrimaryNav, yuxarıda). Ölçü/ResizeObserver komponentin içindədir.
 
   // ── Sürüşmə: nazik xətt + kölgə (scrolled) və telefonda gizlənmə (hidden) ──
   // Tək passive dinləyici + requestAnimationFrame (hooks/useScrollDirection).
@@ -247,6 +286,13 @@ function Header({ currentPage, setPage }) {
     root.classList.toggle("qm-hdr-hidden", scrollHidden);
     return () => root.classList.remove("qm-hdr-hidden");
   }, [scrollHidden]);
+  // Navbar A: sürüşəndə başlıq ≥1024px-də 64 → 52px yığılır (Header.css); yapışqan panellər
+  // --header-offset ilə birlikdə qalxır (motion.css), yan panel üstündən uzanır (SideNav.css)
+  useEffect(() => {
+    const root = document.documentElement;
+    root.classList.toggle("qm-hdr-compact", scrolled);
+    return () => root.classList.remove("qm-hdr-compact");
+  }, [scrolled]);
 
   // ── Dil menyusu: kənara klik və Esc bağlayır, oxlar seçimlər arasında gəzir ──
   useEffect(() => {
@@ -452,12 +498,9 @@ function Header({ currentPage, setPage }) {
           </div>
 
           {/* ── ORTA: yalnız 5 əsas link (≥1024px, əsas sütunun ortasında) ── */}
-          <LimelightNav
-            className="nav-desktop"
-            linkClassName="nav-link"
+          <PrimaryNav
             label={l.primaryNav}
             current={currentPage}
-            data-spotlight=""
             items={PRIMARY_NAV.map(key => ({
               key,
               label: navShortLabel(key, lang),

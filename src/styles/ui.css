@@ -2151,3 +2151,20 @@ dialog.ui-dialog[open],
   .ui-clamp { -webkit-line-clamp: unset; line-clamp: unset; display: block; }
   .ui-card--interactive, .ui-tile { box-shadow: none; }
 }
+
+/* ── İkon A (2026-11-24): qızılı xətt ikonu özünü "qələm kimi" çəkir ──
+   <Icon draw /> hər xəttə pathLength="1" verir. Gizli başlanğıc YALNIZ ortaq müşahidəçi
+   elementi götürəndə ([data-draw-ready], hooks/useReveal.js) və html.qm-reveal-on altında —
+   JS olmasa, prerender HTML-də və "hərəkəti azalt"-da ikon həmişə tam görünür. Bir dəfə
+   çəkilir (data-drawn); siçanla üzərinə gələndə yenidən çəkilir. Növbə: --draw-i (× 90ms). */
+.ic-draw * { stroke-dasharray: 1; stroke-dashoffset: 0; }
+html.qm-reveal-on [data-draw-ready]:not([data-drawn]) .ic-draw * { stroke-dashoffset: 1; }
+[data-drawn] .ic-draw * { transition: stroke-dashoffset 1.3s var(--ease-out, ease) calc(var(--draw-i, 0) * 90ms); }
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-motion-user) :is(a, button):hover .ic-draw * { animation: ic-redraw 1s var(--ease-out, ease); }
+}
+@keyframes ic-redraw {
+  0%   { stroke-dashoffset: 0; }
+  40%  { stroke-dashoffset: 1; }
+  100% { stroke-dashoffset: 0; }
+}

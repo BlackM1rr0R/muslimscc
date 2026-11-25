@@ -738,9 +738,9 @@ export default function SideNav({ mode = 'drawer', id, open = false, onClose, cu
                     aria-describedby={newId}
                     onClick={(e) => onItemClick(e, item.key)}
                   >
-                    {/* Xətti SVG ikon (Icon.jsx); ikon yoxdursa emoji ehtiyatı */}
+                    {/* Xətti SVG ikon (Icon.jsx); ikon yoxdursa emoji ehtiyatı. Yan paneldə qızılı xətt üzərinə gələndə yenidən çəkilir (İkon A, ui.css → .ic-draw) */}
                     <span className="qm-sn-item-icon" aria-hidden="true">
-                      <Icon name={item.key} size={18} fallback={item.icon} />
+                      <Icon name={item.key} size={18} fallback={item.icon} draw={isRail} />
                     </span>
                     <span className="qm-sn-item-label">{label}</span>
                   </a>

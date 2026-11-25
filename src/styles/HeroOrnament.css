@@ -37,6 +37,21 @@
 /* Məzmun naxışın üstündə qalsın */
 .ui-page-hero > .ui-container { position: relative; z-index: 1; }
 
-/* Ana səhifə: naxış sol yarıda, söz nişanının arxasında (sağda namaz kartı var) */
-.hero-orn.hp-orn { inset-inline-end: auto; inset-inline-start: -6%; width: min(52%, 640px); opacity: .32; }
-@media (max-width: 760px) { .hero-orn.hp-orn { width: 110%; inset-inline-start: -30%; opacity: .2; } }
+/* Ana səhifə — Hero A (2026-11-24): iri Nur xatəmi namaz kartının ARXASINDA (.hp-hero-visual),
+   qızılı xətlə özünü çəkir və siçanlı ekranda çox yavaş fırlanır (160 s/dövr; yalnız rotate —
+   kompozitorda; telefonda sonsuz animasiya yoxdur). Ekrandan çıxanda dayanır (HomePage.css →
+   data-wow-paused). Prerender-dəki statik ilk ekranda da eyni SVG var (scripts/seo-body.mjs). */
+.hero-orn.hp-orn {
+  inset-inline-end: auto; inset-inline-start: 50%; top: 50%; translate: -50% -50%; z-index: -1;
+  width: min(128%, 680px); opacity: .7;
+}
+[dir="rtl"] .hero-orn.hp-orn { translate: 50% -50%; }
+.hero-orn.hp-orn path { stroke: var(--accent, #a57a22); stroke-width: 1.1; }
+.hero-orn.hp-orn path.b { opacity: .5; }
+.hero-orn.hp-orn path.t { opacity: .4; }
+[data-theme="dark"] .hero-orn.hp-orn { opacity: .55; }
+@media (max-width: 760px) { .hero-orn.hp-orn { width: 118%; inset-inline-end: auto; opacity: .45; } }
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .hero-orn.hp-orn { animation: hp-orn-spin 160s linear infinite; }
+}
+@keyframes hp-orn-spin { to { rotate: 360deg; } }

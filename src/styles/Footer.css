@@ -19,7 +19,8 @@
    ══════════════════════════════════════════════════════ */
 
 .footer {
-  background: var(--surface-2);
+  /* Footer A (2026-11-24): səhifə rəngində — sakit "kitabxana" */
+  background: var(--surface-0);
   color: var(--text-secondary);
   border-top: 1px solid var(--line);
   position: relative;
@@ -28,13 +29,17 @@
   container: ft / inline-size;
 }
 
-/* Yuxarı kənarda incə qızılı xətt — ortada, kənarlara doğru sönür */
-.footer::before {
-  content: '';
-  position: absolute; top: -1px; left: 0; right: 0; height: 1px;
-  background: linear-gradient(90deg, transparent 15%, var(--accent) 50%, transparent 85%);
-  opacity: 0.55;
+/* Yuxarı kənarda qızılı xətt — ortadan kənarlara AÇILIR (görünəndə bir dəfə; hooks/useReveal.js →
+   data-reveal="line"). JS olmasa / "hərəkəti azalt"-da xətt sadəcə yerindədir. */
+.ft-line {
+  position: absolute; top: -1px; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent 10%, var(--accent) 50%, transparent 90%);
+  opacity: 0.75;
+  transform-origin: center;
+  pointer-events: none;
 }
+.ft-line[data-reveal="line"] { --reveal-anim: ft-line-open; --reveal-dur: 1400ms; }
+@keyframes ft-line-open { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 
 /* Naxış yuxarıdan aşağı solur — mətnin altında sakit qalsın */
 .footer .ft-pattern {

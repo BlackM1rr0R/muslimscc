@@ -589,3 +589,12 @@ Sonsuz animasiya yalnız transform/opacity (`node scripts/check-motion.mjs`). Ye
 sətri yenidən işlət (44 lüğətdə artıq tərcüməsi var) — yeni sətir əlavə dillərdə ingiliscə qalar.
 
 Sahibin rəyi (2026-11-07): ana səhifədə dil zolağı, günəşli "bir gün" bölməsi, rəngli namaz səması və 3D ikonlar **istəmir** — hero rəngsiz (fil sümüyü + naxış). Geri qaytarma.
+
+## 11. UI cilası A (2026-11-24, sahibin seçdiyi maket)
+- **Navbar A** — sakit şüşə başlıq; aktiv linkin altında qızılı xətt + nöqtə linkdən linkə sürüşür (`Header.jsx → PrimaryNav`, `.nav-ind`). ≥1024px-də sürüşəndə başlıq 64 → 52px (`--header-h` dəyişmir; `html.qm-hdr-compact` → `--header-offset: 52px`). Telefon menyusu: qızılı xətt ikonları (fon kafeli yoxdur), cari sətirdə qızılı zolaq, qruplar növbə ilə qalxır.
+- **Hero A** — bir naxış, bir hərəkət: namaz kartının arxasında Nur xatəmi (`HeroOrnament.hp-orn`), ad hərf-hərf qalxır + bir parıltı. Aurora / axan xətlər / ulduzlar / ulduz tozu / telefon əyilməsi götürülüb. Prerender-də statik ilk ekran (`scripts/seo-body.mjs → homeBody`, mətnlər `components/home/heroText.js`) — sinif adları HomePage.jsx ilə eyni qalmalıdır.
+- **Scroll A** — bütün girişlər TƏK ortaq IntersectionObserver-dədir (`utils/revealIO.js`: `[data-reveal]`, wow.js §2–3, `[data-draw]`); 18px qalxma, 70 ms növbə, bir dəfə, bulanıqlıq yoxdur.
+- **Keçid** — masaüstü: fade-through (köhnə 160 ms, yeni 340 ms); kart → səhifə: başlıq və rozet uçur (View Transition). Telefonda View Transition YOXDUR: güclü cihazda (deviceMemory ≥ 4) başlıq FLIP ilə uçur (wow.js §9c), qalanında adi solma.
+- **İkon A** — `<Icon draw />` (hər xəttə `pathLength="1"`) + valideyndə `data-draw`: qızılı xətt görünəndə özünü çəkir, siçanla üzərinə gələndə yenidən (`ui.css → .ic-draw`). Yaşıl 3D kafel yoxdur.
+- **Footer A** — səhifə rəngində, yuxarıda açılan qızılı xətt (`data-reveal="line"`), zəif xatəm naxışı, dillər zolağı. Tünd CTA zolağı və iri söz-nişanı yoxdur.
+- **CTA B** — saytda TƏK CTA: ana səhifənin sonunda tünd zolaq + növbəti namaz halqası + "Bildirişi aç" (`HomeSections.jsx → CtaSection`, `.hp-ctab`).

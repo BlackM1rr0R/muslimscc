@@ -365,18 +365,51 @@ html[dir="rtl"] .header::after { transform-origin: right center; }
   color: var(--text-strong);
 }
 
-/* Aktiv: yumşaq zümrüd "hap" + yuxarıdan düşən qızılı işıq (LimelightNav, v6) —
-   işıq linkdən linkə yayla sürüşür; "hap" isə yerində yumşaq yanır (keçid: fon/rəng). */
+/* Navbar A (2026-11-24): aktiv link — güclü mətn rəngi (fon "hapı" yoxdur); altında qızılı
+   xətt + nöqtə (.nav-ind, Header.jsx → PrimaryNav) linkdən linkə sürüşür. Çəki dəyişmir —
+   naviqasiyada linklərin eni "atılmır". */
 .nav-link.active {
-  background: var(--brand-soft);
-  color: var(--brand);
-  font-weight: 600;
+  color: var(--text-strong);
 }
 .nav-link { transition: background-color var(--dur-2, 240ms) ease, color var(--dur-2, 240ms) ease, transform var(--dur-1, 150ms) var(--ease-out, ease); }
 .nav-link:active { transform: scale(0.96); }
 
-/* v6: LimelightNav (src/motion → motion-kit.css .mo-lime__light): qızılı zolaq nav
-   "kapsulunun" yuxarı kənarında, işıq konusu aktiv "hapın" üstünə düşür. */
+.nav-ind {
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  height: 2px;
+  width: 0;
+  border-radius: 2px;
+  background: var(--accent);
+  opacity: 0;
+  pointer-events: none;
+}
+.nav-ind::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: -5px;
+  width: 4px;
+  height: 4px;
+  margin-left: -2px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+.nav-ind.is-on { opacity: 1; }
+.nav-ind.is-moving {
+  transition: transform 450ms var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1)), width 450ms var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1));
+}
+
+/* Navbar A: sürüşəndə ≥1024px-də başlıq 64 → 52px yığılır və kölgə alır. --header-h DƏYİŞMİR
+   (body boşluğu sabitdir — səhifə tullanmır); yapışqan panellər --header-offset ilə qalxır,
+   yan panelin üstündəki 12px boşluğu onun ::before uzantısı örtür (SideNav.css). */
+@media (min-width: 1024px) {
+  .header-inner { transition: height 350ms var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1)); }
+  .header.scrolled .header-inner { height: 52px; }
+  .header.scrolled .logo-icon { transform: scale(0.84); }
+  html.qm-hdr-compact { --header-offset: 52px; }
+}
 
 /* ══════════════════════════════════════════════════════════
    DİL MENYUSU
@@ -696,6 +729,7 @@ html:not(.qm-input-pointer) .header .hdr-btn:focus-visible {
   }
   .header::after { display: none; }
   .logo-text-wrap { transition: none; }
+  .header-inner, .nav-ind.is-moving { transition: none; }
   .header.scrolled .logo-icon,
   .header.scrolled .logo-text-wrap,
   .logo:hover .logo-icon { transform: none; }

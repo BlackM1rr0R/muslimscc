@@ -2,7 +2,7 @@
 // UX auditi (2026-11-18) — layout düzəlişlərinin qoruyucuları:
 //   • səhifə başlığının işıq keçidi hərfləri "yemir" (background-position 0–100% aralığında)
 //   • 1280px-də başlıqdakı namaz halqası orta menyuya dəymir
-//   • footer-in iri söz-nişanı sağdan kəsilmir (1280 və 360)
+//   • footer A: tünd zolaq / iri söz-nişanı yoxdur, üfüqi daşma yoxdur (1280 və 360)
 //   • telefon menyusu: alətlər bir sətirdədir, 780px hündürlükdə ən azı 12 bölmə sətri görünür; dillər "AZ ▾" arxasında
 //   • telefonda (≤480px) səhifə hero-su aləti ekranın altına itələmir
 // ═══════════════════════════════════════════════════════
@@ -49,16 +49,20 @@ test('1280px: namaz halqası və idarələr orta menyuya dəymir (/prayer, /qura
   }
 })
 
+// Footer A (2026-11-24): iri söz-nişanı və tünd CTA zolağı götürülüb — sakit "kitabxana" footer-i
 for (const width of [1280, 360]) {
-  test(`footer söz-nişanı kəsilmir (${width}px)`, async ({ page, isMobile }) => {
+  test(`footer A: tünd zolaq yoxdur, qızılı xətt və dillər var, üfüqi daşma yoxdur (${width}px)`, async ({ page, isMobile }) => {
     test.skip(isMobile && width === 1280, 'telefon proyektində 1280 yoxdur')
     await page.setViewportSize({ width, height: 800 })
     await page.goto('/about')
     await settle(page)
-    const mark = page.locator('.vx-wordmark__fill')
-    await mark.scrollIntoViewIfNeeded()
-    const { sw, cw } = await mark.evaluate((el) => ({ sw: el.scrollWidth, cw: el.clientWidth }))
-    expect(sw).toBeLessThanOrEqual(cw + 1)
+    const footer = page.locator('footer.footer')
+    await footer.scrollIntoViewIfNeeded()
+    await expect(footer.locator('.ft-line')).toHaveCount(1)
+    await expect(page.locator('.vx-ft-band-wrap, .vx-wordmark, .vx-cta')).toHaveCount(0)
+    await expect(footer.locator('.vx-ft-langs')).toBeVisible()
+    const over = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)
+    expect(over).toBeLessThanOrEqual(1)
   })
 }
 

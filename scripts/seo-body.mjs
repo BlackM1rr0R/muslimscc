@@ -24,7 +24,6 @@ import { fileURLToPath } from 'node:url'
 import { LANGS, EXTRA_LANGS, EXTRA_CODES, EXTRA_PAGES, dirOf, pathFor, detailParams } from '../src/seo/routes.js'
 import { localDigits } from '../src/seo/intl.js'
 import { shortName, descFor } from '../src/seo/meta.js'
-import { brandName } from '../src/config/brand.js'
 import { FULL_T, narratorLine, hasFull } from '../src/utils/hadithFull.js'
 import {
   BODY_UI, SECTION_LABEL, detailMeta, crumbsFor, surahInfo, nameInfo, sahabaInfo, sentencesOf,
@@ -49,6 +48,9 @@ import { CAL_MONTHS_GUIDE, CAL_SOURCES } from '../src/data/guides/CalendarPage.j
 import { CHARITY_GUIDE } from '../src/data/pageGuides/CharityPage.js'
 import { DONATE_GUIDE } from '../src/data/pageGuides/DonatePage.js'
 import { DUA_GUIDE } from '../src/data/pageGuides/DuaJournalPage.js'
+import { HERO_T } from '../src/components/home/heroText.js'
+import { PRAYER_NAMES as HOME_PRAYER_NAMES } from '../src/data/prayerTrackerText.js'
+import { BRAND, DEFAULT_PRAYER_LOCATION, brandName, tr as brandTr } from '../src/config/brand.js'
 
 // detail.js lüğəti glossarySource.js-dən oxuyur (prerender: meta + statik blok)
 setGlossarySource(GLOSSARY_BY_ID)
@@ -688,11 +690,85 @@ function listShell(key, lang, heading, items) {
  * Səhifənin statik bloku (HTML) və ya '' (statik blok yazılmayan səhifə).
  * param — detal parametri (surə/ad nömrəsi, səhabə/alim slug-u) və ya null.
  */
+// ═══ Ana səhifə — statik ilk ekran (Hero A, 2026-11-24) ═══
+// NİYƏ: ana səhifənin #root-u boş idi — ilk boyama (FCP) JS-i gözləyirdi (orta telefonda ~3.5 s).
+// İndi HTML-in özündə React-in İLK görünüşünün surəti var: başlıq zolağı (loqo), günün
+// xatırlatmaları zolağının yer tutucusu, hero (nişan, "Muslims.cc", şüar, iki düymə, üç üstünlük)
+// və namaz kartının yüklənmə halı (pages/HomePage.jsx → PrayerWidget, skeleton). Sinif adları və
+// ardıcıllıq HomePage.jsx ilə EYNİDİR; bu blokun kritik CSS-i prerender-də inline yazılır
+// (prerender.mjs → homeCriticalFor) — React bloku əvəz edəndə heç nə yerindən oynamır. Hero-nun CSS
+// animasiyaları burada başlayır; React onları kəsmədən davam etdirir (HomePage.jsx → staticHero).
+// Mətnlər src/components/home/heroText.js-dəndir (React ilə ortaq). Yalnız 5 əsas dil — əlavə
+// dillərdə interfeys lüğətlə tərcümə olunur, statik surət onunla hərfbəhərf üst-üstə düşməzdi.
+// İkonlar Icon.jsx-in ÖZ yollarından oxunur (tək mənbə).
+let iconSrc = null
+function iconSvg(name, size = 20, sw = 1.75, cls = '') {
+  if (iconSrc == null) iconSrc = fs.readFileSync(path.join(ROOT, 'src', 'components', 'Icon.jsx'), 'utf8')
+  const line = iconSrc.split(/\r?\n/).find(l => l.startsWith(`  ${name}: `))
+  if (!line) throw new Error(`Icon.jsx: "${name}" ikonu tapılmadı (seo-body homeBody)`)
+  const body = line.slice(`  ${name}: `.length).replace(/,\s*$/, '').replace(/<\/?>/g, '').replace(/strokeWidth=/g, 'stroke-width=')
+  return `<svg${cls ? ` class="${cls}"` : ''} width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${body}</svg>`
+}
+// components/Icon.jsx → BrandMark ilə eyni
+const BRAND_MARK = '<svg class="qm-mark " width="34" height="34" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><rect class="qm-mark-tile" width="32" height="32" rx="9"/><path class="qm-mark-star" d="M9.4 9.4h13.2v13.2H9.4zM16 6.7 25.3 16 16 25.3 6.7 16z"/><circle class="qm-mark-dot" cx="16" cy="16" r="2.1"/></svg>'
+// Nur xatəmi (HeroOrnament) statik blokda YOXDUR — React gələndən sonra özünü çəkir (main thread-də
+// rəngləmə tələb edir; JS yüklənərkən CPU-nu yeməsin)
+const HOME_PRAYER_ICON = { fajr: 'sunrise', dhuhr: 'sun', asr: 'sunLow', maghrib: 'sunset', isha: 'moon' }
+
+export function homeBody(lang) {
+  if (!LANGS.includes(lang)) return ''
+  const t = HERO_T[lang] || HERO_T.en
+  const brand = brandName(lang).trim()
+  const dot = brand.lastIndexOf('.')
+  const first = dot > 0 ? brand.slice(0, dot) : brand
+  const last = dot > 0 ? brand.slice(dot) : ''
+  const names = HOME_PRAYER_NAMES[lang] || HOME_PRAYER_NAMES.en
+  const city = DEFAULT_PRAYER_LOCATION.city[lang] || DEFAULT_PRAYER_LOCATION.city.en
+  const home = pathFor('home', lang)
+  const prayer = pathFor('prayer', lang)
+  const chars = [...first].map((ch, i) => `<span class="hp-ht-ch" style="--ci:${i}">${esc(ch)}</span>`).join('')
+  const rows = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'].map(k =>
+    `<li class="hp-pr hp-pr--skel"><span class="hp-pr-dot" aria-hidden="true"></span>` +
+    `<span class="hp-pr-ic" aria-hidden="true">${iconSvg(HOME_PRAYER_ICON[k], 18)}</span>` +
+    `<span class="hp-pr-nm"><span>${esc(names[k])}</span></span>` +
+    `<span class="hp-pr-tm"><span class="hp-skel skeleton" aria-hidden="true"></span></span>` +
+    `<span class="hp-pr-chk" aria-hidden="true"></span></li>`).join('')
+  return `<div class="qm-home-first" data-seo-static="" data-home-static="">` +
+    `<header class="header"><div class="header-inner"><div class="header-left">` +
+    `<a class="logo" href="${home}"><span class="logo-icon" aria-hidden="true">${BRAND_MARK}</span>` +
+    `<span class="logo-text-wrap"><span class="logo-main">${esc(first)}</span>${last ? `<span class="logo-dot">${esc(last)}</span>` : ''}</span></a>` +
+    `</div></div></header>` +
+    `<div class="qm-shell"><div class="qm-shell-main"><main style="min-height:calc(100vh - var(--header-h, 64px))">` +
+    `<div class="hp-root"><div class="hp-top">` +
+    `<div class="drb-wrap" aria-hidden="true"><div class="drb drb--skeleton"></div></div>` +
+    `<section class="hp-hero"><div class="hp-hero-bg" aria-hidden="true"><div class="ui-pattern ui-pattern--fade hp-hero-pattern"></div><div class="hp-wx"></div></div>` +
+    `<div class="hp-hero-inner"><div class="hp-hero-content">` +
+    `<span class="ui-eyebrow hp-badge">${esc(t.badge)}</span>` +
+    `<h1 class="hp-hero-title hp-shine" aria-label="${esc(brand)}"><span class="hp-ht-row" aria-hidden="true"><span class="hp-ht-1">${chars}</span>${last ? `<span class="hp-ht-2">${esc(last)}</span>` : ''}</span></h1>` +
+    `<p class="hp-hero-sub">${esc(brandTr(BRAND.tagline, lang))}</p>` +
+    `<div class="hp-hero-btns">` +
+    `<a class="ui-btn ui-btn--primary ui-btn--lg" href="${prayer}">${iconSvg('prayer', 20, 1.75, 'ui-btn__icon')} ${esc(t.btnTimes)}</a>` +
+    `<a class="ui-btn ui-btn--secondary ui-btn--lg" href="${pathFor('quran', lang)}">${iconSvg('quran', 20, 1.75, 'ui-btn__icon')} ${esc(t.btnQuran)}</a>` +
+    `</div>` +
+    `<ul class="hp-hero-trust" aria-label="${esc(t.heroTrust)}"><li>${iconSvg('check', 16)} ${esc(t.noSignup)}</li><li>${iconSvg('shield', 16)} ${esc(t.adFree)}</li><li>${iconSvg('globe', 16)} ${esc(t.langs)}</li></ul>` +
+    `</div><div class="hp-hero-visual">` +
+    `<section class="hp-pc" aria-labelledby="hp-pc-ttl-s"><div class="hp-pc-hdr"><div class="hp-pc-hdr-l">` +
+    `<h2 id="hp-pc-ttl-s" class="hp-pc-ttl">${esc(t.pcTitle)}</h2>` +
+    `<span class="hp-pc-sub">${iconSvg('pin', 14)} <span class="cp-trigger cp-trigger--inline hp-pc-city"><span class="cp-trigger__name">${esc(city)}</span>${iconSvg('chevronDown', 14, 1.75, 'cp-trigger__chev')}</span> · ${esc(t.calc)}</span>` +
+    `</div><span class="hp-pc-ic ui-icon-tile ui-icon-tile--sm" aria-hidden="true">${iconSvg('prayer', 18)}</span></div>` +
+    `<ol class="hp-pr-list" aria-busy="true" aria-label="${esc(t.loading)}">${rows}</ol>` +
+    `<p class="hp-pc-note">${esc(t.calcNote(city))}</p>` +
+    `<a class="hp-pc-more ui-btn ui-btn--secondary ui-btn--block" href="${prayer}">${esc(t.allTimes)}</a>` +
+    `</section></div></div></section></div></div>` +
+    `</main></div></div></div>`
+}
+
 export function staticBodyFor(key, lang, param = null) {
   // Əlavə dildə yalnız mövcud bölmələr (Quran) — src/seo/langs.js
   // Əlavə dildə statik blok yalnız öz məzmunu olan bölmədə (Quran); qalan
   // səhifələri React çəkir (interfeys lüğətlə, məzmun ingiliscə)
   if (!LANGS.includes(lang) && !(EXTRA_LANGS[lang] && EXTRA_PAGES.includes(key))) return ''
+  if (key === 'home') return param == null ? homeBody(lang) : ''
   if (key === 'quran') return param ? surahBody(lang, param) : quranListBody(lang)
   if (key === 'names') return param ? nameBody(lang, param) : namesListBody(lang)
   if (key === 'sahaba') return param ? sahabaBody(lang, param) : sahabaListBody(lang)

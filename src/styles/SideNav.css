@@ -1130,6 +1130,44 @@ html:not(.qm-input-pointer) .qm-sn-close:focus-visible {
   .qm-sn--rail .qm-sn-item:hover .qm-sn-item-icon { transform: none !important; }
 }
 
+
+/* ══════════════════════════════════════════════════════
+   Navbar A + İkon A (2026-11-24, sahibin seçdiyi maket)
+   • Menyu sətirlərində ikonlar QIZILI xətt ikonlarıdır — fon kafeli yoxdur (yaşıl 3D yox);
+     cari sətir: zümrüd çalarlı fon + başlanğıc kənarında qızılı zolaq (yuxarıda, ::before).
+   • Menyu açılanda qruplar növbə ilə 14px aşağıdan qalxır (yalnız transform/opacity).
+   • Yan panel: başlıq sürüşəndə 52px-ə yığılır (Header.css) — panelin üstündə açılan 12px
+     zolağı panelin öz fonu ilə örtülür (başlıq 64px olanda bu uzantı başlığın altında qalır).
+   ══════════════════════════════════════════════════════ */
+.qm-sn--rail::before {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  inset-inline: 0 -1px;
+  height: 12px;
+  background: var(--qm-sn-bg);
+  border-inline-end: 1px solid var(--line);
+  pointer-events: none;
+}
+.qm-sn-item-icon,
+.qm-sn-item:hover .qm-sn-item-icon,
+.qm-sn-item.is-current .qm-sn-item-icon { color: var(--accent); }
+.qm-sn--drawer .qm-sn-item-icon,
+[data-theme="dark"] .qm-sn--drawer .qm-sn-item-icon,
+.qm-sn--drawer .qm-sn-item.is-current .qm-sn-item-icon {
+  background: transparent;
+  color: var(--accent);
+}
+.qm-sn--drawer.is-open .qm-sn-group {
+  animation-name: qm-sn-rise;
+  animation-duration: 500ms;
+  animation-delay: calc(120ms + min(var(--gi, 0), 7) * 60ms);
+}
+@keyframes qm-sn-rise {
+  from { opacity: 0; transform: translate3d(0, 14px, 0); }
+  to   { opacity: 1; transform: none; }
+}
+
 @media print {
   .qm-sn { display: none !important; }
 }

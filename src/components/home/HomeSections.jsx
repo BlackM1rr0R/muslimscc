@@ -10,14 +10,15 @@
 // yükləyir; yer tutucu eyni hündürlükdədir (CLS yoxdur). Məzmun dəyişməyib —
 // olduğu kimi pages/HomePage.jsx-dən köçürülüb.
 // ═══════════════════════════════════════════════════════
-import { useState, lazy, Suspense } from 'react'
+import { useState, useEffect, useRef, lazy, Suspense } from 'react'
 import Icon from '../Icon'
 import { StatTile } from '../viz'
 import NumberTicker from '../../motion/NumberTicker'
 import { haptic } from '../../hooks/useHaptic'
 import { HADITH_COUNT } from '../../data/siteStats'
 import { pathFor } from '../../seo/routes'
-import { BRAND } from '../../config/brand'
+import usePrayerTimes, { PRAYER_NAMES } from '../../hooks/usePrayerTimes'
+import { watch, unwatch } from '../../utils/revealIO'
 
 // Ümmətin Canlı Xətmi: kiçik canlı sayğac (SSE açmır — keşlənmiş /api/khatm/stats)
 const KhatmPulse = lazy(() => import('../khatm/KhatmPulse').catch(() => ({ default: () => null })))
@@ -417,31 +418,86 @@ export function NamesSection({ lang, goTo, cv }) {
   )
 }
 
-export function CtaSection({ l, goTo, cv }) {
-  // Bildiriş ayarları panelini aç (FloatingDock / köhnə vidjet bu hadisəni dinləyir)
+// ═══ CTA B (2026-11-24, sahibin seçdiyi maket) — saytda TƏK CTA ═══
+// Tünd zolaq + canlı halqa: növbəti namaza nə qədər qalıb (usePrayerTimes — ana səhifənin namaz
+// kartı ilə eyni keş, ikinci sorğu yoxdur). "Bildirişi aç" bildiriş ayarları panelini açır
+// (App.jsx → DockHost "open-notifications"). Halqa yalnız görünəndə işə düşür (ortaq müşahidəçi —
+// utils/revealIO.js) və saniyəni yalnız ekranda + səhifə görünəndə sayır.
+const CTA_T = {
+  az: { ey: 'Bildirişlər', title: 'Azan vaxtını qaçırmayın', text: 'Növbəti namazdan əvvəl sakit bir xatırlatma — qeydiyyatsız, istədiyiniz vaxt söndürün.', btn: 'Bildirişi aç' },
+  en: { ey: 'Notifications', title: 'Never miss the adhan', text: 'A gentle reminder before the next prayer — no sign-up, turn it off any time.', btn: 'Turn on notifications' },
+  ru: { ey: 'Уведомления', title: 'Не пропускайте азан', text: 'Тихое напоминание перед следующим намазом — без регистрации, отключите в любой момент.', btn: 'Включить уведомления' },
+  ar: { ey: 'الإشعارات', title: 'لا يفُتك وقت الأذان', text: 'تذكير هادئ قبل الصلاة القادمة — دون تسجيل، ويمكنك إيقافه متى شئت.', btn: 'تفعيل الإشعارات' },
+  tr: { ey: 'Bildirimler', title: 'Ezan vaktini kaçırmayın', text: 'Bir sonraki namazdan önce sakin bir hatırlatma — kayıt gerekmez, istediğiniz zaman kapatın.', btn: 'Bildirimleri aç' },
+}
+const RING_R = 78
+const RING_C = 2 * Math.PI * RING_R
+const two = (n) => String(n).padStart(2, '0')
+
+function NextPrayerRing({ lang, l }) {
+  const { next } = usePrayerTimes()
+  const ref = useRef(null)
+  const [on, setOn] = useState(false)
+  const [live, setLive] = useState(false)
+  const [now, setNow] = useState(() => Date.now())
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return undefined
+    const owner = { entry(e) { if (e.isIntersecting) { setOn(true); unwatch(el, owner) } } }
+    if (!watch(el, owner)) setOn(true)
+    return () => unwatch(el, owner)
+  }, [])
+  useEffect(() => {
+    if (!on) return undefined
+    setNow(Date.now())
+    // İlk dolma keçidi (1.6 s) bitəndən sonra halqa saniyəlik yeniləmədə keçidsizdir
+    const t = setTimeout(() => setLive(true), 1700)
+    const id = setInterval(() => { if (document.visibilityState === 'visible') setNow(Date.now()) }, 1000)
+    return () => { clearTimeout(t); clearInterval(id) }
+  }, [on])
+
+  const name = next ? (PRAYER_NAMES[next.key]?.[lang] || PRAYER_NAMES[next.key]?.en || next.key) : ''
+  const left = next ? Math.max(0, Math.floor((next.at - now) / 1000)) : 0
+  const h = Math.floor(left / 3600), m = Math.floor((left % 3600) / 60), sec = left % 60
+  const span = next?.prevAt != null ? next.at - next.prevAt : 0
+  const frac = span > 0 && span < 86400000 ? Math.min(1, Math.max(0, (now - next.prevAt) / span)) : 0
+  const offset = on && next ? RING_C * (1 - frac) : RING_C
+  return (
+    <div ref={ref} className={`hp-ctab__ring${on ? ' is-on' : ''}${live ? ' is-live' : ''}`}
+      role={next ? 'timer' : undefined} aria-label={next ? `${name} — ${l.untilAdhan}: ${l.hm(h, m)}` : undefined}>
+      <svg viewBox="0 0 170 170" aria-hidden="true" focusable="false">
+        <circle className="bg" cx="85" cy="85" r={RING_R} />
+        <circle className="fg" cx="85" cy="85" r={RING_R} strokeDasharray={RING_C.toFixed(1)} strokeDashoffset={offset.toFixed(1)} />
+      </svg>
+      <span className="hp-ctab__ring-in" aria-hidden="true">
+        <small>{name || ' '}</small>
+        <b>{next ? `${two(h)}:${two(m)}:${two(sec)}` : '--:--:--'}</b>
+        <small>{l.untilAdhan}</small>
+      </span>
+    </div>
+  )
+}
+
+export function CtaSection({ lang, l, goTo, cv }) {
+  const c = CTA_T[lang] || CTA_T.en
   const openNotifications = () => window.dispatchEvent(new CustomEvent('open-notifications'))
   return (
-    <section className="vx-cta-wrap ui-cv" style={cv}>
-      <div className="vx-cta vx-cta--aurora" data-spotlight="">
-        <div className="ui-pattern" aria-hidden="true" />
-        <div className="vx-cta__float" aria-hidden="true">
-          <span className="ui-icon-tile"><Icon name="quran" /></span>
-          <span className="ui-icon-tile ui-icon-tile--accent"><Icon name="bell" /></span>
-          <span className="ui-icon-tile ui-icon-tile--accent"><Icon name="prayer" /></span>
-          <span className="ui-icon-tile"><Icon name="hadith" /></span>
+    <section className="hp-ctab-wrap ui-cv" style={cv} aria-labelledby="hp-ctab-ttl">
+      <div className="hp-ctab" data-reveal="">
+        <div className="hp-ctab__txt">
+          <span className="hp-ctab__ey">{c.ey}</span>
+          <h2 id="hp-ctab-ttl" className="hp-ctab__ttl">{c.title}</h2>
+          <p className="hp-ctab__p">{c.text}</p>
+          <div className="hp-ctab__btns">
+            <button type="button" className="ui-btn ui-btn--inverse ui-btn--lg hp-cta-main" onClick={openNotifications} aria-haspopup="dialog">
+              <Icon name="bell" className="ui-btn__icon" /> {c.btn}
+            </button>
+            <a className="ui-btn ui-btn--inverse-ghost ui-btn--lg" href={pathFor('prayer', lang)} onClick={(e) => { if (plainClick(e)) { e.preventDefault(); goTo('prayer') } }}>
+              <Icon name="prayer" className="ui-btn__icon" /> {l.ctaTimes}
+            </a>
+          </div>
         </div>
-        <div className="vx-cta__ar" lang="ar" dir="rtl">{BRAND.arabicMotto}</div>
-        <h2 className="vx-cta__title">{l.ctaTitle}</h2>
-        <p className="vx-cta__text">{l.ctaDesc}</p>
-        <div className="vx-cta__btns">
-          <button type="button" className="ui-btn ui-btn--inverse ui-btn--lg hp-cta-main" onClick={()=>goTo('prayer')}><Icon name="prayer" className="ui-btn__icon" /> {l.ctaTimes}</button>
-          <button type="button" className="ui-btn ui-btn--inverse-ghost ui-btn--lg" onClick={openNotifications}><Icon name="bell" className="ui-btn__icon" /> {l.ctaNotif}</button>
-        </div>
-        <div className="vx-cta__trust">
-          <span><Icon name="shield" size={16} /> {l.adFree}</span>
-          <span><Icon name="check" size={16} /> {l.free}</span>
-          <span><Icon name="globe" size={16} /> {l.langs}</span>
-        </div>
+        <NextPrayerRing lang={lang} l={l} />
       </div>
     </section>
   )

@@ -1,6 +1,7 @@
 /* Bayram rejimi (components/EidMode.jsx) */
 html.eid-mode .header { box-shadow: inset 0 -2px 0 #d9b45c; }
-html.eid-mode .hp-hero-glow { background: radial-gradient(ellipse 60% 50% at 50% 30%, rgba(231, 199, 125, .35), transparent 70%) !important; }
+/* Hero A (2026-11-24): ayrıca "glow" qatı yoxdur — bayram işığı hero-nun fon qatına (.hp-hero-bg) düşür */
+html.eid-mode .hp-hero-bg { background: radial-gradient(ellipse 60% 50% at 30% 30%, rgba(231, 199, 125, .35), transparent 70%); }
 .eid-shower { position: fixed; inset: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 990; } /* başlığın (1000) altında — logo və menyu örtülmür */
 .eid-bar { position: fixed; z-index: 1240; inset-inline: 0; margin-inline: auto; width: max-content; max-width: min(94vw, 520px);
   bottom: calc(max(18px, calc(env(safe-area-inset-bottom) + 12px)) + var(--bottom-clear, 0px)); display: flex; align-items: center; gap: 10px; padding-block: 6px; padding-inline: 14px 6px; border-radius: 26px;

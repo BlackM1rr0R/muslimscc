@@ -1,4 +1,5 @@
-// v5.8 (5-ci partiya): "bir gün" sürüşmə hekayəsi, hero ulduz tozu, kart → səhifə keçidi
+// v5.8 (5-ci partiya): "bir gün" sürüşmə hekayəsi, kart → səhifə keçidi
+// (hero ulduz tozu Hero A ilə 2026-11-24-də götürüldü — bir naxış, bir hərəkət)
 import { test, expect, settle } from './fixtures.js'
 
 test('Bir gün hekayəsi: sürüşdükcə addım və səma dəyişir', async ({ page }) => {
@@ -12,16 +13,6 @@ test('Bir gün hekayəsi: sürüşdükcə addım və səma dəyişir', async ({ 
   await expect(ds).toHaveAttribute('data-step', '4')
   await expect(page.locator('.ds__layer--4')).toHaveClass(/is-on/)
   await expect(last.getByRole('link')).toHaveAttribute('href', /muhasabah/)
-})
-
-test('Hero ulduz tozu: masaüstündə kətan, sürüşəndə başlıq solur', async ({ page }, info) => {
-  test.skip(info.project.name !== 'desktop', 'yalnız masaüstü')
-  await page.emulateMedia({ reducedMotion: 'no-preference' })
-  await page.setViewportSize({ width: 1440, height: 900 })
-  await page.goto('/?dust')
-  await expect(page.locator('.hp-dust')).toHaveCount(1, { timeout: 10000 })
-  await page.evaluate(() => window.scrollTo(0, 400))
-  await expect.poll(() => page.locator('.hp-hero-title').evaluate(el => Number(getComputedStyle(el).opacity))).toBeLessThan(0.5)
 })
 
 test('Kart → səhifə: surə kartının başlığı View Transition ilə keçir', async ({ page }, info) => {

@@ -13,7 +13,7 @@
 // yuxarıdakı sakit zolaqdadır.
 // Brend mətnləri yalnız src/config/brand.js-dən oxunur.
 // ═══════════════════════════════════════════════════════
-import { useState, useEffect, useRef, lazy, Suspense, Fragment } from 'react'
+import { useState, useEffect, useLayoutEffect, useRef, lazy, Suspense, Fragment } from 'react'
 import HeroOrnament from '../components/HeroOrnament'
 import RamadanLanterns from '../components/home/RamadanLanterns'
 import DeferRender from '../components/DeferRender'
@@ -25,7 +25,7 @@ import Icon from '../components/Icon'
 import { pathFor } from '../seo/routes'
 import CityPicker from '../components/CityPicker'
 import HeroGreeting from '../components/home/HeroGreeting'
-import { lazyWhenIdle, whenIdle } from '../utils/idle'
+import { lazyWhenIdle } from '../utils/idle'
 import { readLayout, visibleIds, LAYOUT_EVENT, LAYOUT_KEY } from '../utils/homeLayout'
 // Sadə rejim başlanğıc ekran kimi seçilibsə — ilk açılışda /simple (heç nə render etmir)
 import SimpleStart from '../components/simple/SimpleStart'
@@ -52,7 +52,7 @@ const CV = {
   feats: { '--cv-h': '560px' },
   tw:    { '--cv-h': '1500px' },
   names: { '--cv-h': '680px' },
-  cta:   { '--cv-h': '560px' },
+  cta:   { '--cv-h': '420px' },
 }
 // Günün xatırlatmaları zolağı quotes.js və duas.js-i (~235 KB) yükləyir —
 // tənbəl yüklənir; yer tutucu (skeleton) hündürlüyü əvvəlcədən saxlayır.
@@ -72,8 +72,6 @@ const HeroBannerDisplay = lazy(() => import('../components/HeroBannerDisplay'))
 // Günün təddəbür sualı — ekranın altında, şəbəkəsiz (məlumat faylın özündədir)
 // v5.7: ~46 KB (gzip) məlumat — yalnız bölməyə yaxınlaşanda (DeferRender), boş vaxtda yox
 const TadabburCard = lazy(() => import('../components/TadabburCard'))
-// v5.8: sürüşdükcə başlıq qızılı ulduz tozuna çevrilir — yalnız masaüstü, boş vaxtda
-const HeroDust = lazy(() => import('../components/home/HeroDust'))
 // v5.8: "bir gün" sürüşmə hekayəsi — bölməyə yaxınlaşanda
 const DayStory = lazy(() => import('../components/home/DayStory'))
 // v5.9: günün ayəsi/hədisi/duası/zikri — "story" dairələri
@@ -111,10 +109,8 @@ import '../styles/HomePage.css'
 // .video-* qaydaları (HomeVideo.css, ~1.8 KB gzip; bax faylın başlığı)
 import '../styles/HomeVideo.css'
 import { pickUi } from '../utils/uiText'
-// Dizayn v6 (src/motion): hero alt yazısı söz-söz, fonda axan xətlər, kafellərdə
-// kursor işığı, statistika rəqəmləri yayla sayır
-import TextEffect from '../motion/TextEffect'
-import BackgroundPaths from '../motion/BackgroundPaths'
+import { HERO_T } from '../components/home/heroText'
+// Dizayn v6 (src/motion): kafellərdə kursor işığı
 import SpotlightCard from '../motion/SpotlightCard'
 
 // Görünmə animasiyaları motion.css-in data-reveal sistemi ilədir (tək qlobal
@@ -139,23 +135,18 @@ const PrayerTile = ({ k }) => (
 // ═══ Ana səhifənin mətnləri (50 dil) — pickUi(LABELS, lang, 'en') ═══
 const LABELS = {
   az: {
-    badge: 'Pulsuz İslami platforma',
-    btnTimes: 'Namaz vaxtları', btnQuran: 'Quran oxu', btnAnn: 'Elanlar',
-    pcTitle: 'Namaz vaxtları', calc: 'Hesablanmış', tomorrow: 'sabah', next: 'Növbəti',
+    ...HERO_T.az,
+    btnAnn: 'Elanlar',
+    tomorrow: 'sabah', next: 'Növbəti',
     jumuaTag: 'Cümə', untilAdhan: 'azana qalıb',
     hm: (h, m) => (h ? `${h} saat ${m} dəqiqə` : `${m} dəqiqə`),
-    allTimes: 'Bütün vaxtlar →',
-    calcNote: (c) => `Azan vaxtları ${c} üçün aladhan.com ilə hesablanıb.`,
-    loading: 'Namaz vaxtları yüklənir...', error: 'Namaz vaxtlarını yükləmək alınmadı.', retry: 'Yenidən cəhd et',
+    error: 'Namaz vaxtlarını yükləmək alınmadı.', retry: 'Yenidən cəhd et',
     mainTitle: 'Əsas',
     customize: 'Ana səhifəni fərdiləşdir',
     featEy: 'Saytda', featTitle: 'İslami bilik və ibadət',
     featSub: 'Quran, hədis, dua və digər faydalı bölmələr — hamısı pulsuz.', featGo: 'Keçid et →',
-    ctaTitle: 'Hər gün İslamla birlikdə',
-    ctaDesc: 'Namaz vaxtlarını izləyin, yeni elanlardan xəbərdar olun və İslami bilikləri bir yerdə öyrənin.',
-    ctaTimes: 'Namaz vaxtları', ctaNotif: 'Bildiriş ayarları',
-    adFree: 'Reklamsız', free: '100% pulsuz', langs: '50 dil',
-    noSignup: 'Qeydiyyatsız', heroTrust: 'Saytın üstünlükləri',
+    ctaTimes: 'Namaz vaxtları',
+    free: '100% pulsuz',
     quickEy: 'Bölmələr', quickTitle: 'Nə axtarırsınız?',
     quickSub: 'Ən çox açılan bölmələr — qalanları menyudadır.',
     startEy: 'Yeni başlayanlar üçün', startTitle: 'Haradan başlamalı?',
@@ -163,23 +154,18 @@ const LABELS = {
     statsEy: 'Rəqəmlərlə', statsTitle: 'Saytda nə var',
   },
   en: {
-    badge: 'A free Islamic platform',
-    btnTimes: 'Prayer times', btnQuran: 'Read the Quran', btnAnn: 'Announcements',
-    pcTitle: 'Prayer times', calc: 'Calculated', tomorrow: 'tomorrow', next: 'Next',
+    ...HERO_T.en,
+    btnAnn: 'Announcements',
+    tomorrow: 'tomorrow', next: 'Next',
     jumuaTag: 'Jumu’ah', untilAdhan: 'until adhan',
     hm: (h, m) => (h ? `${h} h ${m} min` : `${m} min`),
-    allTimes: 'All times →',
-    calcNote: (c) => `Adhan times for ${c} are calculated via aladhan.com.`,
-    loading: 'Loading prayer times...', error: 'Couldn’t load prayer times.', retry: 'Try again',
+    error: 'Couldn’t load prayer times.', retry: 'Try again',
     mainTitle: 'Main',
     customize: 'Customize your home page',
     featEy: 'On the site', featTitle: 'Islamic knowledge & worship',
     featSub: 'Quran, hadith, duas and other useful sections — all free.', featGo: 'Open →',
-    ctaTitle: 'With Islam, every day',
-    ctaDesc: 'Follow the prayer times, keep up with new announcements and learn about Islam — all in one place.',
-    ctaTimes: 'Prayer times', ctaNotif: 'Notification settings',
-    adFree: 'Ad-free', free: '100% Free', langs: '50 Languages',
-    noSignup: 'No sign-up', heroTrust: 'Why this site',
+    ctaTimes: 'Prayer times',
+    free: '100% Free',
     quickEy: 'Sections', quickTitle: 'What are you looking for?',
     quickSub: 'The most visited sections — everything else is in the menu.',
     startEy: 'New here?', startTitle: 'Where to start',
@@ -187,23 +173,18 @@ const LABELS = {
     statsEy: 'In numbers', statsTitle: 'What the site offers',
   },
   ru: {
-    badge: 'Бесплатная исламская платформа',
-    btnTimes: 'Время намаза', btnQuran: 'Читать Коран', btnAnn: 'Объявления',
-    pcTitle: 'Время намаза', calc: 'Расчётное', tomorrow: 'завтра', next: 'Следующий',
+    ...HERO_T.ru,
+    btnAnn: 'Объявления',
+    tomorrow: 'завтра', next: 'Следующий',
     jumuaTag: 'Джума', untilAdhan: 'до азана',
     hm: (h, m) => (h ? `${h} ч ${m} мин` : `${m} мин`),
-    allTimes: 'Всё расписание →',
-    calcNote: (c) => `Время азана для города ${c} рассчитано через aladhan.com.`,
-    loading: 'Загрузка времени намаза...', error: 'Не удалось загрузить время намаза.', retry: 'Повторить',
+    error: 'Не удалось загрузить время намаза.', retry: 'Повторить',
     mainTitle: 'Главное',
     customize: 'Настроить главную страницу',
     featEy: 'На сайте', featTitle: 'Исламские знания и поклонение',
     featSub: 'Коран, хадисы, дуа и другие полезные разделы — всё бесплатно.', featGo: 'Перейти →',
-    ctaTitle: 'С исламом каждый день',
-    ctaDesc: 'Следите за временем намаза и новыми объявлениями и изучайте ислам — всё в одном месте.',
-    ctaTimes: 'Время намаза', ctaNotif: 'Настройки уведомлений',
-    adFree: 'Без рекламы', free: '100% бесплатно', langs: '50 языков',
-    noSignup: 'Без регистрации', heroTrust: 'Преимущества сайта',
+    ctaTimes: 'Время намаза',
+    free: '100% бесплатно',
     quickEy: 'Разделы', quickTitle: 'Что вы ищете?',
     quickSub: 'Самые посещаемые разделы — остальные в меню.',
     startEy: 'Для начинающих', startTitle: 'С чего начать?',
@@ -211,23 +192,18 @@ const LABELS = {
     statsEy: 'В цифрах', statsTitle: 'Что есть на сайте',
   },
   ar: {
-    badge: 'منصة إسلامية مجانية',
-    btnTimes: 'مواقيت الصلاة', btnQuran: 'اقرأ القرآن', btnAnn: 'الإعلانات',
-    pcTitle: 'مواقيت الصلاة', calc: 'محسوبة', tomorrow: 'غدًا', next: 'التالية',
+    ...HERO_T.ar,
+    btnAnn: 'الإعلانات',
+    tomorrow: 'غدًا', next: 'التالية',
     jumuaTag: 'الجمعة', untilAdhan: 'حتى الأذان',
     hm: (h, m) => (h ? `${h} ساعة و${m} دقيقة` : `${m} دقيقة`),
-    allTimes: 'جميع المواقيت ←',
-    calcNote: (c) => `أوقات الأذان لمدينة ${c} محسوبة عبر aladhan.com.`,
-    loading: 'جارٍ تحميل مواقيت الصلاة...', error: 'تعذّر تحميل مواقيت الصلاة.', retry: 'إعادة المحاولة',
+    error: 'تعذّر تحميل مواقيت الصلاة.', retry: 'إعادة المحاولة',
     mainTitle: 'الرئيسية',
     customize: 'خصّص صفحتك الرئيسية',
     featEy: 'في الموقع', featTitle: 'المعرفة الإسلامية والعبادة',
     featSub: 'القرآن والحديث والأدعية وأقسام مفيدة أخرى — كلها مجانًا.', featGo: 'انتقل ←',
-    ctaTitle: 'مع الإسلام كل يوم',
-    ctaDesc: 'تابع مواقيت الصلاة والإعلانات الجديدة وتعلّم عن الإسلام — في مكان واحد.',
-    ctaTimes: 'مواقيت الصلاة', ctaNotif: 'إعدادات الإشعارات',
-    adFree: 'بدون إعلانات', free: 'مجاني 100%', langs: '50 لغة',
-    noSignup: 'بلا تسجيل', heroTrust: 'مزايا الموقع',
+    ctaTimes: 'مواقيت الصلاة',
+    free: 'مجاني 100%',
     quickEy: 'الأقسام', quickTitle: 'عمّ تبحث؟',
     quickSub: 'أكثر الأقسام زيارة — والبقية في القائمة.',
     startEy: 'للمبتدئين', startTitle: 'من أين تبدأ؟',
@@ -235,23 +211,18 @@ const LABELS = {
     statsEy: 'بالأرقام', statsTitle: 'ماذا في الموقع',
   },
   tr: {
-    badge: 'Ücretsiz İslami platform',
-    btnTimes: 'Namaz vakitleri', btnQuran: "Kur'an oku", btnAnn: 'Duyurular',
-    pcTitle: 'Namaz vakitleri', calc: 'Hesaplanmış', tomorrow: 'yarın', next: 'Sıradaki',
+    ...HERO_T.tr,
+    btnAnn: 'Duyurular',
+    tomorrow: 'yarın', next: 'Sıradaki',
     jumuaTag: 'Cuma', untilAdhan: 'ezana kaldı',
     hm: (h, m) => (h ? `${h} saat ${m} dakika` : `${m} dakika`),
-    allTimes: 'Tüm vakitler →',
-    calcNote: (c) => `${c} ezan vakitleri aladhan.com ile hesaplanmıştır.`,
-    loading: 'Namaz vakitleri yükleniyor...', error: 'Namaz vakitleri yüklenemedi.', retry: 'Tekrar dene',
+    error: 'Namaz vakitleri yüklenemedi.', retry: 'Tekrar dene',
     mainTitle: 'Ana Menü',
     customize: 'Ana sayfanı kişiselleştir',
     featEy: 'Sitede', featTitle: 'İslami bilgi ve ibadet',
     featSub: "Kur'an, hadis, dua ve diğer faydalı bölümler — hepsi ücretsiz.", featGo: 'Git →',
-    ctaTitle: 'Her gün İslam ile',
-    ctaDesc: 'Namaz vakitlerini takip edin, yeni duyurulardan haberdar olun ve İslam hakkında bilgi edinin — hepsi tek yerde.',
-    ctaTimes: 'Namaz vakitleri', ctaNotif: 'Bildirim ayarları',
-    adFree: 'Reklamsız', free: '%100 Ücretsiz', langs: '50 Dil',
-    noSignup: 'Kayıtsız', heroTrust: 'Sitenin avantajları',
+    ctaTimes: 'Namaz vakitleri',
+    free: '%100 Ücretsiz',
     quickEy: 'Bölümler', quickTitle: 'Ne arıyorsunuz?',
     quickSub: 'En çok açılan bölümler — diğerleri menüde.',
     startEy: 'Yeni başlayanlar için', startTitle: 'Nereden başlamalı?',
@@ -425,16 +396,19 @@ function PrayerWidget({ lang, l, onMore }) {
   )
 }
 
-// Hero-da üzən kiçik 8-guşəli ulduzlar — sabit yerlər (hər render-də eyni)
-const HERO_STARS = [
-  { insetInlineStart: '6%', top: '18%', '--s': '14px', '--d': '0s', '--t': '9s' },
-  { insetInlineStart: '38%', top: '9%', '--s': '9px', '--d': '-3s', '--t': '11s' },
-  { insetInlineStart: '47%', top: '72%', '--s': '12px', '--d': '-6s', '--t': '10s' },
-  { insetInlineStart: '62%', top: '12%', '--s': '18px', '--d': '-1.5s', '--t': '13s' },
-  { insetInlineStart: '92%', top: '58%', '--s': '10px', '--d': '-4.5s', '--t': '12s' },
-  { insetInlineStart: '24%', top: '86%', '--s': '8px', '--d': '-7s', '--t': '9.5s' },
-  { insetInlineStart: '80%', top: '88%', '--s': '13px', '--d': '-2s', '--t': '14s' },
-]
+// Hero A (2026-11-24): prerender HTML-də statik ilk ekran var (scripts/seo-body.mjs → homeBody,
+// [data-home-static]) — CSS animasiyaları (hərflərin qalxması, xatəmin çəkilişi, parıltı) ilk
+// boyamada ORADA başlayır. React həmin bloku əvəz edəndə animasiyalar yenidən başlasaydı, mətn
+// "sıçrayardı": ona görə ilk render-də hero-nun animasiyaları statik blokun başladığı ana (FCP)
+// qədər irəli çəkilir — dəyişiklik görünmür (xatəmin çəkilişi və parıltı statikdə yoxdur — burada başlayır). Modul ilk render-dən ƏVVƏL yüklənir (main.jsx →
+// preloadInitialPage), statik blok o anda hələ DOM-dadır. Yalnız bir dəfə (SPA ilə qayıdanda yox).
+let staticHero = typeof document !== 'undefined' && Boolean(document.querySelector('[data-home-static]'))
+function staticElapsed() {
+  try {
+    const fcp = performance.getEntriesByName('first-contentful-paint')[0]
+    return fcp ? Math.max(0, performance.now() - fcp.startTime) : 0
+  } catch { return 0 }
+}
 
 export default function HomePage({ setPage }) {
   const { lang } = useLang()
@@ -443,34 +417,19 @@ export default function HomePage({ setPage }) {
   // Tərcümə yoxdursa əvvəl ingiliscə — ərəb/rus/türk səhifəsində azərbaycanca mətn çıxmasın
   const L = obj => obj[lk] || obj.en || obj.az || ''
 
-  const [visible, setVisible] = useState(false)
-  // v5.6: telefonu əyəndə hero qatları 3D kimi yerini dəyişir (utils/heroTilt —
-  // yalnız Android/toxunma, boş vaxtda ayrıca kiçik chunk kimi yüklənir)
   const heroRef = useRef(null)
-  useEffect(() => {
-    let stop = null, alive = true
-    whenIdle({ delay: 1500 }).then(() => import('../utils/heroTilt')).then((m) => {
-      if (alive) stop = m.initHeroTilt(heroRef.current)
-    }).catch(() => {})
-    return () => { alive = false; stop?.() }
-  }, [])
-  const [dust, setDust] = useState(false)
-  useEffect(() => {
-    let alive = true
-    const ok = () => {
-      try {
-        return window.matchMedia('(min-width: 1024px) and (pointer: fine) and (prefers-reduced-motion: no-preference)').matches &&
-          !document.documentElement.classList.contains('a11y-reduce-motion') && !navigator.connection?.saveData &&
-          (!navigator.webdriver || /[?&]dust(=|&|$)/.test(window.location.search))   // avtomat testlərdə yalnız ?dust ilə
-      } catch { return false }
+  // Statik ilk ekrandan keçid: hero animasiyaları statik blokun başladığı yerdən davam edir (yuxarıda)
+  useLayoutEffect(() => {
+    if (!staticHero) return
+    staticHero = false
+    const el = heroRef.current
+    const t = staticElapsed()
+    if (!el || !t || typeof el.getAnimations !== 'function') return
+    for (const a of el.getAnimations({ subtree: true })) {
+      // Xatəmin çəkilişi və parıltı statik blokda YOXDUR (HomePage.css → .qm-home-first) — onlar indi başlayır
+      if (/^(hero-orn-draw|hero-shine|hp-orn-spin)$/.test(a.animationName || '')) continue
+      try { a.currentTime = (Number(a.currentTime) || 0) + t } catch { /* animasiya sadəcə bəzəkdir */ }
     }
-    whenIdle({ delay: 1200 }).then(() => { if (alive && ok()) setDust(true) })
-    return () => { alive = false }
-  }, [])
-
-  useEffect(() => {
-    const id = setTimeout(() => setVisible(true), 80)
-    return () => clearTimeout(id)
   }, [])
 
   // App-in navigate() səhifəni özü yuxarı qaldırır
@@ -542,18 +501,20 @@ export default function HomePage({ setPage }) {
           <a href> — Ctrl/orta klik yeni tabda açır; adi klik SPA ilə. */}
       <section className="ui-section ui-section--tight hp-quick" aria-labelledby="hp-quick-ttl">
         <div className="ui-container">
-          <div className="ui-section-head ui-section-head--row" data-anim="blur">
+          <div className="ui-section-head ui-section-head--row" data-anim="rise">
             <div className="hp-head-text">
               <span className="ui-eyebrow">{l.quickEy}</span>
               <h2 id="hp-quick-ttl" className="ui-title">{l.quickTitle}</h2>
               <p className="ui-lead">{l.quickSub}</p>
             </div>
           </div>
-          <ul className="ui-tiles hp-tiles" data-anim-stagger="45" data-anim="zoom">
-            {QUICK.map(q => (
+          {/* Scroll A: kafellər 70 ms fərqlə yumşaq qalxır; İkon A: qızılı xətt ikonları görünəndə
+              bir dəfə özünü çəkir, üzərinə gələndə yenidən (data-draw → hooks/useReveal.js, ui.css) */}
+          <ul className="ui-tiles hp-tiles" data-anim-stagger="70" data-anim="rise" data-draw="">
+            {QUICK.map((q, i) => (
               <li key={q.page}>
-                <SpotlightCard as="a" className="ui-tile hp-tile" href={pathFor(q.page, lang)} onClick={(e) => { if (plainClick(e)) { e.preventDefault(); goTo(q.page) } }}>
-                  <span className="ui-icon-tile" aria-hidden="true"><Icon name={q.page} /></span>
+                <SpotlightCard as="a" className="ui-tile hp-tile" style={{ '--draw-i': i }} href={pathFor(q.page, lang)} onClick={(e) => { if (plainClick(e)) { e.preventDefault(); goTo(q.page) } }}>
+                  <span className="hp-tile-ic" aria-hidden="true"><Icon name={q.page} size={30} strokeWidth={1.6} draw /></span>
                   <span className="ui-tile__title">{L(q.title)}</span>
                   <span className="ui-tile__text">{L(q.desc)}</span>
                 </SpotlightCard>
@@ -610,30 +571,22 @@ export default function HomePage({ setPage }) {
           <DailyReminderBar setPage={goTo} />
         </Suspense>
 
-        {/* ═══ HERO ═══════════════════════════════════════════════════════
-            v3: "bu sayt nədir" bir baxışda — brend, bir cümlə, iki əsas düymə,
-            üç qısa üstünlük; sağda (telefonda altda) namaz vaxtları kartı.
-            Hədis sitatı və üçüncü ("Elanlar") düymə götürülüb — sakitlik. */}
-        <section ref={heroRef} className={`hp-hero ${visible?'hp-hero--vis':''}`} data-wow-pause="">
-          {/* v4 "canlı səma": namaz vaxtına görə səma + yavaş axan aurora +
-              fırlanan xatəm ulduzu + üzən kiçik həndəsi ulduzlar (hamısı dekor,
-              yalnız transform/opacity; ekrandan çıxanda dayanır — wow.css) */}
+        {/* ═══ HERO A (2026-11-24, sahibin seçdiyi maket) ═════════════════════
+            "Bu sayt nədir" bir baxışda — brend, bir cümlə, iki əsas düymə, üç qısa
+            üstünlük; sağda (telefonda altda) namaz vaxtları kartı. Bir naxış, bir hərəkət:
+            kartın arxasında Nur xatəmi qızılı xətlə özünü çəkir və çox yavaş fırlanır, ad
+            hərf-hərf qalxır, sonra bir dəfə parıltı keçir. Aurora, axan xətlər, üzən
+            ulduzlar, ulduz tozu və telefon əyilməsi götürülüb (LCP + sakitlik).
+            Prerender-də eyni quruluşlu statik ilk ekran var (scripts/seo-body.mjs → homeBody) —
+            sinif adları və ardıcıllıq onunla EYNİ qalmalıdır (CLS yoxdur). */}
+        <section ref={heroRef} className="hp-hero" data-wow-pause="">
           <div className="hp-hero-bg" aria-hidden="true">
-            <div className="hp-aur"><i /><i /><i /></div>
             <div className="ui-pattern ui-pattern--fade hp-hero-pattern" />
-            {/* v6.9: Nur xatəmi — naxış qızılı xətlə özünü çəkir (bir dəfə) */}
-            <HeroOrnament className="hp-orn" />
             <RamadanLanterns />
-            <div className="hp-hero-glow" />
-            {/* v6: yavaş axan incə qızılı xətlər (dekor; ekrandan çıxanda dayanır) */}
-            <BackgroundPaths tone="gold" count={22} className="hp-paths" />
-            <div className="hp-khatam" data-parallax="0.08" />
-            <div className="hp-stars">{HERO_STARS.map((st, i) => <i key={i} style={st} />)}</div>
             {/* v5.7: hava effekti — html[data-weather] olanda (WeatherDua) */}
             <div className="hp-wx" />
           </div>
 
-          {dust && <Suspense fallback={null}><HeroDust heroRef={heroRef} /></Suspense>}
           <div className="hp-hero-inner">
             <div className="hp-hero-content">
               {/* v5.7: şəxsi salam (prerenderdə — adi nişan) */}
@@ -641,16 +594,15 @@ export default function HomePage({ setPage }) {
 
               <h1 className="hp-hero-title hp-shine" aria-label={brand}>
                 {/* "Muslims" + ".cc" bir sətirdə (domen kimi oxunsun).
-                    v4: hərflər növbə ilə yuxarı qalxır (yalnız transform — LCP
-                    üçün mətn ilk kadrdan görünür), sonra qızılı işıq keçir. */}
+                    Hərflər növbə ilə yuxarı qalxır (yalnız transform — LCP
+                    üçün mətn ilk kadrdan görünür), sonra qızılı işıq bir dəfə keçir. */}
                 <span className="hp-ht-row" aria-hidden="true">
                   <span className="hp-ht-1">{[...brandFirst].map((ch, i) => <span key={i} className="hp-ht-ch" style={{ '--ci': i }}>{ch}</span>)}</span>
                   {brandLast && <span className="hp-ht-2">{brandLast}</span>}
                 </span>
               </h1>
 
-              {/* v6: söz-söz yerinə oturur — ilk kadrda opacity 1 (LCP), yalnız transform + kiçik blur */}
-              <TextEffect as="p" className="hp-hero-sub" per="word" preset="blur" delay={0.14}>{tr(BRAND.tagline, lang)}</TextEffect>
+              <p className="hp-hero-sub">{tr(BRAND.tagline, lang)}</p>
 
               <div className="hp-hero-btns">
                 <button type="button" className="ui-btn ui-btn--primary ui-btn--lg" onClick={()=>goTo('prayer')}><Icon name="prayer" className="ui-btn__icon" /> {l.btnTimes}</button>
@@ -665,6 +617,8 @@ export default function HomePage({ setPage }) {
             </div>
 
             <div className="hp-hero-visual">
+              {/* Nur xatəmi — namaz kartının ARXASINDA (HeroOrnament.css → .hp-orn) */}
+              <HeroOrnament className="hp-orn" />
               <PrayerWidget lang={lang} l={l} onMore={()=>goTo('prayer')} />
             </div>
           </div>
@@ -730,9 +684,9 @@ export default function HomePage({ setPage }) {
       </Suspense>
       </DeferRender>
 
-      {/* ═══ CTA — tünd zümrüd panel (components/home/HomeSections) ═══ */}
+      {/* ═══ CTA B — "Azan vaxtını qaçırmayın" + növbəti namaz halqası (components/home/HomeSections) ═══ */}
       <DeferRender height={CV.cta['--cv-h']} idle={false} rootMargin={NEAR}>
-        <Suspense fallback={<Ph h={CV.cta} />}><CtaSection l={l} goTo={goTo} cv={CV.cta} /></Suspense>
+        <Suspense fallback={<Ph h={CV.cta} />}><CtaSection lang={lang} l={l} goTo={goTo} cv={CV.cta} /></Suspense>
       </DeferRender>
 
     </div>

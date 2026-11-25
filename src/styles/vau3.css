@@ -11,8 +11,8 @@
        hero sürüşdükcə geri çəkilir, başlıq kiçilir, bölmə başlıqları
        "pərdə" kimi açılır. Dəstək yoxdursa — statik (heç nə gizlənmir).
    §3  Dil zolağı — .vx-marquee (50 dilin öz adı; sonsuz, yalnız transform)
-   §4  CTA qalereyası — .vx-cta (+ --aurora --split --glow)
-   §5  Footer v5 — CTA zolağı, dil zolağı, iri söz-nişanı
+   §4  (götürülüb — CTA B: HomePage.css → .hp-ctab)
+   §5  Footer — dil zolağı (Footer A, 2026-11-24)
    §6  Ana səhifə "superhero" — üzən 3D ikon orbiti, dərin aurora
 
    Qaydalar (DESIGN.md §7.3): sonsuz animasiya YALNIZ transform/opacity;
@@ -103,18 +103,12 @@
       animation-timeline: view();
       animation-range: exit 0% exit 100%;
     }
-    /* Tünd zolaqlar (tövhid, CTA, footer CTA) ekrana girəndə "pərdə" kimi
+    /* Tünd zolaq (tövhid) ekrana girəndə "pərdə" kimi
        kənarlardan açılır — radius böyükdən kiçiyə, miqyas 0.94 → 1 */
-    html:not(.a11y-reduce-motion) :is(.hp-tw, .vx-cta, .vx-ft-band) {
+    html:not(.a11y-reduce-motion) .hp-tw {
       animation: vx-curtain linear both;
       animation-timeline: view();
       animation-range: entry 0% entry 70%;
-    }
-    /* İri söz-nişanı (footer): görünəndə qradiyent "dolur" */
-    html:not(.a11y-reduce-motion) .vx-wordmark__fill {
-      animation: vx-fill linear both;
-      animation-timeline: view();
-      animation-range: entry 10% cover 55%;
     }
     /* Kafel/kart şəbəkələri: sürüşdükcə yüngül perspektivdən düzlənir */
     html:not(.a11y-reduce-motion) .hp-tiles {
@@ -200,175 +194,12 @@ html.a11y-reduce-motion .vx-marquee__track { animation: none; width: auto; flex-
 html.a11y-reduce-motion .vx-marquee__row { flex-wrap: wrap; }
 html.a11y-reduce-motion .vx-marquee__row[aria-hidden="true"] { display: none; }
 
-/* ══════════════════════════════════════════════════════════
-   §4  CTA QALEREYASI — .vx-cta
-   Tünd zümrüd panel; arxada yavaş fırlanan konik işıq (transform),
-   kursoru izləyən işıq ləkəsi (--mx/--my, wow.js yazmasa mərkəzdə),
-   qızılı haşiyə parıltısı. Variantlar:
-     --aurora  mərkəzə düzlənmiş, iri başlıq (susma)
-     --split   solda mətn, sağda 3D ikon sırası
-     --glow    açıq fonda — işıqlı haşiyəli kart (tünd olmayan səhifələr)
-   ══════════════════════════════════════════════════════════ */
-.vx-cta-wrap { padding: calc(var(--section-gap) / 2) var(--page-gutter) var(--section-gap); }
-.vx-cta {
-  --mx: 50%;
-  --my: 30%;
-  position: relative;
-  isolation: isolate;
-  overflow: hidden;
-  max-width: var(--container, 1200px);
-  margin-inline: auto;
-  padding: clamp(36px, 6vw, 72px) clamp(20px, 5vw, 64px);
-  border-radius: clamp(20px, 3vw, 32px);
-  background:
-    radial-gradient(600px circle at var(--mx) var(--my), color-mix(in srgb, var(--accent) 22%, transparent), transparent 60%),
-    radial-gradient(120% 140% at 0% 0%, #0f5a47 0%, transparent 55%),
-    radial-gradient(120% 140% at 100% 100%, #0b4a3b 0%, transparent 60%),
-    var(--surface-inverse);
-  color: #f4f1e8;
-  text-align: center;
-  box-shadow: 0 30px 60px -30px rgba(10, 61, 49, .55);
-}
-[data-theme="dark"] .vx-cta { box-shadow: 0 30px 60px -30px rgba(0, 0, 0, .7); }
-/* Yavaş fırlanan konik işıq — böyük kvadrat, mərkəzdən fırlanır */
-.vx-cta::before {
-  content: '';
-  position: absolute;
-  inset: 50% auto auto 50%;
-  width: 160%;
-  aspect-ratio: 1;
-  translate: -50% -50%;
-  background: conic-gradient(from 0deg,
-    transparent 0 15%,
-    color-mix(in srgb, #5fc8a5 28%, transparent) 25%,
-    transparent 35% 60%,
-    color-mix(in srgb, #d8b46a 24%, transparent) 72%,
-    transparent 82% 100%);
-  animation: vx-spin 26s linear infinite;
-  z-index: -1;
-  pointer-events: none;
-}
-/* Haşiyə parıltısı — incə qızılı xətt */
-.vx-cta::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  padding: 1px;
-  background: linear-gradient(135deg, rgba(216, 180, 106, .7), rgba(95, 200, 165, .25) 40%, rgba(216, 180, 106, .5));
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
-  pointer-events: none;
-}
-.vx-cta .ui-pattern { opacity: .09; z-index: -1; }
-.vx-cta__ar {
-  font-family: var(--font-arabic);
-  font-size: clamp(26px, 4vw, 40px);
-  line-height: 1.6;
-  color: #d8b46a;
-  margin-bottom: 8px;
-}
-.vx-cta__title {
-  margin: 0 auto 12px;
-  max-width: 22ch;
-  font-family: var(--font-heading);
-  font-size: clamp(1.6rem, 1.1rem + 2.4vw, 2.75rem);
-  font-weight: 700;
-  line-height: 1.12;
-  letter-spacing: -.02em;
-  color: #fff;
-  text-wrap: balance;
-}
-.vx-cta__text {
-  margin: 0 auto 26px;
-  max-width: 56ch;
-  font-size: var(--step-0);
-  line-height: 1.7;
-  color: rgba(244, 241, 232, .78);
-  text-wrap: pretty;
-}
-.vx-cta__btns { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
-/* Telefonda iki düymə eyni endə, yan-yana (biri digərindən dar görünmürdü) */
-@media (max-width: 480px) { .vx-cta__btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; } .vx-cta__btns > .ui-btn { min-width: 0; justify-content: center; padding-inline: 12px; } }
-.vx-cta__trust {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 8px 22px;
-  margin-top: 24px;
-  font-size: var(--step--1);
-  color: rgba(244, 241, 232, .7);
-}
-.vx-cta__trust span { display: inline-flex; align-items: center; gap: 6px; }
-.vx-cta__trust svg { color: #d8b46a; }
-/* Üzən xatəm ulduzlu ikonlar (dekor) — yalnız geniş ekranda, panelin künclərində */
-.vx-cta__float { position: absolute; inset: 0; pointer-events: none; z-index: -1; }
-.vx-cta__float .ui-icon-tile {
-  --it: #5fc8a5;
-  position: absolute;
-  width: 62px;
-  height: 62px;
-  color: #eafff6;
-  animation: vx-float 7s ease-in-out infinite;
-}
-.vx-cta__float .ui-icon-tile::before { background: rgba(95, 200, 165, .16); }
-.vx-cta__float .ui-icon-tile::after { background: linear-gradient(135deg, #d8b46a, rgba(216, 180, 106, .35)); opacity: .9; }
-.vx-cta__float .ui-icon-tile svg { width: 26px; height: 26px; }
-.vx-cta__float .ui-icon-tile--accent { --it: #d8b46a; color: #fff3d6; }
-.vx-cta__float .ui-icon-tile--accent::before { background: rgba(216, 180, 106, .16); }
-.vx-cta__float > :nth-child(1) { inset-inline-start: 6%; top: 16%; rotate: -12deg; }
-.vx-cta__float > :nth-child(2) { inset-inline-end: 7%; top: 12%; rotate: 10deg; animation-delay: -2.4s; }
-.vx-cta__float > :nth-child(3) { inset-inline-start: 11%; bottom: 14%; rotate: 8deg; animation-delay: -4.1s; width: 48px; height: 48px; }
-.vx-cta__float > :nth-child(4) { inset-inline-end: 12%; bottom: 16%; rotate: -8deg; animation-delay: -1.2s; width: 48px; height: 48px; }
-@media (max-width: 899px) { .vx-cta__float { display: none; } }
-@keyframes vx-spin  { to { transform: rotate(1turn); } }
-@keyframes vx-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
-
-/* --split: solda mətn, sağda iki sıra 3D ikon */
-.vx-cta--split { text-align: start; display: grid; gap: 28px; align-items: center; }
-@media (min-width: 900px) { .vx-cta--split { grid-template-columns: 1.3fr 1fr; } }
-.vx-cta--split .vx-cta__title, .vx-cta--split .vx-cta__text { margin-inline: 0; }
-.vx-cta--split .vx-cta__btns, .vx-cta--split .vx-cta__trust { justify-content: flex-start; }
-
-/* --glow: açıq kart (tünd zolaq istəməyən səhifələr) */
-.vx-cta--glow {
-  background:
-    radial-gradient(500px circle at var(--mx) var(--my), var(--brand-soft), transparent 60%),
-    var(--surface-1);
-  color: var(--text-body);
-  box-shadow: 0 24px 48px -32px var(--vx-depth);
-}
-.vx-cta--glow::after { background: linear-gradient(135deg, var(--accent), var(--brand-soft-2) 40%, var(--brand)); opacity: .55; }
-.vx-cta--glow::before { opacity: .5; }
-.vx-cta--glow .vx-cta__title { color: var(--text-strong); }
-.vx-cta--glow .vx-cta__text, .vx-cta--glow .vx-cta__trust { color: var(--text-secondary); }
-.vx-cta--glow .vx-cta__ar { color: var(--accent-text); }
+/* §4 CTA qalereyası (.vx-cta) 2026-11-24-də götürüldü — saytda TƏK CTA var: ana səhifənin
+   CTA B-si (HomePage.css → .hp-ctab). */
 
 /* ══════════════════════════════════════════════════════════
    §5  FOOTER v5
    ══════════════════════════════════════════════════════════ */
-/* CTA zolağı — footer-in başında, tünd panel */
-.vx-ft-band-wrap { padding: clamp(28px, 4vw, 48px) var(--page-gutter) 0; position: relative; z-index: 1; }
-/* Ana səhifənin öz iri CTA-sı var — footer zolağı orada təkrarlanmır */
-body:has(.hp-root) .vx-ft-band-wrap { display: none; }
-/* Zolaq olan footer-də əsas hissənin üst boşluğu azalır */
-.vx-ft-band-wrap + .ft-pattern + .ft-main { padding-top: 44px; }
-.vx-ft-band {
-  max-width: var(--container, 1200px);
-  margin: 0 auto;
-  padding: clamp(28px, 4vw, 44px) clamp(20px, 4vw, 48px);
-  text-align: start;
-  display: grid;
-  gap: 18px;
-  align-items: center;
-}
-@media (min-width: 900px) { .vx-ft-band { grid-template-columns: 1fr auto; gap: 32px; } }
-.vx-ft-band .vx-cta__title { max-width: 30ch; margin: 0 0 6px; font-size: clamp(1.35rem, 1rem + 1.6vw, 2rem); }
-.vx-ft-band .vx-cta__text { margin: 0; }
-.vx-ft-band .vx-cta__btns { justify-content: flex-start; }
-.vx-ft-band .vx-cta__ar { font-size: clamp(22px, 3vw, 30px); margin-bottom: 2px; }
-
 /* Dil zolağı footer-də */
 .vx-ft-langs { max-width: var(--container, 1200px); margin: 28px auto 0; padding: 0 var(--page-gutter); }
 .vx-ft-langs__head {
@@ -386,41 +217,6 @@ body:has(.hp-root) .vx-ft-band-wrap { display: none; }
 .vx-ft-langs__head svg { color: var(--accent); }
 .vx-ft-langs__head b { color: var(--brand); font-variant-numeric: tabular-nums; }
 
-/* İri söz-nişanı — footer-in ən altında, kənardan kənara */
-.vx-wordmark {
-  position: relative;
-  overflow: hidden;
-  margin: 8px auto 0;
-  max-width: var(--container, 1200px);
-  padding: 0 var(--page-gutter);
-  line-height: .78;
-  user-select: none;
-  pointer-events: none;
-  /* Şrift ölçüsü konteynerə görə (cqi) — vw yan paneli də sayırdı, söz sağdan kəsilirdi */
-  container-type: inline-size;
-}
-.vx-wordmark__fill {
-  display: block;
-  font-family: var(--font-heading);
-  font-weight: 700;
-  font-size: clamp(56px, 15.5vw, 210px);
-  font-size: clamp(56px, 15.5cqi, 210px);
-  letter-spacing: -.055em;
-  text-align: center;
-  white-space: nowrap;
-  color: transparent;
-  background: linear-gradient(90deg,
-    var(--brand) 0%, color-mix(in srgb, var(--brand) 70%, var(--accent)) 30%, var(--accent) 50%,
-    color-mix(in srgb, var(--surface-3) 80%, var(--brand)) 50.1%, var(--surface-3) 100%) 0 0 / 200% 100%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-stroke: 1px color-mix(in srgb, var(--brand) 18%, transparent);
-  /* aşağı yarısı kəsilir — "yerə batan" söz effekti */
-  -webkit-mask-image: linear-gradient(180deg, #000 55%, transparent 96%);
-  mask-image: linear-gradient(180deg, #000 55%, transparent 96%);
-  transform: translateY(8%);
-}
-[dir="rtl"] .vx-wordmark__fill { direction: ltr; }
 
 /* ══════════════════════════════════════════════════════════
    §6  ANA SƏHİFƏ "SUPERHERO"
@@ -438,65 +234,19 @@ body:has(.hp-root) .vx-ft-band-wrap { display: none; }
    HƏRƏKƏTİ AZALT — bütün dekor animasiyaları dayanır
    ══════════════════════════════════════════════════════════ */
 @media (prefers-reduced-motion: reduce) {
-  .vx-cta::before, .vx-cta__float .ui-icon-tile, .vx-orbit .ui-icon-tile { animation: none; }
+  .vx-orbit .ui-icon-tile { animation: none; }
   .ui-icon-tile { transition: none; }
 }
-html.a11y-reduce-motion :is(.vx-cta::before, .vx-cta__float .ui-icon-tile, .vx-orbit .ui-icon-tile) { animation: none; }
-html.a11y-reduce-motion .vx-cta::before { animation: none; }
+html.a11y-reduce-motion .vx-orbit .ui-icon-tile { animation: none; }
 html.a11y-reduce-motion .ui-icon-tile { transition: none; }
 
 /* Çap: dekor yoxdur */
 @media print {
-  .vx-marquee, .vx-wordmark, .vx-orbit, .vx-cta__float, .vx-ft-band-wrap { display: none !important; }
+  .vx-marquee, .vx-orbit { display: none !important; }
 }
 
-/* ══════════════════════════════════════════════════════════
-   §7  NAVBAR v5 — 5 əsas link üzən şüşə "kapsul"da (≥1024px)
-   Sahibin qərarları (#5/#7) dəyişmir: struktur eynidir, yalnız görünüş.
-   • kapsul: yarımşəffaf səth + hairline + incə daxili işıq
-   • kursoru izləyən zümrüd işıq (data-spotlight, utils/vau3.js)
-   • sürüşəndə (.header.scrolled) kapsul qalxır — kölgə dərinləşir
-   • loqo işarəsi (xatəm) üzərinə gələndə 45° fırlanır
-   ══════════════════════════════════════════════════════════ */
-@media (min-width: 1024px) {
-  .nav-desktop {
-    --mx: 50%;
-    --my: 50%;
-    isolation: isolate;
-    padding: 4px;
-    border-radius: var(--radius-pill);
-    background: color-mix(in srgb, var(--surface-1) 62%, transparent);
-    box-shadow:
-      inset 0 1px 0 var(--vx-hi-soft),
-      inset 0 0 0 1px var(--line),
-      0 1px 2px color-mix(in srgb, var(--vx-depth) 40%, transparent);
-    transition: box-shadow .5s var(--vx-ease), background-color .5s var(--vx-ease);
-  }
-  .nav-desktop::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    background: radial-gradient(140px circle at var(--mx) var(--my), color-mix(in srgb, var(--brand) 14%, transparent), transparent 70%);
-    opacity: 0;
-    transition: opacity .4s ease;
-    z-index: -1;
-    pointer-events: none;
-  }
-  .nav-desktop:hover::before { opacity: 1; }
-  .nav-desktop .nav-link:hover { background: color-mix(in srgb, var(--surface-1) 70%, transparent); }
-  .nav-desktop .nav-link.active {
-    background: linear-gradient(180deg, color-mix(in srgb, var(--brand) 14%, var(--surface-1)), var(--brand-soft));
-    box-shadow: inset 0 1px 0 var(--vx-hi-soft), inset 0 0 0 1px var(--brand-soft-2), 0 2px 6px -3px color-mix(in srgb, var(--brand) 45%, transparent);
-  }
-  .header.scrolled .nav-desktop {
-    background: color-mix(in srgb, var(--surface-1) 82%, transparent);
-    box-shadow:
-      inset 0 1px 0 var(--vx-hi-soft),
-      inset 0 0 0 1px var(--line-strong),
-      0 10px 28px -14px var(--vx-depth);
-  }
-}
+/* §7 Navbar v5 "kapsulu" 2026-11-24-də götürüldü — Navbar A: sakit şüşə başlıq, aktiv linkin
+   altında sürüşən qızılı xətt (Header.css → .nav-ind). Loqo işarəsi üzərinə gələndə 45° fırlanır: */
 .qm-mark-star { transform-box: fill-box; transform-origin: center; transition: transform .9s var(--vx-ease); }
 @media (hover: hover) {
   :is(.logo, .ft-logo):hover .qm-mark-star { transform: rotate(45deg); }
@@ -676,7 +426,8 @@ html.a11y-reduce-motion .ui-icon-tile { transition: none; }
 .hdr-ring__track { fill: none; stroke: var(--surface-3); stroke-width: 2.6; }
 .hdr-ring__bar {
   fill: none;
-  stroke: var(--brand);
+  /* Navbar A: qızılı halqa (növbəti namaza qalan hissə) */
+  stroke: var(--accent);
   stroke-width: 2.6;
   stroke-linecap: round;
   transition: stroke-dashoffset 1s var(--vx-ease);
@@ -708,31 +459,29 @@ html.a11y-reduce-motion .ui-icon-tile { transition: none; }
 html.a11y-reduce-motion .hdr-ring.is-soon::before { animation: none; opacity: .6; }
 
 /* ══════════════════════════════════════════════════════════
-   §11  SƏHİFƏ KEÇİDİ — yeni səhifə fırlanan xatəm ulduzunun içindən açılır
-   (View Transition, utils/wow.js → html.qm-vt; yalnız ≥768px və hərəkət
-   azaldılmayıbsa — wow.js özü yoxlayır). Köhnə kadr yumşaq solur.
+   §11  SƏHİFƏ KEÇİDİ — Keçid A "fade-through" (2026-11-24, sahibin seçdiyi maket)
+   Köhnə kadr 160 ms-də yumşaq solur, yeni kadr 340 ms-də yerinə oturur (View Transition,
+   utils/wow.js → html.qm-vt; yalnız ≥768px və hərəkət azaldılmayıbsa — wow.js özü yoxlayır).
+   Əvvəlki fırlanan xatəm "iris"-i (clip-path poliqonu) götürüldü — gündəlik istifadədə yorurdu.
    ══════════════════════════════════════════════════════════ */
-html.qm-vt::view-transition-old(root) { animation: vx-vt-out 420ms ease both; }
-html.qm-vt::view-transition-new(root) { animation: vx-vt-star 620ms cubic-bezier(.22, 1, .36, 1) both; }
+html.qm-vt::view-transition-old(root) { animation: vx-vt-out 160ms ease-in both; }
+html.qm-vt::view-transition-new(root) { animation: vx-vt-in 340ms cubic-bezier(.22, 1, .36, 1) 90ms both; }
 @keyframes vx-vt-out { to { opacity: 0; transform: scale(.985); } }
-@keyframes vx-vt-star {
-  from { clip-path: polygon(calc(50% + -0.35vmax) calc(50% + -0.35vmax), calc(50% + -0.15vmax) calc(50% + -0.35vmax), calc(50% + 0.00vmax) calc(50% + -0.50vmax), calc(50% + 0.15vmax) calc(50% + -0.35vmax), calc(50% + 0.35vmax) calc(50% + -0.35vmax), calc(50% + 0.35vmax) calc(50% + -0.15vmax), calc(50% + 0.50vmax) calc(50% + 0.00vmax), calc(50% + 0.35vmax) calc(50% + 0.15vmax), calc(50% + 0.35vmax) calc(50% + 0.35vmax), calc(50% + 0.15vmax) calc(50% + 0.35vmax), calc(50% + 0.00vmax) calc(50% + 0.50vmax), calc(50% + -0.15vmax) calc(50% + 0.35vmax), calc(50% + -0.35vmax) calc(50% + 0.35vmax), calc(50% + -0.35vmax) calc(50% + 0.15vmax), calc(50% + -0.50vmax) calc(50% + 0.00vmax), calc(50% + -0.35vmax) calc(50% + -0.15vmax)); opacity: .6; }
-  60%  { opacity: 1; }
-  to   { clip-path: polygon(calc(50% + 0.00vmax) calc(50% + -150.00vmax), calc(50% + 43.93vmax) calc(50% + -106.07vmax), calc(50% + 106.07vmax) calc(50% + -106.07vmax), calc(50% + 106.07vmax) calc(50% + -43.93vmax), calc(50% + 150.00vmax) calc(50% + 0.00vmax), calc(50% + 106.07vmax) calc(50% + 43.93vmax), calc(50% + 106.07vmax) calc(50% + 106.07vmax), calc(50% + 43.93vmax) calc(50% + 106.07vmax), calc(50% + 0.00vmax) calc(50% + 150.00vmax), calc(50% + -43.93vmax) calc(50% + 106.07vmax), calc(50% + -106.07vmax) calc(50% + 106.07vmax), calc(50% + -106.07vmax) calc(50% + 43.93vmax), calc(50% + -150.00vmax) calc(50% + 0.00vmax), calc(50% + -106.07vmax) calc(50% + -43.93vmax), calc(50% + -106.07vmax) calc(50% + -106.07vmax), calc(50% + -43.93vmax) calc(50% + -106.07vmax)); opacity: 1; }
-}
+@keyframes vx-vt-in { from { opacity: 0; transform: scale(1.015); } }
 
-/* §11b Kart → səhifə (utils/wow.js §9b): kartın başlığı yeni başlığa uçur, fon yumşaq çarpaz keçid.
-   Mətn şəkilləri dartılmasın — hündürlüyə görə miqyaslanır, en avtomatik. */
-html.qm-vt-card::view-transition-old(root) { animation: vx-vt-out 360ms ease both; }
-html.qm-vt-card::view-transition-new(root) { animation: vx-vt-up 460ms cubic-bezier(.22, 1, .36, 1) both; }
+/* §11b Keçid B — kart → səhifə (utils/wow.js §9b): kartın başlığı və rozeti yeni səhifənin
+   başlığına "uçur", qalanı yumşaq qalxır. Mətn şəkilləri dartılmasın — hündürlüyə görə
+   miqyaslanır, en avtomatik. Telefonda View Transition yoxdur — wow.js §9c (FLIP). */
+html.qm-vt-card::view-transition-old(root) { animation: vx-vt-out 220ms ease both; }
+html.qm-vt-card::view-transition-new(root) { animation: vx-vt-up 420ms cubic-bezier(.22, 1, .36, 1) 60ms both; }
 html.qm-vt-card::view-transition-group(qm-card) { animation-duration: 560ms; animation-timing-function: cubic-bezier(.22, 1, .36, 1); }
 html.qm-vt-card::view-transition-old(qm-card),
 html.qm-vt-card::view-transition-new(qm-card) { height: 100%; width: auto; animation-duration: 560ms; }
 /* Surə rozeti kartdan surə səhifəsinə (QuranPage, data-vt-glyph) */
-html.qm-vt-card::view-transition-group(qm-card-glyph) { animation-duration: 640ms; animation-timing-function: cubic-bezier(.22, 1, .36, 1); }
+html.qm-vt-card::view-transition-group(qm-card-glyph) { animation-duration: 560ms; animation-timing-function: cubic-bezier(.22, 1, .36, 1); }
 html.qm-vt-card::view-transition-old(qm-card-glyph),
-html.qm-vt-card::view-transition-new(qm-card-glyph) { height: 100%; width: 100%; animation-duration: 640ms; }
-@keyframes vx-vt-up { from { opacity: 0; transform: translate3d(0, 14px, 0); } }
+html.qm-vt-card::view-transition-new(qm-card-glyph) { height: 100%; width: 100%; animation-duration: 560ms; }
+@keyframes vx-vt-up { from { opacity: 0; transform: translate3d(0, 12px, 0); } }
 
 /* ══════════════════════════════════════════════════════════
    §12  SAYTIN AB-HAVASI — gecə və mövsüm (utils/vau3.js, utils/wow.js)
@@ -758,13 +507,6 @@ html[data-daypart="night"] .ui-page-hero {
     radial-gradient(ellipse 60% 90% at 85% 0%, rgba(63, 90, 190, .12) 0%, transparent 70%),
     var(--surface-0);
 }
-html[data-daypart="night"] .vx-cta:not(.vx-cta--glow) {
-  background:
-    radial-gradient(600px circle at var(--mx) var(--my), rgba(216, 180, 106, .2), transparent 60%),
-    radial-gradient(120% 140% at 0% 0%, #1b2d5c 0%, transparent 55%),
-    radial-gradient(120% 140% at 100% 100%, #0f4a3b 0%, transparent 60%),
-    #0b1730;
-}
 
 html[data-season="ramadan"] {
   --accent-line: color-mix(in srgb, var(--accent) 55%, transparent);
@@ -777,15 +519,7 @@ html[data-season="ramadan"][dir="rtl"] .ui-page-hero {
     var(--surface-0);
 }
 html[data-season="ramadan"] .nav-desktop .nav-link.active {
-  background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 18%, var(--surface-1)), color-mix(in srgb, var(--accent) 10%, var(--surface-1)));
   color: var(--accent-text);
-}
-html[data-season="ramadan"] .vx-cta:not(.vx-cta--glow) {
-  background:
-    radial-gradient(600px circle at var(--mx) var(--my), rgba(231, 199, 125, .32), transparent 60%),
-    radial-gradient(120% 140% at 0% 0%, #3a2c0e 0%, transparent 55%),
-    radial-gradient(120% 140% at 100% 100%, #0b4a3b 0%, transparent 60%),
-    #102a22;
 }
 html[data-season="ramadan"] .ui-icon-tile::after { opacity: .95; }
 html:is([data-season="eid"], [data-season="hajj"]) .ui-page-hero::after { height: 2px; }

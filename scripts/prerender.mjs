@@ -48,6 +48,7 @@ import { buildLlmsTxt, buildLlmsFullTxt } from './llms-txt.mjs'
 import * as detailData from '../src/seo/detailData.js'
 import { buildSeoManifest } from './indexnow.mjs'
 import { stripComments } from './shell-min.mjs'
+import { criticalCss, htmlClasses } from './critical-css.mjs'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 // Çıxış qovluğu: susmaya görə dist/. `--out <qovluq>` (və ya PRERENDER_DIST
@@ -221,6 +222,9 @@ function renderPage(template, key, lang, noindex = false, param = null) {
     : html.replace('<!--SEO:HEAD-->', () => headFor(key, lang, param, noindex))
   // Səhifə chunk-ı + şrift preload-ları (yuxarıdakı PERFORMANS bölməsi)
   // + Quran səhifələrində alquran.cloud məlumat preload-ları (seo-body.mjs → staticPreloadFor)
+  // Statik məzmun (detal və siyahı səhifələri + ana səhifənin ilk ekranı) — <div id="root"> içinə;
+  // React (main.jsx → createRoot) yüklənəndə onu tətbiqlə əvəz edir
+  const body = notFound || noindex ? '' : staticBodyFor(key, lang, param)
   html = html.replace(/[ \t]*<!--PERF:PRELOAD-->/, () => preloadFor(key, lang) + (notFound || noindex ? '' : staticPreloadFor(key, lang, param)))
   html = html.replace(/<title>[\s\S]*?<\/title>/i, `<title>${esc(title)}</title>`)
   html = html.replace(/<html([^>]*)\slang="[^"]*"/i, '<html$1')
@@ -257,10 +261,12 @@ function renderPage(template, key, lang, noindex = false, param = null) {
   html = replaceMeta(html, 'name', 'twitter:image', ogImg)
   html = replaceMeta(html, 'name', 'twitter:image:alt', ogAlt)
 
-  // Statik məzmun (detal və siyahı səhifələri) — <div id="root"> içinə;
-  // React (main.jsx → createRoot) yüklənəndə onu tətbiqlə əvəz edir
-  const body = notFound || noindex ? '' : staticBodyFor(key, lang, param)
   if (body) html = html.replace('<div id="root"></div>', () => `<div id="root">${body}</div>`)
+  // Ana səhifənin statik ilk ekranı: yalnız onun kritik CSS-i inline (homeCriticalFor, aşağıda)
+  if (key === 'home' && body) {
+    const css = homeCriticalFor(body)
+    if (css) html = html.replace('</head>', () => `    <style data-home-critical="">${css}</style>\n  </head>`)
+  }
 
   // Statik noscript blokunu səhifəyə uyğun olanı ilə əvəz et
   html = html.replace(/<noscript>[\s\S]*?<\/noscript>/i, () => noscriptFor(key, lang, Boolean(body)))
@@ -399,6 +405,32 @@ function makePreloader() {
 }
 
 const preloadFor = makePreloader()
+
+/**
+ * Ana səhifənin statik ilk ekranı (seo-body.mjs → homeBody) üçün inline <style> məzmunu —
+ * KRİTİK CSS — səhifə chunk-ının CSS-indən yalnız statik blokun siniflərinə aid qaydalar
+ *    (scripts/critical-css.mjs). Chunk CSS-i özü adi preload ilə gəlir (render-blocking YOX):
+ *    əvvəl 3 fayl render-blocking idi və CPU ×4-də React ~1.2 s gecikirdi (ölçülüb). Chunk CSS-i
+ *    sonra gələndə eyni qaydaları təkrarlayır — heç nə dəyişmir (React onu gözləyib render edir).
+ * (Əvvəlki "font-display: block" şrift üstələmələri götürüldü: statik və React mətninin eni fərqinin
+ *  səbəbi şrift deyil, globals.css → [class*="stat"] tabular-nums idi — qabıq sinfi qm-home-first-dir.
+ *  Ölçü: block üstələmələri React-in qoşulmasını ~0.4 s gecikdirirdi.)
+ */
+let homeCritCache = null
+function homeCriticalFor(body) {
+  const manifest = readManifest()
+  if (!manifest) return ''
+  if (!homeCritCache) {
+    const entryKey = Object.keys(manifest).find(k => manifest[k].isEntry)
+    const entry = entryKey ? closure(manifest, entryKey) : { js: new Set(), css: new Set() }
+    const src = pageModules().home
+    const name = src ? path.basename(src).replace(/\.\w+$/, '') : null
+    const mod = src && (manifest[src] ? src : Object.keys(manifest).find(k => manifest[k].isDynamicEntry && manifest[k].name === name && manifest[k].file.endsWith('.js')))
+    const pageCss = mod ? [...closure(manifest, mod).css].filter(f => !entry.css.has(f)) : []
+    homeCritCache = { css: pageCss.map(f => fs.readFileSync(path.join(DIST, f), 'utf8')).join('\n') }
+  }
+  return criticalCss(homeCritCache.css, htmlClasses(body))
+}
 
 /** dist içində URL yoluna uyğun index.html yaz. */
 function writeRoute(html, urlPath) {

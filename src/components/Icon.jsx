@@ -17,6 +17,8 @@
 // Yeni ikon əlavə edəndə: 24×24, fill yox, yalnız stroke; DESIGN.md-yə yaz.
 // ═══════════════════════════════════════════════════════
 
+import { Children, Fragment, cloneElement, isValidElement } from 'react'
+
 const P = {
   // ── Bölmələr (navigation.js açarları) ──
   home: <><path d="M3.5 10.2 12 3.5l8.5 6.7" /><path d="M5.5 8.8V20h4.5v-5.5h4V20h4.5V8.8" /></>,
@@ -115,7 +117,8 @@ const P = {
   aichat: <><path d="M10 14.5a2 2 0 0 0-1.4-1.4L3 11.6a.5.5 0 0 1 0-1L8.6 9A2 2 0 0 0 10 7.6L11.5 2a.5.5 0 0 1 1 0L14 7.6A2 2 0 0 0 15.4 9l5.6 1.5a.5.5 0 0 1 0 1L15.4 13a2 2 0 0 0-1.4 1.4L12.5 20a.5.5 0 0 1-1 0z" /><path d="M19.5 15.5v4M21.5 17.5h-4" /></>,
   quiz: <><circle cx="12" cy="12" r="8.5" /><path d="M9.4 9.3a2.7 2.7 0 0 1 5.2.9c0 1.8-2.6 2.6-2.6 2.6" /><path d="M12 16.6h.01" strokeWidth="2.4" /></>,
   quotes: <><path d="M10 11.5H5.5V6.5H10v5.5a5 5 0 0 1-4.5 5" /><path d="M19.5 11.5H15V6.5h4.5v5.5a5 5 0 0 1-4.5 5" /></>,
-  kids: <><circle cx="12" cy="12" r="8.5" /><path d="M8.5 14s1.3 2 3.5 2 3.5-2 3.5-2" /><path d="M9.2 9.5h.01M14.8 9.5h.01" strokeWidth="2.4" /></>,
+  // Uşaqlar: oyuncaq kublar (2026-11-24) — əvvəlki gülən üz "canlı varlıq təsviri yoxdur" qaydasına zidd idi
+  kids: <><rect x="3.5" y="12.5" width="8" height="8" rx="1.5" /><rect x="12.5" y="12.5" width="8" height="8" rx="1.5" /><rect x="8" y="3.5" width="8" height="8" rx="1.5" /><path d="M12 5.8v3.4" /></>,
   // Ərəb kursu: "ب" hərfinin cizgisi — çanaq + alt nöqtə
   arabic: <><path d="M3.5 9.5c0 4.6 3.2 6.5 8.5 6.5s8.5-1.9 8.5-6.5" /><path d="M12 20.2h.01" strokeWidth="2.8" /></>,
   about: <><circle cx="12" cy="12" r="8.5" /><path d="M12 16.5V11.5" /><path d="M12 8h.01" strokeWidth="2.4" /></>,
@@ -228,12 +231,25 @@ export function hasIcon(name) {
   return Object.prototype.hasOwnProperty.call(P, name)
 }
 
-export default function Icon({ name, size = 20, strokeWidth = 1.75, className, fallback = null, title }) {
-  const body = P[name]
+// "Çəkiliş" rejimi (İkon A, 2026-11-24): hər xəttə pathLength="1" — CSS stroke-dasharray: 1 ilə
+// ikon qələm kimi özünü çəkə bilsin (ui.css → .ic-draw). Yalnız draw prop-u olanda (keşlənir).
+const drawCache = new Map()
+function withLen(node) {
+  if (!isValidElement(node)) return node
+  if (node.type === Fragment) return cloneElement(node, null, Children.map(node.props.children, withLen))
+  return cloneElement(node, { pathLength: 1 })
+}
+
+export default function Icon({ name, size = 20, strokeWidth = 1.75, className, fallback = null, title, draw = false }) {
+  let body = P[name]
   if (!body) return fallback
+  if (draw) {
+    if (!drawCache.has(name)) drawCache.set(name, withLen(body))
+    body = drawCache.get(name)
+  }
   return (
     <svg
-      className={className}
+      className={draw ? `ic-draw${className ? ` ${className}` : ''}` : className}
       width={size}
       height={size}
       viewBox="0 0 24 24"

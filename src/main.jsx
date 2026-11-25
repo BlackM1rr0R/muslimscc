@@ -82,7 +82,12 @@ function render() {
   // PERFORMANS (TBT): ilk render startTransition ilə — React render fazasını
   // ~5 ms-lik hissələrə bölür və aralarda brauzerə nəfəs verir. Əvvəl ana
   // səhifənin ilk render-i tək uzun tapşırıq idi (Lighthouse mobil: ~490 ms).
-  React.startTransition(() => {
+  // Ana səhifənin statik ilk ekranı varsa ([data-home-static], scripts/seo-body.mjs) — məzmun artıq
+  // ekrandadır: render transition-suz (hissələrə bölünmədən) gedir. Time-slicing burada React-in
+  // qoşulmasını ~0.6 s gecikdirirdi (CPU ×4, ölçülüb 2026-11-25) — brauzer hər fasilədə görünən
+  // səhifəni yenidən çəkirdi; TBT dəyişmədi.
+  const run = document.querySelector('[data-home-static]') ? (fn) => fn() : React.startTransition
+  run(() => {
     root.render(
       <React.StrictMode>
         {/* v7 davranışını indidən qəbul edirik — konsoldakı "future flag" xəbərdarlıqları çıxmır */}

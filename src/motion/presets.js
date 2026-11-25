@@ -95,7 +95,7 @@ export function pageVariants({ phone = false } = {}) {
       : { opacity: 0, y: phone ? 8 : 10, x: 0, transition: instant }),
     center: ({ still = false } = {}) => (still
       ? { opacity: 1, x: 0, y: 0, transition: instant }
-      : { opacity: 1, x: 0, y: 0, transition: phone ? { duration: 0.32, ease: [0.22, 1, 0.36, 1] } : enterT(DUR.md) }),
+      : { opacity: 1, x: 0, y: 0, transition: phone ? { duration: 0.34, ease: [0.22, 1, 0.36, 1] } : enterT(DUR.md) }),
     exit: ({ still = false, leaving = false } = {}) => (still || leaving
       ? { opacity: 0, transition: instant }
       : { opacity: 0, transition: { duration: exitDur(DUR.sm), ease: EASE.in } }),

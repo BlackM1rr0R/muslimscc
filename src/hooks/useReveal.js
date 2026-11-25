@@ -21,6 +21,8 @@
 // Vəziyyət SİNİFLƏ yox, atributla (data-revealed) yazılır: React className-i
 // yeniləyəndə sinfi silərdi və element yenidən gizlənərdi.
 //
+// Müşahidəçi bütün sayt üçün TƏKDİR (utils/revealIO.js — wow.js-in girişləri ilə ortaq).
+//   <ul data-draw>…<Icon draw />…</ul>                 İkon A: qızılı xətt ikonu görünəndə özünü çəkir
 // Yeni əlavə olunan elementləri (tənbəl yüklənən səhifələr) MutationObserver
 // tapır; yoxlama requestAnimationFrame ilə bir kadra yığılır.
 //
@@ -29,13 +31,17 @@
 // ═══════════════════════════════════════════════════════
 
 import { useCallback } from 'react'
+import { watch, unwatch } from '../utils/revealIO'
 
 const SELECTOR = '[data-reveal]:not([data-reveal-ready])'
+// İkon A: <ul data-draw> içindəki <Icon draw /> ikonları görünəndə bir dəfə özünü çəkir (ui.css → .ic-draw)
+const DRAW_SELECTOR = '[data-draw]:not([data-draw-ready])'
 const COUNT_SELECTOR = '[data-count]:not([data-count-ready])'
 const MAX_DELAY = 400
 const COUNT_MS = 1200
 
-let io = null
+// Scroll A (2026-11-24): öz müşahidəçisi yoxdur — utils/revealIO.js-in ortaq müşahidəçisi
+let active = false
 let started = false
 
 function prefersReducedMotion() {
@@ -50,18 +56,37 @@ function prefersReducedMotion() {
 
 function reveal(el) {
   el.setAttribute('data-revealed', '')
-  io?.unobserve(el)
+  unwatch(el, REVEAL_OWNER)
+}
+
+const REVEAL_OWNER = {
+  entry(e) {
+    if (e.isIntersecting) reveal(e.target)
+    // Artıq ekranın YUXARISINDA (geri qayıdış, lövbər) — animasiyasız göstər
+    else if (e.boundingClientRect.bottom < 0) { e.target.setAttribute('data-revealed', 'static'); unwatch(e.target, REVEAL_OWNER) }
+  },
+}
+const DRAW_OWNER = {
+  entry(e) {
+    if (e.isIntersecting || e.boundingClientRect.bottom < 0) { e.target.setAttribute('data-drawn', ''); unwatch(e.target, DRAW_OWNER) }
+  },
+}
+
+function trackDraw(el) {
+  if (!active || !el || el.hasAttribute('data-draw-ready')) return
+  el.setAttribute('data-draw-ready', '')
+  watch(el, DRAW_OWNER)
 }
 
 /** Bir elementi izləməyə götür (artıq götürülübsə heç nə etmir) */
 function track(el) {
-  if (!io || !el || el.hasAttribute('data-reveal-ready')) return
+  if (!active || !el || el.hasAttribute('data-reveal-ready')) return
   const d = parseInt(el.getAttribute('data-reveal-delay'), 10)
   if (d > 0) el.style.setProperty('--reveal-delay', `${Math.min(d, MAX_DELAY)}ms`)
   // v6.7 (perf): burada getBoundingClientRect YOXDUR — hər elementdə yazı → oxu növbəsi layout-u təkrar
   // hesablatdırırdı (ana səhifədə ~1 s CPU×4). "Ekranın yuxarısında qalıb" qərarı IO callback-indədir.
   el.setAttribute('data-reveal-ready', '')
-  io.observe(el)
+  watch(el, REVEAL_OWNER)
 }
 
 // ── Rəqəm sayğacı ────────────────────────────────────
@@ -133,8 +158,9 @@ function trackCount(el) {
 }
 
 function scan(root = document) {
-  if (!io) return
+  if (!active) return
   root.querySelectorAll?.(SELECTOR).forEach(track)
+  root.querySelectorAll?.(DRAW_SELECTOR).forEach(trackDraw)
   root.querySelectorAll?.(COUNT_SELECTOR).forEach(trackCount)
 }
 
@@ -147,19 +173,10 @@ export function initReveal() {
   started = true
   if (!('IntersectionObserver' in window) || prefersReducedMotion()) return
 
-  io = new IntersectionObserver((entries) => {
-    for (const e of entries) {
-      if (e.isIntersecting) reveal(e.target)
-      // Artıq ekranın YUXARISINDA (geri qayıdış, lövbər) — animasiyasız göstər
-      else if (e.boundingClientRect.bottom < 0) { e.target.setAttribute('data-revealed', 'static'); io.unobserve(e.target) }
-    }
-    // threshold 0: elementin İSTƏNİLƏN hissəsi görünən kimi aç. Əvvəl 0.08 idi —
-    // ekrandan ~12 dəfə hündür element (uzun siyahı, admin cədvəli) heç vaxt
-    // 8% görünə bilmirdi və məzmun həmişəlik GİZLİ qalırdı.
-    // rootMargin 0: əvvəl ekranın altında -6%-lik "ölü zolaq" vardı — səhifənin
-    // ən sonundakı kart o zolağa düşəndə (daha aşağı sürüşmək mümkün deyil)
-    // heç vaxt açılmırdı. Hər iki halı tests/e2e/reveal.spec.js tutur.
-  }, { rootMargin: '0px', threshold: 0 })
+  // Ortaq müşahidəçi (utils/revealIO.js): threshold 0 — elementin İSTƏNİLƏN hissəsi görünən kimi
+  // açılır (ekrandan ~12 dəfə hündür blok da); rootMargin 0 — səhifənin ən sonundakı kart da
+  // açılır. Hər iki halı tests/e2e/reveal.spec.js tutur.
+  active = true
 
   countIo = new IntersectionObserver((entries) => {
     for (const e of entries) if (e.isIntersecting) runCount(e.target)
@@ -178,7 +195,7 @@ export function initReveal() {
   })
   const attach = () => {
     scan()
-    mo.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['data-reveal', 'data-count'] })
+    mo.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['data-reveal', 'data-count', 'data-draw'] })
   }
   if (document.body) attach()
   else window.addEventListener('DOMContentLoaded', attach, { once: true })

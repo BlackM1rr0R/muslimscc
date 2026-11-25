@@ -5,8 +5,8 @@
 //   1) Kursor işığı + 3D əyilmə + haşiyə parıltısı (kart), maqnit düymə:
 //      TƏK delegə olunmuş pointermove dinləyicisi, rAF ilə kadra bir dəfə.
 //      Yalnız siçan (hover: hover + pointer: fine).
-//   2) Sürüşəndə giriş (blur + qalxma + növbə): .ui-card, .ui-tile, .ui-stat,
-//      .ui-step, .ui-section-head … TƏK IntersectionObserver; yeni gələnləri
+//   2) Sürüşəndə giriş (Scroll A: yumşaq 18px qalxma + 70 ms növbə, bir dəfə): .ui-card, .ui-tile, .ui-stat,
+//      .ui-step, .ui-section-head … TƏK ortaq IntersectionObserver (utils/revealIO.js); yeni gələnləri
 //      MutationObserver tapır. [data-reveal] / [data-anim] altına toxunmur.
 //   3) data-anim="rise|fade|zoom|blur|slide-start|slide-end|ink"
 //      (+ data-anim-delay="ms"), data-anim-stagger (uşaqlar növbə ilə),
@@ -28,6 +28,7 @@
 // ═══════════════════════════════════════════════════════
 
 import { isLiteDevice } from './liteDevice'
+import { watch, unwatch } from './revealIO'
 
 const CARD = '.ui-card, .ui-tile, .ui-stat, .surah-card'
 // Əyilmə yalnız kiçik, kliklənən kartlarda (iri məzmun panelləri əyilməsin)
@@ -43,7 +44,8 @@ const TILT_MAX_W = 560
 const NO_ENTER = '[data-reveal], [data-anim], [data-anim-stagger], [role="dialog"], dialog, .m-sheet, header:not(.ui-page-hero), nav, .qg-studio, [data-wow-off], .ui-page-hero, ' +
   '[class*="quiz-"], [class*="kids-"], .ab-charts, .gp-root, .analytics-page'
 const ENTER = '.ui-card, .ui-tile, .ui-stat, .ui-step, .ui-section-head, .ui-callout, .ui-quote, .ui-table-wrap'
-const STAGGER_MS = 55
+// Scroll A (2026-11-24): yumşaq 18px qalxma, uşaqlar 70 ms fərqlə, bir dəfə (wow.css §2)
+const STAGGER_MS = 70
 const STAGGER_MAX = 10
 const ANIMS = ['rise', 'fade', 'zoom', 'blur', 'slide-start', 'slide-end', 'ink']
 
@@ -180,11 +182,12 @@ function initEnter() {
   // v6.7 (perf): getBoundingClientRect YOXDUR. Element əvvəlcə "probe" kimi müşahidə olunur — IO-nun ilk
   // cavabı ölçünü layout məcbur etmədən verir; qərar (gizlət / dərhal göstər) orada verilir. Əvvəl skan hər
   // elementin ölçüsünü oxuyurdu: ana səhifədə CPU×4-də 2–3.5 s bloklanma.
+  // Scroll A: müşahidəçi saytın ORTAQ müşahidəçisidir (utils/revealIO.js — [data-reveal] ilə eyni).
   const phase = new WeakMap()   // el → 'probe' | 'armed'
   const show = (list) => {
     list.sort((a, b) => (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1))
     list.forEach((el, i) => {
-      io.unobserve(el)
+      unwatch(el, owner)
       phase.delete(el)
       el.style.setProperty('--wow-d', `${Math.min(i, STAGGER_MAX) * STAGGER_MS}ms`)
       el.setAttribute('data-wow-in', '')
@@ -199,29 +202,32 @@ function initEnter() {
       timer = setTimeout(done, 1400 + i * STAGGER_MS)
     })
   }
-  const io = new IntersectionObserver((entries) => {
-    const shown = [], late = []
-    const vh = window.innerHeight
-    for (const en of entries) {
+  let shown = [], late = []
+  const owner = {
+    entry(en) {
       const el = en.target
       const r = en.boundingClientRect
       if (phase.get(el) === 'probe') {
         // İç-içə kart: valideyn artıq girirsə, uşaq ayrıca girməsin
         if (r.height === 0 || r.bottom < 0 || (firstPaintWindow && en.isIntersecting) || el.parentElement?.closest('[data-wow-ready]')) {
-          io.unobserve(el); phase.delete(el); continue
+          unwatch(el, owner); phase.delete(el); return
         }
         // Çox hündür blok (uzun cədvəl) — yalnız yüngül görünmə, qalxma yox
-        if (r.height > vh * 1.5) el.setAttribute('data-wow-tall', '')
+        if (r.height > window.innerHeight * 1.5) el.setAttribute('data-wow-tall', '')
         el.setAttribute('data-wow-ready', '')
         phase.set(el, 'armed')
         if (en.isIntersecting) late.push(el)   // sonradan, görünən yerdə yarandı — növbəti kadrda girsin
-        continue
+        return
       }
       if (en.isIntersecting || r.bottom < 0) shown.push(el)
-    }
-    if (shown.length) show(shown)
-    if (late.length) requestAnimationFrame(() => requestAnimationFrame(() => show(late)))
-  }, { rootMargin: '0px 0px -6% 0px', threshold: 0 })
+    },
+    flush() {
+      const s = shown, l = late
+      shown = []; late = []
+      if (s.length) show(s)
+      if (l.length) requestAnimationFrame(() => requestAnimationFrame(() => show(l)))
+    },
+  }
 
   const scan = () => {
     if (reduced()) return
@@ -230,7 +236,7 @@ function initEnter() {
       el.setAttribute('data-wow-seen', '')
       if (el.closest(NO_ENTER)) return
       phase.set(el, 'probe')
-      io.observe(el)
+      if (!watch(el, owner)) phase.delete(el)
     })
   }
   onDomChange(scan)
@@ -239,28 +245,26 @@ function initEnter() {
 /* ── 3. data-anim / data-anim-stagger / data-parallax ── */
 function initAnim() {
   if (typeof IntersectionObserver === 'undefined') return
-  const io = new IntersectionObserver((entries) => {
-    for (const en of entries) {
-      if (!en.isIntersecting && en.boundingClientRect.bottom >= 0) continue
-      const el = en.target
-      io.unobserve(el)
-      el.setAttribute('data-anim-in', '')
-    }
-  }, { rootMargin: '0px 0px -4% 0px', threshold: 0 })
-
-  // v6.7 (perf): ölçü oxunmur — "probe" IO-nun ilk cavabı (layout məcbur etmədən) qərar verir:
+  // v6.7 (perf): ölçü oxunmur — IO-nun ilk cavabı ("probe", layout məcbur etmədən) qərar verir:
   // ekranın yuxarısında / ilk kadrda görünən → animasiyasız; qalanı → gizlənir və görünəndə açılır.
-  const probe = new IntersectionObserver((entries) => {
-    for (const en of entries) {
+  // Scroll A: ortaq müşahidəçi (utils/revealIO.js); element "armed" olandan sonra izlənməkdə qalır.
+  const armed = new WeakSet()
+  const owner = {
+    entry(en) {
       const el = en.target
-      probe.unobserve(el)
       const r = en.boundingClientRect
-      if (r.bottom < 0 || (firstPaintWindow && en.isIntersecting)) continue
-      el.setAttribute('data-anim-ready', '')
-      if (en.isIntersecting) requestAnimationFrame(() => requestAnimationFrame(() => el.setAttribute('data-anim-in', '')))
-      else io.observe(el)
-    }
-  }, { threshold: 0 })
+      if (!armed.has(el)) {
+        if (r.bottom < 0 || (firstPaintWindow && en.isIntersecting)) { unwatch(el, owner); return }
+        armed.add(el)
+        el.setAttribute('data-anim-ready', '')
+        if (en.isIntersecting) { unwatch(el, owner); requestAnimationFrame(() => requestAnimationFrame(() => el.setAttribute('data-anim-in', ''))) }
+        return
+      }
+      if (!en.isIntersecting && r.bottom >= 0) return
+      unwatch(el, owner)
+      el.setAttribute('data-anim-in', '')
+    },
+  }
 
   const SEL = '[data-anim]:not([data-anim-seen]), [data-anim-stagger]:not([data-anim-seen])'
   const scan = () => {
@@ -274,7 +278,7 @@ function initAnim() {
       if (d > 0) el.style.setProperty('--anim-delay', `${Math.min(d, 1200)}ms`)
       const st = parseInt(el.getAttribute('data-anim-stagger'), 10)
       if (st > 0) el.style.setProperty('--anim-step', `${Math.min(st, 200)}ms`)
-      probe.observe(el)
+      watch(el, owner)
     })
   }
   onDomChange(scan)
@@ -544,10 +548,12 @@ export function routeCommitted() {
   const r = vtResolve
   vtResolve = null
   r?.()
+  phoneMorphLand()
 }
 /**
- * go() — naviqasiya. Dəstək varsa View Transition içində (köhnə kadr → yeni
- * kadr, yumşaq çarpaz keçid + qalxma); yoxsa adi (.page-enter solması işləyir).
+ * go() — naviqasiya. Dəstək varsa View Transition içində — Keçid A "fade-through"
+ * (vau3.css §11: köhnə kadr 160 ms-də solur, yeni 340 ms-də yerinə oturur; əvvəlki
+ * xatəm "iris"-i 2026-11-24-də götürüldü); yoxsa adi (.page-enter solması işləyir).
  */
 export function withViewTransition(go) {
   if (cardMorphing) { go(); return }   // kart keçidi (§9b) artıq gedir — iç-içə keçid onu kəsərdi
@@ -665,6 +671,61 @@ function initCardMorph() {
   }, true)
 }
 
+/* ── 9c. Telefon: kart → səhifə (Keçid B, 2026-11-24) — View Transition YOX ──
+   Telefonda View Transition köhnə kadrı 0.6–1.1 s dondururdu (ölçülüb, CPU ×4) — orada yalnız
+   güclü cihazda (navigator.deviceMemory ≥ 4, Save-Data yox) kartın başlığı yeni səhifənin
+   başlığına FLIP ilə "uçur": klikdə başlığın yeri yadda saxlanır (oxu — yazı yoxdur), yeni h1
+   görünəndə ona tərs transform verilib Web Animations ilə yerinə gətirilir (yalnız transform,
+   kompozitorda). Zəif cihazda — adi solma keçidi (Keçid A: .page-leave → .page-enter). */
+let phoneMorph = null
+const phoneCapable = () => {
+  try { return (navigator.deviceMemory || 8) >= 4 && !navigator.connection?.saveData } catch { return false }
+}
+function initPhoneMorph() {
+  document.addEventListener('click', (e) => {
+    phoneMorph = null
+    if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+    if (!mq('(max-width: 767.98px)').matches || reduced() || !phoneCapable()) return
+    const a = e.target.closest?.('a[href^="/"]')
+    if (!a || a.target === '_blank' || a.closest('header, nav, footer, [data-sp-id], [data-no-morph]')) return
+    const card = a.matches(CARD_SEL) ? a : a.closest(CARD_SEL)
+    const title = card?.querySelector(TITLE_SEL)
+    if (!title || !title.textContent.trim()) return
+    const r = title.getBoundingClientRect()
+    if (!r.width || !r.height || r.bottom < 0 || r.top > window.innerHeight) return
+    phoneMorph = { r, at: performance.now(), path: location.pathname, old: document.querySelector('main h1') }
+  }, true)
+}
+function phoneMorphLand() {
+  const pm = phoneMorph
+  if (!pm || typeof document === 'undefined') return
+  const t0 = performance.now()
+  const step = () => {
+    if (phoneMorph !== pm) return
+    if (performance.now() - t0 > 700 || performance.now() - pm.at > 2500) { phoneMorph = null; return }
+    const h = document.querySelector('main:not([data-motion-pop-id]) h1')
+    if (location.pathname === pm.path || !h || h === pm.old) { requestAnimationFrame(step); return }
+    phoneMorph = null
+    const n = h.getBoundingClientRect()
+    if (!n.width || !n.height || typeof h.animate !== 'function') return
+    const rtl = getComputedStyle(h).direction === 'rtl'
+    const dx = rtl ? pm.r.right - n.right : pm.r.left - n.left
+    const dy = pm.r.top - n.top
+    const s = Math.max(0.3, Math.min(1.5, pm.r.height / n.height))
+    try {
+      // data-vt-flip — keçid gedərkən (e2e: tests/e2e/ui-polish-a.spec.js)
+      h.setAttribute('data-vt-flip', '')
+      const anim = h.animate([
+        { transformOrigin: rtl ? 'top right' : 'top left', transform: `translate3d(${dx.toFixed(1)}px, ${dy.toFixed(1)}px, 0) scale(${s.toFixed(3)})` },
+        { transformOrigin: rtl ? 'top right' : 'top left', transform: 'none' },
+      ], { duration: 460, easing: 'cubic-bezier(.22, 1, .36, 1)' })
+      const off = () => h.removeAttribute('data-vt-flip')
+      anim.finished.then(off, off)
+    } catch { h.removeAttribute('data-vt-flip') }
+  }
+  requestAnimationFrame(step)
+}
+
 export function initWow() {
   if (started || typeof window === 'undefined' || typeof document === 'undefined') return
   started = true
@@ -683,6 +744,7 @@ export function initWow() {
     initProgress()
     initSeason()
     initCardMorph()
+    initPhoneMorph()
     // İlk boyamadan ~0.9 san sonra ekrandakı elementlər də animasiya ilə girir
     setTimeout(() => { firstPaintWindow = false }, 900)
     // "Hərəkəti azalt" sonradan açılsa — sinif götürülür, heç nə gizli qalmır
