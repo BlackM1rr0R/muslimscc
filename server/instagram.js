@@ -134,7 +134,8 @@ const CAROUSEL_TITLE = {
 }
 const CAROUSEL_LINK = { name: '/names', hadith: '/hadith', ayah: '/quran' }
 const WEEKLY = { az: 'Həftənin seçməsi', en: 'Weekly selection', ru: 'Подборка недели', tr: 'Haftanın seçkisi', ar: 'مختارات الأسبوع' }
-const SWIPE = { az: 'Sürüşdürün →', en: 'Swipe →', ru: 'Листайте →', tr: 'Kaydırın →', ar: '← اسحب' }
+// Ox (U+2192) MccInter-də yoxdur (kartda ▯ çıxırdı, 2026-11-25) — Latın-1 « » işarələri hər iki şriftdə var
+const SWIPE = { az: 'Sürüşdürün »', en: 'Swipe »', ru: 'Листайте »', tr: 'Kaydırın »', ar: '« اسحب' }
 const CLOSING = {
   az: 'Hər gün ayə, hədis və dua', en: 'A verse, a hadith and a dua every day', ru: 'Каждый день — аят, хадис и дуа',
   tr: 'Her gün ayet, hadis ve dua', ar: 'كل يوم آية وحديث ودعاء',

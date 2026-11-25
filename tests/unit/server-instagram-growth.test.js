@@ -308,3 +308,12 @@ describe('insights', () => {
     expect(off.status().insights.enabled).toBe(false)
   })
 })
+
+describe('kart mətnində şriftdə olmayan işarə yoxdur', () => {
+  it('SWIPE oxsuzdur: U+2190–21FF MccInter-də yoxdur (kartda ▯ çıxırdı)', () => {
+    const src = fs.readFileSync(path.join(import.meta.dirname, '../../server/instagram.js'), 'utf8')
+    const line = src.split('\n').find((l) => l.startsWith('const SWIPE'))
+    expect(line).toBeTruthy()
+    expect(/[←-⇿]/.test(line)).toBe(false)
+  })
+})
