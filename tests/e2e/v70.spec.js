@@ -104,12 +104,15 @@ test('uşaq təbrik kartı: ad + nailiyyət → kart şəkli, yükləmə', async
 })
 
 test('sədəqə gündəliyi: "Kimə" saxlanır, illər üzrə cəm', async ({ page, consoleProblems }) => {
+  // Səhifə skriptlərindən ƏVVƏL yaz (goto → setItem → reload ardıcıllığında açıq səhifə
+  // reload zamanı öz boş vəziyyətini yaza bilir — CI-da yarış, 2026-11-25)
+  await page.addInitScript(() => {
+    if (!localStorage.getItem('charity_log')) localStorage.setItem('charity_log', JSON.stringify([
+      { id: 1, date: '2025-03-01', type: 'money', amount: 20, description: '' },
+      { id: 2, date: '2025-07-09', type: 'food', amount: null, description: '' },
+    ]))
+  })
   await page.goto('/charity')
-  await page.evaluate(() => localStorage.setItem('charity_log', JSON.stringify([
-    { id: 1, date: '2025-03-01', type: 'money', amount: 20, description: '' },
-    { id: 2, date: '2025-07-09', type: 'food', amount: null, description: '' },
-  ])))
-  await page.reload()
   await settle(page)
   await page.getByLabel('Məbləğ (istəyə bağlı)').fill('10')
   await page.getByLabel('Kimə (istəyə bağlı)').fill('Qonşu')
