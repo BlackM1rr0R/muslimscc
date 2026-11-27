@@ -28,6 +28,9 @@
 //   Meta parametri rədd etsə onsuz təkrar göndərilir. Həftəlik karusel (IG_CAROUSEL=1, IG_CAROUSEL_DAY=5, IG_CAROUSEL_TIME=11:00):
 //   uşaq konteynerlər → media_type=CAROUSEL. İnsights (IG_INSIGHTS=0 söndürür): gündə bir dəfə reach / saves / shares →
 //   instagram_insights; icazə yoxdursa yalnız vəziyyət qeyd olunur, dərc dayanmır.
+// • RAMAZAN GERİ SAYIMI (IG_RAMADAN, susmaya görə açıq; IG_RAMADAN_TIME susmaya görə 07:00): gündə bir əlavə STORY —
+//   "N days until Ramadan", hicri tarix, saytın /road-to-ramadan yolunun bugünkü addımı (instagramRamadan.js, 'dawn' teması).
+//   Yalnız Ramazana 90 … 1 gün qalanda; Ramazan ərzində və sonra özü sönür. Sətir: (gün, 'ramadan', 'story').
 // ═══════════════════════════════════════════════════════════════════════
 'use strict'
 
@@ -40,6 +43,7 @@ const dailyHadith = require('./daily-hadith')
 const IG_DATA = require('./instagram-data')
 const { nowAt } = require('./telegramBot')
 const REEL = require('./instagramReel')
+const RAMADAN = require('./instagramRamadan')
 
 const LANGS = ['az', 'en', 'ru', 'tr', 'ar']
 const TZ = 'Asia/Baku'
@@ -57,6 +61,9 @@ const REFRESH_EVERY_MS = 7 * 864e5
 const REFRESH_MIN_AGE_MS = 2 * 864e5                     // Meta: token ən azı 24 saatlıq olmalıdır
 const MAX_PICK_TRIES = 8
 const CARD_NAME_RE = /^(\d{4}-\d{2}-\d{2})-([0-5])-(feed|story)\.jpg$/
+const RAMADAN_NAME_RE = /^(\d{4}-\d{2}-\d{2})-ramadan-story\.jpg$/
+const RAMADAN_SLOT = 'ramadan'
+const DEFAULT_RAMADAN_TIME = '07:00'
 const TOKEN_RE = /^[A-Za-z0-9._|-]{20,2048}$/
 const USER_ID_RE = /^\d{5,30}$/
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
@@ -213,6 +220,9 @@ function parseConfig(env = {}) {
   // əvəzinə hədis videosu (reel), "dua" (və ya "name") 20:00 yuvasında dua / Allahın adı videosu. Susmaya görə hamısı;
   // "ayah" — köhnə davranış (yalnız passaj reel-i). Yuvanın MP4-ü yoxdursa / yararsızdırsa — adi şəkil postu.
   const reelKinds = parseReelKinds(env.IG_REEL_KINDS)
+  // Ramazan geri sayımı story-si: susmaya görə açıq (IG_RAMADAN=0 söndürür); yalnız Ramazandan əvvəlki 90 gündə işləyir
+  const ramadan = String(env.IG_RAMADAN == null ? '1' : env.IG_RAMADAN).trim() !== '0'
+  const ramadanTime = parseHHMM(env.IG_RAMADAN_TIME, DEFAULT_RAMADAN_TIME)
   const configured = Boolean(token || userId)
   let reason = null
   if (env.IG_ENABLED !== '1') reason = 'disabled'
@@ -220,7 +230,7 @@ function parseConfig(env = {}) {
   else if (!TOKEN_RE.test(token) || !USER_ID_RE.test(userId)) reason = 'bad_format'
   return {
     enabled: !reason, reason, configured, token, userId, host, version, lang, slots, stories, captionLangs, reels, reelTime, reelKinds,
-    altText, locationId, carousel, carouselTime, carouselDay, insights,
+    altText, locationId, carousel, carouselTime, carouselDay, insights, ramadan, ramadanTime,
   }
 }
 
@@ -720,7 +730,7 @@ function createInstagram(opts = {}) {
   // ── Kart faylları ──
   const cardName = (dateKey, slotIndex, format) => `${dateKey}-${slotIndex}-${format}.jpg`
   function writeCard(name, buf) {
-    if (!CARD_NAME_RE.test(name) && !CAROUSEL_NAME_RE.test(name)) throw new Error('bad card name')
+    if (!CARD_NAME_RE.test(name) && !CAROUSEL_NAME_RE.test(name) && !RAMADAN_NAME_RE.test(name)) throw new Error('bad card name')
     fs.mkdirSync(cardDir, { recursive: true, mode: 0o700 })
     const tmp = path.join(cardDir, `.${name}.${process.pid}.tmp`)
     fs.writeFileSync(tmp, buf, { mode: 0o644 })
@@ -731,7 +741,7 @@ function createInstagram(opts = {}) {
     let list = []
     try { list = fs.readdirSync(cardDir) } catch { return 0 }
     for (const f of list) {
-      const m = CARD_NAME_RE.exec(f) || CAROUSEL_NAME_RE.exec(f) || REEL.VIDEO_MP4_RE.exec(f) || REEL.VIDEO_META_RE.exec(f)
+      const m = CARD_NAME_RE.exec(f) || CAROUSEL_NAME_RE.exec(f) || RAMADAN_NAME_RE.exec(f) || REEL.VIDEO_MP4_RE.exec(f) || REEL.VIDEO_META_RE.exec(f)
       const p = path.join(cardDir, f)
       try {
         const old = m ? Date.parse(`${m[1]}T00:00:00Z`) < t - CARD_TTL_MS : (f.endsWith('.tmp') && fs.statSync(p).mtimeMs < t - 3600e3)
@@ -1089,6 +1099,45 @@ function createInstagram(opts = {}) {
     }
   }
 
+  // ── Ramazan geri sayımı (IG_RAMADAN; instagramRamadan.js): gündə bir story, yalnız Ramazana 90 … 1 gün qalanda ──
+  const renderRamadan = opts.renderRamadan || ((c, o) => require('./instagramCard').renderRamadanCard(c, o))
+  /** Günün story-si → { content, jpeg } | null (bu gün aktiv deyil / kart sığmır) */
+  async function prepareRamadan(dateKey, { lang = cfg.lang } = {}) {
+    const content = RAMADAN.storyContent(dateKey, lang)
+    if (!content) return null
+    const jpeg = await renderRamadan(content, { theme: 'dawn', lang })
+    return jpeg ? { content, jpeg } : null
+  }
+  async function runRamadan(row, dateKey) {
+    try {
+      const prep = await prepareRamadan(dateKey)
+      if (!prep) throw failure('fatal', 'ramadan story not available')
+      const name = `${dateKey}-ramadan-story.jpg`
+      writeCard(name, prep.jpeg)
+      const mid = await publishImage(`${origin}/api/ig/card/${name}`, { story: true })
+      q.done.run(mid, prep.content.key, now(), row.id)
+      log.log(`Instagram: Ramazan story-si dərc olundu — ${dateKey} ${prep.content.key}`)
+      return true
+    } catch (e) {
+      return recordFailure(row, e, 'story', dateKey, RAMADAN_SLOT)
+    }
+  }
+  async function ramadanTick(t) {
+    const sm = toMin(cfg.ramadanTime), cur = toMin(t.hhmm)
+    if (cur < sm || cur > sm + CATCHUP_MIN) return 0
+    if (!RAMADAN.countdown(t.dateKey).active) return 0
+    const row = claimRow(t.dateKey, RAMADAN_SLOT, 'story', 'ramadan')
+    return row && await runRamadan(row, t.dateKey) ? 1 : 0
+  }
+  function ramadanStatus() {
+    const day = nowAt(TZ, now()).dateKey
+    const row = q.get.get(day, RAMADAN_SLOT, 'story')
+    return {
+      enabled: cfg.ramadan, time: cfg.ramadanTime, date: day, ...RAMADAN.statusFor(day, cfg.lang),
+      post: row ? { status: row.status, error: row.error ? String(row.error).slice(0, 120) : null, ig_media_id: row.ig_media_id, item: row.item } : null,
+    }
+  }
+
   /** Sətri bu proses üçün "tut": yeni — INSERT; retry vaxtı çatıb və ya yarımçıq qalıb — atom UPDATE. */
   function claimRow(day, slotKey, format, kind) {
     const t = now()
@@ -1118,6 +1167,7 @@ function createInstagram(opts = {}) {
       }
       if (cfg.reels && !authBlocked) n += await reelTick(t)
       if (cfg.carousel && !authBlocked) n += await carouselTick(t)
+      if (cfg.ramadan && !authBlocked) n += await ramadanTick(t)
     } catch (e) {
       log.error('Instagram tick:', e && e.message)
     } finally { busy = false }
@@ -1224,6 +1274,7 @@ function createInstagram(opts = {}) {
       reel: reelStatus(),
       carousel: carouselStatus(),
       insights: insightsStatus(),
+      ramadan: ramadanStatus(),
       growth: { altText: cfg.altText, location: Boolean(cfg.locationId), hashtagsMax: HASHTAG_MAX },
     }
   }
@@ -1269,7 +1320,7 @@ function createInstagram(opts = {}) {
         notFound(res)
       })
     }
-    if (!CARD_NAME_RE.test(name) && !CAROUSEL_NAME_RE.test(name)) return notFound(res)
+    if (!CARD_NAME_RE.test(name) && !CAROUSEL_NAME_RE.test(name) && !RAMADAN_NAME_RE.test(name)) return notFound(res)
     let buf
     try { buf = fs.readFileSync(path.join(cardDir, name)) } catch { return notFound(res) }
     res.set({ 'Content-Type': 'image/jpeg', 'Cache-Control': 'public, max-age=86400', 'X-Robots-Tag': 'noindex', 'X-Content-Type-Options': 'nosniff' })
@@ -1303,6 +1354,20 @@ function createInstagram(opts = {}) {
 
     r.post('/admin/instagram/preview', requireAdmin, adminOnly, superOnly, json, async (req, res) => {
       const b = bodyOf(req)
+      if (b.slot === RAMADAN_SLOT) {
+        const lang = b.lang == null ? cfg.lang : (LANGS.includes(b.lang) ? b.lang : null)
+        if (!lang) return err(res, 400, 'bad_lang')
+        if (!allow(`p:${req.adminUser.id}`, 30)) return err(res, 429, 'rate_limited')
+        try {
+          const p = await prepareRamadan(nowAt(TZ, now()).dateKey, { lang })
+          if (!p) return err(res, 422, 'ramadan_inactive')
+          res.set({ 'Content-Type': 'image/jpeg', 'X-Ig-Item': encodeURIComponent(p.content.key), 'X-Ig-Caption': '' })
+          return res.send(p.jpeg)
+        } catch (e) {
+          log.error('Instagram preview:', e && (e.kind || e.message))
+          return err(res, 502, 'render_failed')
+        }
+      }
       const slot = Number(b.slot)
       const format = b.format === 'story' ? 'story' : b.format === 'feed' || b.format == null ? 'feed' : null
       if (!Number.isInteger(slot) || slot < 0 || slot > 5 || !format) return err(res, 400, 'bad_request')
@@ -1337,7 +1402,7 @@ function createInstagram(opts = {}) {
 
   return {
     enabled: cfg.enabled, config: cfg, router, adminRouter, tick, refreshTick, insightsTick, purge, purgeCards, publishNow, preview, status,
-    tokenInfo, prepare, prepareCarousel, carouselTheme, carouselColour, cardDir, reelInfo, textVideoInfo, slotVideo, _q: q, _graph: graph, _publishImage: publishImage, _publishReel: publishReel,
+    tokenInfo, prepare, prepareCarousel, prepareRamadan, ramadanStatus, carouselTheme, carouselColour, cardDir, reelInfo, textVideoInfo, slotVideo, _q: q, _graph: graph, _publishImage: publishImage, _publishReel: publishReel,
     _publishCarousel: publishCarousel,
   }
 }
@@ -1346,5 +1411,5 @@ module.exports = {
   createInstagram, parseConfig, parseSlots, parseCaptionLangs, parseReelKinds, kindFor, themeFor, themeForSlot, videoKeyForSlot, staticCandidate, contentById, itemIdOf,
   CAROUSEL_COLOURS, DEFAULT_REEL_KINDS, nextSlot, buildCaption, buildCaptionMulti, classifyError, isBukhariMuslim,
   hadithContent, duaContent, nameContent, ayahContent, sealToken, openToken, CARD_NAME_RE, SLOT_KINDS, DEFAULT_SLOTS, LANGS,
-  hashtagsFor, firstLine, altTextFor, buildCarouselCaption, CAROUSEL_NAME_RE, CAROUSEL_THEMES, HASHTAG_MAX, HASHTAGS, CAPTION_MAX,
+  hashtagsFor, firstLine, altTextFor, buildCarouselCaption, CAROUSEL_NAME_RE, RAMADAN_NAME_RE, RAMADAN_SLOT, DEFAULT_RAMADAN_TIME, CAROUSEL_THEMES, HASHTAG_MAX, HASHTAGS, CAPTION_MAX,
 }

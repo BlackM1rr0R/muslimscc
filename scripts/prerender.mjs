@@ -42,7 +42,7 @@ import { brandName } from '../src/config/brand.js'
 import { siteSchema } from '../src/seo/siteSchema.js'
 import { pageJsonLd } from '../src/seo/pageJsonLd.js'
 import { detailMeta, titleForDetail, detailJsonLd } from '../src/seo/detailData.js'
-import { staticBodyFor, staticPreloadFor, hasQuranData } from './seo-body.mjs'
+import { staticBodyFor, staticPreloadFor, hasQuranData, seerahItemList } from './seo-body.mjs'
 import { setUiDict } from '../src/utils/uiText.js'
 import { buildLlmsTxt, buildLlmsFullTxt } from './llms-txt.mjs'
 import * as detailData from '../src/seo/detailData.js'
@@ -121,7 +121,9 @@ function headFor(key, lang, param = null, noindex = false) {
   const { title, desc } = textsFor(key, lang, param)
 
   // Detal: WebPage + breadcrumb (3 addım) + mainEntity (Chapter / DefinedTerm / Person)
-  const jsonld = param != null ? detailJsonLd(key, lang, param) : pageJsonLd({ key, lang, title, desc, canonical })
+  // /seerah — WebPage.mainEntity = hadisələrin ItemList-i (scripts/seo-body.mjs)
+  const jsonld = param != null ? detailJsonLd(key, lang, param)
+    : pageJsonLd({ key, lang, title, desc, canonical, mainEntity: key === 'seerah' && LANGS.includes(lang) ? seerahItemList(lang, canonical) : null })
 
   return [
     canonicalLine,

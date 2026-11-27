@@ -182,6 +182,8 @@ export const PAGES = [
   { key: 'qurangame',    path: 'qurangame',    priority: 0.75, changefreq: 'monthly' },
   { key: 'glossary',     path: 'glossary',     priority: 0.75, changefreq: 'monthly' },
   { key: 'history',      path: 'history',      priority: 0.85, changefreq: 'monthly' },
+  // Siyər — Peyğəmbərin ﷺ həyatı: Hicaz xəritəsi + zaman xətti (src/data/seerah.js, statik blok seo-body.mjs-də)
+  { key: 'seerah',       path: 'seerah',       priority: 0.8,  changefreq: 'monthly' },
   { key: 'sahaba',       path: 'sahaba',       priority: 0.85, changefreq: 'monthly' },
   { key: 'scholars',     path: 'scholars',     priority: 0.85, changefreq: 'monthly' },
   { key: 'group',        path: 'group',        priority: 0.60, changefreq: 'monthly' },

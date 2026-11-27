@@ -12,6 +12,13 @@
 //             digərlərində yalnız mənbə (Sünən hökmləri hədis id-sinə bağlıdır, dua id-sinə yox — uydurulmur).
 //   • names — src/data/names99.js (İbn Useyminin siyahısı) + dəlil (proof), /names/<n>-<slug>.
 // tests/unit/server-instagram.test.js faylın mənbə ilə eyni qaldığını yoxlayır.
+//
+// İkinci fayl — server/instagram-ramadan-data.js (Ramazan geri sayımı story-si, server/instagramRamadan.js):
+//   saytın /road-to-ramadan hesabı OLDUĞU KİMİ — hər hicri il üçün Ramazanın başlanğıcı / sonu (utils/ramadanRange, Ümmül-Qura)
+//   və 90 günlük yolun addımları (utils/ramadanPrep → roadPlan), addımların başlıq / mətni (components/ramadanPrep/prepText.js →
+//   STEP_TEXT; "g:<bölmə>" — Ramazan bələdçisinin başlığı ilə, səhifədəki stepView kimi), "N gün qaldı" ifadələri (T.daysLeft,
+//   bütöv cümlə), gözlənilən başlanğıc (T.startsOn), hicri ayların adları. src/ uzantısız import işlədir → esbuild ilə yığılır
+//   (scripts/server-lib/ramadan-entry.mjs). tests/unit/server-instagram-ramadan.test.js sinxronluğu yoxlayır.
 // ═══════════════════════════════════════════════════════
 import fs from 'node:fs'
 import path from 'node:path'
@@ -51,6 +58,68 @@ export function buildInstagramData() {
   return { duas, names }
 }
 
+// ── Ramazan geri sayımı (server/instagram-ramadan-data.js) ──
+export const RAMADAN_FIRST_YEAR = 1446
+export const RAMADAN_LAST_YEAR = 1480
+
+/** src modulları (scripts/server-lib/ramadan-entry.mjs-in ixracları) → serverin məlumat faylı */
+export function buildRamadanData(src) {
+  const { ramadanRange, roadPlan, ROAD_DAYS, STEP_KINDS, T, STEP_TEXT, RAMADAN_GUIDE, HIJRI_MONTHS, HIJRI_SUFFIX, formatGregorian, parseGKey } = src
+  const pick = (obj, l) => (obj && (obj[l] ?? obj.en))
+  const kinds = STEP_KINDS.slice()
+  const steps = {}
+  for (const kind of kinds) {
+    const t = {}, x = {}
+    for (const l of LANGS) {
+      if (kind.startsWith('g:')) {
+        const sec = RAMADAN_GUIDE.find((g) => g.id === kind.slice(2))
+        if (!sec) throw new Error(`Ramazan bələdçisində bölmə yoxdur: ${kind}`)
+        t[l] = pick(T, l).guideStep(pick(sec.title, l))
+        x[l] = pick(T, l).guideText
+      } else {
+        const s = STEP_TEXT[kind]
+        if (!s) throw new Error(`STEP_TEXT-də addım yoxdur: ${kind}`)
+        t[l] = pick(s.title, l)
+        x[l] = pick(s.text, l)
+      }
+    }
+    steps[kind] = { title: t, text: x }
+  }
+  const daysLeft = {}, labels = {}
+  for (const l of LANGS) {
+    const t = pick(T, l)
+    daysLeft[l] = Array.from({ length: ROAD_DAYS }, (_, i) => t.daysLeft(i + 1))
+    labels[l] = { road: t.road, today: t.today, calc: t.calc }
+  }
+  const years = []
+  for (let y = RAMADAN_FIRST_YEAR; y <= RAMADAN_LAST_YEAR; y++) {
+    const r = ramadanRange(y)
+    if (!r) throw new Error(`Ramazan aralığı hesablanmadı: ${y}`)
+    const plan = roadPlan(y)
+    if (plan.length !== ROAD_DAYS || plan[0].n !== ROAD_DAYS) throw new Error(`yolun planı gözlənilən deyil: ${y}`)
+    const g = parseGKey(r.s)
+    years.push({
+      y, s: r.s, e: r.e,
+      plan: plan.map((p) => { const i = kinds.indexOf(p.kind); if (i < 0) throw new Error(`naməlum addım: ${p.kind}`); return i }),
+      startsOn: Object.fromEntries(LANGS.map((l) => [l, pick(T, l).startsOn(formatGregorian(g, l))])),
+    })
+  }
+  const hijriMonths = Object.fromEntries(LANGS.map((l) => [l, pick(HIJRI_MONTHS, l).slice()]))
+  const hijriSuffix = Object.fromEntries(LANGS.map((l) => [l, pick(HIJRI_SUFFIX, l)]))
+  return { roadDays: ROAD_DAYS, kinds, steps, daysLeft, labels, hijriMonths, hijriSuffix, years }
+}
+
+/** Saytın modullarını esbuild ilə yaddaşda yığıb açır (node uzantısız importları həll etmir). */
+export async function loadRamadanSources() {
+  const { buildSync } = await import('esbuild')
+  const out = buildSync({
+    entryPoints: [path.join(ROOT, 'scripts', 'server-lib', 'ramadan-entry.mjs')],
+    bundle: true, platform: 'node', format: 'esm', target: 'node20', write: false, logLevel: 'warning',
+  })
+  const code = out.outputFiles[0].text
+  return import('data:text/javascript;base64,' + Buffer.from(code).toString('base64'))
+}
+
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)
 if (isMain) {
   const data = buildInstagramData()
@@ -61,4 +130,12 @@ if (isMain) {
 `
   fs.writeFileSync(path.join(ROOT, 'server', 'instagram-data.js'), header + 'module.exports = ' + JSON.stringify(data) + '\n')
   console.log(`instagram-data.js: ${data.duas.length} dua, ${data.names.length} ad`)
+  const rd = buildRamadanData(await loadRamadanSources())
+  const rh = `// AVTOMATİK YARADILIB — scripts/build-instagram-data.mjs (əl ilə dəyişməyin)
+// Ramazan geri sayımı story-si (server/instagramRamadan.js): saytın /road-to-ramadan hesabı və mətnləri olduğu kimi —
+// Ramazanın tarixləri (utils/ramadanRange, Ümmül-Qura), 90 günlük yolun addımları (utils/ramadanPrep), prepText.js.
+'use strict'
+`
+  fs.writeFileSync(path.join(ROOT, 'server', 'instagram-ramadan-data.js'), rh + 'module.exports = ' + JSON.stringify(rd) + '\n')
+  console.log(`instagram-ramadan-data.js: ${rd.years.length} hicri il (${rd.years[0].y}–${rd.years[rd.years.length - 1].y}), ${rd.kinds.length} addım növü`)
 }

@@ -67,8 +67,9 @@ describe('data/whatsNew', () => {
     // Funksiya sətri (mövcud səhifəyə əlavə) nişan vermir
     expect(k.has('qibla')).toBe(false)
     expect(k.has('history')).toBe(false)
-    // 30 gündən sonra hamısı düşür
-    expect(recentPageKeys(NOW + (NEW_DAYS + 1) * 86400000).size).toBe(0)
+    // Ən yeni sətirdən 30 gün sonra hamısı düşür (sabit NOW yox — yeni sətir əlavə olunanda test sınmasın)
+    const newest = Math.max(...WHATS_NEW.map((e) => isoDayMs(e.date)))
+    expect(recentPageKeys(newest + (NEW_DAYS + 1) * 86400000).size).toBe(0)
     // 2026-11-13 (babynames) 2026-12-13-də artıq yeni deyil, 2026-11-23-ün sətirləri isə hələ yenidir
     const dec13 = recentPageKeys(Date.UTC(2026, 11, 13, 12))
     expect(dec13.has('babynames')).toBe(false)

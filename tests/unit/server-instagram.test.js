@@ -17,7 +17,8 @@ const IG_DATA = require('../../server/instagram-data.js')
 
 const TOKEN = 'IGAAtesttoken0123456789abcdefABCDEF'
 const USER = '17841400000000001'
-const ENV = { IG_ENABLED: '1', IG_ACCESS_TOKEN: TOKEN, IG_USER_ID: USER }
+// Ramazan geri sayımı story-si (susmaya görə açıq, 07:00 + 90 dəq — T0 ona düşür) ayrıca yoxlanır: server-instagram-ramadan.test.js
+const ENV = { IG_ENABLED: '1', IG_ACCESS_TOKEN: TOKEN, IG_USER_ID: USER, IG_RAMADAN: '0' }
 // 2026-11-25 08:00:30 Asia/Baku (UTC+4)
 const T0 = Date.parse('2026-11-25T04:00:30Z')
 const JPEG = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 1, 2, 3, 0xff, 0xd9])

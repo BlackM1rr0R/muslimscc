@@ -1,0 +1,72 @@
+/* ═══════════════════════════════════════════════════════
+   Ünvan (təzhib) çərçivəsi — components/quran/UnwanFrame.jsx
+   --uw-h  — zolağın hündürlüyü (uclar və mərkəz düyünü ona görə ölçülür)
+   --uw-bg — içinin əsas rəngi (qeyri-şəffaf: atmosfer fonu mətnin altına keçmir)
+   Rənglər tokenlərdən: açıq rejimdə --accent (sand-600) / --accent-deco, tünddə özü dəyişir.
+   ═══════════════════════════════════════════════════════ */
+.uw {
+  --uw-h: 64px;
+  --uw-bg: var(--surface-1);
+  --uw-line: var(--accent);
+  --uw-line-2: var(--accent-deco, var(--accent));
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-width: 0;
+  height: var(--uw-h);
+}
+.uw-frame {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  /* uc (48/64) · orta · düyün (40/64) · orta · uc */
+  grid-template-columns: calc(var(--uw-h) * 0.75) minmax(0, 1fr) calc(var(--uw-h) * 0.625) minmax(0, 1fr) calc(var(--uw-h) * 0.75);
+  /* Sətir zolağın hündürlüyündədir — orta SVG-nin öz nisbəti (100×64) sətri uzatmasın */
+  grid-template-rows: minmax(0, 1fr);
+  direction: ltr;
+  pointer-events: none;
+}
+.uw-frame svg { display: block; width: 100%; height: 100%; min-width: 0; min-height: 0; overflow: visible; }
+/* Qonşu hissələr yarım piksel üst-üstə — kəsr enlərdə tikiş xətti görünməsin (rənglər qeyri-şəffafdır) */
+.uw-frame .uw-mid { margin-inline: -0.5px; width: calc(100% + 1px); }
+.uw-cap--e { transform: scaleX(-1); }
+.uw-fill { fill: color-mix(in srgb, var(--uw-bg) 91%, var(--accent)); }
+.uw-o, .uw-i { fill: none; stroke-linejoin: round; stroke-linecap: round; }
+.uw-o { stroke: var(--uw-line); stroke-width: 1.5; }
+.uw-i { stroke: var(--uw-line-2); stroke-width: 0.9; }
+.uw-star { fill: var(--uw-line); }
+.uw-cap .uw-o, .uw-cap .uw-i { stroke-dasharray: 1; stroke-dashoffset: 0; }
+.uw-text {
+  position: relative;
+  min-width: 0;
+  max-width: 100%;
+  padding-inline: calc(var(--uw-h) * 0.8);
+  text-align: center;
+}
+
+/* ── Bir dəfə "çəkilmə" (useReveal → data-draw-ready / data-drawn) ── */
+.uw-mid--s { transform-origin: 100% 50%; }
+.uw-mid--e { transform-origin: 0 50%; }
+html.qm-reveal-on .uw[data-draw-ready]:not([data-drawn]) .uw-mid { transform: scaleX(0); }
+html.qm-reveal-on .uw[data-draw-ready]:not([data-drawn]) :is(.uw-knot, .uw-cap .uw-fill, .uw-star) { opacity: 0; }
+html.qm-reveal-on .uw[data-draw-ready]:not([data-drawn]) .uw-cap :is(.uw-o, .uw-i) { stroke-dashoffset: 1; }
+.uw[data-drawn] .uw-knot { transition: opacity 0.5s ease; }
+.uw[data-drawn] .uw-mid { transition: transform 0.9s var(--ease-out, ease) 0.15s; }
+.uw[data-drawn] .uw-cap :is(.uw-o, .uw-i) { transition: stroke-dashoffset 1.1s var(--ease-out, ease) 0.85s; }
+.uw[data-drawn] :is(.uw-cap .uw-fill, .uw-star) { transition: opacity 0.7s ease 1.3s; }
+@media (prefers-reduced-motion: reduce) {
+  .uw .uw-mid, .uw .uw-knot, .uw .uw-cap * { transition: none !important; }
+}
+
+/* ── Oxuyucunun başlığı (QuranPage) ── */
+.uw--reader { --uw-h: clamp(58px, 8vw, 78px); margin-block: 2px; }
+/* Bir sətir; harəkələr (üstdəki işarələr) kəsilməsin deyə overflow gizlədilmir */
+.uw--reader .reader-arabic { white-space: nowrap; line-height: 1.7; padding-top: 0.14em; }
+@media (max-width: 767.98px) { .uw--reader { --uw-h: 54px; } }
+
+/* ── Mushaf vərəqindəki surə başlanğıcı (MushafSheet) ── */
+.mp-uw { --uw-h: 1.95em; --uw-bg: var(--surface-1); width: min(92%, 24em); }
+.mp-uw .uw-text { padding-inline: 1.7em; }
+.mp-uw .mp-surah-title { min-width: 0; padding: 0; border: 0; border-radius: 0; background: none; line-height: 1.6; }

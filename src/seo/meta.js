@@ -387,6 +387,20 @@ export const META = {
           d: 'تصفّح التاريخ الإسلامي على خط زمني: حياة الأنبياء الخمسة والعشرين، والهجرة، وغزوتا بدر وأحد، وفتح مكة وغيرها من الأحداث.' },
   },
 
+  // Siyər — Peyğəmbərin ﷺ həyatı (/seerah): xəritə + zaman xətti, hər hadisə mənbəyi ilə
+  seerah: {
+    az: { t: 'Siyər — Peyğəmbərin ﷺ həyatı xəritədə və zaman xəttində',
+          d: 'Peyğəmbərin ﷺ həyatı: doğum, ilk vəhy, hicrət, Bədr, Uhud, Xəndək, Hüdeybiyyə, Məkkənin fəthi, Vida həcci — Hicaz xəritəsində, Quran və səhih hədis mənbələri ilə.' },
+    en: { t: 'Seerah — the Life of the Prophet ﷺ on a Map and Timeline',
+          d: 'The life of the Prophet ﷺ: birth, first revelation, Hijrah, Badr, Uhud, the Trench, Hudaybiyyah, the conquest of Makkah and the Farewell Hajj — mapped, with Quran and sahih hadith sources.' },
+    ru: { t: 'Сира — жизнь Пророка ﷺ на карте и шкале времени',
+          d: 'Жизнь Пророка ﷺ: рождение, первое откровение, хиджра, Бадр, Ухуд, Ров, Худайбия, взятие Мекки и Прощальный хадж — на карте Хиджаза, с источниками из Корана и достоверных хадисов.' },
+    tr: { t: 'Siyer — Peygamber’in ﷺ Hayatı Harita ve Zaman Çizelgesinde',
+          d: 'Peygamber’in ﷺ hayatı: doğum, ilk vahiy, hicret, Bedir, Uhud, Hendek, Hudeybiye, Mekke’nin fethi ve Veda Haccı — Hicaz haritasında, Kur’an ve sahih hadis kaynaklarıyla.' },
+    ar: { t: 'السيرة النبوية — حياة النبي ﷺ على الخريطة والخط الزمني',
+          d: 'حياة النبي ﷺ: المولد وبدء الوحي والهجرة وبدر وأحد والخندق والحديبية وفتح مكة وحجة الوداع — على خريطة الحجاز، مع مصادرها من القرآن والحديث الصحيح.' },
+  },
+
   sahaba: {
     az: { t: 'Səhabələr — Peyğəmbərin yoldaşlarının həyatı',
           d: 'Peyğəmbərimizin səhabələrini tanı: Əbu Bəkr, Ömər, Osman, Əli və digərlərinin həyatı, İslama xidməti və ibrətli hadisələr.' },

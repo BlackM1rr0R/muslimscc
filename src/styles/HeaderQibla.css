@@ -1,0 +1,46 @@
+/* Başlıqdakı kiçik qiblə kompası (components/HeaderQibla.jsx) — yalnız <1024px */
+.hq-wrap { position: relative; display: inline-flex; }
+.hq-btn { border-radius: 50%; color: var(--brand); }
+.hq-btn .hq-svg { overflow: visible; }
+/* Ox: Navbar A-nın qızılı göstəricisi kimi qızılı uc; fırlanma yalnız transform */
+.hq-arrow { transform-box: view-box; transform-origin: 12px 12px; transition: transform 160ms linear; }
+.hq-tip { color: var(--accent); }
+.hq-btn.is-loading .hq-svg { opacity: 0.55; }
+.hq-btn.is-live { background: color-mix(in srgb, var(--accent) 12%, transparent); }
+.hq-btn.is-calib .hq-tip { color: var(--text-tertiary); }
+.hq-num {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-strong);
+  font-variant-numeric: tabular-nums;
+  direction: ltr;
+}
+/* «Kalibrləyin» — düymənin altında kiçik etiket (mətn AA: --text-strong / --surface-raised) */
+.hq-calib {
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 50%;
+  translate: -50% 0;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--surface-raised);
+  color: var(--text-strong);
+  box-shadow: 0 0 0 1px var(--line), 0 4px 12px -6px rgba(0, 0, 0, 0.25);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  pointer-events: none;
+}
+@media (min-width: 1024px) { .hq-wrap { display: none; } }
+/* Dar telefon (360px): kompas düyməsi əlavə olunanda loqo adı kəsilməsin — qonşu ikon
+   düymələri 4px daralır (toxunuş hədəfi yenə ≥ 34px) */
+@media (max-width: 419.98px) {
+  .hq-btn { width: 34px; }
+  .header-inner:has(.hq-wrap) { column-gap: 4px; }
+  .header-right:has(.hq-wrap) > .hdr-ring,
+  .header-right:has(.hq-wrap) > .hdr-help { width: 36px; min-width: 36px; }
+}
+@media (prefers-reduced-motion: reduce) { .hq-arrow { transition: none; } }
+html.a11y-reduce-motion .hq-arrow { transition: none; }
+@media (forced-colors: active) { .hq-tip { color: CanvasText; } }

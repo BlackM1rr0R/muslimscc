@@ -165,6 +165,8 @@ function ruPlural(n, one, few, many) {
 
 // "Əlaqəli bölmələr" — məzmunu təkrarlamırıq, keçid veririk
 const RELATED = [
+  { page: 'seerah', title: { az: 'Siyər — Peyğəmbərin ﷺ həyatı', en: 'Seerah — the life of the Prophet ﷺ', ru: 'Сира — жизнь Пророка ﷺ', ar: 'السيرة النبوية', tr: 'Siyer — Peygamber’in ﷺ hayatı' },
+    text: { az: 'Doğumdan vəfata qədər hadisələr xəritədə və zaman xəttində', en: 'From his birth to his passing — on a map and a timeline', ru: 'От рождения до кончины — на карте и шкале времени', ar: 'من المولد إلى الوفاة — على الخريطة والخط الزمني', tr: 'Doğumdan vefata olaylar haritada ve zaman çizelgesinde' } },
   { page: 'sahaba', title: { az: 'Səhabələr', en: 'Companions', ru: 'Сахабы', ar: 'الصحابة', tr: 'Sahabeler' },
     text: { az: 'Bu hadisələrin iştirakçıları — həyatı və fəziləti', en: 'The people of these events — their lives and virtues', ru: 'Участники этих событий — их жизнь и достоинства', ar: 'رجال هذه الأحداث — سيرهم وفضائلهم', tr: 'Bu olayların şahsiyetleri — hayatları ve faziletleri' } },
   { page: 'scholars', title: { az: 'Alimlər', en: 'Scholars', ru: 'Учёные', ar: 'العلماء', tr: 'Âlimler' },

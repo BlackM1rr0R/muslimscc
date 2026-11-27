@@ -1648,6 +1648,25 @@
 }
 .reader-header__top { position: relative; }
 
+/* Ünvan (təzhib) düzülüşü: mərkəzdə rozet-medalyon → qızılı çərçivədə ərəbcə ad → nömrə + yerli ad.
+   Kompozisiya simmetrikdir — RTL-də eyni görünür. Çərçivə: styles/Unwan.css */
+.reader-header--unwan,
+[dir="rtl"] .reader-header--unwan {
+  background:
+    radial-gradient(ellipse 55% 90% at 50% 0%, var(--accent-soft) 0%, transparent 70%),
+    var(--surface-1);
+}
+.reader-header__top.is-unwan { flex-direction: column; align-items: center; gap: 10px; text-align: center; }
+.is-unwan .rh-glyph { width: clamp(72px, 11vw, 104px); margin: 6px 0 2px; }
+.is-unwan .reader-info { flex-direction: row; align-items: center; justify-content: center; flex-wrap: wrap; gap: 8px 10px; max-width: 100%; }
+.is-unwan .reader-number { width: 40px; height: 40px; font-size: var(--step--1); }
+@media (max-width: 767.98px) {
+  .reader-header__top.is-unwan { gap: 8px; }
+  .is-unwan .rh-glyph { width: 68px; margin-top: 4px; }
+  .is-unwan .reader-number { width: 36px; height: 36px; }
+  .is-unwan .reader-english { font-size: var(--step-0); }
+}
+
 /* Ayələr ekrana girəndə yumşaq qalxır — sürüşməyə bağlı (scroll-driven, JS yoxdur,
    kompozitorda). İlk ekranın kartları öz data-reveal girişindədir. */
 @supports (animation-timeline: view()) {

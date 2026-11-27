@@ -125,6 +125,7 @@ const QuoteGeneratorPage = lazy(() => import('./pages/QuoteGeneratorPage'))
 const DuaJournalPage = lazy(() => import('./pages/DuaJournalPage'))
 const MosqueFinderPage = lazy(() => import('./pages/MosqueFinderPage'))
 const IslamicHistoryPage = lazy(() => import('./pages/IslamicHistoryPage'))
+const SeerahPage = lazy(() => import('./pages/SeerahPage'))
 const SahabePage = lazy(() => import('./pages/SahabePage'))
 const ScholarsPage = lazy(() => import('./pages/ScholarsPage'))
 const HalalCheckPage = lazy(() => import('./pages/HalalCheckPage'))
@@ -509,6 +510,7 @@ function AppInner() {
       case 'duajournal':    return <DuaJournalPage    setPage={navigate} />
       case 'mosques':       return <MosqueFinderPage  setPage={navigate} />
       case 'history':       return <IslamicHistoryPage setPage={navigate} />
+      case 'seerah':        return <SeerahPage         setPage={navigate} />
       case 'sahaba':        return <SahabePage         setPage={navigate} />
       case 'scholars':      return <ScholarsPage       setPage={navigate} />
       case 'halalcheck': return <HalalCheckPage setPage={navigate} />

@@ -20,6 +20,8 @@
 export const NEW_DAYS = 30
 
 export const WHATS_NEW = [
+  // 2026-11-27 — Siyər (/seerah): Hicaz xəritəsi + zaman xətti, hər hadisə Quran/Səhih mənbəyi ilə, uşaq rejimi
+  { id: 'seerah', date: '2026-11-27', key: 'seerah', icon: 'seerah', page: true },
   // 2026-11-24 — icma lövhələri: namaz otaqları, cənazə elanı (gizli keçid), məscid könüllüləri (server/prayerRooms.js, janaza.js, volunteers.js)
   { id: 'prayerrooms', date: '2026-11-24', key: 'prayerrooms', icon: 'prayerrooms', page: true },
   { id: 'janaza', date: '2026-11-24', key: 'janaza', icon: 'janaza', page: true },

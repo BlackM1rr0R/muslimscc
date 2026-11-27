@@ -124,6 +124,8 @@ export const NAV_GROUPS = [
         label: { az: 'Alimlər', en: 'Scholars', ru: 'Учёные', ar: 'العلماء', tr: 'Âlimler' } },
       { key: 'history', icon: '📜',
         label: { az: 'İslam tarixi', en: 'Islamic History', ru: 'История ислама', ar: 'التاريخ الإسلامي', tr: 'İslam Tarihi' } },
+      { key: 'seerah', icon: '🗺️',
+        label: { az: 'Siyər — Peyğəmbərin ﷺ həyatı', en: 'Seerah — the Prophet’s ﷺ life', ru: 'Сира — жизнь Пророка ﷺ', ar: 'السيرة النبوية', tr: 'Siyer — Peygamber’in ﷺ hayatı' } },
       { key: 'glossary', icon: '🔤',
         label: { az: 'Lüğət', en: 'Glossary', ru: 'Словарь', ar: 'المعجم', tr: 'Sözlük' } },
       { key: 'books', icon: '📗',

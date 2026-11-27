@@ -1,0 +1,45 @@
+/* ══════════════════════════════════════════════════════════
+   HİCRİ AYIN GÖRÜNÜŞÜ — html[data-hmonth] (utils/hijriMonth.js, main.jsx)
+   • sacred  — dörd haram ay (Tövbə 9:36): başlığın altında incə qızılı
+               nöqtə-naxış zolağı + başlıqda «Haram ay» nişanı (HeaderHijriBadge)
+   • ramadan — gecə mavisi + qızılı xətt (vau3.css §12, wow.css §11 data-season
+               ilə birlikdə; fənərlər RamadanLanterns-dədir — burada təkrar yoxdur)
+   • dhul10  — Zülhiccənin on günü: qum-qızılı xətt + naxış (haram ay da sayılır)
+   Yalnız bəzək: mətn rənginə toxunulmur (AA kontrast dəyişmir), layout yoxdur
+   (mütləq mövqeli psevdo-element), animasiya yoxdur.
+   ══════════════════════════════════════════════════════════ */
+html[data-hmonth] {
+  --hm-a: var(--accent);
+  --hm-b: var(--accent-deco);
+  --hm-orn: 0.55;
+}
+html[data-hmonth="ramadan"] { --hm-a: #d8a93b; --hm-b: #3b4fa8; --hm-orn: 0.7; }
+html[data-hmonth="ramadan"][data-theme="dark"] { --hm-b: #7f8fe0; }
+html[data-hmonth="dhul10"] { --hm-a: #c89b4a; --hm-b: var(--brand); --hm-orn: 0.65; }
+
+/* Başlığın alt kənarı: xətt (hamısında) + nöqtə naxışı (haram ay, on gün) */
+html[data-hmonth] .header::before {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 2px;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, var(--hm-b) 18%, var(--hm-a) 50%, var(--hm-b) 82%, transparent);
+  opacity: var(--hm-orn);
+}
+html:is([data-hmonth="sacred"], [data-hmonth="dhul10"]) .header::before {
+  height: 7px;
+  background:
+    linear-gradient(90deg, transparent, var(--hm-b) 18%, var(--hm-a) 50%, var(--hm-b) 82%, transparent) bottom / 100% 1px no-repeat,
+    radial-gradient(circle, var(--hm-a) 0 1.4px, transparent 1.9px) center 0 / 18px 5px repeat-x;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 25%, #000 75%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 25%, #000 75%, transparent);
+}
+
+/* Yüksək kontrast / məcburi rənglər: bəzək yoxdur (nişan mətnlə qalır) */
+html.a11y-high-contrast[data-hmonth] .header::before,
+html.a11y-inverted[data-hmonth] .header::before { display: none; }
+@media (forced-colors: active) {
+  html[data-hmonth] .header::before { display: none; }
+}

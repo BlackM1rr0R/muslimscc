@@ -5,6 +5,7 @@
 // ═══════════════════════════════════════════════════════
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import Icon from '../Icon'
+import UnwanFrame from './UnwanFrame'
 import { BASMALA_DISPLAY } from '../../utils/quranText'
 import {
   MUSHAF_PAGES, juzForPage, surahsOnPage, surahInfo, hizbFromRub, layoutPage, isCenteredLine, fetchMushafPage, getCachedPage,
@@ -97,7 +98,10 @@ export function MushafSheet({ page, data, error, prefs, sel, onWordClick, L, onR
           if (line.kind === 'header') {
             return (
               <div key={line.n} className="mp-line mp-line--header">
-                <span className="mp-surah-title ui-arabic">سورة {surahInfo(line.surah)?.ar}</span>
+                {/* Ünvan (təzhib) çərçivəsi — oxuyucunun başlığı ilə eyni (UnwanFrame) */}
+                <UnwanFrame className="mp-uw">
+                  <span className="mp-surah-title ui-arabic">سورة {surahInfo(line.surah)?.ar}</span>
+                </UnwanFrame>
               </div>
             )
           }

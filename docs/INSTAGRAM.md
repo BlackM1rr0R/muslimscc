@@ -122,6 +122,8 @@ IG_ENABLED=1
 # IG_CAROUSEL=1                 # həftəlik karusel (aşağıda "Böyümə"); susmaya görə sönülü
 # IG_CAROUSEL_DAY=5             # 0 bazar … 5 cümə … 6 şənbə
 # IG_CAROUSEL_TIME=11:00        # Asia/Baku
+# IG_RAMADAN=0                  # Ramazan geri sayımı story-sini söndürür (susmaya görə AÇIQ; yalnız Ramazana 90 … 1 gün qalanda işləyir)
+# IG_RAMADAN_TIME=07:00         # Ramazan story-sinin vaxtı (Asia/Baku)
 # IG_ALT_TEXT=0                 # feed / karusel şəkillərinin alt_text-ini söndürür (susmaya görə açıq)
 # IG_LOCATION_ID=<rəqəm>        # məkan teqi (feed, reel, karusel); susmaya görə yoxdur
 # IG_INSIGHTS=0                 # statistikanı söndürür (susmaya görə açıq; icazə yoxdursa özü dayanır)
@@ -350,6 +352,7 @@ testlər: `tests/unit/server-instagram-growth.test.js`. Admin → Instagram → 
 | Həftəlik karusel | sönülü | `IG_CAROUSEL=1` (+ `IG_CAROUSEL_DAY`, `IG_CAROUSEL_TIME`) |
 | Statistika (insights) | **açıq** (icazə yoxdursa özü dayanır) | `IG_INSIGHTS=0` söndürür |
 | Reel-in ilk kadrı (hook) | **açıq** | — (CI renderi) |
+| Ramazan geri sayımı story-si | **açıq** (yalnız Ramazandan əvvəlki 90 gün) | `IG_RAMADAN=0` söndürür (+ `IG_RAMADAN_TIME`) |
 
 ### Caption və heşteqlər
 
@@ -406,6 +409,24 @@ server ID-ni özü axtarmır və susmaya görə məkan **qoyulmur**. ID-ni tapma
   (`instagram_posts`, format `carousel`). 24 saatlıq limitdə karusel 1 post sayılır.
 - Yandırmazdan əvvəl baxın: `TAG=$(cat .current_tag) docker compose exec -T api node scripts/instagram.js carousel-preview --date <cümə> --dir /tmp/car`
   (kartlar + caption + alt_text-lər; dərc etmir).
+
+### Ramazan geri sayımı story-si (IG_RAMADAN, susmaya görə açıq)
+
+- Gündə **bir əlavə story** (1080×1920, `dawn` teması), susmaya görə **07:00** Asia/Baku (`IG_RAMADAN_TIME`), +90 dəq tutma.
+  Yalnız **Ramazana 90 … 1 gün qalan günlər** (saytın `/road-to-ramadan` yolu ilə eyni pəncərə); Ramazan ərzində və yol
+  açılmamış heç nə etmir, növbəti Ramazandan 90 gün əvvəl özü yenidən başlayır. Gün Bakı təqvimi ilə sayılır.
+- Kart: "Road to Ramadan" · böyük **"N days until Ramadan"** (bütöv ifadə, 1 — tək) · hicri tarix · "Expected start: …" ·
+  **"Today’s step"** — saytın yolunun bugünkü addımının başlığı və qısa izahı · Ümmül-Qura / yerli elan qeydi ·
+  `muslims.cc/<dil>/road-to-ramadan`. Kartın dili `IG_LANG`. Caption yoxdur (story); link stikeri API-də yoxdur — keçid mətn kimidir.
+- Hamısı saytın öz məlumatıdır, **dini mətn yoxdur**: `server/instagram-ramadan-data.js` (`node scripts/build-instagram-data.mjs`
+  yaradır — Ramazanın tarixləri `utils/ramadanRange` / Ümmül-Qura, addımlar `utils/ramadanPrep → roadPlan`, mətnlər
+  `components/ramadanPrep/prepText.js`, `g:<bölmə>` addımlarında Ramazan bələdçisinin başlığı). Sitat gətirən addımlarda (hədis / dua)
+  yalnız başlıq göstərilir. `prepText.js`, `ramadanPrep.js` və ya bələdçi dəyişəndə builder-i yenidən işlədin —
+  `tests/unit/server-instagram-ramadan.test.js` sinxronluğu və hər günün saytla eyni olduğunu yoxlayır.
+- Bir dəfə dərc: `instagram_posts` (gün, `ramadan`, `story`), item `ramadan:<hicri il>:<qalan gün>`; kart
+  `/api/ig/card/<tarix>-ramadan-story.jpg` (7 gün saxlanır). Admin → Instagram → "Ramadan countdown (story)": vəziyyət,
+  qalan gün, bugünkü addım, dərc vəziyyəti, superadmin üçün önizləmə.
+- Önizləmə: `TAG=$(cat .current_tag) docker compose exec -T api node scripts/instagram.js ramadan-preview --date <gün> > story.jpg`.
 
 ### Reel-in ilk kadrı
 

@@ -52,6 +52,8 @@ const P = {
   muhasabah: <><path d="M6 3.5h11a1.5 1.5 0 0 1 1.5 1.5v15a1.5 1.5 0 0 1-1.5 1.5H6A1.5 1.5 0 0 1 4.5 20V5A1.5 1.5 0 0 1 6 3.5z" /><path d="m8 9 1.5 1.5L12 8M8 14.5l1.5 1.5L12 13.5M14 9.5h2M14 15h2" /></>,
   halalcheck: <><path d="M4.5 8.5h15l-1.4 10a2 2 0 0 1-2 1.7H7.9a2 2 0 0 1-2-1.7z" /><path d="M8.5 8.5 10 4M15.5 8.5 14 4" /><path d="m9 14 2 2 4-4" /></>,
   history: <><path d="M5.5 21.5h13M5.5 2.5h13" /><path d="M7 2.5v3.6a2 2 0 0 0 .6 1.4L12 12l4.4-4.5a2 2 0 0 0 .6-1.4V2.5" /><path d="M17 21.5v-3.6a2 2 0 0 0-.6-1.4L12 12l-4.4 4.5a2 2 0 0 0-.6 1.4v3.6" /></>,
+  // Siyər: qatlanmış xəritə üzərində iki nöqtə arasında yol
+  seerah: <><path d="M3.5 6.5 9 4l6 2.5 5.5-2.5v13.5L15 20l-6-2.5-5.5 2.5z" /><path d="M9 4v13.5M15 6.5V20" /><circle cx="6.2" cy="14.6" r="1.1" /><path d="M7.2 13.6c1.8-1.6 3.4-2 5.2-1.6s3.2-.6 4-2.4" strokeDasharray="1.6 1.6" /></>,
   glossary: <><path d="m4.5 8 5.5 5.5" /><path d="m3.5 14 6-6 2-3" /><path d="M2.5 5h11M7.5 2.5h1" /><path d="m21.5 21.5-4.5-10-4.5 10M14 18h6" /></>,
   // v3.2 yeni bölmələr
   hadithbooks: <><path d="M3.5 5.5h5v15h-5z" /><path d="M8.5 7.5h5v13h-5z" /><path d="m14.6 7.9 4.4-1.2 3 12.9-4.4 1.2z" /><path d="M5.5 9h1M10.5 11h1" /></>,

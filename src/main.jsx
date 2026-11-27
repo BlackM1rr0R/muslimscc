@@ -16,6 +16,8 @@ import './styles/vau3.css'
 import './styles/perf-touch.css'
 // Dizayn v6: src/motion komponentlərinin stilləri (.mo-*, DESIGN.md §7.3)
 import './styles/motion-kit.css'
+// Hicri ayın bəzəyi (html[data-hmonth]): haram aylar, Ramazan, Zülhiccənin on günü
+import './styles/HijriMonth.css'
 import { initReveal } from './hooks/useReveal'
 import { initErrorReporting } from './utils/errorReport'
 import { initWow } from './utils/wow'
@@ -28,6 +30,7 @@ import { applyUiDict } from './i18n/load'
 import { installDateLocale } from './utils/uiText'
 import { parsePath, uiLang } from './seo/routes'
 import { currentAsrFactor } from './utils/madhab'
+import { applyHijriMonth } from './utils/hijriMonth'
 
 // Fokus halqası yalnız klaviatura ilə (toxunuşdan sonra narıncı halqa yox)
 // və [data-reveal] elementləri üçün tək qlobal IntersectionObserver
@@ -55,6 +58,9 @@ whenIdle({ delay: 600 }).then(() => import('./utils/livingSky').then(m => m.init
   applyA11yPrefs(a11y)
   saveA11yPrefs(a11y)
 }
+// Hicri ay (haram ay / Ramazan / Zülhiccənin on günü) — <html data-hmonth>, yalnız CSS dəyişənləri.
+// Prerender tarixi bilmir; atribut ilk render-dən əvvəl qoyulur (layout dəyişmir)
+try { applyHijriMonth() } catch { /* bəzəkdir */ }
 
 // ── Service Worker qeydiyyatı (PWA) ──
 if ('serviceWorker' in navigator) {

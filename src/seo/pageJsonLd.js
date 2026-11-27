@@ -10,8 +10,12 @@
 import { SITE, pathFor } from './routes.js'
 import { brandName } from '../config/brand.js'
 
-/** { key, lang, title, desc, canonical, noindex } → JSON-LD obyekti və ya null. */
-export function pageJsonLd({ key, lang, title, desc, canonical, noindex = false }) {
+/**
+ * { key, lang, title, desc, canonical, noindex, mainEntity } → JSON-LD obyekti və ya null.
+ * mainEntity — səhifənin əsas siyahısı (məs. /seerah → hadisələrin ItemList-i); yalnız prerender
+ * verir (məlumat SPA chunk-ına düşməsin) — Google prerender olunmuş HTML-i oxuyur.
+ */
+export function pageJsonLd({ key, lang, title, desc, canonical, noindex = false, mainEntity = null }) {
   if (noindex) return null
   const brand = brandName(lang)
   return {
@@ -23,6 +27,7 @@ export function pageJsonLd({ key, lang, title, desc, canonical, noindex = false 
     inLanguage: lang,
     // @id siteSchema()-dakı WebSite ilə eynidir — Google onları birləşdirir
     isPartOf: { '@type': 'WebSite', '@id': SITE + '/#website', name: brand, url: SITE + '/' },
+    ...(mainEntity ? { mainEntity } : {}),
     ...(key === 'home' ? {} : {
       breadcrumb: {
         '@type': 'BreadcrumbList',

@@ -22,7 +22,7 @@ const GROUPS = [
   ['Hadith', ['hadith', 'nawawi40', 'hadithbooks', 'hadeethenc']],
   ['Dua and dhikr', ['duas', 'hisn', 'dhikr', 'names', 'duajournal']],
   ['Calendar, fasting and Hajj', ['calendar', 'hijri', 'ramadan', 'ramadanprep', 'lastten', 'hajjguide', 'holyplaces']],
-  ['Learning', ['learn', 'newmuslim', 'arabic', 'glossary', 'fatwa', 'history', 'sahaba', 'scholars', 'kids', 'quiz', 'books', 'videos']],
+  ['Learning', ['learn', 'newmuslim', 'arabic', 'glossary', 'fatwa', 'history', 'seerah', 'sahaba', 'scholars', 'kids', 'quiz', 'books', 'videos']],
   ['Life guides and daily routines', ['bedtime', 'waking', 'newborn', 'nikahprep', 'sickvisit', 'bereavement', 'travelkit']],
   ['Calculators and tools', ['zakat', 'units', 'inheritance', 'halalcheck', 'charity', 'babynames', 'namecalligraphy', 'quotes', 'dailytracker', 'muhasabah']],
 ]

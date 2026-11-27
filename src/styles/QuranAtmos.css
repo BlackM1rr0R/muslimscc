@@ -1,0 +1,223 @@
+/* ═══════════════════════════════════════════════════════
+   Surə atmosferi (components/quran/SurahAtmosphere.jsx) — lazy chunk
+   Oxuyucunun arxasında, səhifə fonunun (--surface-0) üstündə çox zəif səhnə.
+   • Bütün mətn qeyri-şəffaf kartlardadır (--surface-1, başlıq kartı da) — səhnə mətnin altına
+     düşmür, kontrast dəyişmir. (Yarımşəffaf başlıq sınandı: ulduz nöqtələri tünd rejimdə
+     --text-tertiary kontrastını 5.0 → 4.3-ə salırdı — ona görə imtina edildi.)
+   • Sonsuz animasiyalar YALNIZ transform/opacity (scripts/check-motion.mjs); hər qat HTML/<svg> kökü.
+   • [data-paused] — vərəq gizli / oxuyucu ekranda deyil; hərəkət azaldılıb — animasiya yoxdur,
+     əsas (statik) vəziyyət səhnənin son şəklidir.
+   ═══════════════════════════════════════════════════════ */
+
+.qa-atmos {
+  --qa-o: 0.75;
+  --qa-sky-top: transparent;
+  --qa-sky-bot: transparent;
+  --qa-glow: 216, 180, 106;     /* rgb — isti qızılı */
+  --qa-star: #6b7a99;
+  --qa-line: rgba(107, 122, 153, 0.35);
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  contain: strict;
+  opacity: var(--qa-o);
+}
+[data-theme="dark"] .qa-atmos { --qa-o: 0.85; --qa-star: #e8e2cf; --qa-line: rgba(232, 226, 207, 0.22); }
+
+.qa-atmos > * { position: absolute; }
+.qa-sky { inset: 0; background: linear-gradient(180deg, var(--qa-sky-top) 0%, var(--qa-sky-bot) 62%, transparent 100%); }
+
+/* ── Ulduzlar ── */
+.qa-stars, .qa-const { inset: 0; width: 100%; height: 100%; }
+.qa-stars circle { fill: var(--qa-star); }
+.qa-stars--0 { opacity: 0.9; }
+.qa-stars--1 { opacity: 0.55; }
+.qa-stars--2 { opacity: 0.75; }
+.qa-dim { opacity: 0.4; }
+/* Dan yeri: ulduzların SON (statik) halı — demək olar sönüb; animasiya 1-dən bura enir */
+.qa-fadeout { opacity: 0.12; }
+.qa-const polyline { fill: none; stroke: var(--qa-line); stroke-width: 0.18; stroke-linejoin: round; }
+.qa-const circle { fill: var(--qa-star); }
+
+/* ── İşıq ləkələri (radial) ── */
+.qa-glow { pointer-events: none; }
+.qa-glow--horizon {
+  inset: auto -20% -12% -20%; height: 70%;
+  background: radial-gradient(ellipse 50% 60% at 50% 100%, rgba(var(--qa-glow), 0.55) 0%, rgba(var(--qa-glow), 0.18) 45%, transparent 75%);
+}
+.qa-glow--low {
+  inset: auto -10% -20% -10%; height: 45%;
+  background: radial-gradient(ellipse 50% 60% at 50% 100%, rgba(var(--qa-glow), 0.18), transparent 70%);
+}
+.qa-horizon {
+  left: 0; right: 0; bottom: 18%; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(var(--qa-glow), 0.3) 30%, rgba(var(--qa-glow), 0.3) 70%, transparent);
+}
+.qa-split {
+  left: 10%; right: 10%; bottom: 22%; height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(var(--qa-glow), 0.85) 35%, rgba(255, 246, 220, 0.95) 50%, rgba(var(--qa-glow), 0.85) 65%, transparent);
+}
+.qa-glow--moon {
+  top: 8%; inset-inline-end: -14%; width: min(70vw, 560px); aspect-ratio: 1;
+  background: radial-gradient(circle at 50% 50%, rgba(var(--qa-glow), 0.32), rgba(var(--qa-glow), 0.08) 45%, transparent 70%);
+}
+.qa-moon { top: 26%; inset-inline-end: 5%; width: clamp(64px, 10vw, 120px); height: auto; aspect-ratio: 1; fill: rgba(var(--qa-glow), 0.9); }
+.qa-glow--sun {
+  top: -18%; inset-inline-end: -12%; width: min(90vw, 720px); aspect-ratio: 1;
+  background: radial-gradient(circle at 50% 50%, rgba(var(--qa-glow), 0.55) 0%, rgba(var(--qa-glow), 0.2) 30%, transparent 66%);
+}
+.qa-rays {
+  top: -18%; inset-inline-end: -12%; width: min(90vw, 720px); aspect-ratio: 1;
+  background: repeating-conic-gradient(from 0deg, rgba(var(--qa-glow), 0) 0deg 9deg, rgba(var(--qa-glow), 0.22) 10deg 12deg, rgba(var(--qa-glow), 0) 13deg 22deg);
+  -webkit-mask-image: radial-gradient(circle, #000 0%, rgba(0, 0, 0, 0.6) 30%, transparent 68%);
+  mask-image: radial-gradient(circle, #000 0%, rgba(0, 0, 0, 0.6) 30%, transparent 68%);
+  border-radius: 50%;
+}
+/* əd-Duha: səhər — günəş alçaqda, başlanğıc tərəfdə */
+.qa-atmos--duha .qa-glow--sun, .qa-atmos--duha .qa-rays { top: 2%; inset-inline: -22% auto; }
+.qa-glow--nur {
+  top: -30%; left: 50%; width: min(130vw, 1100px); aspect-ratio: 1; translate: -50% 0;
+  background: radial-gradient(circle, rgba(var(--qa-glow), 0.42) 0%, rgba(var(--qa-glow), 0.14) 35%, transparent 65%);
+}
+.qa-beams {
+  top: 0; left: 50%; width: min(140vw, 1200px); height: 85%; translate: -50% 0;
+  background: repeating-conic-gradient(from 160deg at 50% 0%, rgba(var(--qa-glow), 0) 0deg 4deg, rgba(var(--qa-glow), 0.12) 5deg 6deg, rgba(var(--qa-glow), 0) 7deg 10deg);
+  -webkit-mask-image: radial-gradient(ellipse 50% 100% at 50% 0%, #000, transparent 85%);
+  mask-image: radial-gradient(ellipse 50% 100% at 50% 0%, #000, transparent 85%);
+}
+
+/* ── ət-Tariq: tək parlaq ulduz ── */
+.qa-pierce { top: 12%; inset-inline-end: 18%; width: clamp(90px, 14vw, 170px); aspect-ratio: 1; }
+.qa-pierce svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.qa-pierce__rays { fill: rgba(var(--qa-glow), 0.75); }
+.qa-pierce__core { fill: #fffaf0; }
+[data-theme="dark"] .qa-pierce__core { fill: #fffdf6; }
+
+/* ── ər-Rəd: uzaq yağış + zəif şimşək işığı ── */
+.qa-rain {
+  left: 0; right: 0; top: -160px; height: calc(100% + 160px);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='160'%3E%3Cg stroke='%236b7a99' stroke-width='1' stroke-linecap='round' opacity='.55'%3E%3Cpath d='M12 6l-2 18M47 40l-2 18M86 14l-2 18M30 92l-2 18M70 104l-2 18M104 70l-2 18M58 138l-2 16M8 124l-2 16'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 120px 160px;
+}
+.qa-rain--far { opacity: 0.45; background-size: 90px 120px; top: -120px; height: calc(100% + 120px); }
+.qa-rain--near { opacity: 0.6; }
+[data-theme="dark"] .qa-rain { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='160'%3E%3Cg stroke='%23c8d2e6' stroke-width='1' stroke-linecap='round' opacity='.45'%3E%3Cpath d='M12 6l-2 18M47 40l-2 18M86 14l-2 18M30 92l-2 18M70 104l-2 18M104 70l-2 18M58 138l-2 16M8 124l-2 16'/%3E%3C/g%3E%3C/svg%3E"); }
+.qa-flash {
+  top: -10%; left: 10%; width: 80%; height: 60%;
+  background: radial-gradient(ellipse 50% 50% at 50% 30%, rgba(214, 222, 255, 0.55), transparent 70%);
+  opacity: 0;
+}
+
+/* ── əl-Kəhf: mağaranın ağzından isti işıq ── */
+.qa-glow--cave {
+  left: 50%; bottom: -14%; width: min(110vw, 900px); aspect-ratio: 1.6; translate: -50% 0;
+  background: radial-gradient(ellipse 34% 42% at 50% 72%, rgba(var(--qa-glow), 0.75) 0%, rgba(var(--qa-glow), 0.28) 45%, transparent 75%);
+}
+.qa-cave { left: 0; right: 0; bottom: 0; width: 100%; height: 42%; }
+.qa-cave__rock { fill: rgba(86, 72, 58, 0.22); }
+[data-theme="dark"] .qa-cave__rock { fill: rgba(6, 9, 12, 0.75); }
+
+/* ── ət-Tur: dağ siluyeti ── */
+.qa-mount { left: 0; right: 0; bottom: 0; width: 100%; height: 38%; }
+.qa-mount__far { fill: rgba(107, 122, 153, 0.14); }
+.qa-mount__near { fill: rgba(86, 98, 120, 0.2); }
+[data-theme="dark"] .qa-mount__far { fill: rgba(150, 170, 190, 0.08); }
+[data-theme="dark"] .qa-mount__near { fill: rgba(4, 7, 10, 0.6); }
+.qa-haze {
+  left: -20%; right: -20%; bottom: 20%; height: 22%;
+  background: radial-gradient(ellipse 40% 50% at 40% 50%, rgba(255, 255, 255, 0.35), transparent 70%);
+}
+[data-theme="dark"] .qa-haze { background: radial-gradient(ellipse 40% 50% at 40% 50%, rgba(150, 170, 190, 0.08), transparent 70%); }
+
+/* ── əz-Zariyat: külək xətləri ── */
+.qa-wind { left: -10%; width: 70%; height: 3vh; min-height: 14px; overflow: visible; }
+.qa-wind path { fill: none; stroke: var(--qa-line); stroke-width: 1.2; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+.qa-wind--0 { top: 16%; }
+.qa-wind--1 { top: 31%; left: 30%; width: 55%; }
+.qa-wind--2 { top: 48%; left: 5%; }
+.qa-wind--3 { top: 64%; left: 40%; width: 50%; }
+.qa-wind--4 { top: 80%; left: 12%; width: 60%; }
+
+/* ── əd-Duxan: zəif duman ── */
+.qa-mist { width: 90vmax; height: 50vmax; border-radius: 50%; background: radial-gradient(ellipse at center, rgba(130, 138, 150, 0.22), transparent 65%); }
+[data-theme="dark"] .qa-mist { background: radial-gradient(ellipse at center, rgba(170, 178, 190, 0.1), transparent 65%); }
+.qa-mist--0 { top: 8%; left: -30%; }
+.qa-mist--1 { top: 40%; right: -35%; }
+.qa-mist--2 { bottom: -20%; left: 5%; }
+
+/* ── Səhnə rəngləri (açıq / tünd) ── */
+.qa-atmos--dawn, .qa-atmos--daybreak { --qa-sky-top: rgba(122, 138, 178, 0.16); --qa-sky-bot: rgba(240, 190, 160, 0.14); --qa-glow: 236, 156, 104; }
+[data-theme="dark"] .qa-atmos--dawn, [data-theme="dark"] .qa-atmos--daybreak { --qa-sky-top: rgba(14, 22, 48, 0.7); --qa-sky-bot: rgba(70, 40, 60, 0.35); --qa-glow: 232, 140, 92; }
+.qa-atmos--night, .qa-atmos--stars, .qa-atmos--piercing, .qa-atmos--moon { --qa-sky-top: rgba(70, 86, 130, 0.14); --qa-sky-bot: rgba(70, 86, 130, 0.04); }
+[data-theme="dark"] :is(.qa-atmos--night, .qa-atmos--stars, .qa-atmos--piercing, .qa-atmos--moon) { --qa-sky-top: rgba(8, 14, 36, 0.85); --qa-sky-bot: rgba(16, 24, 52, 0.35); --qa-glow: 200, 190, 160; }
+.qa-atmos--night { --qa-glow: 120, 140, 200; }
+[data-theme="dark"] .qa-atmos--night { --qa-glow: 90, 110, 170; }
+.qa-atmos--moon { --qa-glow: 190, 170, 120; }
+[data-theme="dark"] .qa-atmos--moon { --qa-glow: 240, 228, 190; }
+.qa-atmos--piercing { --qa-glow: 150, 160, 210; }
+[data-theme="dark"] .qa-atmos--piercing { --qa-glow: 200, 214, 255; }
+.qa-atmos--sun, .qa-atmos--duha { --qa-sky-top: rgba(250, 220, 150, 0.16); --qa-sky-bot: rgba(250, 230, 180, 0.06); --qa-glow: 232, 178, 82; }
+[data-theme="dark"] :is(.qa-atmos--sun, .qa-atmos--duha) { --qa-sky-top: rgba(70, 52, 20, 0.35); --qa-sky-bot: rgba(40, 30, 14, 0.12); --qa-glow: 230, 180, 90; --qa-o: 0.7; }
+.qa-atmos--rain { --qa-sky-top: rgba(96, 108, 128, 0.16); --qa-sky-bot: rgba(96, 108, 128, 0.04); }
+[data-theme="dark"] .qa-atmos--rain { --qa-sky-top: rgba(20, 28, 40, 0.8); --qa-sky-bot: rgba(20, 28, 40, 0.2); }
+.qa-atmos--cave { --qa-sky-top: transparent; --qa-sky-bot: rgba(120, 100, 80, 0.06); --qa-glow: 236, 170, 92; }
+[data-theme="dark"] .qa-atmos--cave { --qa-sky-bot: rgba(30, 22, 14, 0.4); }
+.qa-atmos--mountain { --qa-sky-top: rgba(150, 170, 200, 0.14); --qa-sky-bot: rgba(230, 210, 180, 0.08); }
+[data-theme="dark"] .qa-atmos--mountain { --qa-sky-top: rgba(12, 20, 34, 0.75); --qa-sky-bot: rgba(30, 36, 52, 0.3); }
+.qa-atmos--wind { --qa-sky-top: rgba(150, 175, 205, 0.12); --qa-sky-bot: transparent; --qa-line: rgba(96, 120, 150, 0.4); }
+[data-theme="dark"] .qa-atmos--wind { --qa-sky-top: rgba(16, 26, 40, 0.6); --qa-line: rgba(200, 214, 230, 0.2); }
+.qa-atmos--light { --qa-sky-top: rgba(250, 236, 196, 0.16); --qa-sky-bot: transparent; --qa-glow: 236, 196, 110; }
+[data-theme="dark"] .qa-atmos--light { --qa-sky-top: rgba(60, 50, 26, 0.3); --qa-glow: 236, 206, 140; --qa-o: 0.7; }
+.qa-atmos--mist { --qa-sky-top: rgba(150, 156, 166, 0.1); --qa-sky-bot: rgba(150, 156, 166, 0.06); }
+[data-theme="dark"] .qa-atmos--mist { --qa-sky-top: rgba(26, 30, 36, 0.6); --qa-sky-bot: rgba(26, 30, 36, 0.2); }
+
+/* ── Hərəkət (yalnız hərəkət azaldılmayıbsa) ── */
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .qa-atmos { animation: qa-in 1.6s ease-out both; }
+  html:not(.a11y-reduce-motion) .qa-stars--0 { animation: qa-twinkle 7s ease-in-out infinite alternate; }
+  html:not(.a11y-reduce-motion) .qa-stars--1 { animation: qa-twinkle 11s ease-in-out -4s infinite alternate; }
+  html:not(.a11y-reduce-motion) .qa-stars--2 { animation: qa-twinkle 15s ease-in-out -9s infinite alternate; }
+  /* Dan yeri: üfüq 45 s ərzində bir dəfə aydınlaşır, ulduzlar solur */
+  html:not(.a11y-reduce-motion) .qa-rise { animation: qa-rise 45s cubic-bezier(.3, 0, .2, 1) both; }
+  html:not(.a11y-reduce-motion) .qa-fadeout { animation: qa-fadeout 45s ease-in both; }
+  html:not(.a11y-reduce-motion) .qa-split { animation: qa-split 30s cubic-bezier(.3, 0, .2, 1) both; }
+  html:not(.a11y-reduce-motion) .qa-glow--moon,
+  html:not(.a11y-reduce-motion) .qa-glow--cave,
+  html:not(.a11y-reduce-motion) .qa-glow--nur { animation: qa-breathe 12s ease-in-out infinite alternate; }
+  html:not(.a11y-reduce-motion) .qa-glow--sun { animation: qa-breathe 16s ease-in-out infinite alternate; }
+  html:not(.a11y-reduce-motion) .qa-rays { animation: qa-spin 240s linear infinite; }
+  html:not(.a11y-reduce-motion) .qa-pierce { animation: qa-pulse 5s ease-in-out infinite alternate; }
+  html:not(.a11y-reduce-motion) .qa-rain--near { animation: qa-fall 2.4s linear infinite; }
+  html:not(.a11y-reduce-motion) .qa-rain--far { animation: qa-fall-far 3.6s linear infinite; }
+  html:not(.a11y-reduce-motion) .qa-flash { animation: qa-flash 14s ease-out 3s infinite; }
+  html:not(.a11y-reduce-motion) .qa-haze { animation: qa-drift 40s ease-in-out infinite alternate; }
+  html:not(.a11y-reduce-motion) .qa-wind { animation: qa-wind 22s ease-in-out infinite; }
+  html:not(.a11y-reduce-motion) .qa-wind--1 { animation-duration: 28s; animation-delay: -9s; }
+  html:not(.a11y-reduce-motion) .qa-wind--2 { animation-duration: 25s; animation-delay: -15s; }
+  html:not(.a11y-reduce-motion) .qa-wind--3 { animation-duration: 31s; animation-delay: -4s; }
+  html:not(.a11y-reduce-motion) .qa-wind--4 { animation-duration: 26s; animation-delay: -19s; }
+  html:not(.a11y-reduce-motion) .qa-mist--0 { animation: qa-drift 48s ease-in-out infinite alternate; }
+  html:not(.a11y-reduce-motion) .qa-mist--1 { animation: qa-drift 60s ease-in-out -20s infinite alternate-reverse; }
+  html:not(.a11y-reduce-motion) .qa-mist--2 { animation: qa-drift 54s ease-in-out -35s infinite alternate; }
+}
+/* Fasilə: vərəq gizli və ya oxuyucu ekranda deyil */
+.qa-atmos[data-paused], .qa-atmos[data-paused] * { animation-play-state: paused !important; }
+
+@keyframes qa-in { from { opacity: 0; } to { opacity: var(--qa-o); } }
+@keyframes qa-twinkle { from { opacity: 0.25; } to { opacity: 0.95; } }
+@keyframes qa-rise { from { opacity: 0.25; transform: translate3d(0, 10%, 0); } to { opacity: 1; transform: none; } }
+@keyframes qa-fadeout { from { opacity: 1; } to { opacity: 0.12; } }
+@keyframes qa-split { from { opacity: 0.2; transform: scaleX(0.12); } to { opacity: 1; transform: none; } }
+@keyframes qa-breathe { from { opacity: 0.7; transform: scale(0.96); } to { opacity: 1; transform: scale(1.03); } }
+@keyframes qa-spin { to { transform: rotate(360deg); } }
+@keyframes qa-pulse { from { opacity: 0.75; transform: scale(0.92); } to { opacity: 1; transform: scale(1.04); } }
+@keyframes qa-fall { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(0, 160px, 0); } }
+@keyframes qa-fall-far { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(0, 120px, 0); } }
+/* Şimşək işığı: 14 s-də bir, iki zəif parıltı (saniyədə 3-dən az — WCAG 2.3.1) */
+@keyframes qa-flash { 0%, 88% { opacity: 0; } 89.5% { opacity: 0.7; } 91% { opacity: 0.15; } 93% { opacity: 0.45; } 97%, 100% { opacity: 0; } }
+@keyframes qa-drift { from { transform: translate3d(-6%, 0, 0); } to { transform: translate3d(6%, 0, 0); } }
+@keyframes qa-wind { 0% { opacity: 0; transform: translate3d(-25%, 0, 0); } 30%, 70% { opacity: 1; } 100% { opacity: 0; transform: translate3d(35%, 0, 0); } }
+
+@media print { .qa-atmos { display: none !important; } }

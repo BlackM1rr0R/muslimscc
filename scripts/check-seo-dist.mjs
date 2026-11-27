@@ -39,6 +39,7 @@ const REQUIRED = {
   Organization: ['name', 'url', 'logo'],
   WebApplication: ['name', 'url', 'applicationCategory'],
   BreadcrumbList: ['itemListElement'],
+  ItemList: ['itemListElement'],
   ListItem: ['position', 'name', 'item'],
   Chapter: ['name', 'position'],
   Book: ['name'],

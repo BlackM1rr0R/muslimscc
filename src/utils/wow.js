@@ -502,14 +502,10 @@ function initSeason() {
   const root = html()
   let forced = ''
   try { forced = new URLSearchParams(window.location.search).get('season') || '' } catch { /* */ }
-  if (SEASONS.includes(forced)) { root.setAttribute('data-season', forced); return }
-  // Hicri köməkçi əsas paketə düşməsin — boş vaxtda yüklənir
-  const run = () => import('./hijri').then(({ gregorianToHijri, fromLocalDate }) => {
-    const s = seasonOf(gregorianToHijri(fromLocalDate(new Date())))
-    if (s) root.setAttribute('data-season', s)
-  }).catch(() => { /* mövsüm sadəcə bəzəkdir */ })
-  if ('requestIdleCallback' in window) window.requestIdleCallback(run, { timeout: 3000 })
-  else setTimeout(run, 1200)
+  if (SEASONS.includes(forced)) root.setAttribute('data-season', forced)
+  // Hicri tarixdən mövsüm artıq burada hesablanmır: main.jsx ilk render-dən əvvəl
+  // utils/hijriMonth.js → applyHijriMonth() ilə data-hmonth və data-season-u birlikdə qoyur
+  // (tək hicri hesab; fənərlər və vurğu ilk kadrdan görünür)
 }
 
 /* ── 7. Oxu irəliləyişi ── */

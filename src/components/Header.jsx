@@ -64,16 +64,21 @@ const PageHelp = lazy(() => import("./PageHelp").catch(() => NONE));
 // Növbəti namaz halqası — React.lazy/Suspense YOX: tənbəl komponent keçid (startTransition)
 // gedərkən həll olunanda sonsuz siyahının "yuxarı qalx" sürüşməsini pozurdu (hadith e2e,
 // yüklü CPU-da). Boş vaxtda adi import + state ilə qoşulur.
-function useIdleComponent(load) {
+function useIdleComponent(load, enabled = true) {
   const [C, setC] = useState(null);
   useEffect(() => {
+    if (!enabled) return undefined;
     let alive = true;
     lazyWhenIdle(load)().then(m => { if (alive && m?.default) setC(() => m.default); }).catch(() => {});
     return () => { alive = false; };
-  }, [load]);
+  }, [load, enabled]);
   return C;
 }
 const loadRing = () => import("./HeaderPrayerRing");
+// Hicri ay nişanı ("Haram ay") — yalnız html[data-hmonth] haram ay olanda (utils/hijriMonth.js)
+const loadHijriBadge = () => import("./HeaderHijriBadge");
+// Kiçik qiblə kompası — yalnız <1024px (HeaderQibla.jsx; kompas məntiqi ilk toxunuşda)
+const loadQibla = () => import("./HeaderQibla");
 
 // SideNav.jsx bu hadisəni göndərir ("Saytda axtar" sahəsi)
 const OPEN_SEARCH_EVENT = "qm-open-search";
@@ -243,6 +248,17 @@ function Header({ currentPage, setPage }) {
   const [searchOpen,    setSearchOpen]    = useState(false);
   const [helpOpen,      setHelpOpen]      = useState(false);
   const PrayerRing = useIdleComponent(loadRing);
+  // Mount-dan sonra: prerender tarixi və ekran enini bilmir (ilk render hər yerdə eynidir)
+  const [env, setEnv] = useState({ hmonth: "", narrow: false });
+  useEffect(() => {
+    setEnv({
+      hmonth: document.documentElement.getAttribute("data-hmonth") || "",
+      narrow: !window.matchMedia?.(DESKTOP_MQ).matches,
+    });
+  }, []);
+  const sacred = env.hmonth === "sacred" || env.hmonth === "dhul10";
+  const HijriBadge = useIdleComponent(loadHijriBadge, sacred);
+  const MiniQibla = useIdleComponent(loadQibla, env.narrow);
   const closeHelp = useCallback(() => setHelpOpen(false), []);
   // "?" (Shift+/) — köməkçini aç (yazı sahəsində deyilsə)
   useEffect(() => {
@@ -516,6 +532,8 @@ function Header({ currentPage, setPage }) {
             {currentPage !== "prayer" && (
               PrayerRing && <PrayerRing onOpen={() => goTo("prayer")} />
             )}
+            {HijriBadge && sacred && <HijriBadge state={env.hmonth} />}
+            {MiniQibla && currentPage !== "qibla" && <MiniQibla onOpenPage={() => goTo("qibla")} />}
             {/* Bu səhifə necə işləyir? — hər səhifədə (PageHelp.jsx) */}
             {currentPage && currentPage !== "home" && (
               <button

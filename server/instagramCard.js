@@ -347,6 +347,80 @@ async function renderTextCard(content, { theme = 'day', lang = 'az' } = {}) {
     .jpeg({ quality: 90, chromaSubsampling: '4:4:4' }).toBuffer()
 }
 
+/**
+ * Ramazan geri sayımı story-si (server/instagram.js → ramadanTick, məzmun server/instagramRamadan.storyContent):
+ * story 1080×1920 JPEG | null (sığmır). Susmaya görə 'dawn' teması. Dini mətn YOXDUR — saytın /road-to-ramadan yazıları:
+ *   eyebrow (Road to Ramadan) · headline — böyük "N days until Ramadan" · hicri tarix · gözlənilən başlanğıc ·
+ *   ayırıcı · "Today’s step" · addımın başlığı · mətni · hesab qeydi (Ümmül-Qura, yerli elan) · keçid (muslims.cc/en/road-to-ramadan).
+ */
+async function renderRamadanCard(content, { theme = 'dawn', lang = 'en' } = {}) {
+  const { w: W, h: H } = SIZES.story
+  const fr = FRAME.story
+  const t = THEMES[theme] || THEMES.dawn
+  const width = W - 2 * fr.padX
+  const isAr = lang === 'ar'
+  const ui = isAr ? 'ar' : 'ui', uiSemi = isAr ? 'arBold' : 'uiSemi'
+  const c = content || {}
+  const headline = clean(c.headline), stepTitle = clean(c.stepTitle)
+  if (!headline || headline.length > 80 || !stepTitle || stepTitle.length > 160) return null
+  const stepText = clean(c.stepText), note = clean(c.note), hijriText = clean(c.hijri), starts = clean(c.startsOn)
+  if (stepText.length > 400 || note.length > 300) return null
+  const upper = (s) => (isAr ? s : s.toLocaleUpperCase(lang === 'tr' || lang === 'az' ? 'tr' : lang))
+  const eyebrow = clean(c.eyebrow)
+  const top = eyebrow ? await textLayer({ text: upper(eyebrow), font: uiSemi, size: isAr ? 38 : 28, color: t.goldText, width, letter: isAr ? 0 : 4 }) : null
+  const link = await textLayer({ text: clean(c.link) || 'muslims.cc', font: 'uiSemi', size: 34, color: t.goldText, width, letter: 1 })
+
+  const titleY = fr.top + 44 + 40 + 30
+  const markY = H - fr.bottom - link.h
+  const footY = markY - 26
+  const areaTop = titleY + (top ? top.h : 0) + 56
+  const SEP = 110
+  let pick = null
+  for (const s of SCALES) {
+    const hs = Math.round(112 * s)
+    if (hs < 64) break
+    const head = await textLayer({ text: headline, font: uiSemi, size: hs, color: t.ar, width, spacing: hs * 0.08 })
+    const sub = [hijriText, starts].filter(Boolean)
+    const meta = sub.length ? await textLayer({ text: sub.join('\n'), font: ui, size: Math.max(Math.round(36 * s), 28), color: t.soft, width, spacing: 14 }) : null
+    const label = await textLayer({ text: upper(clean(c.stepLabel)), font: uiSemi, size: isAr ? 34 : 26, color: t.goldText, width, letter: isAr ? 0 : 4 })
+    const ts = Math.max(Math.round(58 * s), 38)
+    const title = await textLayer({ text: stepTitle, font: uiSemi, size: ts, color: t.ar, width, spacing: ts * 0.12 })
+    const bs = Math.max(Math.round(40 * s), 30)
+    const body = stepText ? await textLayer({ text: stepText, font: ui, size: bs, color: t.text, width, spacing: bs * 0.32 }) : null
+    const ns = Math.max(Math.round(26 * s), 22)
+    const foot = note ? await textLayer({ text: note, font: ui, size: ns, color: t.soft, width: width - 40, spacing: ns * 0.3 }) : null
+    const noteY = foot ? footY - 40 - foot.h : footY
+    const avail = noteY - 48 - areaTop
+    const parts = [
+      { layer: head, gap: meta ? 46 : 0 },
+      ...(meta ? [{ layer: meta, gap: 0 }] : []),
+      { layer: label, gap: 26, sepBefore: true },
+      { layer: title, gap: body ? 30 : 0 },
+      ...(body ? [{ layer: body, gap: 0 }] : []),
+    ]
+    const total = parts.reduce((n, p) => n + p.layer.h + p.gap + (p.sepBefore ? SEP : 0), 0)
+    const fits = [head, meta, label, title, body].every((l) => !l || l.w <= width + 2) && (!foot || foot.w <= width + 2)
+    if (total <= avail && fits) { pick = { parts, total, foot, noteY, avail }; break }
+  }
+  if (!pick) return null
+  const center = (layer, y) => ({ input: layer.data, top: Math.round(y), left: Math.round((W - layer.w) / 2) })
+  const comps = []
+  if (top) comps.push(center(top, titleY))
+  let y = areaTop + Math.max(0, Math.floor((pick.avail - pick.total) / 2))
+  let sepY = null
+  for (const p of pick.parts) {
+    if (p.sepBefore) { sepY = Math.round(y + SEP / 2); y += SEP }
+    comps.push(center(p.layer, y))
+    y += p.layer.h + p.gap
+  }
+  if (pick.foot) comps.push(center(pick.foot, pick.noteY))
+  comps.push(center(link, markY))
+  const sharp = loadSharp()
+  const bg = await sharp(background('story', theme, { sepY, footY })).png().toBuffer()
+  return sharp(bg).composite(comps).flatten({ background: t.bg2 }).toColourspace('srgb')
+    .jpeg({ quality: 90, chromaSubsampling: '4:4:4' }).toBuffer()
+}
+
 /** Kartın ölçüsü (testlər, CLI). */
 const sizeOf = (format) => SIZES[format] || SIZES.feed
 
@@ -374,7 +448,7 @@ async function fontSelfTest() {
 }
 
 module.exports = {
-  renderCard, renderTextCard, sizeOf, SIZES, THEMES, THEME_NAMES, luminance, contrast, HAS_ARABIC, loadSharp, arabicIssues, contentIssues, displayArabic, arabicFontFor, fontSelfTest,
+  renderCard, renderTextCard, renderRamadanCard, sizeOf, SIZES, THEMES, THEME_NAMES, luminance, contrast, HAS_ARABIC, loadSharp, arabicIssues, contentIssues, displayArabic, arabicFontFor, fontSelfTest,
   fontCoverage, FONT, _textLayer: textLayer, _esc: esc, _clean: clean,
   // Reel renderi (scripts/ig-reel/render.mjs) kartla eyni fonu / ornamenti işlədir
   _background: background, _khatam: khatam,

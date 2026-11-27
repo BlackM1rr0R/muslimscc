@@ -16,6 +16,8 @@
 //           adı ayrı üzə düşürmü). --render — hər elementin kartı da çəkilir (yavaş). Bazaya toxunmur.
 //     TAG=$(cat .current_tag) docker compose exec api node scripts/instagram.js carousel-preview --date 2026-11-27 --dir /tmp/car
 //         — həftəlik karuselin kartları (üz, elementlər, bağlanış) qovluğa, caption + alt_text-lər stdout-a. Dərc ETMİR.
+//     TAG=$(cat .current_tag) docker compose exec -T api node scripts/instagram.js ramadan-preview [--date YYYY-MM-DD] > story.jpg
+//         — Ramazan geri sayımı story-si (yalnız Ramazana 90 … 1 gün qalan günlər). Dərc ETMİR, bazaya yazmır.
 //     TAG=$(cat .current_tag) docker compose exec api node scripts/instagram.js publish-now --slot 1 --yes
 //         — bu günün 1-ci yuvasını İNDİ dərc et (gündə yuva başına bir dəfə; IG_ENABLED=1 lazımdır)
 //
@@ -35,6 +37,7 @@ const USAGE = 'İstifadə:\n' +
   '  node scripts/instagram.js token-info\n' +
   '  node scripts/instagram.js preview <yuva 0-5> [--format feed|story] [--lang az|en|ru|tr|ar] [--date YYYY-MM-DD] [--out fayl.jpg]\n' +
   '  node scripts/instagram.js carousel-preview [--date YYYY-MM-DD] --dir <qovluq>\n' +
+  '  node scripts/instagram.js ramadan-preview [--date YYYY-MM-DD] [--lang az|en|ru|tr|ar] [--out fayl.jpg]\n' +
   '  node scripts/instagram.js publish-now --slot <0-5> --yes\n' +
   '  node scripts/instagram.js check-glyphs [--render]'
 
@@ -65,9 +68,9 @@ async function main() {
   let o
   try { o = parse(process.argv.slice(2)) } catch (e) { console.error(e.message + '\n' + USAGE); return 2 }
   const cmd = o._[0]
-  if (!['status', 'token-info', 'preview', 'carousel-preview', 'publish-now', 'check-glyphs'].includes(cmd)) { console.error(USAGE); return 2 }
+  if (!['status', 'token-info', 'preview', 'carousel-preview', 'ramadan-preview', 'publish-now', 'check-glyphs'].includes(cmd)) { console.error(USAGE); return 2 }
   if (cmd === 'check-glyphs') return checkGlyphs(o.flags.has('render'))
-  const memory = cmd === 'preview' || cmd === 'carousel-preview'
+  const memory = cmd === 'preview' || cmd === 'carousel-preview' || cmd === 'ramadan-preview'
   const db = openDb(memory)
   const ig = createInstagram({ db, env: process.env, publicOrigin: process.env.PUBLIC_ORIGIN || 'https://muslims.cc' })
   try {
@@ -78,6 +81,12 @@ async function main() {
       if (s.next) console.log(`Növbəti: ${s.next.date} ${s.next.time} (${s.next.kind})`)
       if (s.token) console.log(`Token: ${s.token.source}${s.token.refreshedAt ? ` · yenilənib ${iso(s.token.refreshedAt)}` : ''}${s.token.expiresAt ? ` · bitir ${iso(s.token.expiresAt)}` : ''}`)
       if (s.carousel) console.log(`Karusel: ${s.carousel.enabled ? 'açıq' : 'sönülü (IG_CAROUSEL=1)'} · həftə günü ${s.carousel.day} ${s.carousel.time}${s.carousel.next ? ` · növbəti ${s.carousel.next.date} (${s.carousel.next.theme})` : ''}`)
+      if (s.ramadan) {
+        const r = s.ramadan
+        const st = r.active ? `aktiv · Ramazana ${r.daysLeft} gün (${r.start}) · addım: ${r.step ? r.step.kind : '?'}`
+          : r.phase === 'early' ? `gözləyir · yol ${r.opensOn} açılır` : r.phase === 'ramadan' ? `Ramazandadır (${r.day}-ci gün) — sönülü` : 'məlumat yoxdur'
+        console.log(`Ramazan story-si: ${r.enabled ? `açıq ${r.time}` : 'sönülü (IG_RAMADAN=0)'} · ${st}${r.post ? ` · bu gün: ${r.post.status}` : ''}`)
+      }
       if (s.growth) console.log(`alt_text: ${s.growth.altText ? 'bəli' : 'xeyr'} · məkan (IG_LOCATION_ID): ${s.growth.location ? 'bəli' : 'xeyr'} · heşteq ≤ ${s.growth.hashtagsMax}`)
       if (s.insights) console.log(`Insights: ${s.insights.enabled ? (s.insights.state || 'hələ yığılmayıb') : 'sönülü'}${s.insights.checkedAt ? ` · ${iso(s.insights.checkedAt)}` : ''}${s.insights.byKind.length ? ` · ${s.insights.byKind.map((r) => `${r.kind}/${r.format}: reach ${r.reach}, saved ${r.saved}, shares ${r.shares} (${r.posts})`).join('; ')}` : ''}`)
       console.log('Son dərclər:')
@@ -116,6 +125,16 @@ async function main() {
       p.cards.forEach((buf, i) => fs.writeFileSync(path.join(o.dir, `carousel-${i}.jpg`), buf))
       console.log(`${date} · mövzu: ${p.theme} · ${p.items.length} element · ${p.cards.length} kart → ${o.dir}`)
       console.log(`--- caption ---\n${p.caption}\n--- alt_text ---\n${p.alts.map((a, i) => `${i}: ${a}`).join('\n')}`)
+      return 0
+    }
+    if (cmd === 'ramadan-preview') {
+      if ((o.date && !/^\d{4}-\d{2}-\d{2}$/.test(o.date)) || (o.lang && !LANGS.includes(o.lang))) { console.error(USAGE); return 2 }
+      const date = o.date || new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Baku' }).format(new Date())
+      const p = await ig.prepareRamadan(date, o.lang ? { lang: o.lang } : {})
+      if (!p) { console.error(`${date}: Ramazan story-si yoxdur (yol yalnız Ramazana 90 … 1 gün qalanda aktivdir)`); return 1 }
+      if (o.out) fs.writeFileSync(o.out, p.jpeg)
+      else if (process.stdout.isTTY) { console.error('JPEG terminala yazılmır — --out fayl.jpg və ya "> fayl.jpg"'); return 2 } else process.stdout.write(p.jpeg)
+      console.error(`${date} · ${p.content.key} · ${p.content.headline} · ${p.content.stepTitle} · ${p.jpeg.length} bayt${o.out ? ` → ${o.out}` : ''}`)
       return 0
     }
     if (cmd === 'publish-now') {

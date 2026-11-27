@@ -20,7 +20,11 @@ const T = {
     loading: 'Yüklənir...', loadErr: 'Məlumatı yükləmək olmadı.', status: 'Vəziyyət', on: 'Açıqdır', off: 'Sönülüdür',
     reasons: { disabled: 'IG_ENABLED=1 təyin edilməyib', missing_credentials: 'IG_ACCESS_TOKEN və ya IG_USER_ID yoxdur', bad_format: 'Giriş açarı və ya hesab ID-si yararsızdır', auth_error: 'Instagram giriş açarını qəbul etmədi — yeni açar lazımdır' },
     lang: 'Dil', stories: 'Story', yes: 'Bəli', no: 'Xeyr', slots: 'Yuvalar', next: 'Növbəti yuva', token: 'Giriş açarı', tokenEnv: 'api.env-dən', tokenRefreshed: 'avtomatik yenilənib', expires: 'bitir',
-    kinds: { ayah: 'Ayə', hadith: 'Hədis', extra: 'Dua / Allahın adı', dua: 'Dua', name: 'Allahın adı' },
+    kinds: { ayah: 'Ayə', hadith: 'Hədis', extra: 'Dua / Allahın adı', dua: 'Dua', name: 'Allahın adı', ramadan: 'Ramazan geri sayımı' },
+    ramadan: 'Ramazan geri sayımı (story)',
+    ramadanLead: 'Ramazandan əvvəlki 90 gündə hər gün bir əlavə story: "Ramazana N gün qaldı", hicri tarix və saytın Ramazana hazırlıq yolunun bugünkü addımı. Ramazan başlayanda özü dayanır, növbəti Ramazandan 90 gün əvvəl yenidən başlayır.',
+    ramadanOff: 'IG_RAMADAN=0 — Ramazan story-si dərc olunmur.', ramadanWhen: 'Vaxt', ramadanState: 'Vəziyyət', ramadanStart: 'Gözlənilən başlanğıc', ramadanStep: 'Bugünkü addım', ramadanPost: 'Bu günün story-si', ramadanNotYet: 'hələ dərc olunmayıb',
+    ramadanActive: (n) => `aktiv — Ramazana ${n} gün qaldı`, ramadanEarly: (d) => `gözləyir — yol ${d} tarixində açılır`, ramadanDuring: 'Ramazan davam edir — story dayandırılıb', ramadanNone: 'Tarix məlumatı yoxdur',
     videoToday: 'Bu günün videoları', videoReady: 'video hazırdır — şəkil yerinə video dərc olunur', videoMissing: 'video yoxdur — şəkil postu',
     posts: 'Son dərclər', none: 'Hələ dərc yoxdur.', st: { published: 'Dərc olunub', claimed: 'Gedir', retry: 'Təkrar gözləyir', failed: 'Alınmadı' },
     preview: 'Kartın önizləməsi', previewLead: 'Kart çəkilir və burada göstərilir — Instagram-a heç nə göndərilmir.', slot: 'Yuva', format: 'Format', feed: 'Post (4:5)', story: 'Story (9:16)',
@@ -52,7 +56,11 @@ const T = {
     loading: 'Loading...', loadErr: 'Could not load the data.', status: 'Status', on: 'On', off: 'Off',
     reasons: { disabled: 'IG_ENABLED=1 is not set', missing_credentials: 'IG_ACCESS_TOKEN or IG_USER_ID is missing', bad_format: 'The token or account ID is invalid', auth_error: 'Instagram rejected the token — a new token is needed' },
     lang: 'Language', stories: 'Story', yes: 'Yes', no: 'No', slots: 'Slots', next: 'Next slot', token: 'Token', tokenEnv: 'from api.env', tokenRefreshed: 'refreshed automatically', expires: 'expires',
-    kinds: { ayah: 'Verse', hadith: 'Hadith', extra: 'Dua / Name of Allah', dua: 'Dua', name: 'Name of Allah' },
+    kinds: { ayah: 'Verse', hadith: 'Hadith', extra: 'Dua / Name of Allah', dua: 'Dua', name: 'Name of Allah', ramadan: 'Ramadan countdown' },
+    ramadan: 'Ramadan countdown (story)',
+    ramadanLead: 'During the 90 days before Ramadan, one extra story each day: “N days until Ramadan”, the Hijri date and today’s step from the site’s Road to Ramadan. It stops by itself when Ramadan begins and starts again 90 days before the next Ramadan.',
+    ramadanOff: 'IG_RAMADAN=0 — the Ramadan story is not published.', ramadanWhen: 'Time', ramadanState: 'State', ramadanStart: 'Expected start', ramadanStep: 'Today’s step', ramadanPost: 'Today’s story', ramadanNotYet: 'not published yet',
+    ramadanActive: (n) => (n === 1 ? 'active — 1 day until Ramadan' : `active — ${n} days until Ramadan`), ramadanEarly: (d) => `waiting — the road opens on ${d}`, ramadanDuring: 'Ramadan is under way — the story is paused', ramadanNone: 'No date data',
     videoToday: 'Today’s videos', videoReady: 'video ready — posted as a reel instead of the image', videoMissing: 'no video — image post',
     posts: 'Recent posts', none: 'Nothing has been published yet.', st: { published: 'Published', claimed: 'In progress', retry: 'Waiting to retry', failed: 'Failed' },
     preview: 'Card preview', previewLead: 'The card is rendered and shown here — nothing is sent to Instagram.', slot: 'Slot', format: 'Format', feed: 'Post (4:5)', story: 'Story (9:16)',
@@ -80,7 +88,12 @@ const T = {
     reasons: { disabled: 'IG_ENABLED=1 не задан', missing_credentials: 'Нет IG_ACCESS_TOKEN или IG_USER_ID', bad_format: 'Токен или ID аккаунта недействительны', auth_error: 'Instagram не принял токен — нужен новый токен' },
     // lang-ok: api.env dəyişənlərinin adları (IG_ENABLED, api.env) tərcümə olunmur
     lang: 'Язык', stories: 'История', yes: 'Да', no: 'Нет', slots: 'Время публикаций', next: 'Следующая публикация', token: 'Токен', tokenEnv: 'из api.env', tokenRefreshed: 'обновлён автоматически', expires: 'истекает',
-    kinds: { ayah: 'Аят', hadith: 'Хадис', extra: 'Дуа / имя Аллаха', dua: 'Дуа', name: 'Имя Аллаха' },
+    kinds: { ayah: 'Аят', hadith: 'Хадис', extra: 'Дуа / имя Аллаха', dua: 'Дуа', name: 'Имя Аллаха', ramadan: 'Обратный отсчёт до Рамадана' },
+    ramadan: 'Обратный отсчёт до Рамадана (сторис)',
+    ramadanLead: 'В течение 90 дней до Рамадана — одна дополнительная сторис в день: «До Рамадана N дней», дата по хиджре и шаг дня из «Пути к Рамадану» на сайте. Сама останавливается с началом Рамадана и снова начинается за 90 дней до следующего.',
+    // lang-ok[IG,RAMADAN]: api.env dəyişəninin adı (IG_RAMADAN) tərcümə olunmur
+    ramadanOff: 'IG_RAMADAN=0 — сторис о Рамадане не публикуется.', ramadanWhen: 'Время', ramadanState: 'Состояние', ramadanStart: 'Ожидаемое начало', ramadanStep: 'Шаг на сегодня', ramadanPost: 'Сторис на сегодня', ramadanNotYet: 'ещё не опубликована',
+    ramadanActive: (n) => `активно — дней до Рамадана: ${n}`, ramadanEarly: (d) => `ожидание — путь откроется ${d}`, ramadanDuring: 'Идёт Рамадан — сторис приостановлена', ramadanNone: 'Нет данных о дате',
     videoToday: 'Видео на сегодня', videoReady: 'видео готово — вместо картинки публикуется ролик', videoMissing: 'видео нет — публикуется картинка',
     posts: 'Последние публикации', none: 'Публикаций пока нет.', st: { published: 'Опубликовано', claimed: 'Выполняется', retry: 'Ждёт повтора', failed: 'Не удалось' },
     preview: 'Предпросмотр карточки', previewLead: 'Карточка создаётся и показывается здесь — в Instagram ничего не отправляется.', slot: 'Публикация', format: 'Формат', feed: 'Пост (4:5)', story: 'История (9:16)',
@@ -113,7 +126,12 @@ const T = {
     reasons: { disabled: 'لم يُضبط IG_ENABLED=1', missing_credentials: 'IG_ACCESS_TOKEN أو IG_USER_ID غير موجود', bad_format: 'الرمز أو معرّف الحساب غير صالح', auth_error: 'رفض إنستغرام الرمز — يلزم رمز جديد' },
     // lang-ok: api.env dəyişənlərinin adları (IG_ENABLED, api.env) tərcümə olunmur
     lang: 'اللغة', stories: 'القصة', yes: 'نعم', no: 'لا', slots: 'أوقات النشر', next: 'النشر التالي', token: 'الرمز', tokenEnv: 'من api.env', tokenRefreshed: 'جُدّد تلقائيًا', expires: 'ينتهي',
-    kinds: { ayah: 'آية', hadith: 'حديث', extra: 'دعاء / اسم من أسماء الله', dua: 'دعاء', name: 'اسم من أسماء الله' },
+    kinds: { ayah: 'آية', hadith: 'حديث', extra: 'دعاء / اسم من أسماء الله', dua: 'دعاء', name: 'اسم من أسماء الله', ramadan: 'العد التنازلي لرمضان' },
+    ramadan: 'العد التنازلي لرمضان (قصة)',
+    ramadanLead: 'خلال الأيام التسعين التي تسبق رمضان، قصة إضافية كل يوم: عدد الأيام حتى رمضان، والتاريخ الهجري، وخطوة اليوم من «الطريق إلى رمضان» في الموقع. تتوقف تلقائيًا مع بداية رمضان وتعود قبل رمضان التالي بتسعين يومًا.',
+    // lang-ok[IG,RAMADAN]: api.env dəyişəninin adı (IG_RAMADAN) tərcümə olunmur
+    ramadanOff: 'IG_RAMADAN=0 — لا تُنشر قصة رمضان.', ramadanWhen: 'الوقت', ramadanState: 'الحالة', ramadanStart: 'البداية المتوقعة', ramadanStep: 'خطوة اليوم', ramadanPost: 'قصة اليوم', ramadanNotYet: 'لم تُنشر بعد',
+    ramadanActive: (n) => `نشط — الأيام المتبقية حتى رمضان: ${n}`, ramadanEarly: (d) => `في الانتظار — يُفتح الطريق في ${d}`, ramadanDuring: 'رمضان جارٍ — القصة متوقفة', ramadanNone: 'لا توجد بيانات للتاريخ',
     videoToday: 'فيديوهات اليوم', videoReady: 'الفيديو جاهز — يُنشر مقطعًا بدل الصورة', videoMissing: 'لا يوجد فيديو — تُنشر الصورة',
     posts: 'آخر المنشورات', none: 'لم يُنشر شيء بعد.', st: { published: 'نُشر', claimed: 'قيد التنفيذ', retry: 'بانتظار إعادة المحاولة', failed: 'تعذّر' },
     preview: 'معاينة البطاقة', previewLead: 'تُنشأ البطاقة وتُعرض هنا — لا يُرسل شيء إلى إنستغرام.', slot: 'وقت النشر', format: 'الشكل', feed: 'منشور (4:5)', story: 'قصة (9:16)',
@@ -144,7 +162,11 @@ const T = {
     loading: 'Yükleniyor...', loadErr: 'Veriler yüklenemedi.', status: 'Durum', on: 'Açık', off: 'Kapalı',
     reasons: { disabled: 'IG_ENABLED=1 ayarlanmamış', missing_credentials: 'IG_ACCESS_TOKEN veya IG_USER_ID yok', bad_format: 'Token veya hesap kimliği geçersiz', auth_error: 'Instagram token’ı kabul etmedi — yeni token gerekli' },
     lang: 'Dil', stories: 'Hikâye', yes: 'Evet', no: 'Hayır', slots: 'Paylaşım saatleri', next: 'Sonraki paylaşım', token: 'Token', tokenEnv: 'api.env’den', tokenRefreshed: 'otomatik yenilendi', expires: 'bitiş',
-    kinds: { ayah: 'Ayet', hadith: 'Hadis', extra: 'Dua / Allah’ın ismi', dua: 'Dua', name: 'Allah’ın ismi' },
+    kinds: { ayah: 'Ayet', hadith: 'Hadis', extra: 'Dua / Allah’ın ismi', dua: 'Dua', name: 'Allah’ın ismi', ramadan: 'Ramazan geri sayımı' },
+    ramadan: 'Ramazan geri sayımı (hikâye)',
+    ramadanLead: 'Ramazan’dan önceki 90 gün boyunca her gün bir ek hikâye: “Ramazan’a N gün kaldı”, hicri tarih ve sitedeki Ramazan’a hazırlık yolunun günün adımı. Ramazan başlayınca kendiliğinden durur, sonraki Ramazan’dan 90 gün önce yeniden başlar.',
+    ramadanOff: 'IG_RAMADAN=0 — Ramazan hikâyesi paylaşılmaz.', ramadanWhen: 'Saat', ramadanState: 'Durum', ramadanStart: 'Beklenen başlangıç', ramadanStep: 'Bugünün adımı', ramadanPost: 'Bugünün hikâyesi', ramadanNotYet: 'henüz paylaşılmadı',
+    ramadanActive: (n) => `etkin — Ramazan’a ${n} gün kaldı`, ramadanEarly: (d) => `bekliyor — yol ${d} tarihinde açılır`, ramadanDuring: 'Ramazan sürüyor — hikâye durduruldu', ramadanNone: 'Tarih verisi yok',
     videoToday: 'Bugünün videoları', videoReady: 'video hazır — görsel yerine reel olarak paylaşılır', videoMissing: 'video yok — görsel paylaşılır',
     posts: 'Son paylaşımlar', none: 'Henüz paylaşım yok.', st: { published: 'Paylaşıldı', claimed: 'Sürüyor', retry: 'Yeniden deneme bekliyor', failed: 'Olmadı' },
     preview: 'Kart önizlemesi', previewLead: 'Kart hazırlanır ve burada gösterilir — Instagram’a hiçbir şey gönderilmez.', slot: 'Paylaşım', format: 'Biçim', feed: 'Gönderi (4:5)', story: 'Hikâye (9:16)',
@@ -194,6 +216,7 @@ export default function InstagramManager({ superAdmin = false }) {
       {data && superAdmin && data.enabled && data.reason !== 'auth_error' && <PublishNow l={l} slots={data.slots} onDone={load} />}
       {data && data.reel && <Reel l={l} reel={data.reel} superAdmin={superAdmin} />}
       {data && data.carousel && <Carousel l={l} c={data.carousel} />}
+      {data && data.ramadan && <RamadanStory l={l} r={data.ramadan} superAdmin={superAdmin} />}
       {data && data.growth && <Growth l={l} g={data.growth} />}
       {data && data.insights && <Insights l={l} lang={lang} ins={data.insights} />}
       {data && <Posts l={l} lang={lang} posts={data.posts} />}
@@ -337,6 +360,45 @@ function Carousel({ l, c }) {
         {c.next && <div><dt>{l.carouselNext}</dt><dd>{c.next.date} — {l.themes[c.next.theme] || c.next.theme}</dd></div>}
         {p && <div><dt>{l.carouselPost}</dt><dd>{l.st[p.status] || p.status}{p.error && p.status !== 'published' ? <span className="rt-note"> · {p.error}</span> : null}</dd></div>}
       </dl>
+    </section>
+  )
+}
+
+// Ramazan geri sayımı story-si: vaxt, vəziyyət (aktiv / gözləyir / Ramazandadır), qalan gün, bugünkü addım, dərc vəziyyəti
+function RamadanStory({ l, r, superAdmin }) {
+  const p = r.post
+  const [busy, setBusy] = useState(false)
+  const [img, setImg] = useState(null)
+  const [err, setErr] = useState('')
+  useEffect(() => () => { if (img) URL.revokeObjectURL(img) }, [img])
+  // Önizləmə (superadmin): POST /api/admin/instagram/preview { slot: 'ramadan' } — dərc etmir
+  const show = async () => {
+    setBusy(true); setErr('')
+    try {
+      const res = await fetch('/api/admin/instagram/preview', {
+        method: 'POST', credentials: 'include', cache: 'no-store',
+        headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'fetch' },
+        body: JSON.stringify({ slot: 'ramadan' }),
+      })
+      if (!res.ok) { setErr(l.previewErr); return }
+      setImg(URL.createObjectURL(await res.blob()))
+    } catch { setErr(l.previewErr) } finally { setBusy(false) }
+  }
+  const state = r.active ? l.ramadanActive(r.daysLeft) : r.phase === 'early' ? l.ramadanEarly(r.opensOn) : r.phase === 'ramadan' ? l.ramadanDuring : l.ramadanNone
+  return (
+    <section className="admin-section" aria-label={l.ramadan} data-testid="ig-ramadan">
+      <SectionTitle icon="ramadan" tone={r.enabled && r.active ? undefined : 'neutral'}>{l.ramadan}</SectionTitle>
+      <p className="admin-section-lead">{r.enabled ? l.ramadanLead : l.ramadanOff}</p>
+      <dl className="ig-facts">
+        <div><dt>{l.ramadanWhen}</dt><dd>{r.time}</dd></div>
+        <div><dt>{l.ramadanState}</dt><dd data-testid="ig-ramadan-state">{state}</dd></div>
+        {r.start && <div><dt>{l.ramadanStart}</dt><dd>{r.start}</dd></div>}
+        {r.step && <div><dt>{l.ramadanStep}</dt><dd data-testid="ig-ramadan-step">{r.step.title || r.step.kind}</dd></div>}
+        {r.enabled && r.active && <div><dt>{l.ramadanPost}</dt><dd>{p ? <>{l.st[p.status] || p.status}{p.error && p.status !== 'published' ? <span className="rt-note"> · {p.error}</span> : null}</> : l.ramadanNotYet}</dd></div>}
+      </dl>
+      {superAdmin && r.active && <p><button type="button" className="ui-btn" onClick={show} disabled={busy} data-testid="ig-ramadan-preview">{busy ? l.busy : l.show}</button></p>}
+      {err && <AdminAlert>{err}</AdminAlert>}
+      {img && <div className="ig-preview"><img src={img} alt={l.alt} width={270} height={480} data-testid="ig-ramadan-img" /></div>}
     </section>
   )
 }

@@ -28,7 +28,7 @@ for (const m of ['./auth', './users', './security', './syncKeys', './mailer', '.
   './communityKit', './publicProfile', './familyDua', './duaWall', './mosqueRep', './weekly', './ipKey', './pushClaims', './quranMeaning',
   './duaFriend', './hajjJourney', './welcome', './mailCampaigns', './adminSso',
   './prayerRooms', './janaza', './volunteers',
-  './trustBox', './telegramBot', './prayerCities', './instagram', './instagramCard', './instagram-data', './instagramReel', './tiktok']) require(m)
+  './trustBox', './telegramBot', './prayerCities', './instagram', './instagramCard', './instagram-data', './instagramReel', './instagramRamadan', './instagram-ramadan-data', './tiktok']) require(m)
 // Paket asılılıqları da (server/package.json → npm ci) — image-də yoxdursa bazadan ƏVVƏL çöksün
 for (const m of ['@simplewebauthn/server']) require(m)
 // sharp (Instagram kartları, server/instagramCard.js) yalnız YOXLANIR (require.resolve) — libvips IG sönülüdürsə yüklənmir;

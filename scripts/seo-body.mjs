@@ -51,6 +51,8 @@ import { DUA_GUIDE } from '../src/data/pageGuides/DuaJournalPage.js'
 import { HERO_T } from '../src/components/home/heroText.js'
 import { PRAYER_NAMES as HOME_PRAYER_NAMES } from '../src/data/prayerTrackerText.js'
 import { BRAND, DEFAULT_PRAYER_LOCATION, brandName, tr as brandTr } from '../src/config/brand.js'
+import { SEERAH_EVENTS, SEERAH_PLACES, periodOf } from '../src/data/seerah.js'
+import { SEERAH_T, yearText } from '../src/components/seerah/seerahText.js'
 
 // detail.js lüğəti glossarySource.js-dən oxuyur (prerender: meta + statik blok)
 setGlossarySource(GLOSSARY_BY_ID)
@@ -624,6 +626,47 @@ function guideBody(key, lang) {
   )
 }
 
+// ═══ Siyər (/seerah, 2026-11-27) — hadisələrin tam siyahısı (il, yer, mətn, mənbə) ═══
+// Səhifənin özündə göstərilən eyni mətn (src/data/seerah.js); Quran istinadı oxuyucuya link.
+// Hər hadisənin id-si (#ev-<id>) JSON-LD ItemList-in linkləri ilə eynidir (seerahItemList).
+function seerahBody(lang) {
+  const t = SEERAH_T[lang] || SEERAH_T.en
+  const src = (s) => {
+    const m = /^Quran (\d{1,3}):(\d{1,3})/.exec(s)
+    const label = esc(localizeSource(s, lang))
+    return m ? `<a href="${pathFor('quran', lang, Number(m[1]))}?a=${m[2]}">${label}</a>` : label
+  }
+  const item = (e) => {
+    const y = yearText(e, t)
+    return `<li id="ev-${e.id}"><h3>${esc(pick(e.title, lang))}</h3>` +
+      `<p><strong>${esc(y.hijri)} · ${esc(y.ce)}</strong> — ${esc(pick(SEERAH_PLACES[e.place].name, lang))}${e.differ ? ` (${esc(t.differ)})` : ''}</p>` +
+      `<p>${esc(pick(e.text, lang))}</p>` +
+      `<p><small>${esc(t.source)}: ${e.src.map(src).join(' · ')}</small></p></li>`
+  }
+  const mk = SEERAH_EVENTS.filter(e => periodOf(e) === 'makkah')
+  const md = SEERAH_EVENTS.filter(e => periodOf(e) === 'madinah')
+  return shell(lang,
+    crumbs(lang, [{ name: brandName(lang), href: pathFor('home', lang) }, { name: shortName('seerah', lang) }]) +
+    `<header><h1>${esc(t.title)}</h1><p class="seo-static__lead">${esc(t.lead)}</p></header>` +
+    `<section><h2>${esc(t.makkahPeriod)}</h2><ol>${mk.map(item).join('')}</ol></section>` +
+    `<section><h2>${esc(t.madinahPeriod)}</h2><ol start="${mk.length + 1}">${md.map(item).join('')}</ol></section>` +
+    `<p>${esc(t.note)}</p>` +
+    `<p><a href="${pathFor('history', lang)}">${esc(shortName('history', lang))}</a> · <a href="${pathFor('holyplaces', lang)}">${esc(shortName('holyplaces', lang))}</a></p>`,
+  )
+}
+
+/** JSON-LD: hadisələrin ItemList-i (WebPage.mainEntity) — yalnız prerender (scripts/prerender.mjs). */
+export function seerahItemList(lang, canonical) {
+  return {
+    '@type': 'ItemList',
+    name: (SEERAH_T[lang] || SEERAH_T.en).title,
+    numberOfItems: SEERAH_EVENTS.length,
+    itemListElement: SEERAH_EVENTS.map((e, i) => ({
+      '@type': 'ListItem', position: i + 1, name: pick(e.title, lang), item: `${canonical}#ev-${e.id}`,
+    })),
+  }
+}
+
 // ═══ Hədis siyahısı (/hadith) — hər /hadith/<id> səhifəsinə link (2026-11-24) ═══
 // Əvvəl hədis səhifələrinə yalnız əvvəlki/növbəti zənciri və sitemap aparırdı (krawl dərinliyi ~1100).
 function hadithListBody(lang) {
@@ -777,6 +820,7 @@ export function staticBodyFor(key, lang, param = null) {
   if (key === 'glossary') return param ? termBody(lang, param) : glossaryListBody(lang)
   if (key === 'prayer') return param ? prayerCityBody(lang, param) : prayerListBody(lang)
   if (key === 'babynames') return babyNamesBody(lang)
+  if (key === 'seerah') return param == null ? seerahBody(lang) : ''
   if (key === 'hadith') return param ? hadithBody(lang, param) : hadithListBody(lang)
   // Hisnul-Müslim: zikr səhifəsi və siyahının statik bloku yalnız ərəbcə (routes.js → DETAILS.hisn.langs)
   if (key === 'hisn') return lang !== 'ar' ? '' : param ? hisnDuaBody(param) : hisnListBody()

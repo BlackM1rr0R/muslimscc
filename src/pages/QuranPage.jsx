@@ -21,6 +21,10 @@ import { QURAN_GUIDE } from '../data/guides/QuranPage'
 import KhatmPlanner from '../components/quran/KhatmPlanner'
 import QuranRadio from '../components/quran/QuranRadio'
 import SurahArt from '../components/quran/SurahArt'
+// Ünvan (təzhib): surə adının qızılı çərçivəsi; atmosfer: adın mənasına uyğun fon (lazy)
+import UnwanFrame from '../components/quran/UnwanFrame'
+import { atmosSceneOf } from '../data/surahAtmosphere'
+import { readAtmosOn, writeAtmosOn } from '../utils/quranAtmos'
 // Batch Q: məlumatdan doğan rozet, kart dalğası, infoqrafika, gecə səması (lazy — components/quran/viz)
 import useSurahGridFx from '../components/quran/viz/useSurahGridFx'
 import { REVELATION_ORDER } from '../data/surahRevelation'
@@ -570,6 +574,15 @@ const SurahGlyph = lazy(() => import('../components/quran/viz/SurahGlyph'))
 const SurahSpark = lazy(() => import('../components/quran/viz/SurahGlyph').then(m => ({ default: m.SurahSpark })))
 const SurahInfographic = lazy(() => import('../components/quran/viz/SurahInfographic'))
 const SurahNightSky = lazy(() => import('../components/quran/viz/SurahNightSky'))
+// Surə atmosferi — yalnız səhnəsi olan surədə və seçim açıq olanda yüklənir
+const SurahAtmosphere = lazy(() => import('../components/quran/SurahAtmosphere'))
+const ATMOS_LABELS = {
+  az: { label: 'Fon atmosferi', hint: 'Surənin adına uyğun sakit fon' },
+  en: { label: 'Background atmosphere', hint: 'A quiet background matching the surah’s name' },
+  ru: { label: 'Фоновая атмосфера', hint: 'Спокойный фон по названию суры' },
+  ar: { label: 'أجواء الخلفية', hint: 'خلفية هادئة توافق اسم السورة' },
+  tr: { label: 'Arka plan atmosferi', hint: 'Surenin adına uygun sakin arka plan' },
+}
 // v6.2: eyni ayə 5 qarinin səsində — söz-söz müqayisə (Quran.com söz vaxtları)
 const ReciterCompare = lazy(() => import('../components/quran/ReciterCompare'))
 // v6.3: Surələr şəhəri — 114 bina, nazil olma sırası ilə küçə (three.js)
@@ -1274,6 +1287,10 @@ export default function QuranPage() {
   const openKaraoke = useCallback((n) => { player.pause(); setKaraoke({ s: selectedRef.current, a: n, tr: versesRef.current?.find(v => v.n === n)?.tr || '' }) }, [player.pause]) // eslint-disable-line react-hooks/exhaustive-deps -- player.pause sabitdir (useQuranPlayer api)
   const closeKaraoke = useCallback(() => setKaraoke(null), [])
   const [zen, setZen] = useState(false)
+  // Fon atmosferi: susmaya görə açıq; seçim mount-dan SONRA oxunur (prerender ilə eyni ilk render)
+  const [atmosOn, setAtmosOn] = useState(true)
+  useEffect(() => { setAtmosOn(readAtmosOn()) }, [])
+  const toggleAtmos = useCallback(() => { haptic(); const next = !atmosOn; writeAtmosOn(next); setAtmosOn(next) }, [atmosOn])
   const shareAyah = useCallback(async (verse) => {
     haptic()
     const sNum = selectedRef.current
@@ -1497,8 +1514,13 @@ export default function QuranPage() {
     const surahPages = row ? (row[0] === row[1] ? String(row[0]) : `${row[0]}–${row[1]}`) : ''
     const jz = juzOfSurah(selected)
     const surahJuz = jz.length ? (jz.length === 1 ? String(jz[0]) : `${jz[0]}–${jz[jz.length - 1]}`) : ''
+    // Surə atmosferi: yalnız adı təbiət/səma hadisəsi olan surələrdə (data/surahAtmosphere)
+    const hasAtmos = !!atmosSceneOf(selected)
+    const showAtmos = hasAtmos && atmosOn && ready
+    const al = pickUi(ATMOS_LABELS, lang)
     return (
-      <div className="quran-reader" ref={readerRef}>
+      <div className={`quran-reader${showAtmos ? ' has-atmos' : ''}`} ref={readerRef}>
+        {showAtmos && <Suspense fallback={null}><SurahAtmosphere key={selected} n={selected} /></Suspense>}
         <div className="reader-toolbar" ref={toolbarRef}>
           <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm reader-back" onClick={closeReader}>
             <DirArrow back /> {stripArrows(t.backBtn)}
@@ -1528,6 +1550,13 @@ export default function QuranPage() {
             </button>
             {/* v6.9: sakit fon səsi (yağış, külək, dəniz, gecə — cihazda sintez) */}
             <AmbientSound lang={lang} className="qp-amb" variant="ctrl" />
+            {/* Fon atmosferi (yalnız səhnəsi olan surədə): adın mənasına uyğun çox zəif hərəkətli fon */}
+            {hasAtmos && (
+              <button type="button" className={`ctrl-btn ctrl-memo ctrl-atmos ${atmosOn ? 'active' : ''}`} aria-pressed={atmosOn}
+                title={al.hint} aria-label={al.label} onClick={toggleAtmos} data-testid="atmos-toggle">
+                <Icon name="sparkle" size={16} /><span className="ctrl-memo__label">{al.label}</span>
+              </button>
+            )}
             {/* dir="ltr": ərəbcədə "A−" bidi qaydası ilə "−A" kimi görünürdü.
                 Həddə çatanda düymə söndürülür (əvvəl basılırdı, heç nə olmurdu) */}
             {/* Əlçatan ad görünən yazını da daşıyır (WCAG 2.5.3 "Label in Name" —
@@ -1584,19 +1613,10 @@ export default function QuranPage() {
         )}
         {ready && (
           <>
-            <header className="reader-header" data-reveal="scale">
+            <header className="reader-header reader-header--unwan" data-reveal="scale">
               <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
-              <div className="reader-header__top">
-                <span className="reader-number ui-num">{surah.number}</span>
-                <div className="reader-info">
-                  <h1 className="reader-arabic" lang="ar">{surah.name}</h1>
-                  {lang !== 'ar' && (
-                    <h2 className="reader-english">
-                      {surahTitle(surah, lang)}
-                      {meaning && <span className="reader-meaning"> · {meaning}</span>}
-                    </h2>
-                  )}
-                </div>
+              {/* Ünvan (təzhib): mərkəzdə surənin rozeti (medalyon) + qızılı çərçivədə ərəbcə ad */}
+              <div className="reader-header__top is-unwan">
                 {/* Batch Q: surənin rozeti (kartdakı ilə eyni — keçiddə kartdan bura "uçur") +
                     oxu irəliləyişi halqası (--rp, paintProgress yazır; React render yoxdur) */}
                 <span className="rh-glyph" data-vt-glyph="" ref={glyphRingRef} aria-hidden="true">
@@ -1606,6 +1626,18 @@ export default function QuranPage() {
                     <circle className="rh-ring__bar" cx="50" cy="50" r="48" pathLength="1" />
                   </svg>
                 </span>
+                <UnwanFrame className="uw--reader">
+                  <h1 className="reader-arabic" lang="ar">{surah.name}</h1>
+                </UnwanFrame>
+                <div className="reader-info">
+                  <span className="reader-number ui-num">{surah.number}</span>
+                  {lang !== 'ar' && (
+                    <h2 className="reader-english">
+                      {surahTitle(surah, lang)}
+                      {meaning && <span className="reader-meaning"> · {meaning}</span>}
+                    </h2>
+                  )}
+                </div>
               </div>
               {/* Surənin açar göstəriciləri (mono rəqəm + kiçik etiket) */}
               <dl className="reader-facts">
