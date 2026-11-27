@@ -18,8 +18,9 @@
 #                            Tapılmasa çıxış kodu 3 ("miss") — CI onda adi upload edir.
 #   deploy <TAG>             /opt/muslimscc/deploy.sh <TAG>
 #   status                   cari versiya + konteynerlərin vəziyyəti
-#   ig-reel <TARİX> <AYƏ> <alafasy|none>
+#   ig-reel <TARİX> <REF> <alafasy|none> [en|az|ru|tr]
 #                            stdin (MP4, ≤ 15 MB) → api həcmi /data/ig-cards/<TARİX>-reel.mp4 + .json (Instagram reel)
+#                            REF: tək ayə (33:3) və ya passaj (67:1-5); dil istəyə bağlıdır (köhnə 3 arqumentli forma da)
 # TAG: 7-40 simvollu git hash (yalnız [0-9a-f]) — yol hücumu mümkün deyil. SRC: 40 simvollu git hash.
 # ═══════════════════════════════════════════════════════
 set -eu
@@ -27,8 +28,10 @@ cd /opt/muslimscc
 
 # shellcheck disable=SC2086
 set -- ${SSH_ORIGINAL_COMMAND:-}
-CMD="${1:-}"; TAG="${2:-}"; NAME="${3:-}"; SRC="${4:-}"
-[ $# -le 4 ] || { echo "ci-gate: artıq arqument" >&2; exit 1; }
+CMD="${1:-}"; TAG="${2:-}"; NAME="${3:-}"; SRC="${4:-}"; EXTRA="${5:-}"
+# 5-ci arqument yalnız ig-reel-də (reel-in dili); qalan əmrlərdə ən çox 4
+MAXARGS=4; [ "$CMD" = ig-reel ] && MAXARGS=5
+[ $# -le "$MAXARGS" ] || { echo "ci-gate: artıq arqument" >&2; exit 1; }
 
 valid_tag() { echo "$1" | grep -Eq '^[0-9a-f]{7,40}$'; }
 deny() { echo "ci-gate: icazə yoxdur: ${SSH_ORIGINAL_COMMAND:-<boş>}" >&2; logger -t ci-gate "rədd: ${SSH_ORIGINAL_COMMAND:-}"; exit 1; }
@@ -68,13 +71,17 @@ case "$CMD" in
     ;;
   ig-reel)
     # Instagram reel (.github/workflows/ig-reel.yml → server/instagram.js, docs/INSTAGRAM.md → "Reels"):
-    #   ig-reel <YYYY-MM-DD> <surə:ayə[-son]> <alafasy|none>   stdin → MP4 (≤ 15 MB)
+    #   ig-reel <YYYY-MM-DD> <surə:ayə[-son]> <alafasy|none> [en|az|ru|tr]   stdin → MP4 (≤ 15 MB)
+    #   (surə:ayə — köhnə tək ayə reel-i, surə:ayə-son — passaj; dil verilməyibsə JSON-da "lang" yazılmır)
     # İşləyən api konteynerinin /data/ig-cards/ qovluğuna <tarix>-reel.mp4 + <tarix>-reel.json yazılır (atomik mv).
     # Deploy-a toxunmur, image / konfiqurasiya dəyişmir; konteyner tapılmasa — çıxış 1 (CI yenidən cəhd edir).
-    DATE="$TAG"; REF="$NAME"; AUDIO="$SRC"
+    DATE="$TAG"; REF="$NAME"; AUDIO="$SRC"; RLANG="$EXTRA"
     echo "$DATE" | grep -Eq '^20[0-9]{2}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$' || deny
-    echo "$REF" | grep -Eq '^[0-9]{1,3}:[0-9]{1,3}(-[0-9]{1,3})?$' || deny
+    echo "$REF" | grep -Eq '^[1-9][0-9]{0,2}:[1-9][0-9]{0,2}(-[1-9][0-9]{0,2})?$' || deny
     case "$AUDIO" in alafasy|none) ;; *) deny ;; esac
+    case "$RLANG" in ''|en|az|ru|tr) ;; *) deny ;; esac
+    if [ -n "$RLANG" ]; then META="{\"ref\":\"$REF\",\"audio\":\"$AUDIO\",\"lang\":\"$RLANG\"}"
+    else META="{\"ref\":\"$REF\",\"audio\":\"$AUDIO\"}"; fi
     TMP=$(mktemp /tmp/ig-reel.XXXXXX)
     trap 'rm -f "$TMP"' EXIT
     head -c 15728641 > "$TMP"
@@ -86,10 +93,10 @@ case "$CMD" in
     C=$(TAG="$CUR" docker compose ps -q --status running api 2>/dev/null | head -n 1)
     [ -n "$C" ] || { echo "api konteyneri işləmir" >&2; exit 1; }
     D=/data/ig-cards
-    printf '{"ref":"%s","audio":"%s"}\n' "$REF" "$AUDIO" | docker exec -i "$C" sh -c "mkdir -p $D && cat > $D/.$DATE-reel.json.tmp && mv $D/.$DATE-reel.json.tmp $D/$DATE-reel.json"
+    printf '%s\n' "$META" | docker exec -i "$C" sh -c "mkdir -p $D && cat > $D/.$DATE-reel.json.tmp && mv $D/.$DATE-reel.json.tmp $D/$DATE-reel.json"
     docker exec -i "$C" sh -c "cat > $D/.$DATE-reel.mp4.tmp && mv $D/.$DATE-reel.mp4.tmp $D/$DATE-reel.mp4" < "$TMP"
-    logger -t ci-gate "ig-reel $DATE $REF $AUDIO $SIZE"
-    echo "reel yazıldı: $DATE ($REF, $AUDIO, $SIZE bayt)"
+    logger -t ci-gate "ig-reel $DATE $REF $AUDIO ${RLANG:--} $SIZE"
+    echo "reel yazıldı: $DATE ($REF, $AUDIO, ${RLANG:--}, $SIZE bayt)"
     ;;
   status)
     CUR=$(cat .current_tag 2>/dev/null || true)

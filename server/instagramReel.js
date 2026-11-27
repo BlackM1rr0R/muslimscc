@@ -1,12 +1,15 @@
 // ═══════════════════════════════════════════════════════════════════════
-// Instagram REEL — günün ayəsinin videosu (docs/INSTAGRAM.md → "Reels"): server və CI renderi üçün ortaq SAF köməkçilər
+// Instagram REEL — günün Quran PASSAJININ videosu (docs/INSTAGRAM.md → "Reels"): server və CI renderi üçün ortaq SAF köməkçilər
 //
 // • Video serverdə ÇƏKİLMİR (1 GB server): GitHub Actions (.github/workflows/ig-reel.yml) scripts/ig-reel/render.mjs ilə
-//   MP4 hazırlayır və ci-gate.sh "ig-reel <tarix> <ayə> <səs>" ilə api həcminə yazır:
-//     /data/ig-cards/<YYYY-MM-DD>-reel.mp4  +  <YYYY-MM-DD>-reel.json ({"ref":"33:3","audio":"alafasy"|"none"})
+//   MP4 hazırlayır və ci-gate.sh "ig-reel <tarix> <ref> <səs> [dil]" ilə api həcminə yazır:
+//     /data/ig-cards/<YYYY-MM-DD>-reel.mp4  +  <YYYY-MM-DD>-reel.json ({"ref":"67:1-5","audio":"alafasy","lang":"en"})
 //   server/instagram.js (IG_REELS=1) IG_REEL_TIME-da (susmaya görə 18:00, Asia/Baku) media_type=REELS ilə dərc edir.
-// • Ayə seçimi 08:00 ayə yuvası ilə EYNİ (rotIndex, addım 37): k=0 — günün ayəsi; tilavət > 45 s və ya video sığmırsa
-//   sıradakı (k+1). Mətn alquran.cloud-dan, dəyişdirilmir (yalnız kartdakı kimi dayanma işarəsi sözə bitişik çəkilir).
+// • 2026-11-27-dən: tək ayə yox, ardıcıl ayələrdən PASSAJ (REEL_PASSAGES — əl ilə seçilmiş məşhur yerlər, gün üzrə
+//   deterministik növbə, passageRef). Tilavət PASSAGE_MAX_SEC-ə sığmırsa — ən uzun BÜTÖV ayə prefiksi (trimPassage; ayə heç
+//   vaxt kəsilmir). Ayə kartda minimal ölçüdə sığmırsa — sıradakı passaj. Köhnə tək ayə sidecar-ları (AYAH_REFS) da qəbul
+//   olunur (keçid dövrü). Mətn alquran.cloud-dan, dəyişdirilmir (yalnız kartdakı kimi dayanma işarəsi sözə bitişik çəkilir).
+// • Köhnə tək ayə köməkçiləri (reelRef, reelTimeline, REEL_MAX_SEC) geriyə uyğunluq üçün qalır (server/tiktok.js də oxuyur).
 // • Səs: saytın Quran səsi ilə eyni mənbə və qari (src/utils/quranAudio.js → RECITERS[0] "alafasy").
 // • Bu modul şəbəkəyə, fayla, sharp-a toxunmur — test olunur (tests/unit/server-instagram-reel.test.js).
 // ═══════════════════════════════════════════════════════════════════════
@@ -18,7 +21,27 @@ const REEL_MP4_RE = /^(\d{4}-\d{2}-\d{2})-reel\.mp4$/
 const REEL_META_RE = /^(\d{4}-\d{2}-\d{2})-reel\.json$/
 const REEL_MAX_BYTES = 15 * 1024 * 1024
 const REEL_MIN_SEC = 15
-const REEL_MAX_SEC = 45
+const REEL_MAX_SEC = 45            // köhnə tək ayə reel-inin həddi (reelTimeline); passaj reel-i — PASSAGE_MAX_SEC
+// Passaj reel-i: Meta Content Publishing API REELS üçün 3 s – 15 dəq qəbul edir, amma Instagram 90 s-dən uzun reel-ləri
+// izləməyənlərə tövsiyə etmir və server/instagram.js reelInfo 90 s-dən uzun faylı rədd edir — hədd 89 s (yuvarlaqlaşma payı)
+const PASSAGE_MAX_SEC = 89
+const PASSAGE_LEAD_SEC = 0.8       // tilavətdən əvvəl (ilk kadr: başlıq + istinad + 1-ci ayənin izi)
+const PASSAGE_TAIL_SEC = 2.2       // tilavətdən sonra (son ayə tam görünür — üz qabığı: son saniyə)
+const PASSAGE_XFADE_SEC = 0.3      // ayələr arasında: köhnə ayə sönür, yenisi yazılır
+// Reel-in dili (tərcümə + başlıq): alquran.cloud nəşri olan dillər (ar — tərcüməsiz, reel-də yoxdur)
+const REEL_LANGS = ['en', 'az', 'ru', 'tr']
+const DEFAULT_REEL_LANG = 'en'
+// Əl ilə seçilmiş məşhur passajlar (yalnız istinad; mətn alquran.cloud-dan, verbatim). Alafasy tilavəti (128 kbps) ilə
+// ölçülüb və en.asad ilə reel kartında sığması yoxlanıb (2026-11-27): çoxu 45–86 s; uzunlar trimPassage ilə bütöv ayə
+// prefiksinə qısalır (3:190-194 → 3:190-192, 23:1-11 → 23:1-9, 36:1-12 → 36:1-9, 55:1-16 → 55:1-12).
+// Siyahıda YOXDUR: 2:255, 2:284-286 (ayə bir ekranda minimal ölçüdə sığmır — həmişə atlanardı), 112 (13 s), 103 (20 s).
+const REEL_PASSAGES = [
+  '1:1-7', '2:1-5', '3:26-27', '3:190-194', '13:28-29', '17:23-24', '23:1-11', '25:63-67', '36:1-12', '39:53-54',
+  '55:1-16', '59:22-24', '67:1-5', '78:1-16', '87:1-13', '87:14-19', '91:1-15', '93:1-11', '94:1-8', '97:1-5',
+  '99:1-8', '100:1-11', '101:1-11', '102:1-8', '113:1-5', '114:1-6',
+]
+const PASSAGE_STEP = 7
+const PASSAGE_TITLE = { az: 'Quran ayələri', en: 'Verses of the Quran', ru: 'Аяты Корана', tr: 'Kur’an ayetleri', ar: 'آيات من القرآن الكريم' }
 const AUDIO_MODES = ['alafasy', 'none']
 const DEFAULT_REEL_TIME = '18:00'
 // Video emalı şəkildən uzun çəkir: ~5 dəq ərzində artan fasilə ilə status yoxlanır (saniyə)
@@ -59,6 +82,54 @@ function reelRef(dateKey, k = 0, refs = dailyAyah.AYAH_REFS) {
   return refs[rotIndex(dateKey, refs.length, 37, k)]
 }
 
+/** {s, a, to} → '67:1-5' | '2:255' (kanonik yazılış). */
+function refOf(p) {
+  return `${p.s}:${p.a}${p.to && p.to !== p.a ? `-${p.to}` : ''}`
+}
+/** Gün + k → passaj istinadı ('67:1-5'); k artdıqca siyahıda sıradakı (passaj sığmayanda). */
+function passageRef(dateKey, k = 0, list = REEL_PASSAGES) {
+  return list[rotIndex(dateKey, list.length, PASSAGE_STEP, k)]
+}
+/**
+ * Reel üçün icazəli istinad: köhnə tək ayə siyahısı (AYAH_REFS) VƏ YA REEL_PASSAGES-dəki passajın eyni ayədən başlayan
+ * bütöv prefiksi (trimPassage nəticəsi: '36:1-9', '2:285'). Kanonik yazılış tələb olunur ('2:255-255' yox).
+ */
+function isReelRef(ref) {
+  const r = String(ref || '')
+  const p = dailyAyah.parseRef(r)
+  if (!p || refOf(p) !== r) return false
+  if (dailyAyah.AYAH_REFS.includes(r)) return true
+  return REEL_PASSAGES.some((x) => { const q = dailyAyah.parseRef(x); return q && q.s === p.s && q.a === p.a && p.to <= q.to })
+}
+/**
+ * Passajı tilavətin uzunluğuna görə qısalt: durations — ayələrin səs uzunluğu (saniyə, pick.a-dan ardıcıl), maxSec —
+ * tilavət üçün hədd. → { s, a, to, ref, audioSec, count } (ən uzun BÜTÖV ayə prefiksi) | null (1-ci ayə də sığmır).
+ */
+function trimPassage(pick, durations, maxSec = PASSAGE_MAX_SEC - PASSAGE_LEAD_SEC - PASSAGE_TAIL_SEC) {
+  if (!pick || !Array.isArray(durations)) return null
+  const n = Math.min(durations.length, pick.to - pick.a + 1)
+  let sum = 0, count = 0
+  for (let i = 0; i < n; i++) {
+    const d = Number(durations[i])
+    if (!Number.isFinite(d) || d <= 0 || sum + d > maxSec) break
+    sum += d
+    count++
+  }
+  if (!count) return null
+  const out = { s: pick.s, a: pick.a, to: pick.a + count - 1 }
+  return { ...out, ref: refOf(out), audioSec: Math.round(sum * 1000) / 1000, count }
+}
+/** Reel-in başlığı: tək ayə — "Verse of the day", passaj — "Verses of the Quran" (dilə görə). */
+function reelTitle(lang, pick) {
+  const L = PASSAGE_TITLE[lang] ? lang : 'az'
+  return pick && pick.to && pick.to !== pick.a ? PASSAGE_TITLE[L] : dailyAyah.TITLE_PREFIX[L]
+}
+/** IG_REEL_LANG / --lang → REEL_LANGS-dən biri; boş / yararsızdırsa 'en'. */
+function parseReelLang(raw) {
+  const v = String(raw || '').trim()
+  return REEL_LANGS.includes(v) ? v : DEFAULT_REEL_LANG
+}
+
 /** HH:MM (IG_REEL_TIME) → normallaşdırılmış dəyər; yararsızdırsa 18:00. */
 function parseReelTime(raw) {
   const m = /^(\d{1,2}):(\d{2})$/.exec(String(raw || '').trim())
@@ -66,16 +137,20 @@ function parseReelTime(raw) {
   return `${m[1].padStart(2, '0')}:${m[2]}`
 }
 
-/** <tarix>-reel.json → { ref, audio } | null — yalnız siyahıdakı ayə və icazəli səs rejimi. */
+/**
+ * <tarix>-reel.json → { ref, audio, lang } | null — yalnız icazəli istinad (isReelRef: köhnə tək ayə və ya passaj prefiksi)
+ * və icazəli səs rejimi; lang istəyə bağlıdır (köhnə sidecar-larda yoxdur → null), varsa REEL_LANGS-dən biri olmalıdır.
+ */
 function parseMeta(raw) {
   let o
   try { o = typeof raw === 'string' || Buffer.isBuffer(raw) ? JSON.parse(String(raw)) : raw } catch { return null }
   if (!o || typeof o !== 'object' || Array.isArray(o)) return null
   const ref = typeof o.ref === 'string' ? o.ref : ''
-  if (!dailyAyah.AYAH_REFS.includes(ref) || !dailyAyah.parseRef(ref)) return null
+  if (!isReelRef(ref)) return null
   const audio = AUDIO_MODES.includes(o.audio) ? o.audio : null
   if (!audio) return null
-  return { ref, audio }
+  if (o.lang != null && !REEL_LANGS.includes(o.lang)) return null
+  return { ref, audio, lang: o.lang == null ? null : o.lang }
 }
 
 /**
@@ -142,7 +217,46 @@ function reelTimeline({ audioSec = 0, lines = 1, words = 0, minSec = REEL_MIN_SE
   return { inkStart, inkEnd, audioStart, trStart, wordGap, trEnd, footStart, duration }
 }
 
+/**
+ * Passaj reel-inin zaman cədvəli (saniyə). ayahs — [{ audioSec, words }] (audioSec: o ayənin tilavəti; hamısı 0 — səssiz:
+ * oxuma vaxtı tərcümənin söz sayından), opts: { lead, tail, xfade, minSec }.
+ * → { duration, audioStart, audioSec, segments: [{ start, end, inkStart, inkEnd, trStart, wordGap, trEnd, settle, fadeOut }] }
+ * Ayə i öz tilavəti başlayanda (start) yazılmağa başlayır, növbəti ayənin tilavəti başlayanda (end) artıq sönmüş olur
+ * (fadeOut → end); son ayə sonadək qalır (üz qabığı — son saniyə). t=0-da 1-ci seqment aktivdir (güclü ilk kadr).
+ * settle — bu andan fadeOut-a qədər kadr dəyişmir (renderdə keşlənir).
+ */
+function passageTimeline(ayahs, { lead = PASSAGE_LEAD_SEC, tail = PASSAGE_TAIL_SEC, xfade = PASSAGE_XFADE_SEC, minSec = REEL_MIN_SEC } = {}) {
+  const clamp = (x, a, b) => Math.min(b, Math.max(a, x))
+  const list = Array.isArray(ayahs) ? ayahs : []
+  const voiced = list.some((x) => Number(x && x.audioSec) > 0)
+  const durs = list.map((x) => (voiced ? Math.max(0.5, Number(x && x.audioSec) || 0) : clamp(Number((x && x.words) || 0) * 0.32 + 1.5, 4, 14)))
+  const audioStart = voiced ? lead : 0.4
+  const segments = []
+  let at = audioStart
+  for (let i = 0; i < durs.length; i++) {
+    const d = durs[i]
+    const words = Math.max(0, Number(list[i] && list[i].words) || 0)
+    const start = i === 0 ? 0 : at
+    const inkStart = i === 0 ? Math.max(0.1, audioStart - 0.1) : at + 0.05
+    const inkDur = clamp(d * 0.55, 1, 16)
+    const inkEnd = inkStart + inkDur
+    const trStart = inkStart + Math.min(inkDur * 0.6, 6)
+    const trSpan = clamp(d * 0.3, 0.5, 1.6)
+    const wordGap = words > 1 ? clamp(trSpan / words, 0.03, 0.3) : 0
+    const trEnd = trStart + Math.max(0, words - 1) * wordGap + 0.5
+    at += d
+    const last = i === durs.length - 1
+    segments.push({ start, end: last ? null : at, inkStart, inkEnd, trStart, wordGap, trEnd, settle: Math.max(inkEnd + 0.7, trEnd + 0.1), fadeOut: last ? null : at - xfade })
+  }
+  const duration = Math.round(Math.max(minSec, at + tail) * 30) / 30
+  if (segments.length) segments[segments.length - 1].end = duration
+  return { duration, audioStart, audioSec: voiced ? Math.round((at - audioStart) * 1000) / 1000 : 0, segments }
+}
+
 module.exports = {
   REEL_MP4_RE, REEL_META_RE, REEL_MAX_BYTES, REEL_MIN_SEC, REEL_MAX_SEC, AUDIO_MODES, DEFAULT_REEL_TIME, REEL_POLL_SEC,
   RECITER, RECITATION, globalAyah, audioUrls, rotIndex, reelRef, parseReelTime, parseMeta, mp4DurationMs, reelCaption, reelTimeline,
+  // passaj reel-i (2026-11-27)
+  PASSAGE_MAX_SEC, PASSAGE_LEAD_SEC, PASSAGE_TAIL_SEC, PASSAGE_XFADE_SEC, REEL_LANGS, DEFAULT_REEL_LANG, REEL_PASSAGES, PASSAGE_TITLE,
+  refOf, passageRef, isReelRef, trimPassage, reelTitle, parseReelLang, passageTimeline,
 }

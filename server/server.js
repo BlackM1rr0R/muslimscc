@@ -28,7 +28,7 @@ for (const m of ['./auth', './users', './security', './syncKeys', './mailer', '.
   './communityKit', './publicProfile', './familyDua', './duaWall', './mosqueRep', './weekly', './ipKey', './pushClaims', './quranMeaning',
   './duaFriend', './hajjJourney', './welcome', './mailCampaigns', './adminSso',
   './prayerRooms', './janaza', './volunteers',
-  './trustBox', './telegramBot', './prayerCities', './instagram', './instagramCard', './instagram-data', './instagramReel']) require(m)
+  './trustBox', './telegramBot', './prayerCities', './instagram', './instagramCard', './instagram-data', './instagramReel', './tiktok']) require(m)
 // Paket asılılıqları da (server/package.json → npm ci) — image-də yoxdursa bazadan ƏVVƏL çöksün
 for (const m of ['@simplewebauthn/server']) require(m)
 // sharp (Instagram kartları, server/instagramCard.js) yalnız YOXLANIR (require.resolve) — libvips IG sönülüdürsə yüklənmir;
@@ -81,6 +81,8 @@ app.use('/api/push', limit(60000, 30))
 app.use('/api/telegram', limit(60000, 600))
 // Instagram kartları (server/instagram.js) — Instagram serverləri image_url-i buradan çəkir
 app.use('/api/ig', limit(60000, 60))
+// TikTok (server/tiktok.js): bir dəfəlik OAuth qoşulması (connect / callback) və PULL_FROM_URL video ünvanı
+app.use('/api/tiktok', limit(60000, 30))
 
 // ─── Admin girişi (server/auth.js) ───────────────────────────────────
 const authLib = require('./auth')
@@ -396,6 +398,22 @@ if (instagram.enabled) {
     try { instagram.purge() } catch (e) { console.error('instagram purge:', e && e.message) }
   }, 3600e3).unref()
   setTimeout(() => { instagram.refreshTick().catch(() => {}) }, 60e3).unref()
+}
+
+// ─── TikTok yükləyicisi (server/tiktok.js, docs/TIKTOK.md) — günün reel videosu (Instagram-la eyni MP4). api.env-də
+// TIKTOK_ENABLED=1 + TIKTOK_CLIENT_KEY + TIKTOK_CLIENT_SECRET yoxdursa tam sönülüdür (/api/tiktok/* → 404, şəbəkə yoxdur).
+// Hesab bir dəfə admin panelindən qoşulur (yalnız superadmin); status — admin+.
+const tiktok = require('./tiktok').createTikTok({ db, env: { ...process.env, DB_PATH }, publicOrigin: PUBLIC_ORIGIN, adminPath: process.env.ADMIN_PATH || undefined })
+app.use('/api', tiktok.router)
+app.use('/api', tiktok.adminRouter({ requireAdmin, adminRoleOf: usersStore.adminRole }))
+if (tiktok.enabled) {
+  // Gündə bir dəfə (TIKTOK_TIME, Asia/Baku): 30 saniyədə bir yoxlanır; bir dəfə — tiktok_posts.day UNIQUE (kəsintisiz deploy)
+  setInterval(() => { tiktok.tick().catch((e) => console.error('tiktok tick:', e && e.message)) }, 30000).unref()
+  // Gündə bir token yeniləməsi (rotasiya, bazada kilid) + köhnə sətirlər — saatda bir yoxlanır
+  setInterval(() => {
+    tiktok.refreshTick().catch((e) => console.error('tiktok refresh:', e && e.message))
+    try { tiktok.purge() } catch (e) { console.error('tiktok purge:', e && e.message) }
+  }, 3600e3).unref()
 }
 
 app.use(express.json())

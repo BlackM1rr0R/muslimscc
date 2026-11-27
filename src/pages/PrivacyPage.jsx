@@ -22,7 +22,7 @@ import { pickUi } from '../utils/uiText'
 //   • yer: prayerLocation.js, weather.js (Open-Meteo), sightings.js (1°), ummah.js (2°, yaddaş 10 dəq)
 //   • xəta hesabatları: clientErrors.js, csp.js (yalnız yaddaş); paylaşma: ShareTargetPage + nginx access_log off
 //   • vidcet/plagin: iframe-də statistika yoxdur, yalnız hündürlük mesajı (utils/embedHeight.js);
-//     Instagram: server/instagram.js (yalnız saytın açıq məzmunu)
+//     Instagram: server/instagram.js, TikTok: server/tiktok.js (yalnız saytın açıq məzmunu)
 //   • nginx access log (statik, /api/a, /share, /api/cal/, SSE loglanmır) — Docker json-file, 10 MB × 3 fayl
 // Yer tutucular və işarələmə: components/LegalDocument.jsx (NAMES — xidmət və texniki adlar).
 // ═══════════════════════════════════════════════════════
@@ -220,6 +220,7 @@ const DOC = {
           '**Başqa saytlarda:** namaz vaxtları blokumuz, məscid ekranı və ya {wordpress} plagini başqa saytda göstəriləndə ziyarət statistikası göndərmir və kuki qoymur; görünüş ayarlarını brauzerinizdə — hər sayt üçün ayrıca — saxlaya bilər. Yığcam məscid ekranı onu əhatə edən səhifəyə yalnız məzmunun hündürlüyünü (bir rəqəm) bildirir ki, çərçivə ona uyğunlaşsın. Avtomatik xəta hesabatları yuxarıda təsvir olunduğu kimi işləyir. Azərbaycandan kənar yerlər üçün vaxtları brauzeriniz aladhan.com-dan alır.',
           '**Sayta paylaşmaq:** başqa tətbiqdən mətni {brand} ilə paylaşsanız (Android-də "Paylaş"), mətn brauzerinizdə qalır — serverimizdə saxlanmır, server loglarına yazılmır və oflayn keşə düşmür. O, yalnız seçdiyiniz əməl üçün işlənir: məsələn, Quranda axtarış ərəbcə mətni {alquran} xidmətinə göndərir, dua gündəliyinə əlavə etmək isə onu cihazınızda saxlayır.',
           '**Instagram səhifəmiz:** postlar avtomatik dərc olunur və yalnız saytın açıq məzmunundan ibarətdir (ayə, hədis, dua və ya Allahın adlarından biri) — heç bir ziyarətçi və ya hesab məlumatı işlənmir. Instagram-ı açanda onun öz məxfilik siyasəti tətbiq olunur.',
+          '**TikTok hesabımız:** günün ayəsinin videosu (Instagram-dakı ilə eyni) TikTok-a da avtomatik göndərilir — yalnız saytın açıq məzmunu; heç bir ziyarətçi və ya hesab məlumatı TikTok-a ötürülmür. TikTok-u açanda onun öz məxfilik siyasəti tətbiq olunur.',
         ] },
       ] },
       thirdparty: { h: 'Üçüncü tərəf xidmətlər', body: [
@@ -480,6 +481,7 @@ const DOC = {
           '**On other websites:** when our prayer-times widget, the mosque display or the {wordpress} plugin is shown on another site, it sends no visit statistics and sets no cookies; it may keep display settings in your browser, separately for each site. The compact mosque display tells the page around it only the height of its content (a number), so that the frame fits. Automatic error reports work as described above. For places outside Azerbaijan, your browser fetches the times from aladhan.com.',
           '**Sharing to {brand}:** if you share text to {brand} from another app (“Share” on Android), the text stays in your browser — it is not saved on our server, not written to our server logs and not kept in the offline cache. It is used only for the action you choose: for example, a Quran search sends the Arabic text to {alquran}, and adding it to your dua journal keeps it on your device.',
           '**Our Instagram account:** posts are published automatically and contain only the site’s public content (a verse, a hadith, a dua or one of the names of Allah) — no visitor or account data is used. When you open Instagram, its own privacy policy applies.',
+          '**Our TikTok account:** the verse-of-the-day video (the same as on Instagram) is also sent to TikTok automatically — only the site’s public content; no visitor or account data is passed to TikTok. When you open TikTok, its own privacy policy applies.',
         ] },
       ] },
       thirdparty: { h: 'Third-party services', body: [
@@ -743,6 +745,7 @@ const DOC = {
           '**На других сайтах:** когда наш виджет времени намаза, экран мечети или плагин {wordpress} показывается на другом сайте, он не отправляет статистику посещений и не ставит куки; настройки отображения он может хранить в вашем браузере — отдельно для каждого сайта. Компактный экран мечети сообщает окружающей странице только высоту своего содержимого (число), чтобы рамка подстроилась под него. Автоматические отчёты об ошибках работают, как описано выше. Для мест за пределами Азербайджана время запрашивает у aladhan.com ваш браузер.',
           '**Поделиться с {brand}:** если вы поделитесь текстом с {brand} из другого приложения («Поделиться» на Android), текст остаётся в браузере — он не сохраняется на сервере, не записывается в журналы сервера и не попадает в офлайн-кэш. Он используется только для выбранного вами действия: например, поиск в Коране отправляет арабский текст в {alquran}, а добавление в дневник дуа сохраняет его на устройстве.',
           '**Наш аккаунт в Instagram:** публикации выходят автоматически и содержат только открытые материалы сайта (аят, хадис, дуа или одно из имён Аллаха) — данные посетителей и аккаунтов не используются. Когда вы открываете Instagram, действует его собственная политика конфиденциальности.',
+          '**Наш аккаунт в TikTok:** видео с аятом дня (то же, что в Instagram) автоматически отправляется и в TikTok — только открытые материалы сайта; данные посетителей и аккаунтов в TikTok не передаются. Когда вы открываете TikTok, действует его собственная политика конфиденциальности.',
         ] },
       ] },
       thirdparty: { h: 'Сторонние сервисы', body: [
@@ -1006,6 +1009,7 @@ const DOC = {
           '**في المواقع الأخرى:** عند عرض أداة مواقيت الصلاة أو شاشة المسجد أو إضافة {wordpress} في موقع آخر، لا ترسل إحصائيات زيارات ولا تضع ملفات تعريف ارتباط، وقد تحفظ إعدادات العرض في متصفحك منفصلةً لكل موقع. وتُبلغ شاشة المسجد المختصرة الصفحةَ المحيطة بها بارتفاع محتواها فقط (رقم واحد) ليتلاءم الإطار معه. وتعمل تقارير الأخطاء التلقائية كما سبق. ولأماكن خارج أذربيجان يطلب متصفحك المواقيت من aladhan.com.',
           '**المشاركة إلى {brand}:** إن شاركت نصًا إلى {brand} من تطبيق آخر («مشاركة» في أندرويد)، يبقى النص في متصفحك — فلا يُحفظ على خادمنا، ولا يُكتب في سجلات الخادم، ولا يدخل ذاكرة العمل دون اتصال. ولا يُستخدم إلا للإجراء الذي تختاره: فالبحث في القرآن مثلًا يرسل النص العربي إلى {alquran}، والإضافة إلى مفكّرة الدعاء تحفظه على جهازك.',
           '**حسابنا على إنستغرام:** تُنشر المنشورات تلقائيًا ولا تحتوي إلا على محتوى الموقع العام (آية أو حديث أو دعاء أو اسم من أسماء الله) — ولا تُستخدم أي بيانات للزوار أو الحسابات. وعند فتح إنستغرام تسري سياسة الخصوصية الخاصة به.',
+          '**حسابنا على تيك توك:** يُرسل فيديو آية اليوم (نفس فيديو إنستغرام) تلقائيًا إلى تيك توك أيضًا — محتوى الموقع العام فقط؛ ولا تُنقل أي بيانات للزوار أو الحسابات إلى تيك توك. وعند فتح تيك توك تسري سياسة الخصوصية الخاصة به.',
         ] },
       ] },
       thirdparty: { h: 'خدمات الجهات الخارجية', body: [
@@ -1266,6 +1270,7 @@ const DOC = {
           '**Başka sitelerde:** namaz vakitleri aracımız, cami ekranı veya {wordpress} eklentisi başka bir sitede gösterildiğinde ziyaret istatistiği göndermez ve çerez kullanmaz; görünüm ayarlarını tarayıcınızda — her site için ayrı — saklayabilir. Sade cami ekranı, çevresindeki sayfaya yalnızca içeriğinin yüksekliğini (bir sayı) bildirir; böylece çerçeve ona uyar. Otomatik hata raporları yukarıda anlatıldığı gibi çalışır. Azerbaycan dışındaki yerler için vakitleri tarayıcınız aladhan.com’dan alır.',
           '**{brand} ile paylaşma:** başka bir uygulamadan {brand} ile metin paylaşırsanız (Android’de “Paylaş”), metin tarayıcınızda kalır — sunucumuzda saklanmaz, sunucu kayıtlarına yazılmaz ve çevrim dışı önbelleğe alınmaz. Yalnızca seçtiğiniz işlem için kullanılır: örneğin Kur’an’da arama Arapça metni {alquran} hizmetine gönderir, dua günlüğüne eklemek ise onu cihazınızda saklar.',
           '**Instagram hesabımız:** gönderiler otomatik yayınlanır ve yalnızca sitenin herkese açık içeriğinden oluşur (bir ayet, bir hadis, bir dua veya Allah’ın isimlerinden biri) — hiçbir ziyaretçi veya hesap verisi kullanılmaz. Instagram’ı açtığınızda onun kendi gizlilik politikası geçerlidir.',
+          '**TikTok hesabımız:** günün ayetinin videosu (Instagram’dakiyle aynı) TikTok’a da otomatik gönderilir — yalnızca sitenin herkese açık içeriği; hiçbir ziyaretçi veya hesap verisi TikTok’a aktarılmaz. TikTok’u açtığınızda onun kendi gizlilik politikası geçerlidir.',
         ] },
       ] },
       thirdparty: { h: 'Üçüncü taraf hizmetler', body: [

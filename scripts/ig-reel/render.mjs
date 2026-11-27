@@ -1,22 +1,27 @@
 #!/usr/bin/env node
 // ═══════════════════════════════════════════════════════════════════════
-// Instagram REEL renderi — günün ayəsi, 1080×1920, 30 fps, H.264 + AAC (docs/INSTAGRAM.md → "Reels")
+// Instagram REEL renderi — günün Quran PASSAJI (ardıcıl ayələr), 1080×1920, 30 fps, H.264 + AAC (docs/INSTAGRAM.md → "Reels")
 //
 //   node scripts/ig-reel/render.mjs [--date YYYY-MM-DD] [--out reel.mp4] [--meta reel.json] [--frames <qovluq>]
-//                                   [--audio alafasy|none] [--theme day|night] [--ref 33:3] [--ffmpeg <yol>]
+//                                   [--lang en|az|ru|tr] [--audio alafasy|none] [--theme day|night] [--ref 67:1-5]
+//                                   [--ffmpeg <yol>]
 //
 // • Serverdə İŞLƏMİR (1 GB server) — GitHub Actions (.github/workflows/ig-reel.yml) hər gün çəkir, ci-gate.sh "ig-reel"
 //   ilə api həcminə yazır, server/instagram.js IG_REEL_TIME-da dərc edir. Asılılıqlar: server/node_modules (sharp), ffmpeg.
-// • Kartın görünüşü (server/instagramCard.js): eyni fon, xatəm ornamenti, Amiri Quran / MccInter şriftləri, ölçülər,
-//   pango ilə eyni sətir bölgüsü. Ərəbcə mətn kartdakı kimi BÜTÖV paraqraf kimi çəkilir; animasiya üçün eyni paraqraf
-//   "yalnız bu söz / sətir görünür" (qalan sözlər şəffaf — fgalpha) rejimində təkrar çəkilir → mövqelər piksel-piksel eynidir.
-// • Mətn alquran.cloud-dan (server ilə eyni nəşrlər — daily-ayah.js), DƏYİŞDİRİLMİR. Yeganə görüntü normallaşdırması kartdakı
-//   kimidir (dayanma işarəsi sözə bitişik — displayArabic). Səs: saytın Quran səsi (Alafasy 128 kbps, cdn.islamic.network,
-//   ehtiyat: verses.quran.com) — instagramReel.audioUrls.
-// • Seçim: instagramReel.reelRef (08:00 ayə yuvası ilə eyni düstur); tilavət uzundursa (video > 45 s) və ya mətn sığmırsa
-//   sıradakı ayə. Zaman cədvəli: instagramReel.reelTimeline.
-// • İlk kadr (hook): başlıq ("GÜNÜN AYƏSİ"), istinad ("Əhzab 33:3") və muslims.cc t=0-dan tam görünür, ərəbcə mətn zəif iz
-//   kimi (HOOK_GHOST) — mürəkkəb onun üstündən yazır. Üz qabığı (server: thumb_offset) — son saniyə, bütün mətn görünür.
+// • Dil: --lang (susmaya görə IG_REEL_LANG mühit dəyişəni, o da yoxdursa 'en'): tərcümə saytın həmin dil üçün nəşri
+//   (daily-ayah.js EDITIONS — en: en.asad, alquran.cloud), başlıq / tilavət sətri də həmin dildə.
+// • Passaj: instagramReel.passageRef (REEL_PASSAGES — gün üzrə deterministik növbə). Hər ayə növbə ilə: ərəbcə mətn
+//   "mürəkkəblə yazılır", tərcümə söz-söz görünür, yuxarıda kiçik "surə:ayə" sayğacı; ayənin öz tilavəti ilə sinxron
+//   (ayələrin səs faylları ffmpeg ilə PCM-ə açılıb ARASIZ birləşdirilir — ayə sərhədi = səs sərhədi). Tilavət
+//   PASSAGE_MAX_SEC-ə sığmırsa — ən uzun bütöv ayə prefiksi (trimPassage; ayə kəsilmir). Hər hansı ayə kartda minimal
+//   ölçüdə sığmırsa / şriftdə qlifi yoxdursa — sıradakı passaj.
+// • Kartın görünüşü (server/instagramCard.js): eyni fon, xatəm ornamenti, Amiri Quran / MccInter şriftləri, pango ilə
+//   eyni sətir bölgüsü. Ərəbcə mətn BÜTÖV paraqraf kimi düzülür; animasiya üçün eyni paraqraf "yalnız bu söz / sətir
+//   görünür" (qalan sözlər şəffaf — fgalpha) rejimində təkrar çəkilir → mövqelər piksel-piksel eynidir. Qatlar öz
+//   sərhədlərinə kəsilir (yaddaş). Mətn DƏYİŞDİRİLMİR (yalnız dayanma işarəsi sözə bitişik — displayArabic).
+// • İlk kadr (hook): başlıq ("VERSES OF THE QURAN"), istinad ("Al-Mulk 67:1-5"), tilavət sətri, sayğac və muslims.cc
+//   t=0-dan tam görünür, 1-ci ayə zəif iz kimi (HOOK_GHOST). Üz qabığı (server: thumb_offset = son saniyə) — son ayə tam.
+// • Ölçü: VBV həddi (maxrate) müddətə görə ≤ 15 MB-a hesablanır; aşarsa daha aşağı bitreytlə təkrar.
 // ═══════════════════════════════════════════════════════════════════════
 import fs from 'node:fs'
 import os from 'node:os'
@@ -39,17 +44,19 @@ const FPS = 30
 const FRAME = { top: 270, bottom: 400, padX: 130, ar: 72, arMin: 44, tr: 44, trMin: 32 }
 const SCALES = [1.12, 1, 0.92, 0.85, 0.78, 0.72, 0.66, 0.6]
 const SEP = 96
-const MAX_TRIES = 12
+const MAX_TRIES = 8
 const SAMPLE_RATE = 48000
-const HOOK_GHOST = 0.16          // 1-ci kadrda ərəbcə mətnin "izi" (şəffaflıq)
+const HOOK_GHOST = 0.16          // ayənin "izi" (şəffaflıq) — mürəkkəb onun üstündən yazır
+const AUDIO_KBPS = 128
 
 const clamp = (x, a, b) => Math.min(b, Math.max(a, x))
 const easeOut = (x) => 1 - Math.pow(1 - clamp(x, 0, 1), 3)
 const hex = (c) => [1, 3, 5].map((i) => parseInt(c.slice(i, i + 2), 16))
+const upper = (s, lang) => s.toLocaleUpperCase(lang === 'az' || lang === 'tr' ? 'tr' : lang || 'en')
 
 // ── Mətn qatları (sharp/pango — kartla eyni parametrlər) ──
 /**
- * words — sözlər; visible(i) — i-ci söz görünürmü (qalanları şəffaf, amma yer tutur). → { data (RGBA raw), w, h }
+ * words — sözlər; visible(i) — i-ci söz görünürmü (qalanları şəffaf, amma yer tutur). → { data (RGBA raw), w, h, ox, oy }
  */
 async function paragraph({ words, font, size, color, width, spacing = 0, letter = 0, visible = () => true }) {
   const sharp = card.loadSharp()
@@ -63,11 +70,11 @@ async function paragraph({ words, font, size, color, width, spacing = 0, letter 
       width, align: 'centre', rgba: true, wrap: 'word', dpi: 72, ...(spacing ? { spacing: Math.round(spacing) } : {}),
     },
   }).ensureAlpha().raw().toBuffer({ resolveWithObject: true })
-  return { data, w: info.width, h: info.height }
+  return { data, w: info.width, h: info.height, ox: 0, oy: 0 }
 }
 const line = (text, o) => paragraph({ ...o, words: [text] })
 
-/** Qatdakı mürəkkəbin sərhədləri (alfa > 0). */
+/** Qatdakı mürəkkəbin sərhədləri (alfa > 0), qatın öz koordinatlarında. */
 function bbox(l) {
   let x0 = l.w, y0 = l.h, x1 = -1, y1 = -1
   for (let y = 0; y < l.h; y++) {
@@ -77,33 +84,45 @@ function bbox(l) {
   }
   return x1 < 0 ? null : { x0, y0, x1, y1 }
 }
+/** Qatı mürəkkəbin sərhədinə kəs (yaddaş: tam paraqraf əvəzinə yalnız söz / sətir); ox/oy — paraqrafdakı mövqe. */
+function crop(l) {
+  const b = bbox(l)
+  if (!b) return null
+  const w = b.x1 - b.x0 + 1, h = b.y1 - b.y0 + 1
+  const data = Buffer.alloc(w * h * 4)
+  for (let y = 0; y < h; y++) l.data.copy(data, y * w * 4, ((b.y0 + y) * l.w + b.x0) * 4, ((b.y0 + y) * l.w + b.x1 + 1) * 4)
+  return { data, w, h, ox: l.ox + b.x0, oy: l.oy + b.y0 }
+}
 
 async function rawSvg(svg, alpha) {
   const sharp = card.loadSharp()
   let p = sharp(Buffer.from(svg))
   p = alpha ? p.ensureAlpha() : p.flatten({ background: '#000000' }).removeAlpha()
   const { data, info } = await p.raw().toBuffer({ resolveWithObject: true })
-  return { data, w: info.width, h: info.height }
+  return { data, w: info.width, h: info.height, ox: 0, oy: 0 }
 }
 
 // ── Kadr qurulması (rgb24) ──
-/** layer (RGBA) → frame (RGB), (ox, oy) mövqedə; op — ümumi şəffaflıq; colAlpha(x) — sütun üzrə əmsal; tint(x) — rəng. */
-function blend(frame, l, ox, oy, { op = 1, box = null, colAlpha = null, tint = null } = {}) {
-  if (op <= 0) return
-  const b = box || { x0: 0, y0: 0, x1: l.w - 1, y1: l.h - 1 }
-  for (let y = b.y0; y <= b.y1; y++) {
+/**
+ * layer (RGBA, kəsilmiş) → frame (RGB): paraqrafın sol-yuxarı küncü (px, py)-dədir, qat (px + l.ox, py + l.oy)-də.
+ * op — ümumi şəffaflıq; colAlpha(x) / tint(x) — x paraqrafın koordinatındadır.
+ */
+function blend(frame, l, px, py, { op = 1, colAlpha = null, tint = null } = {}) {
+  if (!l || op <= 0.002) return
+  const ox = px + l.ox, oy = py + l.oy
+  for (let y = 0; y < l.h; y++) {
     const fy = oy + y
     if (fy < 0 || fy >= H) continue
-    for (let x = b.x0; x <= b.x1; x++) {
+    for (let x = 0; x < l.w; x++) {
       const i = (y * l.w + x) * 4
-      let a = l.data[i + 3]
+      const a = l.data[i + 3]
       if (!a) continue
       const fx = ox + x
       if (fx < 0 || fx >= W) continue
       let k = (a / 255) * op
-      if (colAlpha) { k *= colAlpha(x); if (k <= 0) continue }
+      if (colAlpha) { k *= colAlpha(x + l.ox); if (k <= 0) continue }
       const j = (fy * W + fx) * 3
-      const c = tint ? tint(x) : null
+      const c = tint ? tint(x + l.ox) : null
       frame[j] = frame[j] + ((c ? c[0] : l.data[i]) - frame[j]) * k
       frame[j + 1] = frame[j + 1] + ((c ? c[1] : l.data[i + 1]) - frame[j + 1]) * k
       frame[j + 2] = frame[j + 2] + ((c ? c[2] : l.data[i + 2]) - frame[j + 2]) * k
@@ -127,31 +146,26 @@ function glow(frame, cx, cy, r, color, op) {
   }
 }
 
-// ── Səhnə: kart düzülüşü + animasiya üçün qatlar ──
-/**
- * content: { title, ar, text, ref } (saytın mətni), reciter: footer sətri (və ya null — səssiz).
- * → səhnə | null (oxunaqlı ölçüdə sığmır / ərəb mətni şriftdə düzgün çəkilmir)
- */
-export async function buildScene(content, { theme = 'day', reciter = null } = {}) {
-  const t = card.THEMES[theme] || card.THEMES.day
-  const ar = card.displayArabic(content.ar)
-  const text = card._clean(content.text)
-  if (!ar || !text || card.arabicIssues(ar, 'quran').length) return null
-  const width = W - 2 * FRAME.padX
-  const title = await line(card._clean(content.title).toLocaleUpperCase('tr'), { font: 'uiSemi', size: 28, color: t.gold, width, letter: 4 })
-  const ref = await line(card._clean(content.ref), { font: 'uiSemi', size: 30, color: t.gold, width })
-  const rec = reciter ? await line(reciter, { font: 'ui', size: 26, color: t.soft, width }) : null
-  const mark = await line('muslims.cc', { font: 'uiSemi', size: 34, color: t.gold, width, letter: 3 })
+// ── Səhnə: kart düzülüşü + hər ayə üçün animasiya qatları ──
+// Görünməz formatlama simvolları (qlif tələb etmir): en.asad mətnində yumşaq defis U+00AD var ("shack­les") — pango onu
+// yalnız sətir sonunda "-" kimi çəkir; mətn dəyişdirilmir
+const INVISIBLE = new Set([0xad, 0x200b, 0x200c, 0x200d, 0x200e, 0x200f, 0x2060, 0xfeff])
+/** Tərcümə şriftində (MccInter) olmayan simvollar — varsa ayə çəkilmir (▯ / başqa şriftə düşmə olmasın). */
+export function latinIssues(text) {
+  const has = card.fontCoverage(card.FONT.ui.file)
+  const out = new Set()
+  for (const ch of String(text || '')) {
+    const cp = ch.codePointAt(0)
+    if (!/\s/u.test(ch) && !INVISIBLE.has(cp) && !has(cp)) out.add('U+' + cp.toString(16).toUpperCase().padStart(4, '0'))
+  }
+  return [...out]
+}
 
-  const titleY = FRAME.top + 44 + 40 + 30
-  const markY = H - FRAME.bottom - mark.h
-  const footY = markY - 26
-  const recY = rec ? footY - 30 - rec.h : footY
-  const refY = (rec ? recY - 14 : footY - 34) - ref.h
-  const areaTop = titleY + title.h + 48
-  const areaBottom = refY - 44
-  const avail = areaBottom - areaTop
-
+/** Bir ayənin düzülüşü (sahəyə sığan ən böyük ölçü) → qatlar | null (oxunaqlı ölçüdə sığmır / qlif yoxdur). */
+async function layoutAyah(ayah, { t, width, areaTop, avail }) {
+  const ar = card.displayArabic(ayah.ar)
+  const text = card._clean(ayah.text)
+  if (!ar || !text || card.arabicIssues(ar, 'quran').length || latinIssues(text).length) return null
   const arWords = ar.split(' ').filter(Boolean)
   const trWords = text.split(' ').filter(Boolean)
   const fit = async (s) => {
@@ -198,16 +212,50 @@ export async function buildScene(content, { theme = 'day', reciter = null } = {}
   }
   const arLines = []
   for (const g of groups) {
-    const l = await paragraph({ words: arWords, font: 'quran', size: pick.arSize, color: '#ffffff', width, visible: (k) => g.idx.has(k) })
-    const b = bbox(l)
-    if (b) arLines.push({ layer: l, box: b })
+    const l = crop(await paragraph({ words: arWords, font: 'quran', size: pick.arSize, color: '#ffffff', width, visible: (k) => g.idx.has(k) }))
+    if (l) arLines.push({ layer: l, x0: l.ox, x1: l.ox + l.w - 1, cy: l.oy + l.h / 2 })
   }
   // Tərcümə: hər söz ayrıca qat (eyni paraqraf) — söz-söz görünür
   const trLayers = []
   for (let i = 0; i < trWords.length; i++) {
-    const l = await paragraph({ words: trWords, font: 'ui', size: pick.trSize, color: t.text, width, spacing: pick.trSize * 0.3, visible: (k) => k === i })
-    const b = bbox(l)
-    if (b) trLayers.push({ layer: l, box: b })
+    const l = crop(await paragraph({ words: trWords, font: 'ui', size: pick.trSize, color: t.text, width, spacing: pick.trSize * 0.3, visible: (k) => k === i }))
+    if (l) trLayers.push(l)
+  }
+  if (!arLines.length || !trLayers.length) return null
+  return { arSize: pick.arSize, trSize: pick.trSize, arPos, trPos, sepY, arLines, trLayers, arFull: crop(pick.arL), lines: arLines.length, words: trLayers.length }
+}
+
+/**
+ * passage: { title, ref, ayahs: [{ ar, text, num }] } (saytın mətni, verbatim), reciter: footer sətri (və ya null — səssiz).
+ * → səhnə | null (hər hansı ayə oxunaqlı ölçüdə sığmır / ərəb mətni şriftdə düzgün çəkilmir)
+ */
+export async function buildPassageScene(passage, { theme = 'day', reciter = null, lang = 'en' } = {}) {
+  const t = card.THEMES[theme] || card.THEMES.day
+  if (!passage || !Array.isArray(passage.ayahs) || !passage.ayahs.length) return null
+  const width = W - 2 * FRAME.padX
+  const title = await line(upper(card._clean(passage.title), lang), { font: 'uiSemi', size: 28, color: t.gold, width, letter: 4 })
+  const ref = await line(card._clean(passage.ref), { font: 'uiSemi', size: 30, color: t.gold, width })
+  const rec = reciter ? await line(reciter, { font: 'ui', size: 26, color: t.soft, width }) : null
+  const mark = await line('muslims.cc', { font: 'uiSemi', size: 34, color: t.gold, width, letter: 3 })
+  const counters = []
+  for (const a of passage.ayahs) counters.push(await line(card._clean(a.num), { font: 'uiSemi', size: 26, color: t.gold, width, letter: 2 }))
+
+  const titleY = FRAME.top + 44 + 40 + 30
+  const counterY = titleY + title.h + 18
+  const counterH = Math.max(...counters.map((c) => c.h))
+  const markY = H - FRAME.bottom - mark.h
+  const footY = markY - 26
+  const recY = rec ? footY - 30 - rec.h : footY
+  const refY = (rec ? recY - 14 : footY - 34) - ref.h
+  const areaTop = counterY + counterH + 40
+  const areaBottom = refY - 44
+  const avail = areaBottom - areaTop
+
+  const ayahs = []
+  for (const a of passage.ayahs) {
+    const l = await layoutAyah(a, { t, width, areaTop, avail })
+    if (!l) return null
+    ayahs.push(l)
   }
 
   const bg = await rawSvg(card._background('story', theme, { sepY: null, footY }).toString(), false)
@@ -215,47 +263,69 @@ export async function buildScene(content, { theme = 'day', reciter = null } = {}
     `<line x1="${W / 2 - 150}" y1="20" x2="${W / 2 - 28}" y2="20" stroke="${t.gold}" stroke-opacity="0.55" stroke-width="2"/>` +
     `<line x1="${W / 2 + 28}" y1="20" x2="${W / 2 + 150}" y2="20" stroke="${t.gold}" stroke-opacity="0.55" stroke-width="2"/>` +
     card._khatam(W / 2, 20, 13, { stroke: t.gold, width: 2, opacity: 0.85 }) + '</svg>'
-  const sep = await rawSvg(sepSvg, true)
+  const sep = crop(await rawSvg(sepSvg, true))
   const center = (l, y) => ({ l, x: Math.round((W - l.w) / 2), y: Math.round(y) })
   return {
-    theme: t, bg, arSize: pick.arSize, trSize: pick.trSize, arPos, trPos, arLines, trLayers, arFull: { layer: pick.arL, box: bbox(pick.arL) },
-    sep: { l: sep, x: 0, y: sepY - 20 },
+    theme: t, bg, sep, ayahs,
     title: center(title, titleY), ref: center(ref, refY), rec: rec ? center(rec, recY) : null, mark: center(mark, markY),
-    lines: arLines.length, words: trLayers.length,
+    counters: counters.map((c) => center(c, counterY + (counterH - c.h) / 2)),
   }
 }
 
-/** Zaman cədvəlinə görə t saniyəsindəki kadr (rgb24 Buffer). */
-export function renderFrame(scene, tl, t) {
+/** t saniyəsində aktiv seqment (ayə) indeksi. */
+function segmentAt(tl, t) {
+  let i = 0
+  while (i + 1 < tl.segments.length && t >= tl.segments[i + 1].start) i++
+  return i
+}
+
+/**
+ * Zaman cədvəlinə (instagramReel.passageTimeline) görə t saniyəsindəki kadr (rgb24 Buffer). cache — { key, buf }:
+ * ayə tam yazılıb sönməyə başlayana qədər kadr dəyişmir — eyni bufer qaytarılır (render 2–3 dəfə tezləşir).
+ */
+export function renderPassageFrame(scene, tl, t, cache = null) {
+  const i = segmentAt(tl, t)
+  const seg = tl.segments[i]
+  const A = scene.ayahs[i]
+  const still = t >= seg.settle && (seg.fadeOut == null || t < seg.fadeOut)
+  if (cache && still && cache.key === i) return cache.buf
+
   const f = Buffer.from(scene.bg.data)
   const T = scene.theme
   const gold = hex(T.gold), arC = hex(T.ar), fresh = [255, 236, 186]
-  const fade = (start, dur = 0.6) => easeOut((t - start) / dur)
   const put = (o, op) => blend(f, o.l, o.x, o.y, { op })
 
-  // 1-ci kadr (Instagram güclü ilk kadrı üstün tutur; üz qabığı seçilməsə də boş görünməsin): başlıq + istinad ("GÜNÜN AYƏSİ"
-  // · "Əhzab 33:3") və muslims.cc t=0-dan tam görünür, ərəbcə mətn isə zəif "iz" kimi (HOOK_GHOST) — mürəkkəb onun üstündən yazır.
+  // Sabit hissə (t=0-dan tam): başlıq, istinad, tilavət sətri, muslims.cc
   put(scene.title, 1)
   put(scene.mark, 1)
   put(scene.ref, 1)
-  if (scene.arFull && scene.arFull.box) blend(f, scene.arFull.layer, scene.arPos.x, scene.arPos.y, { op: HOOK_GHOST, box: scene.arFull.box, tint: () => arC })
+  if (scene.rec) put(scene.rec, 1)
+
+  // Ayənin şəffaflığı: sonda sönür (növbəti ayə gəlir), əvvəldə (1-ci ayədən başqa) iz / sayğac yumşaq görünür
+  const out = seg.fadeOut != null && t > seg.fadeOut ? 1 - clamp((t - seg.fadeOut) / Math.max(0.05, seg.end - seg.fadeOut), 0, 1) : 1
+  const inn = i === 0 ? 1 : easeOut((t - seg.start) / 0.25)
+  const op = out * inn
+  put(scene.counters[i], op)
+  blend(f, A.arFull, A.arPos.x, A.arPos.y, { op: HOOK_GHOST * op, tint: () => arC })
 
   // Ərəbcə: sətir-sətir, sağdan sola "mürəkkəblə yazılır" (yumşaq kənar + qələmin ucunda işıq + təzə mürəkkəb qızılıdır)
-  const F = Math.round(scene.arSize * 1.1)
-  const weights = scene.arLines.map((ln) => ln.box.x1 - ln.box.x0 + F)
+  const F = Math.round(A.arSize * 1.1)
+  const weights = A.arLines.map((ln) => ln.x1 - ln.x0 + F)
   const sum = weights.reduce((a, b) => a + b, 0)
-  let acc = tl.inkStart
-  for (let i = 0; i < scene.arLines.length; i++) {
-    const ln = scene.arLines[i]
-    const dur = ((tl.inkEnd - tl.inkStart) * weights[i]) / sum
+  let acc = seg.inkStart
+  for (let k = 0; k < A.arLines.length; k++) {
+    const ln = A.arLines[k]
+    const dur = ((seg.inkEnd - seg.inkStart) * weights[k]) / sum
     const s = acc
     acc += dur
     if (t < s) continue
-    const startX = ln.box.x1 + F, endX = ln.box.x0
+    if (t >= acc + 0.55) { blend(f, ln.layer, A.arPos.x, A.arPos.y, { op, tint: () => arC }); continue }   // qurumuş mürəkkəb
+    const startX = ln.x1 + F, endX = ln.x0
     const v = (startX - endX) / dur
-    const fx = startX - (t - s) * v           // sona çatandan sonra da hərəkət edir — rəng tam "qurusun"
-    blend(f, ln.layer, scene.arPos.x, scene.arPos.y, {
-      box: ln.box,
+    // sətrin sonundan sonra kənar sürətlə sola çəkilir — təzə (qızılı) mürəkkəb ≤ 0.5 s-də "quruyur"
+    const fx = t <= acc ? startX - (t - s) * v : endX - (t - acc) * Math.max(v, (2.5 * F) / 0.5)
+    blend(f, ln.layer, A.arPos.x, A.arPos.y, {
+      op,
       colAlpha: (x) => clamp((x - (fx - F)) / F, 0, 1),
       tint: (x) => {
         const m = clamp((x - fx) / (F * 2.5), 0, 1)
@@ -264,20 +334,18 @@ export function renderFrame(scene, tl, t) {
     })
     if (t <= acc) {
       const env = Math.min(1, (t - s) / 0.3, (acc - t) / 0.3 + 0.15)
-      glow(f, scene.arPos.x + clamp(fx - F * 0.5, endX, ln.box.x1), scene.arPos.y + (ln.box.y0 + ln.box.y1) / 2, scene.arSize * 0.75, gold, 0.22 * env)
+      glow(f, A.arPos.x + clamp(fx - F * 0.5, endX, ln.x1), A.arPos.y + ln.cy, A.arSize * 0.75, gold, 0.22 * env * op)
     }
   }
 
   // Ayırıcı + tərcümə söz-söz (yuxarıdan yumşaq enir)
-  put(scene.sep, fade(tl.trStart - 0.3, 0.8))
-  for (let i = 0; i < scene.trLayers.length; i++) {
-    const w = scene.trLayers[i]
-    const p = easeOut((t - (tl.trStart + i * tl.wordGap)) / 0.5)
+  blend(f, scene.sep, 0, A.sepY - 20, { op: easeOut((t - (seg.trStart - 0.3)) / 0.8) * op })
+  for (let k = 0; k < A.trLayers.length; k++) {
+    const p = easeOut((t - (seg.trStart + k * seg.wordGap)) / 0.5)
     if (p <= 0) continue
-    blend(f, w.layer, scene.trPos.x, scene.trPos.y - Math.round((1 - p) * 10), { op: p, box: w.box })
+    blend(f, A.trLayers[k], A.trPos.x, A.trPos.y - Math.round((1 - p) * 10), { op: p * op })
   }
-
-  if (scene.rec) put(scene.rec, fade(tl.footStart + 0.25, 0.6))
+  if (cache && still) { cache.key = i; cache.buf = f }
   return f
 }
 
@@ -307,18 +375,24 @@ async function fetchBuf(url, tries = 2) {
 }
 const looksMp3 = (b) => b && b.length > 2000 && (b.toString('latin1', 0, 3) === 'ID3' || (b[0] === 0xff && (b[1] & 0xe0) === 0xe0))
 
-/** Ayə(lər)in tilavəti → PCM s16le 48 kHz stereo (aralıq: ayələr arasında 0.3 s sükut). */
-export async function recitationPcm(pick, ffmpeg) {
+/**
+ * Passajın ayələrinin tilavəti → [PCM s16le 48 kHz stereo] (hər ayə ayrıca; aralarında sükut YOXDUR — arasız birləşdirmə).
+ * maxSec — cəm bu həddi keçən kimi dayanır (lazımsız yükləmə olmasın; trimPassage onsuz da kəsəcək).
+ */
+export async function recitationParts(pick, ffmpeg, maxSec = Infinity) {
   const parts = []
-  for (let a = pick.a; a <= pick.to; a++) {
+  let sum = 0
+  for (let a = pick.a; a <= pick.to && sum <= maxSec; a++) {
     let mp3 = null
     for (const u of REEL.audioUrls(pick.s, a)) { mp3 = await fetchBuf(u); if (looksMp3(mp3)) break; mp3 = null }
     if (!mp3) throw new Error(`səs faylı tapılmadı: ${pick.s}:${a}`)
-    parts.push(await run(ffmpeg, ['-hide_banner', '-loglevel', 'error', '-i', 'pipe:0', '-f', 's16le', '-ac', '2', '-ar', String(SAMPLE_RATE), 'pipe:1'], { input: mp3 }))
-    if (a < pick.to) parts.push(Buffer.alloc(Math.round(0.3 * SAMPLE_RATE) * 4))
+    const pcm = await run(ffmpeg, ['-hide_banner', '-loglevel', 'error', '-i', 'pipe:0', '-f', 's16le', '-ac', '2', '-ar', String(SAMPLE_RATE), 'pipe:1'], { input: mp3 })
+    parts.push(pcm)
+    sum += pcm.length / (SAMPLE_RATE * 4)
   }
-  return Buffer.concat(parts)
+  return parts
 }
+const pcmSec = (b) => b.length / (SAMPLE_RATE * 4)
 
 function wav(pcm) {
   const h = Buffer.alloc(44)
@@ -329,18 +403,26 @@ function wav(pcm) {
 }
 
 // ── Kodlaşdırma ──
+/** Müddətə görə video bitreyt həddi (kbit/s): bütün fayl maxBytes-ın ~90 %-nə sığsın (səs + konteyner payı çıxılır). */
+export function videoMaxrateKbps(seconds, maxBytes = REEL.REEL_MAX_BYTES) {
+  const total = (maxBytes * 0.9 * 8) / Math.max(1, seconds) / 1000
+  return Math.max(400, Math.min(8000, Math.floor(total - AUDIO_KBPS - 16)))
+}
+
 /**
- * scene + tl → MP4 (H.264 High yuv420p bt709, qapalı GOP, AAC 128k 48 kHz stereo, faststart, edit list yoxdur).
- * pcm — tilavət (null: səssiz trek). frames: [{ t, file }] — PNG kadrlar (baxış üçün).
+ * Kadrlar → MP4 (H.264 High yuv420p bt709, qapalı GOP, CRF + VBV həddi, AAC 128k 48 kHz stereo, faststart, edit list yoxdur).
+ * renderAt(t) — kadr (rgb24); duration — saniyə; audioStart — tilavət nə vaxt başlayır; pcm — tilavət (null: səssiz trek).
+ * frames: [{ t, file }] — PNG kadrlar (baxış üçün).
  */
-export async function encode({ scene, tl, pcm, out, ffmpeg = 'ffmpeg', fps = FPS, frames = [], crf = 19 }) {
+export async function encode({ renderAt, duration, audioStart = 0, pcm, out, ffmpeg = 'ffmpeg', fps = FPS, frames = [], crf = 20, maxrate = null }) {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'mcc-reel-'))
   try {
-    const n = Math.round(tl.duration * fps)
+    const n = Math.round(duration * fps)
     const total = n / fps
+    const rate = maxrate || videoMaxrateKbps(total)
     let audioIn
     if (pcm) {
-      const lead = Buffer.alloc(Math.round(tl.audioStart * SAMPLE_RATE) * 4)
+      const lead = Buffer.alloc(Math.round(audioStart * SAMPLE_RATE) * 4)
       const body = Buffer.concat([lead, pcm])
       const need = Math.round(total * SAMPLE_RATE) * 4
       const full = body.length >= need ? body.subarray(0, need) : Buffer.concat([body, Buffer.alloc(need - body.length)])
@@ -354,10 +436,11 @@ export async function encode({ scene, tl, pcm, out, ffmpeg = 'ffmpeg', fps = FPS
       ...audioIn,
       '-map', '0:v:0', '-map', '1:a:0',
       '-vf', 'scale=out_color_matrix=bt709:out_range=tv,format=yuv420p',
-      '-c:v', 'libx264', '-preset', 'slow', '-crf', String(crf), '-profile:v', 'high', '-level:v', '4.2',
+      '-c:v', 'libx264', '-preset', 'slow', '-crf', String(crf), '-maxrate', `${rate}k`, '-bufsize', `${rate * 2}k`,
+      '-profile:v', 'high', '-level:v', '4.2',
       '-g', String(fps * 2), '-keyint_min', String(fps), '-sc_threshold', '0', '-flags', '+cgop', '-x264-params', 'aq-mode=3',
       '-color_primaries', 'bt709', '-color_trc', 'bt709', '-colorspace', 'bt709', '-color_range', 'tv',
-      '-c:a', 'aac', '-b:a', '128k', '-ar', String(SAMPLE_RATE), '-ac', '2',
+      '-c:a', 'aac', '-b:a', `${AUDIO_KBPS}k`, '-ar', String(SAMPLE_RATE), '-ac', '2',
       '-t', total.toFixed(3), '-movflags', '+faststart', '-use_editlist', '0',
       path.resolve(out),
     ]
@@ -370,7 +453,7 @@ export async function encode({ scene, tl, pcm, out, ffmpeg = 'ffmpeg', fps = FPS
     p.stdin.on('error', (e) => { failed = failed || e })
     const want = new Map(frames.map((fr) => [Math.min(n - 1, Math.max(0, Math.round(fr.t * fps))), fr.file]))
     for (let i = 0; i < n && !failed; i++) {
-      const buf = renderFrame(scene, tl, i / fps)
+      const buf = renderAt(i / fps)
       if (want.has(i)) {
         await card.loadSharp()(buf, { raw: { width: W, height: H, channels: 3 } }).png().toFile(want.get(i))
       }
@@ -379,7 +462,7 @@ export async function encode({ scene, tl, pcm, out, ffmpeg = 'ffmpeg', fps = FPS
     p.stdin.end()
     const code = await closed
     if (failed || code !== 0) throw new Error(`ffmpeg: ${failed ? failed.message : code} ${Buffer.concat(err).toString().slice(-800)}`)
-    return { frames: n, seconds: total, size: fs.statSync(out).size }
+    return { frames: n, seconds: total, size: fs.statSync(out).size, maxrate: rate }
   } finally { fs.rmSync(tmp, { recursive: true, force: true }) }
 }
 
@@ -388,57 +471,76 @@ export function bakuDate(d = new Date()) {
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Baku', year: 'numeric', month: '2-digit', day: '2-digit' }).format(d)
 }
 
-async function ayahData(pick) {
+/** Passajın hər ayəsi ayrıca (alquran.cloud, saytın nəşrləri) → [{ texts, names }] | null (hər hansı ayə əlçatmazdır). */
+async function ayahParts(pick) {
   const parts = []
   for (let a = pick.a; a <= pick.to; a++) {
     const b = await fetchBuf(dailyAyah.ayahApiUrl(pick.s, a), 3)
     let j = null
     try { j = b ? JSON.parse(b.toString('utf8')) : null } catch { j = null }
-    parts.push(j ? dailyAyah.parseAyahResponse(j, pick.s, a) : null)
+    const p = j ? dailyAyah.parseAyahResponse(j, pick.s, a) : null
+    if (!p) return null
+    parts.push(p)
   }
-  return dailyAyah.mergeAyahParts(parts)
+  return parts
 }
 
-/** server/instagram.js → ayahContent ilə eyni başlıq / istinad (az). */
-function contentFor(pick, data, lang = 'az') {
-  const num = `${pick.s}:${pick.a}${pick.to && pick.to !== pick.a ? `-${pick.to}` : ''}`
-  return { kind: 'ayah', title: dailyAyah.TITLE_PREFIX[lang], ar: data.texts.ar, text: data.texts[lang], ref: `${dailyAyah.surahLabel(lang, pick.s, data.names)} ${num}` }
-}
+/** Səssiz rejimdə ayənin "oxuma" müddəti — passageTimeline ilə eyni düstur (trimPassage üçün). */
+const silentSec = (words) => clamp(words * 0.32 + 1.5, 4, 14)
 
 /**
- * Günün reel-ini çək. → { ref, k, audio, duration, size, out }
- * opts: { date, out, audio: 'alafasy'|'none', theme, ref (məcburi ayə — sınaq), ffmpeg, framesDir, log }
+ * Günün reel-ini çək. → { date, ref, passage, k, audio, lang, ayahs, audioSec, duration, size, out }
+ * opts: { date, out, lang, audio: 'alafasy'|'none', theme, ref (məcburi passaj / ayə — sınaq), ffmpeg, framesDir, log }
  */
 export async function renderDay(opts = {}) {
   const { date = bakuDate(), out, audio = 'alafasy', theme = 'day', ffmpeg = 'ffmpeg', framesDir = null, log = console } = opts
+  const lang = REEL.parseReelLang(opts.lang)
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new Error('tarix YYYY-MM-DD olmalıdır')
   if (!REEL.AUDIO_MODES.includes(audio)) throw new Error('audio: alafasy | none')
-  if (opts.ref && !dailyAyah.AYAH_REFS.includes(opts.ref)) throw new Error('ref siyahıda yoxdur (daily-ayah.js AYAH_REFS)')
-  const reciter = audio === 'alafasy' ? `${REEL.RECITATION.az}: ${REEL.RECITER.name.az}` : null
+  if (opts.lang && opts.lang !== lang) throw new Error(`lang: ${REEL.REEL_LANGS.join(' | ')}`)
+  if (opts.ref && !REEL.isReelRef(opts.ref)) throw new Error('ref icazəli deyil (instagramReel.js REEL_PASSAGES və ya daily-ayah.js AYAH_REFS)')
+  const reciter = audio === 'alafasy' ? `${REEL.RECITATION[lang]}: ${REEL.RECITER.name[lang]}` : null
+  const capAudio = REEL.PASSAGE_MAX_SEC - REEL.PASSAGE_LEAD_SEC - REEL.PASSAGE_TAIL_SEC
   for (let k = 0; k < (opts.ref ? 1 : MAX_TRIES); k++) {
-    const ref = opts.ref || REEL.reelRef(date, k)
-    const pick = { ...dailyAyah.parseRef(ref), ref }
-    const data = await ayahData(pick)
-    if (!data) throw new Error(`ayə mənbəyi əlçatmazdır: ${ref}`)
-    const content = contentFor(pick, data)
-    const scene = await buildScene(content, { theme, reciter })
-    if (!scene) { log.warn(`  ${ref}: kartda sığmır / ərəb mətni yoxlamadan keçmir — sıradakı`); continue }
-    const pcm = audio === 'alafasy' ? await recitationPcm(pick, ffmpeg) : null
-    const audioSec = pcm ? pcm.length / (SAMPLE_RATE * 4) : 0
-    const tl = REEL.reelTimeline({ audioSec, lines: scene.lines, words: scene.words })
-    if (tl.duration > REEL.REEL_MAX_SEC) { log.warn(`  ${ref}: video ${tl.duration.toFixed(1)} s > ${REEL.REEL_MAX_SEC} s (tilavət ${audioSec.toFixed(1)} s) — sıradakı`); continue }
+    const passage = opts.ref || REEL.passageRef(date, k)
+    const full = dailyAyah.parseRef(passage)
+    const parts = await ayahParts(full)
+    if (!parts) throw new Error(`ayə mənbəyi əlçatmazdır: ${passage}`)
+    const pcmParts = audio === 'alafasy' ? await recitationParts(full, ffmpeg, capAudio) : null
+    const durations = pcmParts ? pcmParts.map(pcmSec) : parts.map((p) => silentSec(card._clean(p.texts[lang]).split(' ').filter(Boolean).length))
+    const pick = REEL.trimPassage(full, durations, capAudio)
+    if (!pick) { log.warn(`  ${passage}: 1-ci ayənin tilavəti də ${capAudio} s-dən uzundur — sıradakı`); continue }
+    if (pick.ref !== passage) log.log(`  ${passage} → ${pick.ref} (tilavət ${pick.audioSec.toFixed(1)} s ≤ ${capAudio} s; bütöv ayələr)`)
+    const used = parts.slice(0, pick.count)
+    const content = {
+      title: REEL.reelTitle(lang, pick),
+      ref: `${dailyAyah.surahLabel(lang, pick.s, used[0].names)} ${pick.ref}`,
+      ayahs: used.map((p, i) => ({ ar: p.texts.ar, text: p.texts[lang], num: `${pick.s}:${pick.a + i}` })),
+    }
+    const scene = await buildPassageScene(content, { theme, reciter, lang })
+    if (!scene) { log.warn(`  ${pick.ref}: ayələrdən biri kartda minimal ölçüdə sığmır / qlif yoxlamadan keçmir — sıradakı passaj`); continue }
+    const tl = REEL.passageTimeline(used.map((p, i) => ({ audioSec: pcmParts ? pcmSec(pcmParts[i]) : 0, words: scene.ayahs[i].words })))
+    if (tl.duration > REEL.PASSAGE_MAX_SEC + 0.05) { log.warn(`  ${pick.ref}: video ${tl.duration.toFixed(1)} s > ${REEL.PASSAGE_MAX_SEC} s — sıradakı`); continue }
+    const pcm = pcmParts ? Buffer.concat(pcmParts.slice(0, pick.count)) : null
+    const mid = tl.segments[Math.floor((tl.segments.length - 1) / 2)]
     const frames = framesDir ? [
-      { t: tl.inkStart + 0.45 * (tl.inkEnd - tl.inkStart), file: path.join(framesDir, 'frame-1-ink.png') },
-      { t: tl.trStart + 0.55 * (tl.trEnd - tl.trStart), file: path.join(framesDir, 'frame-2-translation.png') },
-      { t: tl.duration - 0.5, file: path.join(framesDir, 'frame-3-final.png') },
+      { t: 0, file: path.join(framesDir, 'frame-1-hook.png') },
+      { t: mid.inkStart + 0.7 * (mid.inkEnd - mid.inkStart), file: path.join(framesDir, 'frame-2-ink.png') },
+      { t: tl.duration - 1, file: path.join(framesDir, 'frame-3-cover.png') },
     ] : []
     if (framesDir) fs.mkdirSync(framesDir, { recursive: true })
-    let r = await encode({ scene, tl, pcm, out, ffmpeg, frames })
-    if (r.size > REEL.REEL_MAX_BYTES) r = await encode({ scene, tl, pcm, out, ffmpeg, crf: 26 })
+    const cache = {}
+    const renderAt = (t) => renderPassageFrame(scene, tl, t, cache)
+    const enc = { renderAt, duration: tl.duration, audioStart: tl.audioStart, pcm, out, ffmpeg }
+    let r = await encode({ ...enc, frames })
+    if (r.size > REEL.REEL_MAX_BYTES) r = await encode({ ...enc, crf: 25, maxrate: Math.floor(r.maxrate * 0.7) })
     if (r.size > REEL.REEL_MAX_BYTES) throw new Error(`MP4 ${r.size} bayt > ${REEL.REEL_MAX_BYTES}`)
-    return { date, ref, k, audio, audioSec: Math.round(audioSec * 100) / 100, duration: r.seconds, size: r.size, out }
+    return {
+      date, ref: pick.ref, passage, k, audio, lang, ayahs: pick.count, audioSec: Math.round(tl.audioSec * 100) / 100,
+      duration: r.seconds, size: r.size, out,
+    }
   }
-  throw new Error('reel üçün uyğun ayə tapılmadı')
+  throw new Error('reel üçün uyğun passaj tapılmadı')
 }
 
 // ── CLI ──
@@ -457,11 +559,12 @@ if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.ar
   const audioEnv = String(process.env.IG_REEL_AUDIO || '').trim()
   const opts = {
     date: a.date || bakuDate(), out: a.out || 'reel.mp4', audio: a.audio || (audioEnv === 'none' ? 'none' : 'alafasy'),
+    lang: a.lang || String(process.env.IG_REEL_LANG || '').trim() || REEL.DEFAULT_REEL_LANG,
     theme: a.theme === 'night' ? 'night' : 'day', ref: a.ref || null, ffmpeg: a.ffmpeg || process.env.FFMPEG_PATH || 'ffmpeg', framesDir: a.frames || null,
   }
   const t0 = Date.now()
   renderDay(opts).then((r) => {
     if (a.meta) fs.writeFileSync(a.meta, JSON.stringify(r, null, 2) + '\n')
-    console.log(`✓ ${r.date} ${r.ref} (k=${r.k}, səs: ${r.audio}${r.audioSec ? ` ${r.audioSec} s` : ''}) → ${r.out} — ${r.duration.toFixed(2)} s, ${(r.size / 1048576).toFixed(2)} MB, ${((Date.now() - t0) / 1000).toFixed(0)} s`)
+    console.log(`✓ ${r.date} ${r.ref} (${r.ayahs} ayə, passaj ${r.passage}, k=${r.k}, dil: ${r.lang}, səs: ${r.audio}${r.audioSec ? ` ${r.audioSec} s` : ''}) → ${r.out} — ${r.duration.toFixed(2)} s, ${(r.size / 1048576).toFixed(2)} MB, ${((Date.now() - t0) / 1000).toFixed(0)} s`)
   }).catch((e) => { console.error('✗', e && e.message); process.exit(1) })
 }

@@ -1,13 +1,14 @@
 # ═══════════════════════════════════════════════════════
-# Muslims.cc — Instagram reel (günün ayəsinin videosu; docs/INSTAGRAM.md → "Reels")
+# Muslims.cc — Instagram reel (günün Quran passajının videosu; docs/INSTAGRAM.md → "Reels")
 #
 # Hər gün 02:30 UTC (06:30 Asia/Baku): scripts/ig-reel/render.mjs bu günün (Bakı tarixi) reel-ini çəkir
-# (1080×1920, 30 fps, H.264 + AAC, ≤ 15 MB) və CI açarı ilə serverə yükləyir: ci-gate.sh "ig-reel" əmri faylı api
+# (ardıcıl ayələr, 45–89 s, 1080×1920, 30 fps, H.264 + AAC, ≤ 15 MB) və CI açarı ilə serverə yükləyir: ci-gate.sh "ig-reel" əmri faylı api
 # həcminə (/data/ig-cards/<tarix>-reel.mp4 + .json) yazır. Dərc — server/instagram.js, IG_REELS=1 olanda IG_REEL_TIME-da.
 # Video serverdə ÇƏKİLMİR (1 GB RAM). Deploy-a toxunmur: ayrı iş, ayrı concurrency qrupu, push-da işləmir.
 #
 # Sirlər — deploy ilə EYNİ (yeni sirr yoxdur): DEPLOY_HOST, DEPLOY_SSH_KEY, DEPLOY_KNOWN_HOSTS.
-# İstəyə bağlı repo dəyişəni (Settings → Variables): IG_REEL_AUDIO=none — səssiz video (tilavət səsi olmadan).
+# İstəyə bağlı repo dəyişənləri (Settings → Variables): IG_REEL_LANG=en|az|ru|tr — tərcümənin / başlığın dili (susmaya
+# görə en; serverdəki IG_CAPTION_LANGS-ın 1-ci dili ilə eyni olsun), IG_REEL_AUDIO=none — səssiz video (tilavətsiz).
 # Əl ilə: Actions → Instagram reel → Run workflow (tarix — boş: bu gün; "upload" söndürülsə yalnız artefakt).
 # ═══════════════════════════════════════════════════════
 name: Instagram reel
@@ -37,7 +38,7 @@ jobs:
   reel:
     name: Reel-i çək və yüklə
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with: { persist-credentials: false }
@@ -63,16 +64,21 @@ jobs:
         env:
           INPUT_DATE: ${{ inputs.date }}
           IG_REEL_AUDIO: ${{ vars.IG_REEL_AUDIO }}
+          IG_REEL_LANG: ${{ vars.IG_REEL_LANG }}
         run: |
           D="${INPUT_DATE:-$(TZ=Asia/Baku date +%F)}"
           echo "$D" | grep -Eq '^20[0-9]{2}-[0-9]{2}-[0-9]{2}$' || { echo "tarix yararsızdır: $D"; exit 1; }
+          L="${IG_REEL_LANG:-en}"
+          case "$L" in en|az|ru|tr) ;; *) echo "IG_REEL_LANG yararsızdır: $L"; exit 1 ;; esac
           mkdir -p out
-          node scripts/ig-reel/render.mjs --date "$D" --out "out/$D-reel.mp4" --meta out/reel.json --frames out/frames
+          node scripts/ig-reel/render.mjs --date "$D" --lang "$L" --out "out/$D-reel.mp4" --meta out/reel.json --frames out/frames
           REF=$(node -p "require('./out/reel.json').ref")
           AUDIO=$(node -p "require('./out/reel.json').audio")
-          echo "$REF" | grep -Eq '^[0-9]{1,3}:[0-9]{1,3}(-[0-9]{1,3})?$' || { echo "ref yararsızdır"; exit 1; }
-          { echo "date=$D"; echo "ref=$REF"; echo "audio=$AUDIO"; } >> "$GITHUB_OUTPUT"
-          echo "### Reel $D — $REF ($AUDIO)" >> "$GITHUB_STEP_SUMMARY"
+          RLANG=$(node -p "require('./out/reel.json').lang")
+          echo "$REF" | grep -Eq '^[1-9][0-9]{0,2}:[1-9][0-9]{0,2}(-[1-9][0-9]{0,2})?$' || { echo "ref yararsızdır"; exit 1; }
+          [ "$RLANG" = "$L" ] || { echo "dil uyğun deyil: $RLANG"; exit 1; }
+          { echo "date=$D"; echo "ref=$REF"; echo "audio=$AUDIO"; echo "lang=$RLANG"; } >> "$GITHUB_OUTPUT"
+          echo "### Reel $D — $REF ($AUDIO, $RLANG, $(node -p "require('./out/reel.json').duration.toFixed(1)") s)" >> "$GITHUB_STEP_SUMMARY"
 
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
@@ -93,16 +99,24 @@ jobs:
           printf 'Host prod\n  HostName %s\n  User root\n  IdentityFile ~/.ssh/deploy\n  IdentitiesOnly yes\n  StrictHostKeyChecking yes\n  ServerAliveInterval 15\n' \
             "$HOST" > ~/.ssh/config
 
-      # ci-gate.sh: ig-reel <tarix> <ayə> <səs> — stdin MP4. Deploy eyni anda api konteynerini dəyişirsə — təkrar cəhd.
+      # ci-gate.sh: ig-reel <tarix> <ref> <səs> <dil> — stdin MP4. Deploy eyni anda api konteynerini dəyişirsə — təkrar cəhd.
+      # Keçid: serverdəki ci-gate.sh hələ köhnədirsə (dil arqumentini "artıq arqument" ilə rədd edir) — dilsiz forma.
       - name: Serverə yüklə
         if: github.event_name == 'schedule' || inputs.upload
         env:
           D: ${{ steps.render.outputs.date }}
           REF: ${{ steps.render.outputs.ref }}
           AUDIO: ${{ steps.render.outputs.audio }}
+          RLANG: ${{ steps.render.outputs.lang }}
         run: |
+          ARGS="ig-reel $D $REF $AUDIO $RLANG"
           for i in 1 2 3; do
-            if ssh prod "ig-reel $D $REF $AUDIO" < "out/$D-reel.mp4"; then exit 0; fi
+            if ssh prod "$ARGS" < "out/$D-reel.mp4" 2> err.txt; then cat err.txt >&2; exit 0; fi
+            cat err.txt >&2
+            if grep -q 'ci-gate: artıq arqument' err.txt; then
+              echo "server ci-gate.sh köhnədir — dilsiz forma (infra/ci-gate.sh-ı serverə köçürün)"
+              ARGS="ig-reel $D $REF $AUDIO"; continue
+            fi
             echo "cəhd $i alınmadı — 30 s sonra yenidən"; sleep 30
           done
           exit 1

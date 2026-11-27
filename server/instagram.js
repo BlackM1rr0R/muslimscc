@@ -757,10 +757,24 @@ function createInstagram(opts = {}) {
     // faststart: moov faylın əvvəlindədir (Meta-nın tələbi) — müddət oxunmursa fayl yararsız sayılır
     const durationMs = REEL.mp4DurationMs(head)
     if (!durationMs || durationMs < 3000 || durationMs > 90e3) return null
-    return { size: st.size, ref: meta.ref, audio: meta.audio, durationMs }
+    return { size: st.size, ref: meta.ref, audio: meta.audio, lang: meta.lang, durationMs }
+  }
+
+  /**
+   * Reel caption-u: IG_CAPTION_LANGS dillərində (instagram.js-in adi caption-u + tilavət sətri). Passaj uzundursa
+   * (ərəbcə + tərcümə 2200-ü keçir) — mətnsiz qısa variant (başlıq, istinad, keçid, heşteqlər; mətn videodadır).
+   */
+  function reelCaptionFor(content, info, dateKey) {
+    const opts = { day: dateKey, tagKind: 'reel' }
+    const full = REEL.reelCaption(buildCaptionMulti(content, cfg.captionLangs, opts), info.audio, cfg.captionLangs)
+    if (full) return full
+    const L1 = cfg.captionLangs[0]
+    const p = (content.variant && content.variant(L1)) || content
+    return REEL.reelCaption(buildCaption({ ...p, ar: '', text: '' }, L1, opts), info.audio, cfg.captionLangs)
   }
 
   const reelMissing = new Set()
+  const reelLangWarned = new Set()
   async function runReel(row, dateKey, slotKey) {
     try {
       const info = reelInfo(dateKey)
@@ -768,9 +782,16 @@ function createInstagram(opts = {}) {
       const pick = { ...dailyAyah.parseRef(info.ref), ref: info.ref }
       const data = await ayahData(pick)
       if (!data) throw failure('transient', 'ayah source unavailable')
-      const content = withVariant(ayahContent(cfg.lang, pick, data, origin), (L) => ayahContent(L, pick, data, origin))
+      // Passaj (67:1-5) — başlıq "Verses of the Quran" (videodakı kimi); tək ayə — "Verse of the day"
+      const reelContent = (L) => { const c = ayahContent(L, pick, data, origin); if (c) c.title = REEL.reelTitle(L, pick); return c }
+      const content = withVariant(reelContent(cfg.lang), reelContent)
       if (!content) throw failure('fatal', 'no content')
-      const caption = REEL.reelCaption(buildCaptionMulti(content, cfg.captionLangs, { day: dateKey, tagKind: 'reel' }), info.audio, cfg.captionLangs)
+      // Videonun dili (sidecar lang, CI: IG_REEL_LANG) caption-un əsas dilindən fərqlidirsə — bir dəfə xəbərdarlıq
+      if (info.lang && info.lang !== cfg.captionLangs[0] && !reelLangWarned.has(dateKey)) {
+        reelLangWarned.add(dateKey)
+        log.warn(`Instagram: reel videosu ${info.lang} dilindədir, caption isə ${cfg.captionLangs.join(',')} — repo dəyişəni IG_REEL_LANG / IG_CAPTION_LANGS uyğunlaşdırın`)
+      }
+      const caption = reelCaptionFor(content, info, dateKey)
       if (!caption) throw failure('fatal', 'caption too long')
       // Üz qabığı: son saniyə — bütün mətn (ərəbcə, tərcümə, istinad) görünür
       const mid = await publishReel(`${origin}/api/ig/card/${dateKey}-reel.mp4`, { caption, thumbOffsetMs: Math.max(0, info.durationMs - 1000) })
@@ -1109,7 +1130,7 @@ function createInstagram(opts = {}) {
     const row = q.get.get(day, cfg.reelTime, 'reel')
     return {
       enabled: cfg.reels, time: cfg.reelTime, date: day,
-      file: info ? { size: info.size, ref: info.ref, audio: info.audio, durationMs: info.durationMs } : null,
+      file: info ? { size: info.size, ref: info.ref, audio: info.audio, lang: info.lang, durationMs: info.durationMs } : null,
       post: row ? { status: row.status, error: row.error ? String(row.error).slice(0, 120) : null, ig_media_id: row.ig_media_id, attempts: row.attempts } : null,
       url: info && cfg.enabled ? `/api/ig/card/${day}-reel.mp4` : null,
     }

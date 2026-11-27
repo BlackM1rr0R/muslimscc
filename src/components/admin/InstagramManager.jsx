@@ -309,7 +309,7 @@ function Reel({ l, reel, superAdmin }) {
       <p className="admin-section-lead">{reel.enabled ? l.reelLead : l.reelOff}</p>
       <dl className="ig-facts">
         <div><dt>{l.reelTime}</dt><dd>{reel.time}</dd></div>
-        <div><dt>{l.reelFile}</dt><dd data-testid="ig-reel-file">{reel.date} — {f ? `${l.reelReady} · ${f.ref} · ${l.reelSound[f.audio] || f.audio} · ${(f.durationMs / 1000).toFixed(1)} s · ${(f.size / 1048576).toFixed(1)} MB` : l.reelMissing}</dd></div>
+        <div><dt>{l.reelFile}</dt><dd data-testid="ig-reel-file">{reel.date} — {f ? `${l.reelReady} · ${f.ref}${f.lang ? ` (${f.lang})` : ''} · ${l.reelSound[f.audio] || f.audio} · ${(f.durationMs / 1000).toFixed(1)} s · ${(f.size / 1048576).toFixed(1)} MB` : l.reelMissing}</dd></div>
         <div><dt>{l.reelPost}</dt><dd>{p ? <>{l.st[p.status] || p.status}{p.error && p.status !== 'published' ? <span className="rt-note"> · {p.error}</span> : null}</> : l.reelNotYet}</dd></div>
       </dl>
       {superAdmin && reel.url && <p><a className="ui-btn" href={reel.url} target="_blank" rel="noopener noreferrer" data-testid="ig-reel-link">{l.reelOpen}</a></p>}

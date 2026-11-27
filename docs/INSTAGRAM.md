@@ -110,7 +110,7 @@ IG_ENABLED=1
 # IG_SLOTS=08:00,13:00,20:00    # Asia/Baku, ən çox 6; 1-ci ayə, 2-ci hədis, 3-cü dua/ad (sonra təkrarlanır)
 # IG_STORIES=1                  # 0 — yalnız feed postu
 # IG_API_VERSION=v27.0          # Meta versiyanı köhnəltsə yeniləyin
-# IG_REELS=1                    # günün ayəsinin reel-i (aşağıda "Reels"); susmaya görə sönülü
+# IG_REELS=1                    # günün Quran passajının reel-i (aşağıda "Reels"); susmaya görə sönülü
 # IG_REEL_TIME=18:00            # reel-in dərc vaxtı (Asia/Baku)
 # IG_CAROUSEL=1                 # həftəlik karusel (aşağıda "Böyümə"); susmaya görə sönülü
 # IG_CAROUSEL_DAY=5             # 0 bazar … 5 cümə … 6 şənbə
@@ -185,43 +185,73 @@ TAG=$(cat .current_tag) docker compose exec -T api node scripts/instagram.js pre
 - Ayə üçün alquran.cloud əlçatmazdırsa yuva təkrar cəhd edir (≤ 5); bütün cəhdlər uğursuz olsa həmin gün ayə postu olmur.
 - Story-də link stikeri API ilə dəstəklənmir (Meta) — story yalnız kartdır.
 
-## Reels (günün ayəsinin videosu)
+## Reels (günün Quran passajının videosu)
 
-Gündə bir **Reel** (1080×1920, 9:16, 15–45 s): günün ayəsinin ərəbcə mətni kartın dizaynında (zümrüd / qum, xatəm,
-Amiri Quran, dayanma işarəsi sözə bitişik) sağdan sola "mürəkkəblə yazılır", sonra Azərbaycanca tərcümə söz-söz görünür,
-sonda istinad ("Əhzab 33:3"), "Tilavət: Mişari Raşid əl-Əfasi" və muslims.cc. Səs — ayənin tilavəti, **saytın Quran səsi ilə
-eyni mənbə və qari** (cdn.islamic.network, `ar.alafasy` 128 kbps; ehtiyat verses.quran.com — src/utils/quranAudio.js).
-Müddət = 0.8 s + tilavət + 1.5 s (ən azı 15 s). Mətn dəyişdirilmir və qısaldılmır.
+Gündə bir **Reel** (1080×1920, 9:16, 30 fps, **45–89 s**; 2026-11-27-dən tək ayə yox — ardıcıl ayələrdən **passaj**).
+Ayələr növbə ilə göstərilir: ərəbcə mətn kartın dizaynında (zümrüd / qum, xatəm, Amiri Quran, dayanma işarəsi sözə bitişik)
+sağdan sola "mürəkkəblə yazılır", tərcümə söz-söz görünür, yuxarıda kiçik "surə:ayə" sayğacı ("23:5"); ayə bitəndə sönür,
+növbəti yazılır. Daim görünən: başlıq ("VERSES OF THE QURAN"), istinad ("Al-Muminoon 23:1-9"), "Recitation: Mishary Rashid
+Alafasy", muslims.cc. Səs — ayələrin tilavəti, **saytın Quran səsi ilə eyni mənbə və qari** (cdn.islamic.network,
+`ar.alafasy` 128 kbps; ehtiyat verses.quran.com — src/utils/quranAudio.js); ayələrin faylları ffmpeg ilə PCM-ə açılıb
+**arasız** birləşdirilir, ayə sərhədi = səs sərhədi (sinxron). Müddət = 0.8 s + tilavət + 2.2 s (ən azı 15 s).
+Mətn dəyişdirilmir və qısaldılmır.
+
+**Dil:** reel-in tərcüməsi / başlığı / tilavət sətri `IG_REEL_LANG` repo dəyişənindədir (en | az | ru | tr, susmaya görə
+**en**); ingiliscə tərcümə saytın və postların ingiliscə nəşridir (`en.asad`, alquran.cloud — daily-ayah.js `EDITIONS`).
+Caption isə serverin `IG_CAPTION_LANGS`-ı ilə yazılır (prod: `en`) — ikisi eyni olsun (fərqlidirsə server loga bir dəfə
+xəbərdarlıq yazır, dərc dayanmır).
+
+**Passajlar** (`server/instagramReel.js` → `REEL_PASSAGES`, yalnız istinad; gün üzrə deterministik növbə — `passageRef`,
+addım 7, 26 passaj → 26 gündə hər biri bir dəfə): 1:1-7, 2:1-5, 3:26-27, 3:190-194, 13:28-29, 17:23-24, 23:1-11, 25:63-67,
+36:1-12, 39:53-54, 55:1-16, 59:22-24, 67:1-5, 78:1-16, 87:1-13, 87:14-19, 91:1-15, 93:1-11, 94:1-8, 97:1-5, 99:1-8, 100:1-11,
+101:1-11, 102:1-8, 113:1-5, 114:1-6. Qaydalar:
+- tilavət 86 s-dən uzundursa (video ≤ 89 s) — **ən uzun bütöv ayə prefiksi** (`trimPassage`; ayə heç vaxt kəsilmir):
+  3:190-194 → 3:190-192, 23:1-11 → 23:1-9, 36:1-12 → 36:1-9, 55:1-16 → 55:1-12;
+- hər hansı ayə kartda minimal ölçüdə (ərəbcə 44 px, tərcümə 32 px) sığmırsa və ya qlif yoxlamasından keçmirsə — sıradakı passaj;
+- siyahıda **yoxdur**: 2:255, 2:284-286 (bir ayə bir ekrana sığmır — həmişə atlanardı), 112 (13 s), 103 (20 s) — çox qısa.
+  13:28-29, 87:14-19, 94, 97, 113, 114 45 s-dən qısadır (24–41 s) — saxlanılıb (məşhurdur); istəsəniz siyahıdan çıxarın.
+- Hədd: Meta Content Publishing API REELS üçün 3 s – 15 dəq qəbul edir, amma Instagram 90 s-dən uzun reel-ləri
+  izləməyənlərə tövsiyə etmir, `reelInfo` 90 s-dən uzun faylı rədd edir — `PASSAGE_MAX_SEC = 89`.
 
 **Necə işləyir** (video serverdə ÇƏKİLMİR — 1 GB RAM):
 
 1. `.github/workflows/ig-reel.yml` hər gün **02:30 UTC** (06:30 Bakı): `scripts/ig-reel/render.mjs` bu günün (Asia/Baku)
    reel-ini çəkir — sharp/pango ilə kadrlar (kartla eyni kod: `server/instagramCard.js`), ffmpeg ilə H.264 High yuv420p
    bt709, 30 fps, qapalı GOP, AAC 128k 48 kHz stereo, `+faststart`, edit list yoxdur, ≤ 15 MB (Meta Reels tələbləri:
-   MP4, moov əvvəldə, H.264/HEVC, AAC ≤ 48 kHz, 23–60 fps, 9:16 tövsiyə olunur, 3 s – 15 dəq). MP4 və 3 kadr artefakt
-   kimi 7 gün saxlanır (Actions → run → Artifacts) — baxmaq üçün.
-2. Ayə seçimi 08:00 ayə postu ilə **eyni** düsturdur (`instagramReel.reelRef`, k=0 — günün ayəsi). Video 45 s-dən uzun
-   olarsa (tilavət uzundur) və ya mətn oxunaqlı ölçüdə sığmırsa / ərəb mətni şrift yoxlamasından keçmirsə — siyahıda sıradakı ayə.
+   MP4, moov əvvəldə, H.264/HEVC, AAC ≤ 48 kHz, 23–60 fps, 9:16 tövsiyə olunur, 3 s – 15 dəq). Ölçü: CRF 20 + VBV həddi
+   (`maxrate` müddətə görə — fayl 15 MB-ın ~90 %-nə sığır; 83 s nümunə ≈ 9.9 MB). Sabit kadrlar keşlənir — 83 s reel
+   ~30 s-də çəkilir. MP4, `reel.json` və 3 kadr (`frame-1-hook`, `frame-2-ink`, `frame-3-cover`) artefakt kimi 7 gün
+   saxlanır (Actions → run → Artifacts) — baxmaq üçün.
+2. Passaj seçimi yuxarıdakı qaydalarla (`passageRef(date, k)`; k=0 sığmırsa k+1 …, ən çox 8 cəhd).
 3. Yükləmə deploy ilə **eyni SSH açarı** ilə (sirlər `DEPLOY_HOST`, `DEPLOY_SSH_KEY`, `DEPLOY_KNOWN_HOSTS` — yeni sirr yoxdur).
-   Açar serverdə yalnız `ci-gate.sh`-ı işlədir; yeni əmr `ig-reel <tarix> <ayə> <alafasy|none>` (stdin — MP4) tarixi / ayəni /
-   səs rejimini, ölçünü (10 KB – 15 MB) və MP4 imzasını yoxlayır və faylı işləyən api konteynerinin həcminə yazır:
-   `/data/ig-cards/<tarix>-reel.mp4` + `<tarix>-reel.json` (`{"ref":"33:3","audio":"alafasy"}`), atomik `mv` ilə.
+   Açar serverdə yalnız `ci-gate.sh`-ı işlədir; əmr `ig-reel <tarix> <ref> <alafasy|none> [en|az|ru|tr]` (stdin — MP4)
+   tarixi / istinadı (tək ayə `33:3` və ya passaj `67:1-5`, sıfırsız rəqəmlər) / səs rejimini / dili (allowlist), ölçünü
+   (10 KB – 15 MB) və MP4 imzasını yoxlayır və faylı işləyən api konteynerinin həcminə yazır: `/data/ig-cards/<tarix>-reel.mp4`
+   + `<tarix>-reel.json` (`{"ref":"23:1-9","audio":"alafasy","lang":"en"}`; dilsiz köhnə forma — `lang` yoxdur), atomik `mv`.
+   Keçid: serverdəki köhnə `ci-gate.sh` 5-ci arqumenti "artıq arqument" ilə rədd edir — workflow onda dilsiz formaya keçir.
+   Server sidecar-ı `parseMeta` ilə yoxlayır: istinad köhnə tək ayə siyahısında (AYAH_REFS) və ya `REEL_PASSAGES`-dəki
+   passajın eyni ayədən başlayan bütöv prefiksi olmalıdır.
    Workflow push-da işləmir, ayrı concurrency qrupundadır — deploy-u bloklamır; deploy eyni anda gedirsə 3 dəfə təkrar cəhd edir.
 4. `server/instagram.js` (`IG_REELS=1`): `IG_REEL_TIME`-da (susmaya görə 18:00, +90 dəq tutma) fayl varsa
    `POST /{ig-user-id}/media` — `media_type=REELS`, `video_url=https://muslims.cc/api/ig/card/<tarix>-reel.mp4`,
-   `caption` (ikidilli, digər postlar kimi + "Tilavət / Recitation: Mişari Raşid əl-Əfasi"), `share_to_feed=true`,
+   `caption` (`IG_CAPTION_LANGS` dillərində, digər postlar kimi; başlıq passajda "Verses of the Quran: Al-Mulk 67:1-5", tək
+   ayədə "Verse of the day: …"; + "Recitation: Mishary Rashid Alafasy" — iki dildə "Tilavət / Recitation: …"; ərəbcə +
+   tərcümə 2200-ü keçirsə — mətnsiz qısa caption: başlıq, istinad, keçid, tilavət, heşteqlər), `share_to_feed=true`,
    `thumb_offset` (son saniyə — bütün mətn görünür) → status ~5 dəq artan fasilə ilə (5, 5, 10 … 30 s) → `media_publish`.
    Bir dəfə dərc / iki proses / təkrar cəhd — digər yuvalar kimi (`instagram_posts`, format `reel`).
    Fayl yoxdursa (CI işləməyib) — loga bir dəfə `reel faylı yoxdur … reel atlandı`, həmin gün reel olmur.
    Video `/api/ig/card/<tarix>-reel.mp4` ünvanından **Range** (206) dəstəyi ilə verilir (nginx `^~ /api/ig/`); 7 gündən
    köhnə reel faylları kartlarla birlikdə silinir.
-5. Admin → Instagram → **Reel** bölməsi: bu günün faylı (ayə, səs, müddət, ölçü), dərc vəziyyəti; superadmin üçün
+5. Admin → Instagram → **Reel** bölməsi: bu günün faylı (istinad, səs, dil, müddət, ölçü), dərc vəziyyəti; superadmin üçün
    "Videoya bax" keçidi.
 
 **Yandırmaq (lead / sahib):**
 
 1. `infra/ci-gate.sh`-ın yeni versiyasını serverə köçürün (infra faylları əl ilə köçürülür — zero-downtime-deploy qaydası):
    `git show HEAD:infra/ci-gate.sh | ssh <server> "cat > /opt/muslimscc/ci-gate.sh.new && chmod 755 /opt/muslimscc/ci-gate.sh.new && mv /opt/muslimscc/ci-gate.sh.new /opt/muslimscc/ci-gate.sh"`.
+   (köçürmədən əvvəl `sh -n` ilə yoxlayın; köhnə qapı ilə də reel yüklənir — dilsiz, `lang` sidecar-da olmur.)
+   Dil: GitHub → Settings → Secrets and variables → Actions → **Variables** → `IG_REEL_LANG` (en | az | ru | tr;
+   yoxdursa `en`) — serverin `IG_CAPTION_LANGS`-ının 1-ci dili ilə eyni olsun.
 2. Actions → **Instagram reel** → Run workflow (`upload` açıq) → artefaktdakı MP4-ə baxın; serverdə fayl:
    `TAG=$(cat .current_tag) docker compose exec -T api ls -la /data/ig-cards`.
 3. `api.env` → `IG_REELS=1` (istəsəniz `IG_REEL_TIME=18:00`), api-ni yenidən yaradın (yuxarıda "5. api env-i oxusun";
@@ -236,12 +266,15 @@ Müddət = 0.8 s + tilavət + 1.5 s (ən azı 15 s). Mətn dəyişdirilmir və q
 - Meta `video_url`-i Cloudflare üzərindən çəkir: WAF / Bot Fight qaydası `facebookexternalhit`-i bloklasa konteyner `ERROR`
   olur (status "media", ≤ 5 cəhd). 404 cavabları `no-store`-dur (keşlənmir); 200 cavabı 5 dəq keşlənir.
 - 24 saatlıq dərc limiti (100 post) reel-i də sayır — gündə 7 (3 post + 3 story + 1 reel), problem deyil.
-- Reel 08:00 ayə postu ilə eyni ayədir (gün ərzində iki formatda) — fərqli ayə istənsə `reelRef(date, k)`-da ofset əlavə edin.
+- Reel passajı 08:00 ayə postundan ayrıca seçilir (`passageRef`); köhnə tək ayə köməkçiləri (`reelRef`, `reelTimeline`,
+  `REEL_MAX_SEC`) geriyə uyğunluq üçün `instagramReel.js`-də qalır (server/tiktok.js də bu modulu oxuyur).
 - Video kadrları HarfBuzz/pango ilə kartdakı kimi formalaşır; animasiya eyni paraqrafın "yalnız bu söz görünür" (qalanları
   şəffaf) variantlarıdır — sətir bölgüsü və mövqelər tam paraqrafla piksel-piksel eynidir (reel kənarları kartdan
   genişdir: Reels-in düymələri / caption-u altında mətn qalmasın).
-- Yerli çəkmək: `node scripts/ig-reel/render.mjs --date 2026-11-25 --out /tmp/reel.mp4 --frames /tmp/frames [--ref 33:3]
-  [--audio none] [--ffmpeg <yol>]` (`npm ci --prefix server` + ffmpeg lazımdır).
+- Yerli çəkmək: `node scripts/ig-reel/render.mjs --date 2026-11-29 --lang en --out /tmp/reel.mp4 --meta /tmp/reel.json
+  --frames /tmp/frames [--ref 67:1-5] [--audio none] [--ffmpeg <yol>]` (`npm ci --prefix server` + ffmpeg lazımdır).
+- Tərcümə şriftində (MccInter) olmayan simvol olan ayə çəkilmir (passaj atlanır); `en.asad`-dakı yumşaq defis (U+00AD)
+  görünməz sayılır — pango onu yalnız sətir sonunda "-" kimi çəkir.
 
 ## Böyümə (orqanik əhatə, Explore, izləyicilər — yalnız qanuni üsullar)
 
@@ -315,9 +348,10 @@ server ID-ni özü axtarmır və susmaya görə məkan **qoyulmur**. ID-ni tapma
 
 ### Reel-in ilk kadrı
 
-Instagram güclü ilk kadrı (və üz qabığını) üstün tutur. `scripts/ig-reel/render.mjs`: başlıq ("GÜNÜN AYƏSİ"), istinad
-("Əhzab 33:3") və muslims.cc **t=0-dan tam görünür**, ərəbcə mətn zəif iz kimi (16 %) durur və mürəkkəb onun üstündən yazır —
-ilk kadr boş deyil. Üz qabığı (`thumb_offset`) — son saniyə, bütün mətn görünür.
+Instagram güclü ilk kadrı (və üz qabığını) üstün tutur. `scripts/ig-reel/render.mjs`: başlıq ("VERSES OF THE QURAN"),
+sayğac ("23:1"), istinad ("Al-Muminoon 23:1-9"), tilavət sətri və muslims.cc **t=0-dan tam görünür**, 1-ci ayənin ərəbcə
+mətni zəif iz kimi (16 %) durur və mürəkkəb onun üstündən yazır — ilk kadr boş deyil. Üz qabığı (`thumb_offset`) — son
+saniyə: son ayə (ərəbcə + tərcümə) tam görünür.
 
 ### Statistika (insights) — sahibin addımı
 

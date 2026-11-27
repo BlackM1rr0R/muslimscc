@@ -44,14 +44,14 @@ function fakeMp4(durationMs = 21900, pad = 4096) {
   const mdat = Buffer.alloc(8 + pad, 7); mdat.writeUInt32BE(mdat.length, 0); mdat.write('mdat', 4, 'latin1')
   return Buffer.concat([ftyp, moov, mdat])
 }
-function putReel(cardDir, { date = DAY, ref = '33:3', audio = 'alafasy', mp4 = fakeMp4() } = {}) {
+function putReel(cardDir, { date = DAY, ref = '33:3', audio = 'alafasy', lang = undefined, mp4 = fakeMp4() } = {}) {
   fs.mkdirSync(cardDir, { recursive: true })
   fs.writeFileSync(path.join(cardDir, `${date}-reel.mp4`), mp4)
-  fs.writeFileSync(path.join(cardDir, `${date}-reel.json`), JSON.stringify({ ref, audio }))
+  fs.writeFileSync(path.join(cardDir, `${date}-reel.json`), JSON.stringify({ ref, audio, lang }))
 }
 
 /** Saxta Graph API + alquran.cloud. statuses — konteyner statuslarının ardıcıllığı (sonuncu təkrarlanır). */
-function fakeFetch({ statuses = ['IN_PROGRESS', 'IN_PROGRESS', 'FINISHED'] } = {}) {
+function fakeFetch({ statuses = ['IN_PROGRESS', 'IN_PROGRESS', 'FINISHED'], textLen = 0 } = {}) {
   const calls = []
   let n = 0
   const fn = async (url, opts = {}) => {
@@ -59,7 +59,7 @@ function fakeFetch({ statuses = ['IN_PROGRESS', 'IN_PROGRESS', 'FINISHED'] } = {
     if (u.hostname === 'api.alquran.cloud') {
       const m = /ayah\/(\d+):(\d+)\/editions\/(.+)$/.exec(u.pathname)
       const [s, a] = [Number(m[1]), Number(m[2])]
-      const data = m[3].split(',').map((id) => ({ edition: { identifier: id }, surah: { number: s, englishName: 'Al-Ahzab', name: 'سورة' }, numberInSurah: a, text: id === 'quran-uthmani' ? 'وَتَوَكَّلْ عَلَى ٱللَّهِ' : `TEXT-${id}` }))
+      const data = m[3].split(',').map((id) => ({ edition: { identifier: id }, surah: { number: s, englishName: 'Al-Ahzab', name: 'سورة' }, numberInSurah: a, text: id === 'quran-uthmani' ? 'وَتَوَكَّلْ عَلَى ٱللَّهِ' : `TEXT-${id}${textLen ? `-${a}-${'x'.repeat(textLen)}` : ''}` }))
       return { ok: true, status: 200, json: async () => ({ code: 200, data }) }
     }
     calls.push({ method: opts.method, url: u, headers: opts.headers || {}, body: opts.body ? new URLSearchParams(opts.body) : null })
@@ -124,12 +124,103 @@ describe('instagram reel — saf köməkçilər', () => {
     expect(src).toContain(R.RECITER.name.az)
   })
 
-  it('meta: yalnız siyahıdakı ayə və icazəli səs rejimi', () => {
-    expect(R.parseMeta('{"ref":"33:3","audio":"alafasy"}')).toEqual({ ref: '33:3', audio: 'alafasy' })
-    expect(R.parseMeta({ ref: '103:1-2', audio: 'none' })).toEqual({ ref: '103:1-2', audio: 'none' })
-    for (const bad of ['{"ref":"33:4","audio":"alafasy"}', '{"ref":"33:3","audio":"music"}', '{"ref":"33:3"}', 'not json', '[]', 'null', '{"ref":"../x","audio":"none"}']) {
+  it('meta: köhnə tək ayə (AYAH_REFS) və passaj prefiksi, icazəli səs rejimi, istəyə bağlı dil', () => {
+    expect(R.parseMeta('{"ref":"33:3","audio":"alafasy"}')).toEqual({ ref: '33:3', audio: 'alafasy', lang: null })
+    expect(R.parseMeta({ ref: '103:1-2', audio: 'none' })).toEqual({ ref: '103:1-2', audio: 'none', lang: null })
+    expect(R.parseMeta('{"ref":"67:1-5","audio":"alafasy","lang":"en"}')).toEqual({ ref: '67:1-5', audio: 'alafasy', lang: 'en' })
+    expect(R.parseMeta({ ref: '36:1-9', audio: 'alafasy', lang: 'az' })).toEqual({ ref: '36:1-9', audio: 'alafasy', lang: 'az' })   // qısaldılmış passaj
+    expect(R.parseMeta({ ref: '67:1', audio: 'none', lang: null })).toEqual({ ref: '67:1', audio: 'none', lang: null })
+    for (const bad of [
+      '{"ref":"33:4","audio":"alafasy"}', '{"ref":"33:3","audio":"music"}', '{"ref":"33:3"}', 'not json', '[]', 'null', '{"ref":"../x","audio":"none"}',
+      '{"ref":"67:1-6","audio":"alafasy"}', '{"ref":"67:2-5","audio":"alafasy"}', '{"ref":"67:1-1","audio":"alafasy"}', '{"ref":"067:1-5","audio":"alafasy"}',
+      '{"ref":"67:1-5","audio":"alafasy","lang":"fr"}', '{"ref":"67:1-5","audio":"alafasy","lang":"ar"}', '{"ref":"67:1-5","audio":"alafasy","lang":1}',
+      '{"ref":"2:255-256","audio":"alafasy"}',
+    ]) {
       expect(R.parseMeta(bad)).toBeNull()
     }
+  })
+
+  it('passaj seçimi: gün üzrə deterministik növbə (addım 7), k → sıradakı; siyahı yalnız etibarlı istinadlardır', () => {
+    const L = R.REEL_PASSAGES
+    expect(new Set(L).size).toBe(L.length)
+    for (const ref of L) {
+      const p = dailyAyah.parseRef(ref)
+      expect(p, ref).toBeTruthy()
+      expect(p.to).toBeGreaterThan(p.a)                       // passaj — ən azı 2 ayə
+      expect(R.refOf(p)).toBe(ref)
+      expect(R.isReelRef(ref)).toBe(true)
+    }
+    // ekrana sığmayan uzun ayələr siyahıda yoxdur (həmişə atlanardı)
+    expect(L.some((r) => r.startsWith('2:255') || r.startsWith('2:284') || r.startsWith('2:285'))).toBe(false)
+    const d0 = R.passageRef(DAY, 0)
+    expect(R.passageRef(DAY, 1)).toBe(L[(L.indexOf(d0) + 1) % L.length])
+    expect(R.passageRef('2026-11-26', 0)).toBe(L[(L.indexOf(d0) + 7) % L.length])
+    // ardıcıl L.length gündə hər passaj düz bir dəfə
+    const seen = new Set()
+    for (let i = 0; i < L.length; i++) seen.add(R.passageRef(new Date(Date.UTC(2026, 10, 25 + i)).toISOString().slice(0, 10)))
+    expect(seen.size).toBe(L.length)
+  })
+
+  it('trimPassage: ən uzun BÜTÖV ayə prefiksi; 1-ci ayə sığmırsa null; isReelRef qısaldılmış passajı qəbul edir', () => {
+    const p = dailyAyah.parseRef('36:1-12')
+    const d = [4.6, 4.8, 5.8, 6.2, 6.5, 13.8, 9.1, 15.2, 15.6, 13.0, 19.5, 17.3]
+    const cap = R.PASSAGE_MAX_SEC - R.PASSAGE_LEAD_SEC - R.PASSAGE_TAIL_SEC
+    expect(cap).toBe(86)
+    const t = R.trimPassage(p, d)
+    expect(t).toMatchObject({ s: 36, a: 1, to: 9, ref: '36:1-9', count: 9 })
+    expect(t.audioSec).toBeCloseTo(81.6, 1)
+    expect(t.audioSec).toBeLessThanOrEqual(cap)
+    expect(R.isReelRef(t.ref)).toBe(true)
+    expect(R.trimPassage(p, d, 1000)).toMatchObject({ to: 12, ref: '36:1-12' })
+    expect(R.trimPassage(p, [90, 3])).toBeNull()                                            // 1-ci ayə də uzundur
+    expect(R.trimPassage(p, [10, 80, 2])).toMatchObject({ to: 1, ref: '36:1', count: 1 })   // ayə kəsilmir, sonrakılar atılır
+    expect(R.trimPassage(p, [5, NaN, 5])).toMatchObject({ to: 1 })
+    expect(R.trimPassage(dailyAyah.parseRef('67:1-5'), [10.8, 13.9, 19.0, 12.9, 19.8, 99])).toMatchObject({ ref: '67:1-5' })  // artıq element nəzərə alınmır
+    expect(R.trimPassage(null, [1])).toBeNull()
+  })
+
+  it('passaj zaman cədvəli: ayə sərhədi = tilavət sərhədi; ilk kadr 1-ci ayədir; sona 2.2 s; ≤ 89 s', () => {
+    const tl = R.passageTimeline([{ audioSec: 10, words: 12 }, { audioSec: 5, words: 6 }, { audioSec: 8, words: 20 }])
+    expect(tl.audioStart).toBe(R.PASSAGE_LEAD_SEC)
+    expect(tl.audioSec).toBeCloseTo(23, 3)
+    expect(tl.duration).toBeCloseTo(0.8 + 23 + 2.2, 1)
+    const [a, b, c] = tl.segments
+    expect(a.start).toBe(0)
+    expect(b.start).toBeCloseTo(0.8 + 10, 6)
+    expect(c.start).toBeCloseTo(0.8 + 15, 6)
+    expect(a.end).toBeCloseTo(b.start, 6)
+    expect(c.end).toBe(tl.duration)
+    expect(c.fadeOut).toBeNull()
+    for (const s of tl.segments) {
+      expect(s.inkStart).toBeGreaterThanOrEqual(s.start)
+      expect(s.inkEnd).toBeGreaterThan(s.inkStart)
+      expect(s.trStart).toBeLessThan(s.inkEnd + 0.01)
+      expect(s.settle).toBeGreaterThanOrEqual(s.trEnd)
+      if (s.fadeOut != null) { expect(s.settle).toBeLessThan(s.fadeOut); expect(s.fadeOut).toBeLessThan(s.end) }
+    }
+    expect(c.settle).toBeLessThan(tl.duration - 1)                                         // üz qabığı (son saniyə) — son ayə tam
+    // ən uzun icazəli passaj (86 s tilavət) → ≤ 89 s
+    expect(R.passageTimeline([{ audioSec: 40, words: 30 }, { audioSec: 46, words: 30 }]).duration).toBeLessThanOrEqual(R.PASSAGE_MAX_SEC + 0.05)
+    // qısa passaj — ən azı 15 s; səssiz — oxuma vaxtı söz sayından
+    expect(R.passageTimeline([{ audioSec: 3, words: 4 }]).duration).toBe(15)
+    const quiet = R.passageTimeline([{ audioSec: 0, words: 10 }, { audioSec: 0, words: 40 }], { minSec: 1 })
+    expect(quiet.audioSec).toBe(0)
+    expect(quiet.segments[1].start - quiet.segments[0].start).toBeGreaterThan(4)
+  })
+
+  it('başlıq və dil: passaj — "Verses of the Quran", tək ayə — "Verse of the day"; IG_REEL_LANG susmaya görə en', () => {
+    expect(R.reelTitle('en', dailyAyah.parseRef('67:1-5'))).toBe('Verses of the Quran')
+    expect(R.reelTitle('en', dailyAyah.parseRef('2:255'))).toBe(dailyAyah.TITLE_PREFIX.en)
+    expect(R.reelTitle('az', dailyAyah.parseRef('67:1-5'))).toBe('Quran ayələri')
+    expect(R.reelTitle('xx', dailyAyah.parseRef('67:1-5'))).toBe('Quran ayələri')
+    expect(R.parseReelLang('')).toBe('en')
+    expect(R.parseReelLang(undefined)).toBe('en')
+    expect(R.parseReelLang(' az ')).toBe('az')
+    expect(R.parseReelLang('ar')).toBe('en')
+    expect(R.parseReelLang('fr')).toBe('en')
+    expect(`${R.RECITATION.en}: ${R.RECITER.name.en}`).toBe('Recitation: Mishary Rashid Alafasy')
+    // ingiliscə tərcümə saytın ingiliscə nəşridir (instagram.js ilə eyni)
+    expect(dailyAyah.EDITIONS.en).toBe('en.asad')
   })
 
   it('MP4 müddəti mvhd-dən (faststart); ftyp / moov yoxdursa — null', () => {
@@ -204,12 +295,50 @@ describe('instagram reel — dərc axını', () => {
     const row = m.status().posts.find((p) => p.format === 'reel')
     expect(row).toMatchObject({ day: DAY, slot: '18:00', kind: 'ayah', item: 'ayah:33:3', status: 'published' })
     const st = m.status().reel
-    expect(st).toMatchObject({ enabled: true, time: '18:00', date: DAY, file: { ref: '33:3', audio: 'alafasy', durationMs: 21900 }, post: { status: 'published' }, url: `/api/ig/card/${DAY}-reel.mp4` })
+    expect(st).toMatchObject({ enabled: true, time: '18:00', date: DAY, file: { ref: '33:3', audio: 'alafasy', lang: null, durationMs: 21900 }, post: { status: 'published' }, url: `/api/ig/card/${DAY}-reel.mp4` })
     // təkrar tick və ikinci proses (blue/green) — yenidən dərc yoxdur
     const before = f.calls.length
     expect(await m.tick()).toBe(0)
     expect(await mk(db, cardDir, { fetchImpl: f }).tick()).toBe(0)
     expect(f.calls.length).toBe(before)
+  })
+
+  it('prod konfiqi (IG_LANG=en, IG_CAPTION_LANGS=en) + passaj sidecar-ı: caption ingiliscə, başlıq "Verses of the Quran", tilavət sətri', async () => {
+    const { db, cardDir } = setup()
+    putReel(cardDir, { ref: '67:1-5', lang: 'en', mp4: fakeMp4(76000) })
+    const f = fakeFetch({ statuses: ['FINISHED'] })
+    const warns = []
+    const m = mk(db, cardDir, { fetchImpl: f, env: { IG_LANG: 'en', IG_CAPTION_LANGS: 'en' }, log: { ...silent, warn: (...a) => warns.push(a.join(' ')) } })
+    expect(await m.tick()).toBe(1)
+    const b = f.calls.find((c) => c.method === 'POST' && c.url.pathname.endsWith('/media')).body
+    const cap = b.get('caption')
+    expect(cap).toMatch(/^Verses of the Quran: Al-Ahzab 67:1-5\n/)
+    expect(cap).toContain('TEXT-en.asad')
+    expect(cap).not.toContain('TEXT-az.mammadaliyev')
+    expect(cap).toContain('\n\nRecitation: Mishary Rashid Alafasy\n\n#muslimscc')
+    expect(cap).not.toMatch(/Tilavət|Günün ayəsi/)
+    expect(cap).toContain('https://muslims.cc/en/quran?s=67&a=1')
+    expect(b.get('thumb_offset')).toBe('75000')
+    // alquran.cloud — passajın hər ayəsi (5 sorğu)
+    expect(m.status().reel.file).toMatchObject({ ref: '67:1-5', lang: 'en', durationMs: 76000 })
+    expect(m.status().posts.find((p) => p.format === 'reel')).toMatchObject({ item: 'ayah:67:1-5', status: 'published' })
+    expect(warns.filter((w) => /dilindədir/.test(w))).toHaveLength(0)
+  })
+
+  it('passaj caption-u 2200-ü keçirsə — mətnsiz qısa caption (başlıq, istinad, keçid, tilavət, heşteqlər); dil uyğunsuzluğu — xəbərdarlıq', async () => {
+    const { db, cardDir } = setup()
+    putReel(cardDir, { ref: '87:1-13', lang: 'en' })
+    const f = fakeFetch({ statuses: ['FINISHED'], textLen: 200 })
+    const warns = []
+    const m = mk(db, cardDir, { fetchImpl: f, env: { IG_LANG: 'az', IG_CAPTION_LANGS: 'az,en' }, log: { ...silent, warn: (...a) => warns.push(a.join(' ')) } })
+    expect(await m.tick()).toBe(1)
+    const cap = f.calls.find((c) => c.method === 'POST' && c.url.pathname.endsWith('/media')).body.get('caption')
+    expect(cap.length).toBeLessThanOrEqual(2200)
+    expect(cap).toMatch(/^Quran ayələri: Ələ 87:1-13/)
+    expect(cap).not.toContain('TEXT-')
+    expect(cap).toContain('— Ələ 87:1-13')
+    expect(cap).toContain('Tilavət / Recitation: Mişari Raşid əl-Əfasi')
+    expect(warns.filter((w) => /reel videosu en dilindədir/.test(w))).toHaveLength(1)
   })
 
   it('səssiz video (audio=none): caption-da tilavət sətri yoxdur', async () => {

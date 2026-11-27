@@ -138,6 +138,8 @@ const P = {
   globe: <><circle cx="12" cy="12" r="8.5" /><path d="M3.5 12h17M12 3.5c2.3 2.4 3.5 5.2 3.5 8.5s-1.2 6.1-3.5 8.5c-2.3-2.4-3.5-5.2-3.5-8.5s1.2-6.1 3.5-8.5z" /></>,
   check: <path d="m5 12.5 4.5 4.5L19 7.5" />,
   instagram: <><rect x="3.5" y="3.5" width="17" height="17" rx="5" /><circle cx="12" cy="12" r="4" /><path d="M17.2 6.8h.01" strokeWidth="2.4" /></>,
+  // TikTok: musiqi notu şəklində "d" (xətti, 24 tor)
+  tiktok: <><path d="M13.5 3.5v11.25a3.75 3.75 0 1 1-3.75-3.75" /><path d="M13.5 3.5c.4 2.6 2.3 4.5 5 4.75" /></>,
 
   // ── İnterfeys (üzən panellər, dialoqlar, bildirişlər — 2-ci mərhələ) ──
   close: <path d="M6 6l12 12M18 6 6 18" />,
