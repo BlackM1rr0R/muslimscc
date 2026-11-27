@@ -21,6 +21,10 @@
 #   ig-reel <TARİX> <REF> <alafasy|none> [en|az|ru|tr]
 #                            stdin (MP4, ≤ 15 MB) → api həcmi /data/ig-cards/<TARİX>-reel.mp4 + .json (Instagram reel)
 #                            REF: tək ayə (33:3) və ya passaj (67:1-5); dil istəyə bağlıdır (köhnə 3 arqumentli forma da)
+#   ig-reel <TARİX> ayah <REF> <alafasy|none> [dil]        — eyni (növ açıq yazılıb)
+#   ig-reel <TARİX> <hadith|dua|name> <ID> <ambient|none> [dil]
+#                            stdin (MP4) → /data/ig-cards/<TARİX>-reel-<növ>.mp4 + .json ({"kind","item","audio"[,"lang"]})
+#                            ID: saytın hədis / dua id-si və ya adın nömrəsi (1-9999)
 # TAG: 7-40 simvollu git hash (yalnız [0-9a-f]) — yol hücumu mümkün deyil. SRC: 40 simvollu git hash.
 # ═══════════════════════════════════════════════════════
 set -eu
@@ -28,9 +32,10 @@ cd /opt/muslimscc
 
 # shellcheck disable=SC2086
 set -- ${SSH_ORIGINAL_COMMAND:-}
-CMD="${1:-}"; TAG="${2:-}"; NAME="${3:-}"; SRC="${4:-}"; EXTRA="${5:-}"
-# 5-ci arqument yalnız ig-reel-də (reel-in dili); qalan əmrlərdə ən çox 4
+CMD="${1:-}"; TAG="${2:-}"; NAME="${3:-}"; SRC="${4:-}"; EXTRA="${5:-}"; SIXTH="${6:-}"
+# 5-ci arqument yalnız ig-reel-də (reel-in dili); 6-cı — yalnız növlü ig-reel formasında; qalan əmrlərdə ən çox 4
 MAXARGS=4; [ "$CMD" = ig-reel ] && MAXARGS=5
+if [ "$CMD" = ig-reel ]; then case "$NAME" in ayah|hadith|dua|name) MAXARGS=6 ;; esac; fi
 [ $# -le "$MAXARGS" ] || { echo "ci-gate: artıq arqument" >&2; exit 1; }
 
 valid_tag() { echo "$1" | grep -Eq '^[0-9a-f]{7,40}$'; }
@@ -75,13 +80,28 @@ case "$CMD" in
     #   (surə:ayə — köhnə tək ayə reel-i, surə:ayə-son — passaj; dil verilməyibsə JSON-da "lang" yazılmır)
     # İşləyən api konteynerinin /data/ig-cards/ qovluğuna <tarix>-reel.mp4 + <tarix>-reel.json yazılır (atomik mv).
     # Deploy-a toxunmur, image / konfiqurasiya dəyişmir; konteyner tapılmasa — çıxış 1 (CI yenidən cəhd edir).
-    DATE="$TAG"; REF="$NAME"; AUDIO="$SRC"; RLANG="$EXTRA"
+    #   Növlü forma (2026-11-27): ig-reel <tarix> <ayah|hadith|dua|name> <ref|id> <səs> [dil]
+    DATE="$TAG"
+    case "$NAME" in
+      ayah|hadith|dua|name) KIND="$NAME"; ITEM="$SRC"; AUDIO="$EXTRA"; RLANG="$SIXTH" ;;
+      *) KIND=ayah; ITEM="$NAME"; AUDIO="$SRC"; RLANG="$EXTRA" ;;
+    esac
     echo "$DATE" | grep -Eq '^20[0-9]{2}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$' || deny
-    echo "$REF" | grep -Eq '^[1-9][0-9]{0,2}:[1-9][0-9]{0,2}(-[1-9][0-9]{0,2})?$' || deny
-    case "$AUDIO" in alafasy|none) ;; *) deny ;; esac
     case "$RLANG" in ''|en|az|ru|tr) ;; *) deny ;; esac
-    if [ -n "$RLANG" ]; then META="{\"ref\":\"$REF\",\"audio\":\"$AUDIO\",\"lang\":\"$RLANG\"}"
-    else META="{\"ref\":\"$REF\",\"audio\":\"$AUDIO\"}"; fi
+    if [ "$KIND" = ayah ]; then
+      REF="$ITEM"
+      echo "$REF" | grep -Eq '^[1-9][0-9]{0,2}:[1-9][0-9]{0,2}(-[1-9][0-9]{0,2})?$' || deny
+      case "$AUDIO" in alafasy|none) ;; *) deny ;; esac
+      BASE="$DATE-reel"
+      if [ -n "$RLANG" ]; then META="{\"ref\":\"$REF\",\"audio\":\"$AUDIO\",\"lang\":\"$RLANG\"}"
+      else META="{\"ref\":\"$REF\",\"audio\":\"$AUDIO\"}"; fi
+    else
+      echo "$ITEM" | grep -Eq '^[1-9][0-9]{0,3}$' || deny
+      case "$AUDIO" in ambient|none) ;; *) deny ;; esac
+      BASE="$DATE-reel-$KIND"
+      if [ -n "$RLANG" ]; then META="{\"kind\":\"$KIND\",\"item\":$ITEM,\"audio\":\"$AUDIO\",\"lang\":\"$RLANG\"}"
+      else META="{\"kind\":\"$KIND\",\"item\":$ITEM,\"audio\":\"$AUDIO\"}"; fi
+    fi
     TMP=$(mktemp /tmp/ig-reel.XXXXXX)
     trap 'rm -f "$TMP"' EXIT
     head -c 15728641 > "$TMP"
@@ -93,10 +113,10 @@ case "$CMD" in
     C=$(TAG="$CUR" docker compose ps -q --status running api 2>/dev/null | head -n 1)
     [ -n "$C" ] || { echo "api konteyneri işləmir" >&2; exit 1; }
     D=/data/ig-cards
-    printf '%s\n' "$META" | docker exec -i "$C" sh -c "mkdir -p $D && cat > $D/.$DATE-reel.json.tmp && mv $D/.$DATE-reel.json.tmp $D/$DATE-reel.json"
-    docker exec -i "$C" sh -c "cat > $D/.$DATE-reel.mp4.tmp && mv $D/.$DATE-reel.mp4.tmp $D/$DATE-reel.mp4" < "$TMP"
-    logger -t ci-gate "ig-reel $DATE $REF $AUDIO ${RLANG:--} $SIZE"
-    echo "reel yazıldı: $DATE ($REF, $AUDIO, ${RLANG:--}, $SIZE bayt)"
+    printf '%s\n' "$META" | docker exec -i "$C" sh -c "mkdir -p $D && cat > $D/.$BASE.json.tmp && mv $D/.$BASE.json.tmp $D/$BASE.json"
+    docker exec -i "$C" sh -c "cat > $D/.$BASE.mp4.tmp && mv $D/.$BASE.mp4.tmp $D/$BASE.mp4" < "$TMP"
+    logger -t ci-gate "ig-reel $DATE $KIND $ITEM $AUDIO ${RLANG:--} $SIZE"
+    echo "reel yazıldı: $BASE ($KIND $ITEM, $AUDIO, ${RLANG:--}, $SIZE bayt)"
     ;;
   status)
     CUR=$(cat .current_tag 2>/dev/null || true)

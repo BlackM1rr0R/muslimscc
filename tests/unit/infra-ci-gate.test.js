@@ -114,3 +114,80 @@ echo "gözlənilməz docker $*" >&2; exit 9`)
     expect(meta('2026-11-25')).toBeNull()
   })
 })
+
+// ── Növlü forma (2026-11-27): ig-reel <tarix> <ayah|hadith|dua|name> <ref|id> <səs> [dil] ──
+describe('ci-gate.sh — ig-reel növlü forma (statik)', () => {
+  it('6 arqument yalnız ig-reel + növ açar sözü ilə; id regex-i; səs allowlist-i növə görə', () => {
+    expect(src).toMatch(/if \[ "\$CMD" = ig-reel \]; then case "\$NAME" in ayah\|hadith\|dua\|name\) MAXARGS=6 ;; esac; fi/)
+    const re = ereFor('ITEM')
+    expect(re).toBeTruthy()
+    for (const ok of ['1', '12', '987', '9999']) expect(re.test(ok), ok).toBe(true)
+    for (const bad of ['', '0', '01', '10000', '1a', '-1', '1;id', '../1', '1 2']) expect(re.test(bad), JSON.stringify(bad)).toBe(false)
+    expect(block).toContain('case "$AUDIO" in ambient|none) ;; *) deny ;; esac')
+    expect(block).toContain('BASE="$DATE-reel-$KIND"')
+    // renderin yaza biləcəyi hər id (saytın hədis / dua id-ləri, adların nömrələri) qapıdan keçir
+    const H = require('../../server/daily-hadith.js'), D = require('../../server/instagram-data.js')
+    for (const id of [...H.LIST.map((x) => x.id), ...D.duas.map((x) => x.id), ...D.names.map((x) => x.n)]) expect(re.test(String(id)), String(id)).toBe(true)
+  })
+})
+
+describe.skipIf(!posix)('ci-gate.sh — ig-reel növlü forma (saxta docker / logger)', { timeout: 60000 }, () => {
+  let H, GATE
+  const stub = (name, body) => fs.writeFileSync(path.join(H, 'bin', name), `#!/bin/sh\n${body}\n`, { mode: 0o755 })
+  const MP4 = Buffer.concat([Buffer.from([0, 0, 0, 16]), Buffer.from('ftypisom', 'latin1'), Buffer.alloc(12 * 1024, 1)])
+  beforeAll(() => {
+    H = fs.mkdtempSync(path.join(os.tmpdir(), 'mcc-gate2-'))
+    fs.mkdirSync(path.join(H, 'bin'))
+    fs.mkdirSync(path.join(H, 'opt'))
+    fs.writeFileSync(path.join(H, 'opt', '.current_tag'), 'abc1234\n')
+    GATE = path.join(H, 'ci-gate.sh')
+    fs.writeFileSync(GATE, src.replace('cd /opt/muslimscc', `cd '${shPath(path.join(H, 'opt'))}'`), { mode: 0o755 })
+    stub('docker', `if [ "$1" = compose ]; then echo cid0123; exit 0; fi
+if [ "$1" = exec ]; then c=$(printf '%s' "$6" | sed "s#/data/#${shPath(H)}/data/#g"); exec sh -c "$c"; fi
+echo "gözlənilməz docker $*" >&2; exit 9`)
+    stub('logger', 'exit 0')
+  })
+  afterAll(() => { fs.rmSync(H, { recursive: true, force: true }) })
+  const run = (cmd, input = MP4) => {
+    const r = spawnSync('sh', [GATE], {
+      input, env: { ...process.env, PATH: `${path.join(H, 'bin')}${path.delimiter}${process.env.PATH}`, SSH_ORIGINAL_COMMAND: cmd }, encoding: 'utf8', timeout: 60000,
+    })
+    return { code: r.status, out: `${r.stdout}${r.stderr}` }
+  }
+  const read = (f) => { try { return fs.readFileSync(path.join(H, 'data/ig-cards', f), 'utf8') } catch { return null } }
+
+  it('hadith / dua / name → <tarix>-reel-<növ>.mp4 + JSON (parseTextMeta qəbul edir)', () => {
+    let r = run('ig-reel 2026-11-27 hadith 851 ambient en')
+    expect(r.code, r.out).toBe(0)
+    expect(read('2026-11-27-reel-hadith.json')).toBe('{"kind":"hadith","item":851,"audio":"ambient","lang":"en"}\n')
+    expect(R.parseTextMeta(read('2026-11-27-reel-hadith.json'), 'hadith')).toEqual({ kind: 'hadith', item: 851, audio: 'ambient', lang: 'en' })
+    expect(fs.readFileSync(path.join(H, 'data/ig-cards/2026-11-27-reel-hadith.mp4')).equals(MP4)).toBe(true)
+    r = run('ig-reel 2026-11-27 name 99 none')
+    expect(r.code, r.out).toBe(0)
+    expect(read('2026-11-27-reel-name.json')).toBe('{"kind":"name","item":99,"audio":"none"}\n')
+    expect(run('ig-reel 2026-11-27 dua 7 ambient en').code).toBe(0)
+    expect(read('2026-11-27-reel-dua.json')).toContain('"kind":"dua"')
+    // ayə reel-inə toxunmur
+    expect(read('2026-11-27-reel.json')).toBeNull()
+  })
+
+  it('ayah növü açıq yazılıb — köhnə ad və JSON (eyni)', () => {
+    const r = run('ig-reel 2026-11-28 ayah 67:1-5 alafasy en')
+    expect(r.code, r.out).toBe(0)
+    expect(read('2026-11-28-reel.json')).toBe('{"ref":"67:1-5","audio":"alafasy","lang":"en"}\n')
+  })
+
+  it('rədd: yararsız id / səs (növə görə) / dil, artıq arqument, növsüz formada 6-cı arqument', () => {
+    for (const cmd of ['ig-reel 2026-11-25 hadith 0 ambient en', 'ig-reel 2026-11-25 hadith 12;id ambient en', 'ig-reel 2026-11-25 hadith 12 alafasy en',
+      'ig-reel 2026-11-25 dua 12 music', 'ig-reel 2026-11-25 name 12 ambient fr', 'ig-reel 2026-11-25 ayah 67:1-5 ambient en', 'ig-reel 2026-11-25 ayah 12 alafasy',
+      'ig-reel 2026-11-25 hadith ../x ambient', 'ig-reel 2026-11-25 hadith 10000 none']) {
+      const r = run(cmd)
+      expect(r.code, cmd).toBe(1)
+      expect(r.out, cmd).toMatch(/icazə yoxdur/)
+    }
+    expect(run('ig-reel 2026-11-25 hadith 12 ambient en x').out).toMatch(/artıq arqument/)
+    expect(run('ig-reel 2026-11-25 67:1-5 alafasy en x').out).toMatch(/artıq arqument/)
+    expect(run('upload abc1234 web x y z').out).toMatch(/artıq arqument/)
+    expect(read('2026-11-25-reel-hadith.json')).toBeNull()
+  })
+})

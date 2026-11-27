@@ -23,9 +23,13 @@
 //   deyə bazada kilid. Token, kod, client secret heç vaxt loglanmır və brauzerə göndərilmir.
 // • TAM SÖNÜLÜ: TIKTOK_ENABLED=1 + TIKTOK_CLIENT_KEY + TIKTOK_CLIENT_SECRET yoxdursa — şəbəkə sorğusu yoxdur, /api/tiktok/*
 //   → 404, planlayıcı işləmir; admin bölməsi yalnız "sönülüdür" göstərir.
-// • Gündə bir dəfə (TIKTOK_TIME, susmaya görə 18:30 Asia/Baku): <DB qovluğu>/ig-cards/<tarix>-reel.mp4 (+ .json) varsa
-//   — CI (.github/workflows/ig-reel.yml) yazır, bu modul yalnız OXUYUR. tiktok_posts (day UNIQUE) — INSERT OR IGNORE ilə
-//   "tutan" proses göndərir. Xəta → 2 / 5 / 15 / 30 dəq fasilə (≤ 5 cəhd); avtorizasiya xətası → planlayıcı dayanır,
+// • Gündə 3 video (2026-11-27; TIKTOK_TIMES, susmaya görə "09:00,14:00,18:30" Asia/Baku — sıra ilə yuvalar):
+//     hadith — günün hədis videosu (<tarix>-reel-hadith.mp4), extra — dua / Allahın adı (<tarix>-reel-dua|name.mp4),
+//     ayah — Quran passajı (<tarix>-reel.mp4, tilavətlə). Yuvanı söndürmək: həmin yerdə "off" ("off,14:00,18:30").
+//   Köhnə TIKTOK_TIME (tək vaxt) TIKTOK_TIMES yoxdursa ayə yuvasının vaxtıdır. Fayllar <DB qovluğu>/ig-cards/-dədir — CI
+//   (.github/workflows/ig-reel.yml) yazır, bu modul yalnız OXUYUR. tiktok_slot_posts (day, slot) UNIQUE — INSERT OR IGNORE
+//   ilə "tutan" proses göndərir (köhnə tiktok_posts cədvəlindəki günlük sətir ayə yuvası sayılır — ikinci dəfə getmir).
+//   Inbox rejimində TikTok-un limiti (24 saatda ≤ 5 gözləyən qaralama) — sayılır, dolubsa yuva atlanır (bir dəfə loglanır). Xəta → 2 / 5 / 15 / 30 dəq fasilə (≤ 5 cəhd); avtorizasiya xətası → planlayıcı dayanır,
 //   BİR dəfə loglanır, bazada qeyd olunur (yenidən qoşulana qədər). Gündəlik limit / konfiqurasiya xətası → o gün atlanır.
 // • Məzmun: yalnız saytın açıq məzmunu (ayə mətni alquran.cloud-dan, dəyişdirilmir) — caption instagram.js-in reel
 //   caption-u ilə eyni qayda (ingiliscə, mənbə, qari, keçid, ≤ 5 heşteq). İstifadəçi məlumatı YOXDUR (cədvəllər users-ə
@@ -50,9 +54,14 @@ const PRIVACY = ['SELF_ONLY', 'MUTUAL_FOLLOW_FRIENDS', 'FOLLOWER_OF_CREATOR', 'P
 const SOURCES = ['file', 'url']
 const INTERACTIONS = ['comment', 'duet', 'stitch']
 const DEFAULT_TIME = '18:30'
+// Yuvalar (sıra TIKTOK_TIMES ilə eynidir): hadith 09:00, extra (dua / ad) 14:00, ayah 18:30
+const SLOT_KEYS = ['hadith', 'extra', 'ayah']
+const DEFAULT_TIMES = ['09:00', '14:00', DEFAULT_TIME]
+const PENDING_MAX = 5                          // TikTok inbox: 24 saatda ən çox 5 gözləyən paylaşım
+const PENDING_WINDOW_MS = 24 * 3600e3
 const CAPTION_LANG = 'en'
 const SCOPES = { inbox: ['user.info.basic', 'video.upload'], direct: ['user.info.basic', 'video.publish'] }
-const CATCHUP_MIN = 300                        // server vaxtında işləmirdisə, 5 saat ərzində tutur
+const CATCHUP_MIN = 240                        // server vaxtında işləmirdisə, 4 saat ərzində tutur (yuvalar ≥ 4.5 saat aralı)
 const STALE_CLAIM_MS = 15 * 60e3
 const BACKOFF_MIN = [2, 5, 15, 30]
 const MAX_ATTEMPTS = BACKOFF_MIN.length + 1
@@ -84,6 +93,25 @@ function parseHHMM(raw, def) {
   return `${m[1].padStart(2, '0')}:${m[2]}`
 }
 
+/**
+ * TIKTOK_TIMES "09:00,14:00,18:30" → [{ key: 'hadith', time }, { key: 'extra', time }, { key: 'ayah', time }] (time: null —
+ * "off"). Düz 3 element olmalıdır, əks halda susmaya görə (ayə yuvası ayahTime — köhnə TIKTOK_TIME).
+ */
+function parseTimes(raw, ayahTime = DEFAULT_TIME) {
+  const def = SLOT_KEYS.map((key, i) => ({ key, time: i === 2 ? ayahTime : DEFAULT_TIMES[i] }))
+  if (raw == null || String(raw).trim() === '') return def
+  const parts = String(raw).split(',').map((x) => x.trim())
+  if (parts.length !== SLOT_KEYS.length) return def
+  const out = []
+  for (let i = 0; i < parts.length; i++) {
+    if (parts[i].toLowerCase() === 'off') { out.push({ key: SLOT_KEYS[i], time: null }); continue }
+    const t = parseHHMM(parts[i], null)
+    if (!t) return def
+    out.push({ key: SLOT_KEYS[i], time: t })
+  }
+  return out
+}
+
 function parseConfig(env = {}, publicOrigin = 'https://muslims.cc') {
   const clientKey = String(env.TIKTOK_CLIENT_KEY || '').trim()
   const clientSecret = String(env.TIKTOK_CLIENT_SECRET || '').trim()
@@ -91,6 +119,7 @@ function parseConfig(env = {}, publicOrigin = 'https://muslims.cc') {
   const privacy = PRIVACY.includes(String(env.TIKTOK_PRIVACY || '').trim()) ? String(env.TIKTOK_PRIVACY).trim() : 'SELF_ONLY'
   const source = SOURCES.includes(String(env.TIKTOK_SOURCE || '').trim()) ? String(env.TIKTOK_SOURCE).trim() : 'file'
   const time = parseHHMM(env.TIKTOK_TIME, DEFAULT_TIME)
+  const slots = parseTimes(env.TIKTOK_TIMES, time)
   // Direct Post: icazə verilən qarşılıqlı əlaqə (susmaya görə yalnız şərh; duet / stitch — Quran tilavəti üzərində montaj yox)
   const rawAllow = env.TIKTOK_ALLOW == null ? 'comment' : String(env.TIKTOK_ALLOW)
   const allow = [...new Set(rawAllow.split(',').map((s) => s.trim()).filter((s) => INTERACTIONS.includes(s)))]
@@ -104,8 +133,10 @@ function parseConfig(env = {}, publicOrigin = 'https://muslims.cc') {
   else if (!clientKey || !clientSecret) reason = 'missing_credentials'
   else if (!KEY_RE.test(clientKey) || !SECRET_RE.test(clientSecret)) reason = 'bad_format'
   return {
-    enabled: !reason, reason, configured, clientKey, clientSecret, mode, privacy, source, time, allow, redirectUri,
-    scopes: SCOPES[mode],
+    enabled: !reason, reason, configured, clientKey, clientSecret, mode, privacy, source, allow, redirectUri,
+    scopes: SCOPES[mode], slots,
+    // geriyə uyğunluq: "time" — ayə yuvasının vaxtı (söndürülübsə köhnə TIKTOK_TIME / 18:30)
+    time: (slots.find((x) => x.key === 'ayah') || {}).time || time,
   }
 }
 
@@ -221,26 +252,51 @@ function createTikTok(opts = {}) {
     created_at INTEGER NOT NULL,
     updated_at INTEGER NOT NULL
   )`)
+  // 2026-11-27: gündə 3 yuva — (day, slot) UNIQUE. Köhnə tiktok_posts (day UNIQUE) yalnız oxunur (ayə yuvası) və təmizlənir.
+  raw.exec(`CREATE TABLE IF NOT EXISTS tiktok_slot_posts (
+    id INTEGER PRIMARY KEY,
+    day TEXT NOT NULL,
+    slot TEXT NOT NULL,
+    kind TEXT NOT NULL,
+    mode TEXT NOT NULL,
+    item TEXT,
+    caption TEXT,
+    publish_id TEXT,
+    status TEXT NOT NULL,
+    attempts INTEGER NOT NULL DEFAULT 0,
+    error TEXT,
+    next_at INTEGER,
+    checked_at INTEGER,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL,
+    UNIQUE (day, slot)
+  )`)
   raw.exec('CREATE TABLE IF NOT EXISTS tiktok_state (k TEXT PRIMARY KEY, v TEXT NOT NULL, at INTEGER NOT NULL) WITHOUT ROWID')
   const q = {
-    claim: raw.prepare(`INSERT OR IGNORE INTO tiktok_posts (day, mode, status, attempts, created_at, updated_at) VALUES (?, ?, 'claimed', 1, ?, ?)`),
-    get: raw.prepare('SELECT * FROM tiktok_posts WHERE day = ?'),
-    retake: raw.prepare(`UPDATE tiktok_posts SET status = 'claimed', mode = ?, attempts = attempts + 1, updated_at = ?
+    claim: raw.prepare(`INSERT OR IGNORE INTO tiktok_slot_posts (day, slot, kind, mode, status, attempts, created_at, updated_at) VALUES (?, ?, ?, ?, 'claimed', 1, ?, ?)`),
+    get: raw.prepare('SELECT * FROM tiktok_slot_posts WHERE day = ? AND slot = ?'),
+    legacy: raw.prepare('SELECT * FROM tiktok_posts WHERE day = ?'),
+    retake: raw.prepare(`UPDATE tiktok_slot_posts SET status = 'claimed', mode = ?, attempts = attempts + 1, updated_at = ?
       WHERE id = ? AND ((status = 'retry' AND next_at <= ?) OR (status = 'claimed' AND updated_at < ?)) AND attempts < ?`),
-    touch: raw.prepare('UPDATE tiktok_posts SET updated_at = ? WHERE id = ?'),
-    started: raw.prepare('UPDATE tiktok_posts SET publish_id = ?, item = ?, caption = ?, updated_at = ? WHERE id = ?'),
-    setStatus: raw.prepare('UPDATE tiktok_posts SET status = ?, error = ?, next_at = ?, checked_at = ?, updated_at = ? WHERE id = ?'),
-    setItem: raw.prepare('UPDATE tiktok_posts SET item = COALESCE(?, item), caption = COALESCE(?, caption) WHERE id = ?'),
-    follow: raw.prepare(`SELECT * FROM tiktok_posts WHERE status IN ('processing', 'sent') AND publish_id IS NOT NULL AND created_at > ?
+    touch: raw.prepare('UPDATE tiktok_slot_posts SET updated_at = ? WHERE id = ?'),
+    started: raw.prepare('UPDATE tiktok_slot_posts SET publish_id = ?, item = ?, caption = ?, updated_at = ? WHERE id = ?'),
+    setStatus: raw.prepare('UPDATE tiktok_slot_posts SET status = ?, error = ?, next_at = ?, checked_at = ?, updated_at = ? WHERE id = ?'),
+    setItem: raw.prepare('UPDATE tiktok_slot_posts SET item = COALESCE(?, item), caption = COALESCE(?, caption) WHERE id = ?'),
+    follow: raw.prepare(`SELECT * FROM tiktok_slot_posts WHERE status IN ('processing', 'sent') AND publish_id IS NOT NULL AND created_at > ?
       AND (checked_at IS NULL OR checked_at < ?) ORDER BY id LIMIT 5`),
-    recent: raw.prepare('SELECT day, mode, item, caption, status, attempts, error, created_at, updated_at FROM tiktok_posts ORDER BY day DESC LIMIT ?'),
-    purge: raw.prepare('DELETE FROM tiktok_posts WHERE created_at < ?'),
+    // Gözləyən inbox paylaşımları (TikTok limiti): göndərilib (sent), emal olunur, və ya init edilib hələ bitməyib
+    pending: raw.prepare(`SELECT COUNT(*) AS n FROM tiktok_slot_posts WHERE mode = 'inbox' AND created_at > ?
+      AND (status IN ('processing', 'sent') OR (status = 'claimed' AND publish_id IS NOT NULL))`),
+    pendingLegacy: raw.prepare(`SELECT COUNT(*) AS n FROM tiktok_posts WHERE mode = 'inbox' AND created_at > ? AND status IN ('processing', 'sent')`),
+    recent: raw.prepare('SELECT day, slot, kind, mode, item, caption, status, attempts, error, created_at, updated_at FROM tiktok_slot_posts ORDER BY day DESC, id DESC LIMIT ?'),
+    purge: raw.prepare('DELETE FROM tiktok_slot_posts WHERE created_at < ?'),
+    purgeLegacy: raw.prepare('DELETE FROM tiktok_posts WHERE created_at < ?'),
     stGet: raw.prepare('SELECT v, at FROM tiktok_state WHERE k = ?'),
     stSet: raw.prepare('INSERT INTO tiktok_state (k, v, at) VALUES (?, ?, ?) ON CONFLICT(k) DO UPDATE SET v = excluded.v, at = excluded.at'),
     stClaim: raw.prepare('INSERT OR IGNORE INTO tiktok_state (k, v, at) VALUES (?, ?, ?)'),
     stDel: raw.prepare('DELETE FROM tiktok_state WHERE k = ?'),
     stDelOld: raw.prepare('DELETE FROM tiktok_state WHERE k = ? AND at < ?'),
-    stPurge: raw.prepare("DELETE FROM tiktok_state WHERE (k LIKE 'oauth:%' OR k LIKE 'missing:%') AND at < ?"),
+    stPurge: raw.prepare("DELETE FROM tiktok_state WHERE (k LIKE 'oauth:%' OR k LIKE 'missing:%' OR k LIKE 'pending:%') AND at < ?"),
   }
 
   // ── Token ──
@@ -372,8 +428,43 @@ function createTikTok(opts = {}) {
     }
   }
 
-  // ── Günün reel faylı (CI yazır, instagram.js ilə eyni yer; burada yalnız oxunur) ──
+  // ── Günün video faylları (CI yazır, instagram.js ilə eyni yer; burada yalnız oxunur) ──
   const reelPath = (day, ext) => path.join(cardDir, `${day}-reel.${ext}`)
+  /** Faylın başı (moov) → müddət (ms) | null */
+  function headDuration(file, size) {
+    let head
+    try {
+      const fd = fs.openSync(file, 'r')
+      try { head = Buffer.alloc(Math.min(size, 512 * 1024)); fs.readSync(fd, head, 0, head.length, 0) } finally { fs.closeSync(fd) }
+    } catch { return null }
+    const d = REEL.mp4DurationMs(head)
+    return d && d >= 3000 && d <= 600e3 ? d : null
+  }
+  /** Hədis / dua / ad videosu → { kind, item, file, size, audio, lang, durationMs } | null */
+  function textInfo(day, kind) {
+    if (!DATE_RE.test(String(day || '')) || !REEL.TEXT_KINDS.includes(kind)) return null
+    const base = REEL.videoBase(day, kind)
+    let st, meta
+    try { st = fs.statSync(path.join(cardDir, `${base}.mp4`)) } catch { return null }
+    if (!st.isFile() || st.size < 1024 || st.size > REEL.REEL_MAX_BYTES) return null
+    try { meta = REEL.parseTextMeta(fs.readFileSync(path.join(cardDir, `${base}.json`), 'utf8'), kind) } catch { return null }
+    if (!meta) return null
+    const durationMs = headDuration(path.join(cardDir, `${base}.mp4`), st.size)
+    if (!durationMs) return null
+    return { kind, item: meta.item, file: `${base}.mp4`, size: st.size, audio: meta.audio, lang: meta.lang, durationMs }
+  }
+  /** Yuvanın günü üçün növü: extra — tək gün ad, cüt gün dua (instagram.js kindFor, 20:00 kartı ilə eyni). */
+  const slotKind = (slot, day) => (slot === 'extra' ? require('./instagram').kindFor(2, day) : slot)
+  /** Yuvanın faylı → info (kind, file daxil) | null. extra: günün növü (dua / ad); yoxdursa digəri də yoxlanır. */
+  function mediaInfo(day, slot) {
+    if (slot === 'ayah') { const r = reelInfo(day); return r ? { ...r, kind: 'ayah', file: `${day}-reel.mp4` } : null }
+    if (slot === 'hadith') return textInfo(day, 'hadith')
+    if (slot === 'extra') {
+      const k = slotKind('extra', day)
+      return textInfo(day, k) || textInfo(day, k === 'dua' ? 'name' : 'dua')
+    }
+    return null
+  }
   /** → { size, ref, audio, durationMs } | null */
   function reelInfo(day) {
     if (!DATE_RE.test(String(day || ''))) return null
@@ -413,6 +504,14 @@ function createTikTok(opts = {}) {
   }
   async function captionFor(day, info) {
     const IG = require('./instagram')
+    if (info.kind && info.kind !== 'ayah') {
+      // Hədis / dua / ad: instagram.js-in kart caption-u ilə eyni qayda (saytın verbatim mətni, mənbə, "Sahih" yalnız qaydaya görə)
+      const content = IG.contentById(info.kind, info.item, CAPTION_LANG, origin)
+      if (!content) throw failure('fatal', 'no_content')
+      const caption = IG.buildCaption(content, CAPTION_LANG, { day, tagKind: info.kind })
+      if (!caption || caption.length > CAPTION_MAX) throw failure('fatal', 'caption_too_long')
+      return { caption, item: content.key }
+    }
     const pick = { ...dailyAyah.parseRef(info.ref), ref: info.ref }
     const data = await ayahData(info.ref)
     if (!data) throw failure('transient', 'ayah_source_unavailable')
@@ -475,12 +574,12 @@ function createTikTok(opts = {}) {
 
   /** init → (FILE_UPLOAD: PUT hissələr) → publish_id. */
   async function initUpload(day, info, caption) {
-    const file = reelPath(day, 'mp4')
+    const file = path.join(cardDir, info.file || `${day}-reel.mp4`)
     const plan = cfg.source === 'file' ? chunkPlan(info.size, chunkSize) : null
     if (cfg.source === 'file' && !plan) throw failure('fatal', 'bad_size')
     const source_info = cfg.source === 'file'
       ? { source: 'FILE_UPLOAD', video_size: plan.videoSize, chunk_size: plan.chunkSize, total_chunk_count: plan.count }
-      : { source: 'PULL_FROM_URL', video_url: `${origin}/api/tiktok/media/${day}-reel.mp4` }
+      : { source: 'PULL_FROM_URL', video_url: `${origin}/api/tiktok/media/${info.file || `${day}-reel.mp4`}` }
     return authed(async (token) => {
       let pathname, body
       if (cfg.mode === 'direct') {
@@ -572,9 +671,9 @@ function createTikTok(opts = {}) {
     return true
   }
 
-  async function runPost(row, day) {
+  async function runPost(row, day, slot = 'ayah') {
     try {
-      const info = reelInfo(day)
+      const info = mediaInfo(day, slot)
       if (!info) throw failure('fatal', 'reel_file_missing')
       const { caption, item } = await captionFor(day, info)
       q.setItem.run(item, caption, row.id)
@@ -585,19 +684,31 @@ function createTikTok(opts = {}) {
       const st = await pollStatus(publishId)
       return applyStatus(row, st, day)
     } catch (e) {
-      return recordFailure(q.get.get(day) || row, e, day)
+      return recordFailure(q.get.get(day, slot) || row, e, `${day} ${slot}`)
     }
   }
 
-  /** Sətri "tut": yeni — INSERT; retry vaxtı çatıb və ya yarımçıq qalıb — atom UPDATE. */
-  function claimRow(day) {
+  /**
+   * Sətri "tut": yeni — INSERT; retry vaxtı çatıb və ya yarımçıq qalıb — atom UPDATE. Ayə yuvası: köhnə tiktok_posts-da
+   * həmin günün sətri varsa (köhnə versiya göndərib) — tutulmur.
+   */
+  function claimRow(day, slot = 'ayah') {
     const t = now()
-    if (q.claim.run(day, cfg.mode, t, t).changes === 1) return q.get.get(day)
-    const row = q.get.get(day)
+    if (slot === 'ayah' && q.legacy.get(day)) return null
+    if (q.claim.run(day, slot, slotKind(slot, day), cfg.mode, t, t).changes === 1) return q.get.get(day, slot)
+    const row = q.get.get(day, slot)
     if (!row || !['retry', 'claimed'].includes(row.status)) return null
-    if (q.retake.run(cfg.mode, t, row.id, t, t - STALE_CLAIM_MS, MAX_ATTEMPTS).changes === 1) return q.get.get(day)
+    if (q.retake.run(cfg.mode, t, row.id, t, t - STALE_CLAIM_MS, MAX_ATTEMPTS).changes === 1) return q.get.get(day, slot)
     return null
   }
+  /** Inbox rejimində son 24 saatda gözləyən paylaşımlar (TikTok: ≤ 5). */
+  function pendingCount() {
+    const since = now() - PENDING_WINDOW_MS
+    let n = q.pending.get(since).n
+    try { n += q.pendingLegacy.get(since).n } catch { /* */ }
+    return n
+  }
+  const pendingFull = () => cfg.mode === 'inbox' && pendingCount() >= PENDING_MAX
 
   const connected = () => Boolean(tokenRecord())
   const ready = () => cfg.enabled && connected() && !authBlocked()
@@ -610,15 +721,29 @@ function createTikTok(opts = {}) {
     try {
       await followTick()
       const t = nowAt(TZ, now())
-      const sm = toMin(cfg.time), cur = toMin(t.hhmm)
-      if (cur < sm || cur > sm + CATCHUP_MIN) return 0
-      if (!reelInfo(t.dateKey)) {
-        // Fayl yoxdur (CI işləməyib?) — gündə bir dəfə loglanır (iki proses arasında da)
-        if (q.stClaim.run(`missing:${t.dateKey}`, '1', now()).changes === 1) log.warn(`TikTok: ${t.dateKey} reel faylı yoxdur və ya yararsızdır — atlandı (.github/workflows/ig-reel.yml)`)
-        return 0
+      const cur = toMin(t.hhmm)
+      let n = 0
+      for (const { key: slot, time } of cfg.slots) {
+        if (!time || authBlocked()) continue
+        const sm = toMin(time)
+        if (cur < sm || cur > sm + CATCHUP_MIN) continue
+        const done = q.get.get(t.dateKey, slot)
+        if (done && !['retry', 'claimed'].includes(done.status)) continue
+        if (!mediaInfo(t.dateKey, slot)) {
+          // Fayl yoxdur (CI işləməyib?) — gündə / yuvada bir dəfə loglanır (iki proses arasında da)
+          const mk = slot === 'ayah' ? `missing:${t.dateKey}` : `missing:${t.dateKey}:${slot}`
+          if (q.stClaim.run(mk, '1', now()).changes === 1) log.warn(`TikTok: ${t.dateKey} ${slot} reel faylı yoxdur və ya yararsızdır — atlandı (.github/workflows/ig-reel.yml)`)
+          continue
+        }
+        // TikTok inbox limiti: 24 saatda ≤ 5 gözləyən paylaşım — dolubsa bu yuva atlanır (sətir tutulmur, bir dəfə loglanır)
+        if (!done && pendingFull()) {
+          if (q.stClaim.run(`pending:${t.dateKey}:${slot}`, '1', now()).changes === 1) log.warn(`TikTok: ${t.dateKey} ${slot} — Gələnlər qutusunda ${PENDING_MAX} gözləyən video var (TikTok limiti), yuva atlandı; qaralamaları tətbiqdə dərc edin`)
+          continue
+        }
+        const row = claimRow(t.dateKey, slot)
+        if (row && await runPost(row, t.dateKey, slot)) n++
       }
-      const row = claimRow(t.dateKey)
-      return row && await runPost(row, t.dateKey) ? 1 : 0
+      return n
     } catch (e) {
       log.error('TikTok tick:', e && (e.code || e.message))
       return 0
@@ -643,16 +768,18 @@ function createTikTok(opts = {}) {
     }
   }
 
-  /** Əl ilə (admin): bu günün videosunu indi göndər — gündə bir dəfə (eyni sətir). */
-  async function postNow() {
+  /** Əl ilə (admin): yuvanın bu günkü videosunu indi göndər — gündə / yuvada bir dəfə (eyni sətir). */
+  async function postNow(slot = 'ayah') {
+    if (!SLOT_KEYS.includes(slot)) return { error: 'bad_slot' }
     if (!cfg.enabled) return { error: 'disabled' }
     if (!connected()) return { error: 'not_connected' }
     if (authBlocked()) return { error: 'auth_error' }
     const day = nowAt(TZ, now()).dateKey
-    if (!reelInfo(day)) return { error: 'reel_missing' }
-    const row = claimRow(day)
+    if (!mediaInfo(day, slot)) return { error: 'reel_missing' }
+    if (!q.get.get(day, slot) && pendingFull()) return { error: 'pending_limit' }
+    const row = claimRow(day, slot)
     if (!row) return { error: 'already' }
-    return { ok: await runPost(row, day) }
+    return { ok: await runPost(row, day, slot) }
   }
 
   /** Saatda bir: gündə bir dəfə token yeniləməsi (refresh zənciri təzə qalsın) + köhnə sətirlər. */
@@ -667,7 +794,7 @@ function createTikTok(opts = {}) {
   }
   function purge(t = now()) {
     let n = 0
-    try { n += q.purge.run(t - ROW_TTL_MS).changes } catch (e) { log.error('TikTok purge:', e && e.message) }
+    try { n += q.purge.run(t - ROW_TTL_MS).changes + q.purgeLegacy.run(t - ROW_TTL_MS).changes } catch (e) { log.error('TikTok purge:', e && e.message) }
     try { n += q.stPurge.run(t - 3 * 864e5).changes } catch { /* */ }
     return n
   }
@@ -733,14 +860,24 @@ function createTikTok(opts = {}) {
     const rec = cfg.enabled ? tokenRecord() : null
     const day = nowAt(TZ, now()).dateKey
     const info = cfg.enabled ? reelInfo(day) : null
-    const row = q.get.get(day)
+    const row = q.get.get(day, 'ayah') || q.legacy.get(day)
+    const postOf = (r) => (r ? { status: r.status, error: r.error ? String(r.error).slice(0, 120) : null, attempts: r.attempts, caption: r.caption || null } : null)
+    const slots = cfg.slots.map(({ key, time }) => {
+      const mi = cfg.enabled ? mediaInfo(day, key) : null
+      const r = key === 'ayah' ? row : q.get.get(day, key)
+      return {
+        key, time, kind: (mi && mi.kind) || slotKind(key, day),
+        file: mi ? { size: mi.size, durationMs: mi.durationMs, audio: mi.audio, ref: mi.ref || null, item: mi.item ? `${mi.kind}:${mi.item}` : null } : null,
+        post: postOf(r),
+      }
+    })
     const ae = q.stGet.get('auth_error')
     let account = null
     try { const a = q.stGet.get('account'); account = a ? JSON.parse(a.v) : null } catch { /* */ }
     const t = now()
     return {
       enabled: cfg.enabled, reason: cfg.reason, configured: cfg.configured, mode: cfg.mode, privacy: cfg.mode === 'direct' ? cfg.privacy : null,
-      source: cfg.source, time: cfg.time, timezone: TZ, scopes: cfg.scopes, redirectUri: cfg.enabled ? cfg.redirectUri : null,
+      source: cfg.source, time: cfg.time, timezone: TZ, slots, pending: cfg.mode === 'inbox' ? { count: pendingCount(), max: PENDING_MAX } : null, scopes: cfg.scopes, redirectUri: cfg.enabled ? cfg.redirectUri : null,
       mediaPrefix: cfg.enabled && cfg.source === 'url' ? `${origin}/api/tiktok/media/` : null,
       connected: Boolean(rec), account: rec ? account : null,
       authError: ae ? (() => { try { return JSON.parse(ae.v).code || 'auth_error' } catch { return 'auth_error' } })() : null,
@@ -751,9 +888,9 @@ function createTikTok(opts = {}) {
       today: {
         date: day,
         file: info ? { size: info.size, ref: info.ref, audio: info.audio, durationMs: info.durationMs } : null,
-        post: row ? { status: row.status, error: row.error ? String(row.error).slice(0, 120) : null, attempts: row.attempts, caption: row.caption || null } : null,
+        post: postOf(row),
       },
-      posts: q.recent.all(14).map((r, i) => ({ ...r, caption: i < 3 ? r.caption : null, error: r.error ? String(r.error).slice(0, 120) : null })),
+      posts: q.recent.all(21).map((r, i) => ({ ...r, caption: i < 3 ? r.caption : null, error: r.error ? String(r.error).slice(0, 120) : null })),
     }
   }
 
@@ -780,8 +917,8 @@ function createTikTok(opts = {}) {
   router.get('/tiktok/media/:name', (req, res) => {
     if (!cfg.enabled || cfg.source !== 'url') return notFound(res)
     const name = String(req.params.name || '')
-    const m = REEL.REEL_MP4_RE.exec(name)
-    if (!m || !reelInfo(m[1])) return notFound(res)
+    const m = REEL.VIDEO_MP4_RE.exec(name)
+    if (!m || !(m[2] ? textInfo(m[1], m[2]) : reelInfo(m[1]))) return notFound(res)
     return res.sendFile(name, {
       root: cardDir, dotfiles: 'deny', acceptRanges: true, cacheControl: false, etag: true, lastModified: true,
       headers: { 'Content-Type': 'video/mp4', 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex', 'X-Content-Type-Options': 'nosniff' },
@@ -828,14 +965,20 @@ function createTikTok(opts = {}) {
     })
 
     r.post('/admin/tiktok/post', requireAdmin, adminOnly, superOnly, json, (req, res) => {
-      if (bodyOf(req).confirm !== true) return err(res, 400, 'confirm_required')
+      const b = bodyOf(req)
+      if (b.confirm !== true) return err(res, 400, 'confirm_required')
+      // slot — istəyə bağlı (köhnə klient göndərmir → ayə yuvası)
+      const slot = b.slot == null ? 'ayah' : (typeof b.slot === 'string' && SLOT_KEYS.includes(b.slot) ? b.slot : null)
+      if (!slot) return err(res, 400, 'bad_slot')
       if (!cfg.enabled) return err(res, 409, 'disabled')
       if (!connected()) return err(res, 409, 'not_connected')
       if (authBlocked()) return err(res, 409, 'auth_error')
-      if (!reelInfo(nowAt(TZ, now()).dateKey)) return err(res, 409, 'reel_missing')
+      const day = nowAt(TZ, now()).dateKey
+      if (!mediaInfo(day, slot)) return err(res, 409, 'reel_missing')
+      if (!q.get.get(day, slot) && pendingFull()) return err(res, 409, 'pending_limit')
       if (!allow(`p:${req.adminUser.id}`, 6)) return err(res, 429, 'rate_limited')
       // Yükləmə + emal dəqiqələrlə çəkə bilər — arxa planda; nəticə statusda görünür
-      postNow().catch((e) => log.error('TikTok post-now:', e && (e.code || e.message)))
+      postNow(slot).catch((e) => log.error('TikTok post-now:', e && (e.code || e.message)))
       return res.status(202).json({ ok: true })
     })
 
@@ -850,11 +993,11 @@ function createTikTok(opts = {}) {
   }
 
   return {
-    enabled: cfg.enabled, config: cfg, router, adminRouter, tick, followTick, refreshTick, purge, postNow, status, reelInfo, captionFor,
+    enabled: cfg.enabled, config: cfg, router, adminRouter, tick, followTick, refreshTick, purge, postNow, status, reelInfo, mediaInfo, textInfo, captionFor, pendingCount,
     connectUrl, handleCallback, disconnect, ready, cardDir, _q: q, _refresh: refresh, _tokenRecord: tokenRecord,
   }
 }
 
 module.exports = {
-  createTikTok, parseConfig, chunkPlan, classify, seal, unseal, signState, verifyState, SCOPES, PRIVACY, MODES, COOKIE, DEFAULT_TIME,
+  createTikTok, parseConfig, parseTimes, SLOT_KEYS, DEFAULT_TIMES, PENDING_MAX, chunkPlan, classify, seal, unseal, signState, verifyState, SCOPES, PRIVACY, MODES, COOKIE, DEFAULT_TIME,
 }

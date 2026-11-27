@@ -53,7 +53,8 @@ Açarlar olsa da hesab admin panelindən **qoşulmayana** qədər heç nə gönd
 |---|---|---|
 | `TIKTOK_MODE` | `inbox` | `inbox` — video sahibin TikTok *Gələnlər* qutusuna qaralama kimi düşür (`video.upload`), sahib tətbiqdə dərc edir. API caption qəbul ETMİR — mətn admin panelində kopyalanmaq üçün göstərilir. `direct` — birbaşa dərc (`video.publish`), caption = `post_info.title`. |
 | `TIKTOK_PRIVACY` | `SELF_ONLY` | Yalnız `direct`: `SELF_ONLY` / `MUTUAL_FOLLOW_FRIENDS` / `FOLLOWER_OF_CREATOR` / `PUBLIC_TO_EVERYONE`. Hesabın `creator_info`-da qaytardığı seçimlərdə yoxdursa, o gün göndərilmir (`privacy_unavailable`). |
-| `TIKTOK_TIME` | `18:30` | Asia/Baku. Server o vaxt işləmirdisə, 5 saat ərzində tutur. |
+| `TIKTOK_TIMES` | `09:00,14:00,18:30` | Asia/Baku, düz 3 vaxt, sıra ilə yuvalar: **hədis** videosu, **dua / Allahın adı** videosu, **Quran passajı** (tilavətlə). Yuvanı söndürmək: `off` (`off,14:00,18:30`). Yararsızdırsa — susmaya görə. Server o vaxt işləmirdisə, 4 saat ərzində tutur. |
+| `TIKTOK_TIME` | `18:30` | Köhnə (tək vaxt): `TIKTOK_TIMES` yoxdursa ayə yuvasının vaxtı. |
 | `TIKTOK_SOURCE` | `file` | `file` — FILE_UPLOAD (serverdən PUT, domen təsdiqi lazım deyil). `url` — PULL_FROM_URL: TikTok `https://muslims.cc/api/tiktok/media/<tarix>-reel.mp4`-dən çəkir; developer portalda **URL prefix** `https://muslims.cc/api/tiktok/media/` təsdiqlənməlidir (*Manage apps → URL properties*), yoxsa `url_ownership_unverified`. |
 | `TIKTOK_ALLOW` | `comment` | Yalnız `direct`: icazə verilən qarşılıqlı əlaqə (`comment,duet,stitch`). Duet / stitch susmaya görə bağlıdır (Quran tilavəti üzərində montaj yox). Hesab ayarında bağlıdırsa, həmişə bağlı qalır. |
 | `TIKTOK_REDIRECT_URI` | `https://muslims.cc/api/tiktok/callback` | Yalnız başqa domen / lokal sınaq üçün; portaldakı ilə **eyni** olmalıdır. |
@@ -107,20 +108,30 @@ Inbox (Upload) rejimində dərci sahib özü tətbiqdə edir — görünməni d�
   İstifadədən əvvəl ≤ 10 dəq qalıbsa və gündə bir dəfə yenilənir. İki proses (blue/green) eyni anda yeniləməsin deyə bazada
   kilid (`refresh_lock`, 60 s); `invalid_grant` alanda əvvəlcə bazada daha təzə token olub-olmadığı yoxlanır.
   Token, kod, secret heç vaxt loglanmır və admin API-də qaytarılmır.
-- **Gündəlik:** 30 saniyədə bir; `TIKTOK_TIME`-dan sonra 5 saat ərzində, fayl varsa: caption (alquran.cloud, ingiliscə,
+- **3 yuva (2026-11-27):** hər yuva öz faylını göndərir — hədis `<tarix>-reel-hadith.mp4`, dua / ad `<tarix>-reel-dua.mp4`
+  və ya `-name.mp4` (günün növü — instagram.js `kindFor`, 20:00 kartı ilə eyni), ayə `<tarix>-reel.mp4` (hamısını eyni CI
+  workflow çəkir — docs/INSTAGRAM.md → "Hədis və dua / Allahın adı videoları"). Hədis / dua caption-u instagram.js-in kart
+  caption-u ilə eyni qayda (ingiliscə, saytın verbatim mətni, `— mənbə`, link, ≤ 5 heşteq; tilavət sətri yoxdur).
+  Fayl yoxdursa — həmin yuva atlanır (yuva üzrə bir dəfə log), digərləri gedir.
+- **Inbox limiti:** TikTok 24 saatda ən çox **5 gözləyən** qaralama qəbul edir (`spam_risk_too_many_pending_share`). Modul
+  son 24 saatda `sent` / `processing` (və init edilmiş `claimed`) sətirləri sayır; 5-ə çatıbsa yeni yuva tutulmur (bir dəfə
+  log, panel "TikTok limiti doludur" yazır). Gündə 3 video ilə sahib qaralamaları vaxtında dərc edirsə limit dolmur.
+  `direct` rejimində bu sayğac işlədilmir.
+- **Gündəlik (ayə yuvası):** 30 saniyədə bir; yuvanın vaxtından sonra 4 saat ərzində, fayl varsa: caption (alquran.cloud, ingiliscə,
   dəyişdirilmədən: başlıq + ərəbcə + Asad tərcüməsi + `— Surə s:a` + "Read on the site: https://muslims.cc/en/quran?…" +
   "Recitation: Mishary Rashid Alafasy" + ≤ 5 heşteq; instagram.js-in reel caption qaydası) → (direct: creator_info) → init →
   PUT hissələr → status (~4 dəq). Bitməyibsə `processing`, sonra 30 dəqdən bir 3 gün izlənir (inbox: `sent` → sahib dərc
   edəndə `published`).
-- **Bir dəfə:** `tiktok_posts.day UNIQUE` — `INSERT OR IGNORE` ilə tutan proses göndərir; yarımçıq sətir 15 dəq sonra yenidən
-  götürülür.
+- **Bir dəfə:** `tiktok_slot_posts (day, slot) UNIQUE` — `INSERT OR IGNORE` ilə tutan proses göndərir; yarımçıq sətir 15 dəq
+  sonra yenidən götürülür. Köhnə `tiktok_posts` (gün UNIQUE) cədvəlindəki həmin günün sətri ayə yuvası sayılır (ikinci dəfə
+  getmir); köhnə cədvəl yalnız oxunur və 180 gündən sonra təmizlənir.
 - **Xətalar:** 5xx / şəbəkə / `rate_limit_exceeded` → 2 / 5 / 15 / 30 dəq fasilə, ≤ 5 cəhd. `access_token_invalid` → bir dəfə
   məcburi yeniləmə + təkrar. Yenə də, ya `scope_not_authorized`, `invalid_grant`, `auth_removed` → **planlayıcı dayanır**,
   bir dəfə loglanır, panel "yenidən qoşun" göstərir (yeni qoşulma bloku açır). Gündəlik limit (`spam_risk_too_many_posts`,
   `spam_risk_too_many_pending_share`, `reached_active_user_cap`) və konfiqurasiya xətaları (`unaudited_client…`,
   `privacy_level_option_mismatch`, `privacy_unavailable`, `duration_too_long`, `url_ownership_unverified`, `spam_risk*`) →
   o gün `failed`, növbəti gün yenidən.
-- **Cədvəllər:** `tiktok_posts` (gün, rejim, element, caption, publish_id, status; 180 gün), `tiktok_state` (token — şifrəli,
+- **Cədvəllər:** `tiktok_slot_posts` (gün, yuva, növ, rejim, element, caption, publish_id, status; 180 gün), köhnə `tiktok_posts`, `tiktok_state` (token — şifrəli,
   hesabın görünən adı, avtorizasiya xətası, OAuth nonce-ları 3 gün). İstifadəçi məlumatı yoxdur — `users`-ə bağlı deyil,
   hesab ixracına / xülasəyə düşmür. Miqrasiya yoxdur (`CREATE TABLE IF NOT EXISTS`).
 - **nginx:** hamısı `/api/` prefiksindədir; callback-in uzantısı yoxdur, `.mp4` statik regex qaydasında deyil — ayrıca location lazım deyil.
@@ -129,9 +140,9 @@ Inbox (Upload) rejimində dərci sahib özü tətbiqdə edir — görünməni d�
 
 | Marşrut | Rol | |
 |---|---|---|
-| `GET /api/admin/tiktok` | admin+ | vəziyyət, hesab adı, token müddətləri (dəyərsiz), bu günün faylı / göndərişi / caption, son 14 gün |
+| `GET /api/admin/tiktok` | admin+ | vəziyyət, hesab adı, token müddətləri (dəyərsiz), `slots` (3 yuva: vaxt, növ, fayl, göndəriş, caption), `pending` (inbox sayğacı), `today` (ayə yuvası — köhnə klientlər üçün), son göndərişlər |
 | `GET /api/tiktok/connect` | superadmin | TikTok razılıq səhifəsinə 302 |
-| `POST /api/admin/tiktok/post` `{confirm:true}` | superadmin | bu günün videosunu indi göndər (gündə bir dəfə, eyni sətir), 202 |
+| `POST /api/admin/tiktok/post` `{confirm:true, slot?}` | superadmin | yuvanın (`hadith` / `extra` / `ayah`; yoxdursa `ayah`) bu günkü videosunu indi göndər (gündə / yuvada bir dəfə, eyni sətir), 202; `bad_slot`, `reel_missing`, `pending_limit` |
 | `POST /api/admin/tiktok/disconnect` `{confirm:true}` | superadmin | revoke + token silinir |
 
 ## Risklər və məhdudiyyətlər

@@ -26,8 +26,13 @@ Gündə 3 yuva (`IG_SLOTS`, susmaya görə `08:00,13:00,20:00`, **Asia/Baku**). 
 - **"Səhih"** yazısı yalnız mənbə Buxari / Müslim olanda (saytın `gradeOf` 1-ci qaydası; Telegram botu ilə eyni). Sünən
   rəvayətlərində və dualarda yalnız mənbə yazılır — hökm uydurulmur.
 - Mətn **qısaldılmır**. Kartda oxunaqlı ölçüdə sığmırsa (məs. Ayətül-Kürsi feed-də), sıradakı element götürülür.
-- 20:00 yuvası — gecə rəngi, digərləri — zümrüd. Kartda: xatəm ornamenti, ərəbcə mətn, tərcümə (`IG_LANG`, susmaya görə az),
-  mənbə, "muslims.cc".
+- **Temalar** (2026-11-27, `server/instagramCard.js` → `THEMES`; aşağıda "Temalar"): 08:00 ayə — **dawn** (açıq), 13:00 hədis —
+  **day** (zümrüd), 20:00 dua / ad — **night** (gecə göyü). Kartda: xatəm ornamenti, ərəbcə mətn, tərcümə (`IG_LANG`, susmaya
+  görə az), mənbə, "muslims.cc".
+- **Videolar** (`IG_REELS=1` + `IG_REEL_KINDS`, susmaya görə `ayah,hadith,dua`): 13:00 və 20:00 yuvalarında feed **şəkli
+  əvəzinə** həmin elementin videosu **reel** kimi (`share_to_feed=true`) dərc olunur; story həmin yuvada yenə şəkil kartıdır.
+  08:00 ayə — həmişə şəkil + story; 18:00 — ayə passajının reel-i (aşağıda "Reels"). Video faylı yuva vaxtı yoxdursa /
+  yararsızdırsa — adi şəkil postu (loga bir dəfə). `IG_REEL_KINDS=ayah` — köhnə davranış (yalnız 18:00 reel-i).
 - Caption (yalnız feed; story caption qəbul etmir) **ikidillidir** (`IG_CAPTION_LANGS`, susmaya görə `az,en`): açar sözlü
   1-ci sətir (`Günün ayəsi: Əhzab 33:3 | Verse of the Day`), ərəbcə, az tərcümə, `—`, ingiliscə tərcümə, sonra `— mənbə` (az),
   saytdakı səhifənin az linki, ≤ 5 heşteq (aşağıda "Böyümə").
@@ -112,6 +117,8 @@ IG_ENABLED=1
 # IG_API_VERSION=v27.0          # Meta versiyanı köhnəltsə yeniləyin
 # IG_REELS=1                    # günün Quran passajının reel-i (aşağıda "Reels"); susmaya görə sönülü
 # IG_REEL_TIME=18:00            # reel-in dərc vaxtı (Asia/Baku)
+# IG_REEL_KINDS=ayah,hadith,dua # videolar (IG_REELS=1 ilə): ayah — 18:00 passaj reel-i, hadith — 13:00, dua (= name) — 20:00
+#                               # yuvasında feed şəkli əvəzinə video; "ayah" — köhnə davranış
 # IG_CAROUSEL=1                 # həftəlik karusel (aşağıda "Böyümə"); susmaya görə sönülü
 # IG_CAROUSEL_DAY=5             # 0 bazar … 5 cümə … 6 şənbə
 # IG_CAROUSEL_TIME=11:00        # Asia/Baku
@@ -265,7 +272,7 @@ addım 7, 26 passaj → 26 gündə hər biri bir dəfə): 1:1-7, 2:1-5, 3:26-27,
   Geri qaytarmaq — dəyişəni silin.
 - Meta `video_url`-i Cloudflare üzərindən çəkir: WAF / Bot Fight qaydası `facebookexternalhit`-i bloklasa konteyner `ERROR`
   olur (status "media", ≤ 5 cəhd). 404 cavabları `no-store`-dur (keşlənmir); 200 cavabı 5 dəq keşlənir.
-- 24 saatlıq dərc limiti (100 post) reel-i də sayır — gündə 7 (3 post + 3 story + 1 reel), problem deyil.
+- 24 saatlıq dərc limiti (100 post) reel-i də sayır — gündə 7 (3 feed — ikisi video ola bilər, 3 story, 1 reel), problem deyil.
 - Reel passajı 08:00 ayə postundan ayrıca seçilir (`passageRef`); köhnə tək ayə köməkçiləri (`reelRef`, `reelTimeline`,
   `REEL_MAX_SEC`) geriyə uyğunluq üçün `instagramReel.js`-də qalır (server/tiktok.js də bu modulu oxuyur).
 - Video kadrları HarfBuzz/pango ilə kartdakı kimi formalaşır; animasiya eyni paraqrafın "yalnız bu söz görünür" (qalanları
@@ -275,6 +282,60 @@ addım 7, 26 passaj → 26 gündə hər biri bir dəfə): 1:1-7, 2:1-5, 3:26-27,
   --frames /tmp/frames [--ref 67:1-5] [--audio none] [--ffmpeg <yol>]` (`npm ci --prefix server` + ffmpeg lazımdır).
 - Tərcümə şriftində (MccInter) olmayan simvol olan ayə çəkilmir (passaj atlanır); `en.asad`-dakı yumşaq defis (U+00AD)
   görünməz sayılır — pango onu yalnız sətir sonunda "-" kimi çəkir.
+
+## Hədis və dua / Allahın adı videoları (2026-11-27)
+
+Eyni workflow (`.github/workflows/ig-reel.yml`) hər gün ayə passajından sonra daha iki video çəkir
+(`node scripts/ig-reel/render.mjs --kind hadith|extra`):
+
+| Fayl (`/data/ig-cards/`) | Məzmun | Instagram | TikTok |
+|---|---|---|---|
+| `<tarix>-reel.mp4` + `.json` | Quran passajı, tilavətlə (yuxarıda "Reels") | 18:00 reel | 18:30 |
+| `<tarix>-reel-hadith.mp4` + `.json` | günün hədisi — 13:00 kartı ilə eyni element | 13:00 feed (reel) | 09:00 |
+| `<tarix>-reel-dua.mp4` və ya `-name.mp4` + `.json` | günün duası / Allahın adı — 20:00 kartı ilə eyni | 20:00 feed (reel) | 14:00 |
+
+- **Element:** `instagram.js → staticCandidate` + kartın seçim qaydası (ərəb qlif yoxlaması, caption, feed və story
+  kartının sığması) — video həmin günün kartını göstərir. Video kadrına sığmırsa — sıradakı element (log; sidecar-da
+  videonun öz `item`-i, caption ondan qurulur). Mətnlər saytın verbatim məlumatıdır (`daily-hadith-data.js`,
+  `instagram-data.js`); **Hisnul-Müslim (AI tərcümə) işlədilmir**. "Sahih" yalnız `isBukhariMuslim` / dua `sahih` qaydası ilə.
+- **Animasiya:** reel kimi — ərəbcə "mürəkkəblə yazılır" (hədis / dua — Amiri, Allahın adları — Amiri Quran; dayanma işarəsi
+  qaydası eyni), sonra tərcümə söz-söz, sonra oxumaq üçün sabit kadr. Müddət **20–40 s** (`textTimeline`, söz sayına görə).
+  Üz qabığı (`thumb_offset`) — son saniyə (bütün mətn).
+- **Səs:** səsləndirmə (TTS) və musiqi **YOXDUR**. Çox zəif neytral fon: süzülmüş qəhvəyi küy (70–420 Hz, külək kimi, tonu
+  yoxdur), yavaş tremolo, orta səviyyə ~-30 dBFS, 2.5 s fade in / 3 s fade out (`render.mjs → ambientGraph`). Repo dəyişəni
+  `IG_REEL_AMBIENT=0` — sükut (səssiz AAC trek).
+- **Yükləmə:** `ci-gate.sh ig-reel <tarix> <hadith|dua|name> <id> <ambient|none> [dil]` → `<tarix>-reel-<növ>.mp4` +
+  `{"kind":"hadith","item":851,"audio":"ambient","lang":"en"}`. Köhnə formalar (`ig-reel <tarix> <ref> <səs> [dil]`) və
+  `ig-reel <tarix> ayah <ref> <səs> [dil]` də qəbul olunur. Server sidecar-ı `parseTextMeta` ilə yoxlayır (növ fayl adı ilə
+  eyni, id 1–9999, səs allowlist). Hədis / dua videosu çəkilməsə və ya serverdəki `ci-gate.sh` köhnə olsa — workflow
+  xəbərdarlıq yazır, iş uğursuz olmur; server həmin yuvada şəkil postu atır.
+- **Vaxt / ölçü:** hər video ~10 s-də çəkilir (sabit kadrlar keşlənir), 2–4 MB (≤ 15 MB həddi, VBV).
+- Admin → Instagram → "Bu günün videoları": video açıq olan yuvalar, fayl var / yoxdur (şəkil postu).
+- Yerli: `node scripts/ig-reel/render.mjs --kind hadith --date 2026-11-29 --lang en --out /tmp/h.mp4 --meta /tmp/h.json --frames /tmp/fr [--audio none] [--ffmpeg <yol>]`.
+
+## Temalar (2026-11-27)
+
+`server/instagramCard.js → THEMES` (kartlar, story-lər, karusel, bütün videolar — TikTok da):
+
+| Tema | Fon | Mətn | Qızılı |
+|---|---|---|---|
+| `dawn` | fil sümüyü / qum `#fbf7ee → #f1e7d0`, qum rəngli xatəm naxışı | tərcümə zümrüd `#0f5a47`, ərəbcə `#0b4637` | çərçivə / ornament `#a57a22`, qızılı mətn `#7d5a12` |
+| `day` | zümrüd `#146a53 → #0a3a2e` | `#f8f3e6` | `#e6cc95` |
+| `night` | gecə göyü `#132634 → #060d14` | `#f3efe6` | `#e6cc95` |
+
+- Kontrast (WCAG, fonun hər iki ucunda; test: `tests/unit/server-instagram-themes.test.js`): dawn-da tərcümə ~6.5:1,
+  ərəbcə, qızılı mətn və ikinci dərəcəli mətn ≥ 4.5:1. `#a57a22` açıq fonda ~3:1-dir — ona görə yalnız xətlər üçün, mətn üçün
+  tündləşdirilmiş `goldText`. Açıq temada reel-in "qələm işığı" additiv deyil, qızılıya doğru qarışıqdır; təzə mürəkkəb
+  qızılı, quruyanda zümrüd.
+- **Yuva → tema:** 08:00 ayə — dawn, 13:00 hədis — day, 18:00 passaj reel-i — dawn, 20:00 dua / ad — night
+  (`instagramReel.KIND_THEMES`, `instagram.themeForSlot`). Grid-də ardıcıllıq: dawn → day → dawn (reel) → night → dawn
+  (ertəsi gün) — qonşu iki element heç vaxt eyni rəngdə deyil. TikTok: 09:00 day → 14:00 night → 18:30 dawn → 09:00 day.
+- **Karusel:** bütün dəst (üz, 5 element, bağlanış) bir tema, həftəyə görə növbələşir: dawn → day → night (`carouselColour`).
+  Qeyd: cümə 11:00 karuseli grid-də 08:00 (dawn) və 13:00 (day) arasındadır — sahibin "həftəlik növbə" qərarına görə dawn / day
+  həftələrində bir qonşusu ilə eyni rəngdə olur (yalnız night hər iki qonşudan fərqlidir). İstənilsə karuseli həmişə night
+  etmək bir sətirlik dəyişiklikdir (`CAROUSEL_COLOURS`).
+- Ərəb mətninin şrifti / glif yoxlamaları dəyişməyib (Amiri Quran — Quran və adlar, Amiri — hədis / dua; kartda yalnız
+  şriftdə olan qliflər).
 
 ## Böyümə (orqanik əhatə, Explore, izləyicilər — yalnız qanuni üsullar)
 

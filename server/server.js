@@ -400,14 +400,14 @@ if (instagram.enabled) {
   setTimeout(() => { instagram.refreshTick().catch(() => {}) }, 60e3).unref()
 }
 
-// ─── TikTok yükləyicisi (server/tiktok.js, docs/TIKTOK.md) — günün reel videosu (Instagram-la eyni MP4). api.env-də
+// ─── TikTok yükləyicisi (server/tiktok.js, docs/TIKTOK.md) — gündə 3 video (hədis, dua / ad, Quran passajı; Instagram-la eyni MP4-lər). api.env-də
 // TIKTOK_ENABLED=1 + TIKTOK_CLIENT_KEY + TIKTOK_CLIENT_SECRET yoxdursa tam sönülüdür (/api/tiktok/* → 404, şəbəkə yoxdur).
 // Hesab bir dəfə admin panelindən qoşulur (yalnız superadmin); status — admin+.
 const tiktok = require('./tiktok').createTikTok({ db, env: { ...process.env, DB_PATH }, publicOrigin: PUBLIC_ORIGIN, adminPath: process.env.ADMIN_PATH || undefined })
 app.use('/api', tiktok.router)
 app.use('/api', tiktok.adminRouter({ requireAdmin, adminRoleOf: usersStore.adminRole }))
 if (tiktok.enabled) {
-  // Gündə bir dəfə (TIKTOK_TIME, Asia/Baku): 30 saniyədə bir yoxlanır; bir dəfə — tiktok_posts.day UNIQUE (kəsintisiz deploy)
+  // 3 yuva (TIKTOK_TIMES, Asia/Baku): 30 saniyədə bir yoxlanır; bir dəfə — tiktok_slot_posts (day, slot) UNIQUE (kəsintisiz deploy)
   setInterval(() => { tiktok.tick().catch((e) => console.error('tiktok tick:', e && e.message)) }, 30000).unref()
   // Gündə bir token yeniləməsi (rotasiya, bazada kilid) + köhnə sətirlər — saatda bir yoxlanır
   setInterval(() => {

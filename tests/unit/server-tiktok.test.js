@@ -570,3 +570,140 @@ describe('tiktok — PULL_FROM_URL rejimi', () => {
     } finally { await srv.close() }
   })
 })
+
+// ── Gündə 3 video (2026-11-27): hədis 09:00, dua / ad 14:00, Quran passajı 18:30 ──
+const IG = require('../../server/instagram.js')
+const T09 = Date.parse('2026-11-25T05:00:30Z')   // 09:00:30 Asia/Baku
+const T14 = Date.parse('2026-11-25T10:00:30Z')   // 14:00:30 Asia/Baku
+function putText(cardDir, kind, { date = DAY, k = 0, audio = 'ambient', durationMs = 24000 } = {}) {
+  const c = IG.staticCandidate(kind, date, k, 'en')
+  fs.mkdirSync(cardDir, { recursive: true })
+  fs.writeFileSync(path.join(cardDir, `${REEL.videoBase(date, kind)}.mp4`), fakeMp4(durationMs, 8192))
+  fs.writeFileSync(path.join(cardDir, `${REEL.videoBase(date, kind)}.json`), JSON.stringify({ kind, item: IG.itemIdOf(c.key), audio, lang: 'en' }))
+  return c
+}
+
+describe('tiktok — 3 yuva', () => {
+  it('TIKTOK_TIMES: susmaya görə 09:00,14:00,18:30; "off"; yararsız → susmaya görə; köhnə TIKTOK_TIME — ayə yuvası', () => {
+    expect(tt.parseConfig(ENV).slots).toEqual([{ key: 'hadith', time: '09:00' }, { key: 'extra', time: '14:00' }, { key: 'ayah', time: '18:30' }])
+    expect(tt.parseConfig({ ...ENV, TIKTOK_TIMES: '8:15, off ,19:00' }).slots).toEqual([{ key: 'hadith', time: '08:15' }, { key: 'extra', time: null }, { key: 'ayah', time: '19:00' }])
+    expect(tt.parseConfig({ ...ENV, TIKTOK_TIMES: '8:15, off ,19:00' }).time).toBe('19:00')
+    for (const bad of ['09:00,14:00', '09:00,14:00,18:30,20:00', '09:00,25:00,18:30', 'x,y,z']) expect(tt.parseConfig({ ...ENV, TIKTOK_TIMES: bad }).slots.map((s) => s.time)).toEqual(['09:00', '14:00', '18:30'])
+    expect(tt.parseConfig({ ...ENV, TIKTOK_TIME: '17:45' }).slots.map((s) => s.time)).toEqual(['09:00', '14:00', '17:45'])
+    expect(tt.SLOT_KEYS).toEqual(['hadith', 'extra', 'ayah'])
+  })
+
+  it('hər yuva öz vaxtında öz faylını göndərir, öz ingiliscə caption-u ilə; (gün, yuva) üzrə bir dəfə', async () => {
+    const { db, cardDir } = setup()
+    const hc = putText(cardDir, 'hadith')
+    const xkind = IG.kindFor(2, DAY)
+    const xc = putText(cardDir, xkind)
+    putReel(cardDir)
+    let t = T09
+    const f = fakeFetch()
+    const m = mk(db, cardDir, { fetchImpl: f, clock: () => t, env: { TIKTOK_SOURCE: 'url' } })
+    await connect(m)
+    expect(await m.tick()).toBe(1)
+    expect(await m.tick()).toBe(0)
+    t = T14
+    expect(await m.tick()).toBe(1)
+    t = T0
+    expect(await m.tick()).toBe(1)
+    expect(await m.tick()).toBe(0)
+    const urls = f.path('/v2/post/publish/inbox/video/init/').map((c) => c.json.source_info.video_url)
+    expect(urls).toEqual([
+      `https://muslims.cc/api/tiktok/media/${DAY}-reel-hadith.mp4`, `https://muslims.cc/api/tiktok/media/${DAY}-reel-${xkind}.mp4`,
+      `https://muslims.cc/api/tiktok/media/${DAY}-reel.mp4`,
+    ])
+    const s = m.status()
+    expect(s.slots.map((x) => [x.key, x.time, x.kind, x.post && x.post.status])).toEqual([
+      ['hadith', '09:00', 'hadith', 'sent'], ['extra', '14:00', xkind, 'sent'], ['ayah', '18:30', 'ayah', 'sent'],
+    ])
+    const hcap = s.slots[0].post.caption
+    expect(hcap).toMatch(/^Hadith of the day/i)
+    expect(hcap).toContain(hc.text)
+    expect(hcap).toContain(hc.ref)
+    expect(hcap).toContain('https://muslims.cc/en/hadith/')
+    expect(hcap).not.toContain('Recitation')
+    expect(s.slots[1].post.caption).toContain(xc.text)
+    expect(s.slots[2].post.caption).toContain('Recitation: Mishary Rashid Alafasy')
+    // geriyə uyğunluq: today — ayə yuvası
+    expect(s.today.post.status).toBe('sent')
+    expect(s.posts.map((p) => p.slot).sort()).toEqual(['ayah', 'extra', 'hadith'])
+    expect(s.pending).toEqual({ count: 3, max: tt.PENDING_MAX })
+    // media marşrutu yeni adları da verir
+    const app = express()
+    app.use('/api', m.router)
+    const srv = await listen(app)
+    try {
+      expect((await fetch(`${srv.url}/api/tiktok/media/${DAY}-reel-hadith.mp4`)).status).toBe(200)
+      for (const p of [`${DAY}-reel-ayah.mp4`, `${DAY}-reel-hadith.json`, '2026-11-24-reel-hadith.mp4']) expect((await fetch(`${srv.url}/api/tiktok/media/${p}`)).status, p).toBe(404)
+    } finally { await srv.close() }
+  })
+
+  it('yuvanın faylı yoxdur — o yuva atlanır (yuva üzrə bir dəfə log), digərləri gedir; "off" yuva heç vaxt', async () => {
+    const { db, cardDir } = setup()
+    putText(cardDir, 'hadith')
+    let t = T09
+    const f = fakeFetch()
+    const m = mk(db, cardDir, { fetchImpl: f, clock: () => t, env: { TIKTOK_TIMES: '09:00,off,18:30' } })
+    await connect(m)
+    expect(await m.tick()).toBe(1)
+    t = T14
+    expect(await m.tick()).toBe(0)
+    t = T0
+    expect(await m.tick()).toBe(0)
+    expect(await m.tick()).toBe(0)
+    expect(m._log._l.warns.filter((w) => w.includes('ayah'))).toHaveLength(1)
+    expect(m._log._l.warns.filter((w) => w.includes('extra'))).toHaveLength(0)
+    expect(m.status().slots[1]).toMatchObject({ key: 'extra', time: null, post: null })
+  })
+
+  it('inbox limiti: 24 saatda 5 gözləyən paylaşım → yuva atlanır (bir dəfə log), köhnələr sayılmır; direct rejimdə limit yoxlanmır', async () => {
+    const { db, cardDir } = setup()
+    putText(cardDir, 'hadith')
+    const f = fakeFetch()
+    const m = mk(db, cardDir, { fetchImpl: f, t: T09 })
+    await connect(m)
+    const raw = db.raw || db
+    const ins = raw.prepare(`INSERT INTO tiktok_slot_posts (day, slot, kind, mode, status, publish_id, attempts, created_at, updated_at) VALUES (?, ?, 'hadith', 'inbox', ?, 'p', 1, ?, ?)`)
+    for (let i = 0; i < 4; i++) ins.run(`2026-11-1${i}`, 'hadith', 'sent', T09 - 3600e3, T09)
+    ins.run('2026-11-01', 'hadith', 'sent', T09 - 25 * 3600e3, T09)       // 24 saatdan köhnə — sayılmır
+    ins.run('2026-11-02', 'hadith', 'published', T09 - 3600e3, T09)       // dərc olunub — sayılmır
+    expect(m.pendingCount()).toBe(4)
+    raw.prepare(`INSERT INTO tiktok_posts (day, mode, status, publish_id, attempts, created_at, updated_at) VALUES ('2026-11-20', 'inbox', 'sent', 'p', 1, ?, ?)`).run(T09 - 3600e3, T09)
+    expect(m.pendingCount()).toBe(5)
+    expect(await m.tick()).toBe(0)
+    expect(await m.tick()).toBe(0)
+    expect(f.path('/v2/post/publish/inbox/video/init/')).toHaveLength(0)
+    expect(m._log._l.warns.filter((w) => w.includes('TikTok limiti'))).toHaveLength(1)
+    expect(await m.postNow('hadith')).toEqual({ error: 'pending_limit' })
+    expect(m.status().pending).toEqual({ count: 5, max: 5 })
+
+    const s2 = setup()
+    putText(s2.cardDir, 'hadith')
+    const f2 = fakeFetch({ statuses: ['PUBLISH_COMPLETE'] })
+    const m2 = mk(s2.db, s2.cardDir, { fetchImpl: f2, t: T09, env: { TIKTOK_MODE: 'direct' } })
+    await connect(m2)
+    const raw2 = s2.db.raw || s2.db
+    for (let i = 0; i < 6; i++) raw2.prepare(`INSERT INTO tiktok_slot_posts (day, slot, kind, mode, status, publish_id, attempts, created_at, updated_at) VALUES (?, 'hadith', 'hadith', 'inbox', 'sent', 'p', 1, ?, ?)`).run(`2026-11-0${i + 1}`, T09 - 3600e3, T09)
+    expect(await m2.tick()).toBe(1)
+    expect(m2.status().pending).toBeNull()
+  })
+
+  it('köhnə tiktok_posts-da bu günün sətri var — ayə yuvası ikinci dəfə getmir; postNow yuva yoxlaması', async () => {
+    const { db, cardDir } = setup()
+    putReel(cardDir)
+    const f = fakeFetch()
+    const m = mk(db, cardDir, { fetchImpl: f })
+    await connect(m)
+    const raw = db.raw || db
+    raw.prepare(`INSERT INTO tiktok_posts (day, mode, status, attempts, created_at, updated_at) VALUES (?, 'inbox', 'published', 1, ?, ?)`).run(DAY, T0 - 1000e3, T0 - 1000e3)
+    expect(await m.tick()).toBe(0)
+    expect(f.path('/v2/post/publish/inbox/video/init/')).toHaveLength(0)
+    expect(m.status().today.post).toMatchObject({ status: 'published' })
+    expect(await m.postNow('bogus')).toEqual({ error: 'bad_slot' })
+    expect(await m.postNow('ayah')).toEqual({ error: 'already' })
+    expect(await m.postNow('hadith')).toEqual({ error: 'reel_missing' })
+  })
+})

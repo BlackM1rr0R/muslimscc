@@ -19,6 +19,22 @@ const dailyAyah = require('./daily-ayah')
 
 const REEL_MP4_RE = /^(\d{4}-\d{2}-\d{2})-reel\.mp4$/
 const REEL_META_RE = /^(\d{4}-\d{2}-\d{2})-reel\.json$/
+// 2026-11-27: günə 3 video — ayə passajı (<tarix>-reel.mp4, yuxarıdakı köhnə ad), hədis və dua / Allahın adı
+// (<tarix>-reel-<növ>.mp4 + .json). Növ adı fayl adındadır; sidecar {"kind","item","audio","lang"}.
+const VIDEO_KINDS = ['ayah', 'hadith', 'dua', 'name']
+const TEXT_KINDS = ['hadith', 'dua', 'name']
+const VIDEO_MP4_RE = /^(\d{4}-\d{2}-\d{2})-reel(?:-(hadith|dua|name))?\.mp4$/
+const VIDEO_META_RE = /^(\d{4}-\d{2}-\d{2})-reel(?:-(hadith|dua|name))?\.json$/
+// Hədis / dua videosunun səsi: çox zəif neytral fon (süzülmüş küy — musiqi və səsləndirmə YOX) və ya sükut
+const TEXT_AUDIO_MODES = ['ambient', 'none']
+const TEXT_MIN_SEC = 20
+const TEXT_MAX_SEC = 40
+// Tema növə görə (instagramCard.THEMES): Instagram grid-də ardıcıl elementlər fərqli rəngdə olsun —
+//   08:00 ayə — dawn, 13:00 hədis — day, 18:00 ayə passajı reel-i — dawn, 20:00 dua / ad — night (docs/INSTAGRAM.md → "Temalar")
+const KIND_THEMES = { ayah: 'dawn', hadith: 'day', dua: 'night', name: 'night' }
+const themeForKind = (kind) => KIND_THEMES[kind] || 'day'
+/** Fayl adı (uzantısız): ayah → <tarix>-reel, digərləri → <tarix>-reel-<növ>. */
+const videoBase = (dateKey, kind = 'ayah') => (kind === 'ayah' ? `${dateKey}-reel` : `${dateKey}-reel-${kind}`)
 const REEL_MAX_BYTES = 15 * 1024 * 1024
 const REEL_MIN_SEC = 15
 const REEL_MAX_SEC = 45            // köhnə tək ayə reel-inin həddi (reelTimeline); passaj reel-i — PASSAGE_MAX_SEC
@@ -154,6 +170,43 @@ function parseMeta(raw) {
 }
 
 /**
+ * <tarix>-reel-<növ>.json (hədis / dua / ad videosu) → { kind, item, audio, lang } | null.
+ * kind — fayl adındakı növ (expectKind) ilə eyni olmalıdır; item — müsbət tam ədəd (saytın hədis / dua id-si, adın nömrəsi).
+ */
+function parseTextMeta(raw, expectKind = null) {
+  let o
+  try { o = typeof raw === 'string' || Buffer.isBuffer(raw) ? JSON.parse(String(raw)) : raw } catch { return null }
+  if (!o || typeof o !== 'object' || Array.isArray(o)) return null
+  if (!TEXT_KINDS.includes(o.kind) || (expectKind && o.kind !== expectKind)) return null
+  const item = Number(o.item)
+  if (!Number.isSafeInteger(item) || item < 1 || item > 9999) return null
+  if (!TEXT_AUDIO_MODES.includes(o.audio)) return null
+  if (o.lang != null && !REEL_LANGS.includes(o.lang)) return null
+  return { kind: o.kind, item, audio: o.audio, lang: o.lang == null ? null : o.lang }
+}
+
+/**
+ * Hədis / dua / ad videosunun zaman cədvəli (saniyə): ərəbcə "mürəkkəblə yazılır", sonra tərcümə söz-söz, sonra oxumaq üçün
+ * sabit kadr. lines — ərəb sətirləri, words — tərcümənin söz sayı. Müddət TEXT_MIN_SEC–TEXT_MAX_SEC (mətnin uzunluğuna görə).
+ * → passageTimeline ilə eyni forma (bir seqment): { duration, audioStart: 0, audioSec: 0, segments: [...] }
+ */
+function textTimeline({ lines = 1, words = 0 } = {}) {
+  const clamp = (x, a, b) => Math.min(b, Math.max(a, x))
+  const n = Math.max(0, Number(words) || 0)
+  const inkStart = 0.6
+  const inkDur = clamp(Number(lines) * 1.7, 3, 9)
+  const inkEnd = inkStart + inkDur
+  const trStart = inkEnd + 0.4
+  const span = clamp(n * 0.22, 1.5, 14)                     // tərcümənin görünmə müddəti (söz-söz)
+  const wordGap = n > 1 ? span / (n - 1) : 0
+  const trEnd = trStart + span + 0.5
+  const hold = clamp(n * 0.28, 5, 16)                       // hamısı göründükdən sonra oxumaq üçün
+  const duration = Math.round(clamp(trEnd + hold, TEXT_MIN_SEC, TEXT_MAX_SEC) * 30) / 30
+  const seg = { start: 0, end: duration, inkStart, inkEnd, trStart, wordGap, trEnd: Math.min(trEnd, duration - 1), settle: Math.max(inkEnd + 0.7, trEnd + 0.1), fadeOut: null }
+  return { duration, audioStart: 0, audioSec: 0, segments: [seg] }
+}
+
+/**
  * MP4-ün müddəti (ms) — moov/mvhd atomundan; faststart faylında moov əvvəldədir. Yararsızdırsa null.
  * (thumb_offset üçün: üz qabığı — bütün mətnin göründüyü son kadr.)
  */
@@ -259,4 +312,7 @@ module.exports = {
   // passaj reel-i (2026-11-27)
   PASSAGE_MAX_SEC, PASSAGE_LEAD_SEC, PASSAGE_TAIL_SEC, PASSAGE_XFADE_SEC, REEL_LANGS, DEFAULT_REEL_LANG, REEL_PASSAGES, PASSAGE_TITLE,
   refOf, passageRef, isReelRef, trimPassage, reelTitle, parseReelLang, passageTimeline,
+  // hədis / dua / ad videoları, temalar (2026-11-27)
+  VIDEO_KINDS, TEXT_KINDS, VIDEO_MP4_RE, VIDEO_META_RE, TEXT_AUDIO_MODES, TEXT_MIN_SEC, TEXT_MAX_SEC, KIND_THEMES, themeForKind, videoBase,
+  parseTextMeta, textTimeline,
 }

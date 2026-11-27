@@ -1,14 +1,18 @@
 # ═══════════════════════════════════════════════════════
 # Muslims.cc — Instagram reel (günün Quran passajının videosu; docs/INSTAGRAM.md → "Reels")
 #
-# Hər gün 02:30 UTC (06:30 Asia/Baku): scripts/ig-reel/render.mjs bu günün (Bakı tarixi) reel-ini çəkir
+# Hər gün 02:30 UTC (06:30 Asia/Baku): scripts/ig-reel/render.mjs bu günün (Bakı tarixi) videolarını çəkir
 # (ardıcıl ayələr, 45–89 s, 1080×1920, 30 fps, H.264 + AAC, ≤ 15 MB) və CI açarı ilə serverə yükləyir: ci-gate.sh "ig-reel" əmri faylı api
 # həcminə (/data/ig-cards/<tarix>-reel.mp4 + .json) yazır. Dərc — server/instagram.js, IG_REELS=1 olanda IG_REEL_TIME-da.
 # Video serverdə ÇƏKİLMİR (1 GB RAM). Deploy-a toxunmur: ayrı iş, ayrı concurrency qrupu, push-da işləmir.
 #
 # Sirlər — deploy ilə EYNİ (yeni sirr yoxdur): DEPLOY_HOST, DEPLOY_SSH_KEY, DEPLOY_KNOWN_HOSTS.
 # İstəyə bağlı repo dəyişənləri (Settings → Variables): IG_REEL_LANG=en|az|ru|tr — tərcümənin / başlığın dili (susmaya
-# görə en; serverdəki IG_CAPTION_LANGS-ın 1-ci dili ilə eyni olsun), IG_REEL_AUDIO=none — səssiz video (tilavətsiz).
+# görə en; serverdəki IG_CAPTION_LANGS-ın 1-ci dili ilə eyni olsun), IG_REEL_AUDIO=none — səssiz video (tilavətsiz),
+# IG_REEL_AMBIENT=0 — hədis / dua videolarında fon səsi yox (sükut).
+# 2026-11-27-dən gündə 3 video: ayə passajı (<tarix>-reel.mp4), hədis (<tarix>-reel-hadith.mp4), dua / Allahın adı
+# (<tarix>-reel-dua.mp4 | -name.mp4). Hədis / dua videosu alınmasa — xəbərdarlıq, ayə reel-i yenə yüklənir (server o yuvada
+# şəkil postu atır). Hədis / dua videolarında səsləndirmə və musiqi YOXDUR (render.mjs → ambientGraph).
 # Əl ilə: Actions → Instagram reel → Run workflow (tarix — boş: bu gün; "upload" söndürülsə yalnız artefakt).
 # ═══════════════════════════════════════════════════════
 name: Instagram reel
@@ -80,6 +84,29 @@ jobs:
           { echo "date=$D"; echo "ref=$REF"; echo "audio=$AUDIO"; echo "lang=$RLANG"; } >> "$GITHUB_OUTPUT"
           echo "### Reel $D — $REF ($AUDIO, $RLANG, $(node -p "require('./out/reel.json').duration.toFixed(1)") s)" >> "$GITHUB_STEP_SUMMARY"
 
+      # Hədis (13:00 / TikTok 09:00) və dua / ad (20:00 / TikTok 14:00) videoları — günün kartı ilə eyni element
+      - name: Hədis və dua videoları
+        id: text
+        env:
+          D: ${{ steps.render.outputs.date }}
+          L: ${{ steps.render.outputs.lang }}
+          IG_REEL_AMBIENT: ${{ vars.IG_REEL_AMBIENT }}
+        run: |
+          for SLOT in hadith extra; do
+            if node scripts/ig-reel/render.mjs --kind "$SLOT" --date "$D" --lang "$L" --out "out/$D-reel-$SLOT.tmp.mp4" --meta "out/reel-$SLOT.json" --frames out/frames; then
+              K=$(node -p "require('./out/reel-$SLOT.json').kind")
+              ID=$(node -p "require('./out/reel-$SLOT.json').item")
+              A=$(node -p "require('./out/reel-$SLOT.json').audio")
+              case "$K" in hadith|dua|name) ;; *) echo "növ yararsızdır: $K"; exit 1 ;; esac
+              echo "$ID" | grep -Eq '^[1-9][0-9]{0,3}$' || { echo "item yararsızdır: $ID"; exit 1; }
+              mv "out/$D-reel-$SLOT.tmp.mp4" "out/$D-reel-$K.mp4"
+              { echo "${SLOT}_kind=$K"; echo "${SLOT}_item=$ID"; echo "${SLOT}_audio=$A"; } >> "$GITHUB_OUTPUT"
+              echo "### $K $D — #$ID ($A, $(node -p "require('./out/reel-$SLOT.json').duration.toFixed(1)") s)" >> "$GITHUB_STEP_SUMMARY"
+            else
+              echo "::warning::$SLOT videosu çəkilmədi — server bu yuvada şəkil postu atacaq"
+            fi
+          done
+
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: ig-reel-${{ steps.render.outputs.date }}
@@ -120,6 +147,35 @@ jobs:
             echo "cəhd $i alınmadı — 30 s sonra yenidən"; sleep 30
           done
           exit 1
+
+      # ci-gate.sh: ig-reel <tarix> <hadith|dua|name> <id> <ambient|none> <dil>. Köhnə ci-gate.sh (növlü formanı bilmir) —
+      # xəbərdarlıq, iş uğursuz olmur (ayə reel-i artıq yüklənib; server o yuvalarda şəkil postu atır).
+      - name: Hədis və dua videolarını yüklə
+        if: (github.event_name == 'schedule' || inputs.upload) && (steps.text.outputs.hadith_kind != '' || steps.text.outputs.extra_kind != '')
+        env:
+          D: ${{ steps.render.outputs.date }}
+          RLANG: ${{ steps.render.outputs.lang }}
+          HK: ${{ steps.text.outputs.hadith_kind }}
+          HI: ${{ steps.text.outputs.hadith_item }}
+          HA: ${{ steps.text.outputs.hadith_audio }}
+          XK: ${{ steps.text.outputs.extra_kind }}
+          XI: ${{ steps.text.outputs.extra_item }}
+          XA: ${{ steps.text.outputs.extra_audio }}
+        run: |
+          up() {
+            for i in 1 2 3; do
+              if ssh prod "ig-reel $D $1 $2 $3 $RLANG" < "out/$D-reel-$1.mp4" 2> err.txt; then cat err.txt >&2; return 0; fi
+              cat err.txt >&2
+              if grep -Eq 'ci-gate: (artıq arqument|icazə yoxdur)' err.txt; then
+                echo "::warning::server ci-gate.sh növlü formanı qəbul etmir — infra/ci-gate.sh-ı serverə köçürün"; return 0
+              fi
+              echo "cəhd $i alınmadı — 30 s sonra yenidən"; sleep 30
+            done
+            echo "::warning::$1 videosu yüklənmədi"
+          }
+          [ -n "$HK" ] && up "$HK" "$HI" "$HA"
+          [ -n "$XK" ] && up "$XK" "$XI" "$XA"
+          exit 0
 
       - name: Təmizlə
         if: always()

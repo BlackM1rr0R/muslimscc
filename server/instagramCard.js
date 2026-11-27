@@ -1,7 +1,7 @@
 // ═══════════════════════════════════════════════════════════════════════
 // Instagram kartı — server tərəfində JPEG (server/instagram.js, scripts/instagram.js)
 //
-//   renderCard(content, { format: 'feed'|'story', theme: 'day'|'night', lang }) → Promise<Buffer|null>
+//   renderCard(content, { format: 'feed'|'story', theme: 'dawn'|'day'|'night', lang }) → Promise<Buffer|null>
 //     feed 1080×1350 (4:5), story 1080×1920 (9:16). null — mətn oxunaqlı ölçüdə sığmır (çağıran başqa
 //     element seçir; mətn heç vaxt qısaldılmır və dəyişdirilmir).
 //
@@ -39,9 +39,30 @@ const FRAME = {
 const SCALES = [1, 0.92, 0.85, 0.78, 0.72, 0.66, 0.6, 0.55]
 const MAX_TEXT = 650   // bundan uzun mətn kartda oxunmur — dərhal rədd (render cəhdi də yoxdur)
 
+// Üç tema (2026-11-27): dawn — açıq (fil sümüyü / qum fonda zümrüd mətn, qızılı çərçivə), day — zümrüd, night — gecə göyü.
+//   gold — ornament / çərçivə xətləri; goldText — qızılı MƏTN (başlıq, istinad, muslims.cc): açıq fonda #a57a22 kontrastı
+//   ~3:1-dir, ona görə mətn üçün tündləşdirilmiş qızılı (≥ 4.5:1). text — tərcümə (≥ 4.5:1, testdə yoxlanır: server-instagram-themes).
+//   pattern — xatəm naxışının şəffaflıq əmsalı; glow / glowOp — mərkəzdəki yumşaq işıq; light — açıq tema (reel renderi
+//   qələm işığını additiv yox, rəng qarışığı ilə çəkir); fresh — "təzə mürəkkəb" rəngi (reel).
 const THEMES = {
-  day: { bg1: '#146a53', bg2: '#0a3a2e', gold: '#e6cc95', text: '#f8f3e6', soft: '#d5e6dc', ar: '#f6e7c3' },
-  night: { bg1: '#132634', bg2: '#060d14', gold: '#e6cc95', text: '#f3efe6', soft: '#bcc8d2', ar: '#f1e2bd' },
+  dawn: {
+    bg1: '#fbf7ee', bg2: '#f1e7d0', gold: '#a57a22', goldText: '#7d5a12', text: '#0f5a47', soft: '#3f6257', ar: '#0b4637',
+    pattern: 1.8, glow: '#ffffff', glowOp: 0.55, light: true, fresh: '#a57a22',
+  },
+  day: { bg1: '#146a53', bg2: '#0a3a2e', gold: '#e6cc95', goldText: '#e6cc95', text: '#f8f3e6', soft: '#d5e6dc', ar: '#f6e7c3', pattern: 1, glow: '#e6cc95', glowOp: 0.13, light: false, fresh: '#ffecba' },
+  night: { bg1: '#132634', bg2: '#060d14', gold: '#e6cc95', goldText: '#e6cc95', text: '#f3efe6', soft: '#bcc8d2', ar: '#f1e2bd', pattern: 1, glow: '#e6cc95', glowOp: 0.13, light: false, fresh: '#ffecba' },
+}
+const THEME_NAMES = Object.keys(THEMES)
+
+/** WCAG nisbi parlaqlıq / kontrast (testlər və tema yoxlaması üçün). */
+function luminance(hexColor) {
+  const v = [1, 3, 5].map((i) => parseInt(String(hexColor).slice(i, i + 2), 16) / 255)
+    .map((c) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4))
+  return 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2]
+}
+function contrast(a, b) {
+  const x = luminance(a), y = luminance(b)
+  return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05)
 }
 
 let sharpLib = null
@@ -175,8 +196,8 @@ function background(fmt, theme, { sepY = null, footY }) {
   return Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
 <defs>
   <linearGradient id="g" x1="0" y1="0" x2="0.35" y2="1"><stop offset="0" stop-color="${t.bg1}"/><stop offset="1" stop-color="${t.bg2}"/></linearGradient>
-  <radialGradient id="glow" cx="0.5" cy="0.42" r="0.62"><stop offset="0" stop-color="${t.gold}" stop-opacity="0.13"/><stop offset="1" stop-color="${t.gold}" stop-opacity="0"/></radialGradient>
-  <pattern id="p" width="135" height="135" patternUnits="userSpaceOnUse">${khatam(67.5, 67.5, 38, { stroke: t.gold, width: 1.4, opacity: 0.075 })}${khatam(0, 0, 18, { stroke: t.gold, width: 1.2, opacity: 0.06 })}${khatam(135, 0, 18, { stroke: t.gold, width: 1.2, opacity: 0.06 })}${khatam(0, 135, 18, { stroke: t.gold, width: 1.2, opacity: 0.06 })}${khatam(135, 135, 18, { stroke: t.gold, width: 1.2, opacity: 0.06 })}</pattern>
+  <radialGradient id="glow" cx="0.5" cy="0.42" r="0.62"><stop offset="0" stop-color="${t.glow}" stop-opacity="${t.glowOp}"/><stop offset="1" stop-color="${t.glow}" stop-opacity="0"/></radialGradient>
+  <pattern id="p" width="135" height="135" patternUnits="userSpaceOnUse">${khatam(67.5, 67.5, 38, { stroke: t.gold, width: 1.4, opacity: 0.075 * t.pattern })}${[[0, 0], [135, 0], [0, 135], [135, 135]].map(([x, y]) => khatam(x, y, 18, { stroke: t.gold, width: 1.2, opacity: 0.06 * t.pattern })).join('')}</pattern>
 </defs>
 <rect width="${W}" height="${H}" fill="url(#g)"/>
 <rect width="${W}" height="${H}" fill="url(#p)"/>
@@ -212,9 +233,9 @@ async function renderCard(content, { format = 'feed', theme = 'day', lang = 'az'
 
   // ── Başlıq, istinad, nişan ──
   const titleText = isAr ? clean(content.title) : clean(content.title).toLocaleUpperCase(lang === 'tr' || lang === 'az' ? 'tr' : lang)
-  const title = await textLayer({ text: titleText, font: uiSemi, size: isAr ? 38 : 28, color: t.gold, width, letter: isAr ? 0 : 4 })
-  const ref = content.ref ? await textLayer({ text: clean(content.ref), font: uiSemi, size: isAr ? 36 : 30, color: t.gold, width }) : null
-  const mark = await textLayer({ text: 'muslims.cc', font: 'uiSemi', size: 34, color: t.gold, width, letter: 3 })
+  const title = await textLayer({ text: titleText, font: uiSemi, size: isAr ? 38 : 28, color: t.goldText, width, letter: isAr ? 0 : 4 })
+  const ref = content.ref ? await textLayer({ text: clean(content.ref), font: uiSemi, size: isAr ? 36 : 30, color: t.goldText, width }) : null
+  const mark = await textLayer({ text: 'muslims.cc', font: 'uiSemi', size: 34, color: t.goldText, width, letter: 3 })
 
   const titleY = fr.top + 44 + 40 + 30
   const markY = H - fr.bottom - mark.h
@@ -233,7 +254,7 @@ async function renderCard(content, { format = 'feed', theme = 'day', lang = 'az'
       const size = Math.round(fr.name * s)
       if (size < fr.nameMin) break
       parts.push({ layer: await textLayer({ text: ar, font: arFont, size, color: t.ar, width }), gap: 34 })
-      if (content.tl) parts.push({ layer: await textLayer({ text: clean(content.tl), font: 'uiSemi', size: Math.round(46 * Math.max(s, 0.8)), color: t.gold, width, letter: 1 }), gap: 30 })
+      if (content.tl) parts.push({ layer: await textLayer({ text: clean(content.tl), font: 'uiSemi', size: Math.round(46 * Math.max(s, 0.8)), color: t.goldText, width, letter: 1 }), gap: 30 })
       if (text) parts.push({ layer: await textLayer({ text, font: ui, size: Math.max(Math.round(fr.tr * s), fr.trMin), color: t.text, width, spacing: Math.max(Math.round(fr.tr * s), fr.trMin) * 0.3 }), gap: 0 })
     } else {
       const arSize = Math.round(fr.ar * (text ? s : Math.min(1.15, s * 1.15)))
@@ -290,9 +311,9 @@ async function renderTextCard(content, { theme = 'day', lang = 'az' } = {}) {
   if (lines.some((x) => x.length > 120)) return null
   const eyebrow = clean(content.eyebrow)
   const upper = (s) => (isAr ? s : s.toLocaleUpperCase(lang === 'tr' || lang === 'az' ? 'tr' : lang))
-  const top = eyebrow ? await textLayer({ text: upper(eyebrow), font: uiSemi, size: isAr ? 38 : 28, color: t.gold, width, letter: isAr ? 0 : 4 }) : null
-  const foot = content.footer ? await textLayer({ text: clean(content.footer), font: uiSemi, size: isAr ? 36 : 30, color: t.gold, width }) : null
-  const mark = await textLayer({ text: 'muslims.cc', font: 'uiSemi', size: 34, color: t.gold, width, letter: 3 })
+  const top = eyebrow ? await textLayer({ text: upper(eyebrow), font: uiSemi, size: isAr ? 38 : 28, color: t.goldText, width, letter: isAr ? 0 : 4 }) : null
+  const foot = content.footer ? await textLayer({ text: clean(content.footer), font: uiSemi, size: isAr ? 36 : 30, color: t.goldText, width }) : null
+  const mark = await textLayer({ text: 'muslims.cc', font: 'uiSemi', size: 34, color: t.goldText, width, letter: 3 })
 
   const titleY = fr.top + 44 + 40 + 30
   const markY = H - fr.bottom - mark.h
@@ -353,7 +374,7 @@ async function fontSelfTest() {
 }
 
 module.exports = {
-  renderCard, renderTextCard, sizeOf, SIZES, THEMES, HAS_ARABIC, loadSharp, arabicIssues, contentIssues, displayArabic, arabicFontFor, fontSelfTest,
+  renderCard, renderTextCard, sizeOf, SIZES, THEMES, THEME_NAMES, luminance, contrast, HAS_ARABIC, loadSharp, arabicIssues, contentIssues, displayArabic, arabicFontFor, fontSelfTest,
   fontCoverage, FONT, _textLayer: textLayer, _esc: esc, _clean: clean,
   // Reel renderi (scripts/ig-reel/render.mjs) kartla eyni fonu / ornamenti işlədir
   _background: background, _khatam: khatam,

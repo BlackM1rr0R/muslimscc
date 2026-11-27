@@ -21,6 +21,7 @@ const T = {
     reasons: { disabled: 'IG_ENABLED=1 təyin edilməyib', missing_credentials: 'IG_ACCESS_TOKEN və ya IG_USER_ID yoxdur', bad_format: 'Giriş açarı və ya hesab ID-si yararsızdır', auth_error: 'Instagram giriş açarını qəbul etmədi — yeni açar lazımdır' },
     lang: 'Dil', stories: 'Story', yes: 'Bəli', no: 'Xeyr', slots: 'Yuvalar', next: 'Növbəti yuva', token: 'Giriş açarı', tokenEnv: 'api.env-dən', tokenRefreshed: 'avtomatik yenilənib', expires: 'bitir',
     kinds: { ayah: 'Ayə', hadith: 'Hədis', extra: 'Dua / Allahın adı', dua: 'Dua', name: 'Allahın adı' },
+    videoToday: 'Bu günün videoları', videoReady: 'video hazırdır — şəkil yerinə video dərc olunur', videoMissing: 'video yoxdur — şəkil postu',
     posts: 'Son dərclər', none: 'Hələ dərc yoxdur.', st: { published: 'Dərc olunub', claimed: 'Gedir', retry: 'Təkrar gözləyir', failed: 'Alınmadı' },
     preview: 'Kartın önizləməsi', previewLead: 'Kart çəkilir və burada göstərilir — Instagram-a heç nə göndərilmir.', slot: 'Yuva', format: 'Format', feed: 'Post (4:5)', story: 'Story (9:16)',
     show: 'Kartı göstər', busy: 'Hazırlanır...', previewErr: 'Kartı hazırlamaq olmadı.', noItem: 'Kartda sığan mətn tapılmadı.', caption: 'Mətn (caption)', alt: 'Instagram kartının önizləməsi',
@@ -52,6 +53,7 @@ const T = {
     reasons: { disabled: 'IG_ENABLED=1 is not set', missing_credentials: 'IG_ACCESS_TOKEN or IG_USER_ID is missing', bad_format: 'The token or account ID is invalid', auth_error: 'Instagram rejected the token — a new token is needed' },
     lang: 'Language', stories: 'Story', yes: 'Yes', no: 'No', slots: 'Slots', next: 'Next slot', token: 'Token', tokenEnv: 'from api.env', tokenRefreshed: 'refreshed automatically', expires: 'expires',
     kinds: { ayah: 'Verse', hadith: 'Hadith', extra: 'Dua / Name of Allah', dua: 'Dua', name: 'Name of Allah' },
+    videoToday: 'Today’s videos', videoReady: 'video ready — posted as a reel instead of the image', videoMissing: 'no video — image post',
     posts: 'Recent posts', none: 'Nothing has been published yet.', st: { published: 'Published', claimed: 'In progress', retry: 'Waiting to retry', failed: 'Failed' },
     preview: 'Card preview', previewLead: 'The card is rendered and shown here — nothing is sent to Instagram.', slot: 'Slot', format: 'Format', feed: 'Post (4:5)', story: 'Story (9:16)',
     show: 'Show card', busy: 'Preparing...', previewErr: 'Could not prepare the card.', noItem: 'No text fits on the card.', caption: 'Caption', alt: 'Instagram card preview',
@@ -79,6 +81,7 @@ const T = {
     // lang-ok: api.env dəyişənlərinin adları (IG_ENABLED, api.env) tərcümə olunmur
     lang: 'Язык', stories: 'История', yes: 'Да', no: 'Нет', slots: 'Время публикаций', next: 'Следующая публикация', token: 'Токен', tokenEnv: 'из api.env', tokenRefreshed: 'обновлён автоматически', expires: 'истекает',
     kinds: { ayah: 'Аят', hadith: 'Хадис', extra: 'Дуа / имя Аллаха', dua: 'Дуа', name: 'Имя Аллаха' },
+    videoToday: 'Видео на сегодня', videoReady: 'видео готово — вместо картинки публикуется ролик', videoMissing: 'видео нет — публикуется картинка',
     posts: 'Последние публикации', none: 'Публикаций пока нет.', st: { published: 'Опубликовано', claimed: 'Выполняется', retry: 'Ждёт повтора', failed: 'Не удалось' },
     preview: 'Предпросмотр карточки', previewLead: 'Карточка создаётся и показывается здесь — в Instagram ничего не отправляется.', slot: 'Публикация', format: 'Формат', feed: 'Пост (4:5)', story: 'История (9:16)',
     show: 'Показать карточку', busy: 'Готовится...', previewErr: 'Не удалось подготовить карточку.', noItem: 'Не найден текст, который помещается на карточку.', caption: 'Подпись', alt: 'Предпросмотр карточки Instagram',
@@ -111,6 +114,7 @@ const T = {
     // lang-ok: api.env dəyişənlərinin adları (IG_ENABLED, api.env) tərcümə olunmur
     lang: 'اللغة', stories: 'القصة', yes: 'نعم', no: 'لا', slots: 'أوقات النشر', next: 'النشر التالي', token: 'الرمز', tokenEnv: 'من api.env', tokenRefreshed: 'جُدّد تلقائيًا', expires: 'ينتهي',
     kinds: { ayah: 'آية', hadith: 'حديث', extra: 'دعاء / اسم من أسماء الله', dua: 'دعاء', name: 'اسم من أسماء الله' },
+    videoToday: 'فيديوهات اليوم', videoReady: 'الفيديو جاهز — يُنشر مقطعًا بدل الصورة', videoMissing: 'لا يوجد فيديو — تُنشر الصورة',
     posts: 'آخر المنشورات', none: 'لم يُنشر شيء بعد.', st: { published: 'نُشر', claimed: 'قيد التنفيذ', retry: 'بانتظار إعادة المحاولة', failed: 'تعذّر' },
     preview: 'معاينة البطاقة', previewLead: 'تُنشأ البطاقة وتُعرض هنا — لا يُرسل شيء إلى إنستغرام.', slot: 'وقت النشر', format: 'الشكل', feed: 'منشور (4:5)', story: 'قصة (9:16)',
     show: 'اعرض البطاقة', busy: 'جارٍ التحضير...', previewErr: 'تعذّر تحضير البطاقة.', noItem: 'لم يُعثر على نص يتسع في البطاقة.', caption: 'نص المنشور', alt: 'معاينة بطاقة إنستغرام',
@@ -141,6 +145,7 @@ const T = {
     reasons: { disabled: 'IG_ENABLED=1 ayarlanmamış', missing_credentials: 'IG_ACCESS_TOKEN veya IG_USER_ID yok', bad_format: 'Token veya hesap kimliği geçersiz', auth_error: 'Instagram token’ı kabul etmedi — yeni token gerekli' },
     lang: 'Dil', stories: 'Hikâye', yes: 'Evet', no: 'Hayır', slots: 'Paylaşım saatleri', next: 'Sonraki paylaşım', token: 'Token', tokenEnv: 'api.env’den', tokenRefreshed: 'otomatik yenilendi', expires: 'bitiş',
     kinds: { ayah: 'Ayet', hadith: 'Hadis', extra: 'Dua / Allah’ın ismi', dua: 'Dua', name: 'Allah’ın ismi' },
+    videoToday: 'Bugünün videoları', videoReady: 'video hazır — görsel yerine reel olarak paylaşılır', videoMissing: 'video yok — görsel paylaşılır',
     posts: 'Son paylaşımlar', none: 'Henüz paylaşım yok.', st: { published: 'Paylaşıldı', claimed: 'Sürüyor', retry: 'Yeniden deneme bekliyor', failed: 'Olmadı' },
     preview: 'Kart önizlemesi', previewLead: 'Kart hazırlanır ve burada gösterilir — Instagram’a hiçbir şey gönderilmez.', slot: 'Paylaşım', format: 'Biçim', feed: 'Gönderi (4:5)', story: 'Hikâye (9:16)',
     show: 'Kartı göster', busy: 'Hazırlanıyor...', previewErr: 'Kart hazırlanamadı.', noItem: 'Karta sığan metin bulunamadı.', caption: 'Açıklama', alt: 'Instagram kartı önizlemesi',
@@ -206,6 +211,9 @@ function Status({ l, lang, data }) {
         <div><dt>{l.lang}</dt><dd>{String(data.lang || '').toUpperCase()}</dd></div>
         <div><dt>{l.stories}</dt><dd>{data.stories ? l.yes : l.no}</dd></div>
         <div><dt>{l.slots}</dt><dd>{data.slots.map((s) => `${s.time} — ${l.kinds[s.kind] || s.kind}`).join(' · ')} <span className="rt-note">({data.timezone})</span></dd></div>
+        {data.slots.some((s) => s.video && s.video.enabled) && (
+          <div><dt>{l.videoToday}</dt><dd data-testid="ig-slot-videos">{data.slots.filter((s) => s.video && s.video.enabled).map((s) => `${s.time} — ${l.kinds[s.todayKind] || s.todayKind}: ${s.video.file ? `${l.videoReady} (${(s.video.file.durationMs / 1000).toFixed(0)} s)` : l.videoMissing}`).join(' · ')}</dd></div>
+        )}
         {data.next && <div><dt>{l.next}</dt><dd>{data.next.date} {data.next.time} — {l.kinds[data.next.kind] || data.next.kind}</dd></div>}
         {data.token && <div><dt>{l.token}</dt><dd>{data.token.source === 'refreshed' ? l.tokenRefreshed : l.tokenEnv}{data.token.refreshedAt ? ` · ${fmtTime(data.token.refreshedAt, lang)}` : ''}{data.token.expiresAt ? ` · ${l.expires} ${fmtTime(data.token.expiresAt, lang)}` : ''}</dd></div>}
       </dl>

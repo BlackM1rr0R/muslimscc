@@ -122,6 +122,8 @@ const ALT_DESC = {
 const ALT_MAX = 1000
 // Həftəlik karusel (IG_CAROUSEL=1): mövzu həftəyə görə növbələşir; yalnız tərcüməsi yoxlanmış mənbələr (Hisn YOX — AI tərcümə)
 const CAROUSEL_THEMES = ['name', 'hadith', 'ayah']
+// Karusel cümə 11:00-da 08:00 (dawn) və 13:00 (day) arasına düşür — qonşularla eyni olmasın deyə həmişə night (2026-11-27)
+const CAROUSEL_COLOURS = ['night']
 const CAROUSEL_ITEMS = 5
 const CAROUSEL_MIN_ITEMS = 3
 const CAROUSEL_NAME_RE = /^(\d{4}-\d{2}-\d{2})-carousel-(\d)\.jpg$/
@@ -174,6 +176,18 @@ function parseCaptionLangs(raw) {
   return list.length ? list.slice(0, 2) : ['az', 'en']
 }
 
+const DEFAULT_REEL_KINDS = ['ayah', 'hadith', 'dua']
+/** IG_REEL_KINDS: "ayah,hadith,dua" (susmaya görə) → ['ayah', 'hadith', 'dua']; "name" — "dua"-nın sinonimi (20:00 yuvası). */
+function parseReelKinds(raw) {
+  if (raw == null || String(raw).trim() === '') return DEFAULT_REEL_KINDS.slice()
+  const out = []
+  for (const x of String(raw).split(',').map((v) => v.trim().toLowerCase()).filter(Boolean)) {
+    const k = x === 'name' ? 'dua' : x
+    if (['ayah', 'hadith', 'dua'].includes(k) && !out.includes(k)) out.push(k)
+  }
+  return out
+}
+
 function parseConfig(env = {}) {
   const token = String(env.IG_ACCESS_TOKEN || '').trim()
   const userId = String(env.IG_USER_ID || '').trim()
@@ -195,13 +209,17 @@ function parseConfig(env = {}) {
   const cd = String(env.IG_CAROUSEL_DAY == null ? '' : env.IG_CAROUSEL_DAY).trim()
   const carouselDay = /^[0-6]$/.test(cd) ? Number(cd) : DEFAULT_CAROUSEL_DAY
   const insights = String(env.IG_INSIGHTS == null ? '1' : env.IG_INSIGHTS) !== '0'
+  // Videolar (IG_REELS=1 olanda): IG_REEL_KINDS — "ayah" 18:00 ayə passajı reel-i, "hadith" 13:00 yuvasının feed postu
+  // əvəzinə hədis videosu (reel), "dua" (və ya "name") 20:00 yuvasında dua / Allahın adı videosu. Susmaya görə hamısı;
+  // "ayah" — köhnə davranış (yalnız passaj reel-i). Yuvanın MP4-ü yoxdursa / yararsızdırsa — adi şəkil postu.
+  const reelKinds = parseReelKinds(env.IG_REEL_KINDS)
   const configured = Boolean(token || userId)
   let reason = null
   if (env.IG_ENABLED !== '1') reason = 'disabled'
   else if (!token || !userId) reason = 'missing_credentials'
   else if (!TOKEN_RE.test(token) || !USER_ID_RE.test(userId)) reason = 'bad_format'
   return {
-    enabled: !reason, reason, configured, token, userId, host, version, lang, slots, stories, captionLangs, reels, reelTime,
+    enabled: !reason, reason, configured, token, userId, host, version, lang, slots, stories, captionLangs, reels, reelTime, reelKinds,
     altText, locationId, carousel, carouselTime, carouselDay, insights,
   }
 }
@@ -218,7 +236,12 @@ function kindFor(slotIndex, dateKey) {
   if (k !== 'extra') return k
   return dailyAyah.dayNumber(dateKey) % 2 ? 'name' : 'dua'
 }
+/** Köhnə (saata görə) tema — geriyə uyğunluq; yuvalar indi themeForSlot işlədir. */
 const themeFor = (hhmm) => { const h = Number(String(hhmm).slice(0, 2)); return h >= 18 || h < 5 ? 'night' : 'day' }
+/** Yuvanın teması növünə görə (instagramReel.KIND_THEMES): ayə — dawn, hədis — day, dua / ad — night. */
+const themeForSlot = (slotIndex, dateKey) => REEL.themeForKind(kindFor(slotIndex, dateKey))
+/** Yuvanın video açarı (IG_REEL_KINDS): 0 → null (ayə şəkli həmişə şəkildir), 1 → 'hadith', 2 → 'dua'. */
+const videoKeyForSlot = (slotIndex) => ({ hadith: 'hadith', extra: 'dua' })[SLOT_KINDS[slotIndex % SLOT_KINDS.length]] || null
 function nextSlot(slots, now) {
   const t = nowAt(TZ, now)
   const cur = toMin(t.hhmm)
@@ -232,6 +255,8 @@ function nextSlot(slots, now) {
 const { rotIndex } = REEL
 /** Hədis: "Səhih" yalnız Buxari / Müslim (telegramBot.js ilə eyni ifadə — gradeOf-un 1-ci qaydası). */
 const isBukhariMuslim = (srcAz) => /^(Buxari|Muslim|Müslim)\b/.test(String(srcAz || '')) && !/Ədəb əl-Müfrəd/.test(String(srcAz || ''))
+// Eyni elementin başqa dildə məzmunu (caption üçün) — yalnız saytın öz mətni, tərcümə edilmir
+const withVariant = (c, variant) => (c ? Object.defineProperty(c, 'variant', { value: variant, enumerable: false }) : c)
 const linkFor = (origin, lang, p) => `${origin}${lang === 'az' ? '' : `/${lang}`}${p}`
 
 function hadithContent(lang, h, origin) {
@@ -261,6 +286,38 @@ function ayahContent(lang, pick, data, origin) {
   const num = `${pick.s}:${pick.a}${pick.to && pick.to !== pick.a ? `-${pick.to}` : ''}`
   return { kind: 'ayah', key: `ayah:${pick.ref}`, title: TITLES.ayah[lang], ar, text, ref: `${dailyAyah.surahLabel(lang, pick.s, data.names)} ${num}`, link: linkFor(origin, lang, dailyAyah.ayahLink('az', pick)) }
 }
+
+// ── Hədis / dua / ad seçimi (şəbəkəsiz): yuvanın k-cı namizədi. Reel renderi (scripts/ig-reel/render.mjs) də bunu işlədir —
+//    video həmin günün kartı ilə eyni elementi göstərsin. ──
+function staticCandidate(kind, dateKey, k, lang, origin = 'https://muslims.cc') {
+  if (kind === 'hadith') {
+    const list = dailyHadith.LIST
+    if (!list.length) return null
+    const h = list[rotIndex(dateKey, list.length, 389, k)]
+    return withVariant(hadithContent(lang, h, origin), (L) => hadithContent(L, h, origin))
+  }
+  // dua / ad: hər 2 gündən biri — gün nömrəsinin yarısı ilə sırala
+  const half = addDays('1970-01-01', Math.floor(dailyAyah.dayNumber(dateKey) / 2))
+  if (kind === 'dua' && IG_DATA.duas.length) {
+    const d = IG_DATA.duas[rotIndex(half, IG_DATA.duas.length, 31, k)]
+    return withVariant(duaContent(lang, d, origin), (L) => duaContent(L, d, origin))
+  }
+  if (kind === 'name' && IG_DATA.names.length) {
+    const n = IG_DATA.names[(Math.floor(dailyAyah.dayNumber(dateKey) / 2) + k) % IG_DATA.names.length]
+    return withVariant(nameContent(lang, n, origin), (L) => nameContent(L, n, origin))
+  }
+  return null
+}
+/** Video sidecar-ındakı element (növ + id) → məzmun | null (id saytın məlumatında yoxdur). */
+function contentById(kind, id, lang, origin = 'https://muslims.cc') {
+  const n = Number(id)
+  if (kind === 'hadith') { const h = dailyHadith.LIST.find((x) => x.id === n); return h ? withVariant(hadithContent(lang, h, origin), (L) => hadithContent(L, h, origin)) : null }
+  if (kind === 'dua') { const d = IG_DATA.duas.find((x) => x.id === n); return d ? withVariant(duaContent(lang, d, origin), (L) => duaContent(L, d, origin)) : null }
+  if (kind === 'name') { const x = IG_DATA.names.find((v) => v.n === n); return x ? withVariant(nameContent(lang, x, origin), (L) => nameContent(L, x, origin)) : null }
+  return null
+}
+/** content.key ('hadith:12') → id (12) | null. */
+const itemIdOf = (key) => { const m = /^(?:hadith|dua|name):(\d{1,4})$/.exec(String(key || '')); return m ? Number(m[1]) : null }
 
 // ── Heşteqlər: #muslimscc + əsas dilin lövbəri + növbələşən + 2-ci dilin lövbəri + ərəbcə (və ya ingiliscə) — ≤ 5 ──
 const tagPool = (L, kind) => { const p = HASHTAGS[L] || HASHTAGS.az; return p[kind] || p.ayah }
@@ -624,8 +681,6 @@ function createInstagram(opts = {}) {
   }
 
   /** k-cı namizəd (0 — günün öz elementi). null — bu namizəd yararsızdır; throw — şəbəkə (ayə). */
-  // Eyni elementin başqa dildə məzmunu (caption üçün) — yalnız saytın öz mətni, tərcümə edilmir
-  const withVariant = (c, variant) => (c ? Object.defineProperty(c, 'variant', { value: variant, enumerable: false }) : c)
 
   async function candidate(kind, dateKey, k, lang) {
     if (kind === 'ayah') {
@@ -636,29 +691,13 @@ function createInstagram(opts = {}) {
       if (!data) throw failure('transient', 'ayah source unavailable')
       return withVariant(ayahContent(lang, pick, data, origin), (L) => ayahContent(L, pick, data, origin))
     }
-    if (kind === 'hadith') {
-      const list = dailyHadith.LIST
-      if (!list.length) return null
-      const h = list[rotIndex(dateKey, list.length, 389, k)]
-      return withVariant(hadithContent(lang, h, origin), (L) => hadithContent(L, h, origin))
-    }
-    // dua / ad: hər 2 gündən biri — gün nömrəsinin yarısı ilə sırala
-    const half = addDays('1970-01-01', Math.floor(dailyAyah.dayNumber(dateKey) / 2))
-    if (kind === 'dua' && IG_DATA.duas.length) {
-      const d = IG_DATA.duas[rotIndex(half, IG_DATA.duas.length, 31, k)]
-      return withVariant(duaContent(lang, d, origin), (L) => duaContent(L, d, origin))
-    }
-    if (kind === 'name' && IG_DATA.names.length) {
-      const n = IG_DATA.names[(Math.floor(dailyAyah.dayNumber(dateKey) / 2) + k) % IG_DATA.names.length]
-      return withVariant(nameContent(lang, n, origin), (L) => nameContent(L, n, origin))
-    }
-    return null
+    return staticCandidate(kind, dateKey, k, lang, origin)
   }
 
   /** Yuvanın məzmunu + kartları (feed və story EYNİ elementdir). → { content, caption, cards: { feed, story } } | null */
-  async function prepare(dateKey, slotIndex, { formats = ['feed', 'story'], lang = cfg.lang, slots = cfg.slots } = {}) {
+  async function prepare(dateKey, slotIndex, { formats = ['feed', 'story'], lang = cfg.lang } = {}) {
     const kind = kindFor(slotIndex, dateKey)
-    const theme = themeFor(slots[slotIndex] || '08:00')
+    const theme = themeForSlot(slotIndex, dateKey)
     for (let k = 0; k < MAX_PICK_TRIES; k++) {
       const content = await candidate(kind, dateKey, k, lang)
       if (!content) continue
@@ -692,7 +731,7 @@ function createInstagram(opts = {}) {
     let list = []
     try { list = fs.readdirSync(cardDir) } catch { return 0 }
     for (const f of list) {
-      const m = CARD_NAME_RE.exec(f) || CAROUSEL_NAME_RE.exec(f) || REEL.REEL_MP4_RE.exec(f) || REEL.REEL_META_RE.exec(f)
+      const m = CARD_NAME_RE.exec(f) || CAROUSEL_NAME_RE.exec(f) || REEL.VIDEO_MP4_RE.exec(f) || REEL.VIDEO_META_RE.exec(f)
       const p = path.join(cardDir, f)
       try {
         const old = m ? Date.parse(`${m[1]}T00:00:00Z`) < t - CARD_TTL_MS : (f.endsWith('.tmp') && fs.statSync(p).mtimeMs < t - 3600e3)
@@ -713,6 +752,15 @@ function createInstagram(opts = {}) {
         if (!prep) throw failure('fatal', 'no fitting item')
         prepared.set(pk, prep)
         for (const k of prepared.keys()) if (!k.startsWith(dateKey + '|')) prepared.delete(k)
+      }
+      // 13:00 / 20:00 yuvası: feed postu əvəzinə yuvanın videosu (reel, share_to_feed) — fayl varsa; story həmişə şəkildir
+      const video = format === 'feed' ? slotVideo(dateKey, slotIndex) : null
+      if (video) {
+        if (video.content.key !== prep.content.key) log.warn(`Instagram: ${dateKey} ${slotKey} videosu ${video.content.key}, kart ${prep.content.key} (video renderi başqa element seçib)`)
+        const mid = await publishReel(`${origin}/api/ig/card/${video.file}`, { caption: video.caption, thumbOffsetMs: Math.max(0, video.info.durationMs - 1000) })
+        q.done.run(mid, `video:${video.content.key}`, now(), row.id)
+        log.log(`Instagram: ${format} (video) dərc olundu — ${dateKey} ${slotKey} ${video.content.key}`)
+        return true
       }
       const name = cardName(dateKey, slotIndex, format)
       writeCard(name, prep.cards[format])
@@ -737,6 +785,49 @@ function createInstagram(opts = {}) {
     q.fail.run(retry ? 'retry' : 'failed', String(e && e.message || kind).slice(0, 200), null, nextAt, now(), row.id)
     if (kind !== 'auth') log.warn(`Instagram: ${format} ${dateKey} ${slotKey} — ${kind}${retry ? `, təkrar ${Math.round((nextAt - now()) / 60e3)} dəq sonra` : ', dayandı'}`)
     return false
+  }
+
+  // ── Yuvanın videosu (hədis / dua / ad; CI çəkir — <tarix>-reel-<növ>.mp4 + .json) ──
+  /** → { size, kind, item, audio, lang, durationMs } | null — fayl yoxdur, ölçüsü / sidecar / MP4 başlığı yararsızdır. */
+  function textVideoInfo(dateKey, kind) {
+    if (!DATE_RE.test(String(dateKey || '')) || !REEL.TEXT_KINDS.includes(kind)) return null
+    const base = path.join(cardDir, REEL.videoBase(dateKey, kind))
+    let st, meta, head
+    try { st = fs.statSync(`${base}.mp4`) } catch { return null }
+    if (!st.isFile() || st.size < 1024 || st.size > REEL.REEL_MAX_BYTES) return null
+    try { meta = REEL.parseTextMeta(fs.readFileSync(`${base}.json`, 'utf8'), kind) } catch { return null }
+    if (!meta) return null
+    try {
+      const fd = fs.openSync(`${base}.mp4`, 'r')
+      try { head = Buffer.alloc(Math.min(st.size, 512 * 1024)); fs.readSync(fd, head, 0, head.length, 0) } finally { fs.closeSync(fd) }
+    } catch { return null }
+    const durationMs = REEL.mp4DurationMs(head)
+    if (!durationMs || durationMs < 3000 || durationMs > 90e3) return null
+    return { size: st.size, kind, item: meta.item, audio: meta.audio, lang: meta.lang, durationMs }
+  }
+  /** Yuva üçün video açıqdırmı (IG_REELS=1 + IG_REEL_KINDS)? */
+  const slotVideoOn = (slotIndex) => { const vk = videoKeyForSlot(slotIndex); return Boolean(cfg.reels && vk && cfg.reelKinds.includes(vk)) }
+  const videoMissing = new Set()
+  /**
+   * Yuvanın videosu → { file, info, content, caption } | null (söndürülüb; fayl yoxdur / yararsızdır → şəkil postu, bir dəfə loglanır).
+   * Caption — videodakı elementin (sidecar item) adi caption-u (IG_CAPTION_LANGS).
+   */
+  function slotVideo(dateKey, slotIndex) {
+    if (!slotVideoOn(slotIndex)) return null
+    const kind = kindFor(slotIndex, dateKey)
+    const info = textVideoInfo(dateKey, kind)
+    const content = info ? contentById(kind, info.item, cfg.lang, origin) : null
+    const caption = content ? buildCaptionMulti(content, cfg.captionLangs, { day: dateKey, tagKind: kind }) : null
+    if (!info || !content || !caption) {
+      const k = `${dateKey}|${kind}`
+      if (!videoMissing.has(k)) {
+        if (videoMissing.size > 20) videoMissing.clear()
+        videoMissing.add(k)
+        log.warn(`Instagram: ${dateKey} ${kind} videosu yoxdur və ya yararsızdır — şəkil postu (.github/workflows/ig-reel.yml)`)
+      }
+      return null
+    }
+    return { file: `${REEL.videoBase(dateKey, kind)}.mp4`, info, content, caption }
   }
 
   // ── Reel: günün ayəsinin videosu (instagramReel.js). MP4 serverdə ÇƏKİLMİR — CI (.github/workflows/ig-reel.yml)
@@ -805,6 +896,7 @@ function createInstagram(opts = {}) {
 
   /** Reel yuvası (tick içindən): fayl yoxdursa bir dəfə loglanır və atlanır (sətir tutulmur). */
   async function reelTick(t) {
+    if (!cfg.reelKinds.includes('ayah')) return 0
     const sm = toMin(cfg.reelTime), cur = toMin(t.hhmm)
     if (cur < sm || cur > sm + CATCHUP_MIN) return 0
     if (!reelInfo(t.dateKey)) {
@@ -827,6 +919,8 @@ function createInstagram(opts = {}) {
   const weekday = (dateKey) => new Date(`${dateKey}T00:00:00Z`).getUTCDay()
   const mod = (a, n) => ((a % n) + n) % n
   const carouselTheme = (dateKey) => CAROUSEL_THEMES[mod(weekOf(dateKey), CAROUSEL_THEMES.length)]
+  // Karuselin rəng teması — bütün dəst bir tema, həftəyə görə növbələşir (dawn → day → night)
+  const carouselColour = (dateKey) => CAROUSEL_COLOURS[mod(weekOf(dateKey), CAROUSEL_COLOURS.length)]
   let bmList = null
   const bukhariMuslim = () => (bmList || (bmList = dailyHadith.LIST.filter((h) => isBukhariMuslim(h.src.az))))
   let ayahPool = null
@@ -860,13 +954,14 @@ function createInstagram(opts = {}) {
   /** → { theme, items, caption, cards: [üz, …elementlər, bağlanış], alts } | null (kifayət qədər sığan element yoxdur) */
   async function prepareCarousel(dateKey, { lang = cfg.lang } = {}) {
     const theme = carouselTheme(dateKey)
+    const colour = carouselColour(dateKey)
     const items = [], cards = []
     for (let k = 0; items.length < CAROUSEL_ITEMS && k < CAROUSEL_ITEMS + MAX_PICK_TRIES; k++) {
       const c = await carouselCandidate(theme, dateKey, k, lang)
       if (!c) continue
       const issues = checkArabic(c)
       if (issues.length) { skipLog(c.key, issues); continue }
-      const buf = await render(c, { format: 'feed', theme: 'day', lang })
+      const buf = await render(c, { format: 'feed', theme: colour, lang })
       if (!buf) continue
       items.push(c); cards.push(buf)
     }
@@ -875,15 +970,15 @@ function createInstagram(opts = {}) {
     const caption = buildCarouselCaption(theme, items.map((c) => (c.variant && c.variant(L1)) || c), cfg.captionLangs, { day: dateKey, origin })
     if (!caption) return null
     const labels = items.map((c) => itemLabel(c, lang))
-    const cover = await renderText({ eyebrow: WEEKLY[lang], headline: CAROUSEL_TITLE[theme][lang], lines: labels, footer: SWIPE[lang] }, { theme: 'day', lang })
-    const closing = await renderText({ eyebrow: '', headline: CLOSING[lang], lines: [IG_HANDLE, `${SITE_LINE[lang]}: muslims.cc`], footer: '' }, { theme: 'night', lang })
+    const cover = await renderText({ eyebrow: WEEKLY[lang], headline: CAROUSEL_TITLE[theme][lang], lines: labels, footer: SWIPE[lang] }, { theme: colour, lang })
+    const closing = await renderText({ eyebrow: '', headline: CLOSING[lang], lines: [IG_HANDLE, `${SITE_LINE[lang]}: muslims.cc`], footer: '' }, { theme: colour, lang })
     if (!cover || !closing) return null
     const alts = [
       `${WEEKLY[lang]} — ${CAROUSEL_TITLE[theme][lang]}: ${labels.join(', ')}`.slice(0, ALT_MAX),
       ...items.map((c) => altTextFor(c, lang)),
       `${CLOSING[lang]} — ${IG_HANDLE}, muslims.cc`,
     ]
-    return { theme, items, caption, cards: [cover, ...cards, closing], alts }
+    return { theme, colour, items, caption, cards: [cover, ...cards, closing], alts }
   }
 
   async function runCarousel(row, dateKey, slotKey) {
@@ -920,7 +1015,7 @@ function createInstagram(opts = {}) {
       const d = addDays(t.dateKey, i)
       if (weekday(d) !== cfg.carouselDay) continue
       if (i === 0 && toMin(t.hhmm) > toMin(cfg.carouselTime) + CATCHUP_MIN) continue
-      return { date: d, time: cfg.carouselTime, theme: carouselTheme(d) }
+      return { date: d, time: cfg.carouselTime, theme: carouselTheme(d), colour: carouselColour(d) }
     }
     return null
   }
@@ -1112,7 +1207,17 @@ function createInstagram(opts = {}) {
     return {
       enabled: cfg.enabled, reason: authBlocked ? 'auth_error' : cfg.reason, configured: cfg.configured,
       lang: cfg.lang, captionLangs: cfg.captionLangs, stories: cfg.stories, host: cfg.host, timezone: TZ,
-      slots: cfg.slots.map((s, i) => ({ time: s, kind: SLOT_KINDS[i % SLOT_KINDS.length] })),
+      slots: cfg.slots.map((s, i) => {
+        const day = nowAt(TZ, now()).dateKey
+        const kind = kindFor(i, day)
+        const on = slotVideoOn(i)
+        const vi = on ? textVideoInfo(day, kind) : null
+        return {
+          time: s, kind: SLOT_KINDS[i % SLOT_KINDS.length], todayKind: kind, theme: themeForSlot(i, day),
+          video: { enabled: on, file: vi ? { item: `${kind}:${vi.item}`, durationMs: vi.durationMs, size: vi.size } : null },
+        }
+      }),
+      reelKinds: cfg.reelKinds,
       next: cfg.enabled ? nextSlot(cfg.slots, now()) : null,
       token: cfg.enabled ? { source: rec ? 'refreshed' : 'env', refreshedAt: rec ? rec.refreshedAt : null, expiresAt: rec ? (rec.expiresAt || null) : null } : null,
       posts: q.recent.all(30).map((r) => ({ ...r, error: r.error ? String(r.error).slice(0, 120) : null })),
@@ -1140,8 +1245,7 @@ function createInstagram(opts = {}) {
   async function preview(slotIndex, { format = 'feed', date = null, lang = cfg.lang } = {}) {
     const d = date && DATE_RE.test(date) ? date : nowAt(TZ, now()).dateKey
     const i = Number.isInteger(slotIndex) && slotIndex >= 0 && slotIndex < Math.max(3, cfg.slots.length) ? slotIndex : 0
-    const slots = cfg.slots.length > i ? cfg.slots : DEFAULT_SLOTS
-    const prep = await prepare(d, i, { formats: [format], lang, slots })
+    const prep = await prepare(d, i, { formats: [format], lang })
     return prep ? { jpeg: prep.cards[format], caption: prep.caption, item: prep.content.key, kind: prep.content.kind } : null
   }
 
@@ -1155,7 +1259,7 @@ function createInstagram(opts = {}) {
     if (!cfg.enabled) return notFound(res)
     const name = String(req.params.name || '')
     // Reel videosu: Range sorğuları (206) — Meta videonu hissə-hissə çəkə bilər; qısa keş (eyni gün yenidən yüklənə bilər)
-    if (REEL.REEL_MP4_RE.test(name)) {
+    if (REEL.VIDEO_MP4_RE.test(name)) {
       return res.sendFile(name, {
         root: cardDir, dotfiles: 'deny', acceptRanges: true, cacheControl: false, etag: true, lastModified: true,
         headers: { 'Content-Type': 'video/mp4', 'Cache-Control': 'public, max-age=300', 'X-Robots-Tag': 'noindex', 'X-Content-Type-Options': 'nosniff' },
@@ -1233,13 +1337,14 @@ function createInstagram(opts = {}) {
 
   return {
     enabled: cfg.enabled, config: cfg, router, adminRouter, tick, refreshTick, insightsTick, purge, purgeCards, publishNow, preview, status,
-    tokenInfo, prepare, prepareCarousel, carouselTheme, cardDir, reelInfo, _q: q, _graph: graph, _publishImage: publishImage, _publishReel: publishReel,
+    tokenInfo, prepare, prepareCarousel, carouselTheme, carouselColour, cardDir, reelInfo, textVideoInfo, slotVideo, _q: q, _graph: graph, _publishImage: publishImage, _publishReel: publishReel,
     _publishCarousel: publishCarousel,
   }
 }
 
 module.exports = {
-  createInstagram, parseConfig, parseSlots, parseCaptionLangs, kindFor, themeFor, nextSlot, buildCaption, buildCaptionMulti, classifyError, isBukhariMuslim,
+  createInstagram, parseConfig, parseSlots, parseCaptionLangs, parseReelKinds, kindFor, themeFor, themeForSlot, videoKeyForSlot, staticCandidate, contentById, itemIdOf,
+  CAROUSEL_COLOURS, DEFAULT_REEL_KINDS, nextSlot, buildCaption, buildCaptionMulti, classifyError, isBukhariMuslim,
   hadithContent, duaContent, nameContent, ayahContent, sealToken, openToken, CARD_NAME_RE, SLOT_KINDS, DEFAULT_SLOTS, LANGS,
   hashtagsFor, firstLine, altTextFor, buildCarouselCaption, CAROUSEL_NAME_RE, CAROUSEL_THEMES, HASHTAG_MAX, HASHTAGS, CAPTION_MAX,
 }
