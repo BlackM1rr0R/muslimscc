@@ -77,6 +77,10 @@ const P = {
   zakat: <><circle cx="9" cy="9" r="6" /><path d="M18.1 10.4a6 6 0 1 1-7.7 7.7" /><path d="M7.5 7h1.5v4" /><path d="m16.7 13.9.7.7-2.8 2.8" /></>,
   // C dəstəsi: məna ilə axtarış (kitab + böyüdücü), yeni müsəlmanın yolu (dolanan yol), sədəqeyi-cariyə (ağac)
   quranmeaning: <><path d="M11 6.6C9.5 5.3 7 4.6 3.5 4.6v12.5c3.5 0 6 .7 7.5 2" /><path d="M11 6.6c1.2-1 3-1.6 5.5-1.9V8" /><circle cx="16.5" cy="14" r="3.5" /><path d="m19 16.5 2.5 2.5" /></>,
+  // Nazil olma sırası: iki kart yerini dəyişir (mushaf ⇄ nazil olma)
+  // Quran necə toplandı: bükülmüş tumar (suhuf) üzərində yazı sətirləri
+  quranhistory: <><path d="M7 3.5h11.5a2 2 0 0 1 2 2v1.5h-4" /><path d="M16.5 5.5v13a2 2 0 0 1-2 2H5.5a2 2 0 0 1-2-2V17h11" /><path d="M7 3.5a2 2 0 0 0-2 2V17" /><path d="M8.5 8.5h5M8.5 11.5h5M8.5 14.5h3" /></>,
+  revelationorder: <><rect x="3.5" y="4" width="6" height="6" rx="1.2" /><rect x="14.5" y="14" width="6" height="6" rx="1.2" /><path d="M9.5 7H14a3 3 0 0 1 3 3v1.5" /><path d="m15 9.8 2 2 2-2" /><path d="M14.5 17H10a3 3 0 0 1-3-3v-1.5" /><path d="m9 14.2-2-2-2 2" /></>,
   newmuslim: <><path d="M4.5 20.5c0-3.8 3.5-4.6 6.5-5.8s6-3 6-7.2" /><circle cx="17" cy="5" r="2" /><path d="M3 20.5h3.5" /><path d="M9 12.2h.01M14 17.2h.01" strokeWidth="2.4" /></>,
   // Yolda rejimi (sükan), Quranla diqqət seansı (açıq kitab üstündə halqa-taymer)
   onroad: <><circle cx="12" cy="12" r="8.5" /><circle cx="12" cy="12" r="2.2" /><path d="M3.8 10.5c2.6-.9 5.3-1.3 8.2-1.3s5.6.4 8.2 1.3" /><path d="M10.4 13.6 7.6 20M13.6 13.6l2.8 6.4" /></>,
@@ -187,8 +191,12 @@ const P = {
   bellOff: <><path d="M8.7 4.1A6 6 0 0 1 18 8.5c0 3 .5 5 1.2 6.4M17 17H3.5S6 15 6 8.5" /><path d="M10.3 20.5a1.9 1.9 0 0 0 3.4 0" /><path d="m3 3 18 18" /></>,
   bulb: <><path d="M9 18h6M10 21h4" /><path d="M12 3a6 6 0 0 0-3.6 10.8c.7.6 1.1 1.4 1.1 2.2V16h5v-.1c0-.8.4-1.6 1.1-2.2A6 6 0 0 0 12 3z" /></>,
   list: <path d="M8.5 6.5h12M8.5 12h12M8.5 17.5h12M4 6.5h.01M4 12h.01M4 17.5h.01" />,
+  // Paralel tərcümə: yan-yana sütunlar
+  columns: <><rect x="3.5" y="4.5" width="17" height="15" rx="2.5" /><path d="M9.2 4.5v15M14.8 4.5v15" /></>,
   flask: <><path d="M9.5 3.5h5M10 3.5v6L4.8 18.2a1.5 1.5 0 0 0 1.3 2.3h11.8a1.5 1.5 0 0 0 1.3-2.3L14 9.5v-6" /><path d="M7.5 14.5h9" /></>,
   compass: <><circle cx="12" cy="12" r="8.5" /><path d="m15.6 8.4-2 5.2-5.2 2 2-5.2z" /></>,
+  // Təsadüfi hədis: zər (yuvarlaq künclü kvadrat + 5 nöqtə)
+  dice: <><rect x="4" y="4" width="16" height="16" rx="3.5" /><path d="M8.5 8.5h.01M15.5 8.5h.01M12 12h.01M8.5 15.5h.01M15.5 15.5h.01" strokeWidth="2.6" /></>,
   ramadan: <><path d="M19 14.8A7.5 7.5 0 0 1 9.2 5a7.5 7.5 0 1 0 9.8 9.8z" /><path d="m17.5 3 .6 1.4 1.4.6-1.4.6-.6 1.4-.6-1.4-1.4-.6 1.4-.6z" /></>,
   moonStar: <><path d="M19 14.8A7.5 7.5 0 0 1 9.2 5a7.5 7.5 0 1 0 9.8 9.8z" /><path d="m17.5 3 .6 1.4 1.4.6-1.4.6-.6 1.4-.6-1.4-1.4-.6 1.4-.6z" /></>,
   babynames: <><circle cx="12" cy="7.5" r="3.5" /><path d="M6 20.5a6 6 0 0 1 12 0" /><path d="M10.5 4.4c.4-1 1-1.4 1.5-1.4" /></>,

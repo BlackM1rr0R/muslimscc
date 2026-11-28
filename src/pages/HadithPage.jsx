@@ -38,6 +38,8 @@ import { pickUi } from '../utils/uiText'
 import { gradeGroup, gradeOf } from '../utils/hadithGrade'
 import DeferRender from '../components/DeferRender'
 import { recordHadithRead } from '../utils/hadithLastRead'
+import { randomHadithPool, pickRandomId } from '../utils/randomHadith'
+import { HADITH_IDS } from '../seo/hadithIds'
 // v6.0: Hədis qalaktikası — hər hədis bir ulduz, mövzular bürc (bölməyə yaxınlaşanda)
 const HadithGalaxy = lazy(() => import('../components/HadithGalaxy'))
 
@@ -308,6 +310,22 @@ const revealProps = (i) => {
 // memo: yeni partiya əlavə olunanda və ya bir kart sevimliyə düşəndə
 // köhnə kartlar yenidən render olunmur (callback-lar sabitdir)
 const FOCUS_ALL = { az: 'Bütün hədislər', en: 'All hadith', ru: 'Все хадисы', ar: 'كل الأحاديث', tr: 'Bütün hadisler' }
+
+// "Təsadüfi hədis" düyməsi (utils/randomHadith.js) — görünən mətn + ekran oxuyucu adı.
+// Hovuz yalnız /hadith/<id> səhifəsi olan (indekslənən) hədislərdir — seo/hadithIds.js
+let hadithPageIds = null
+const pageIdOf = (h) => {
+  if (!hadithPageIds) hadithPageIds = new Set(HADITH_IDS)
+  const id = siteIdOf(h)
+  return id != null && hadithPageIds.has(String(id)) ? id : null
+}
+const RANDOM_T = {
+  az: { btn: 'Təsadüfi hədis', aria: 'Təsadüfi hədis — siyahıdan birini aç' },
+  en: { btn: 'Random hadith', aria: 'Random hadith — open one from the list' },
+  ru: { btn: 'Случайный хадис', aria: 'Случайный хадис — открыть один из списка' },
+  tr: { btn: 'Rastgele hadis', aria: 'Rastgele hadis — listeden birini aç' },
+  ar: { btn: 'حديث عشوائي', aria: 'حديث عشوائي — افتح حديثًا من القائمة' },
+}
 
 const HadithCard = memo(function HadithCard({ hadith, displayNum, isFav, onToggleFav, onShare, onOpenFull, lang, index }) {
   const fu = pickUi(FULL_T, lang, 'en')
@@ -807,6 +825,42 @@ function HadithBody({ setPage }) {
   const focusSid = focus ? (siteIdOf(focus) ?? focus.id) : null
   useEffect(() => { if (focusSid != null) recordHadithRead({ src: 'site', id: focusSid, lang }) }, [focusSid, lang])
 
+  // Təsadüfi hədis: süzülmüş siyahıdan (Quran ayəsi yox, zəif — yalnız "Zəif" süzgəcində),
+  // ardıcıl təkrarsız → /hadith/<id> (fokus kartı). Kart görünəndə ora sürüşür və fokus alır.
+  const navigateTo = useNavigate()
+  const focusRef = useRef(null)
+  const lastRandomRef = useRef(null)
+  const randomScrollRef = useRef(false)
+  const [rollKey, setRollKey] = useState(0)
+  const ru = pickUi(RANDOM_T, lang, 'en')
+  const scrollToFocus = useCallback(() => {
+    const el = focusRef.current
+    if (!el) return
+    let reduce = true
+    try {
+      reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches || document.documentElement.classList.contains('a11y-reduce-motion')
+    } catch { /* */ }
+    el.scrollIntoView({ block: 'start', behavior: reduce ? 'auto' : 'smooth' })
+    el.focus({ preventScroll: true })
+  }, [])
+  const showRandom = useCallback(() => {
+    const pool = randomHadithPool(filtered, list, { allowWeak: gradeF === 'weak', idOf: pageIdOf, groupOf: gradeGroup })
+    const id = pickRandomId(pool, lastRandomRef.current ?? focusSid)
+    if (id == null) return
+    haptic(6)
+    lastRandomRef.current = id
+    setRollKey(k => k + 1)
+    if (String(id) === String(focusSid)) { requestAnimationFrame(scrollToFocus); return }
+    randomScrollRef.current = true
+    navigateTo(pathFor('hadith', lang, id))
+  }, [filtered, list, gradeF, focusSid, lang, navigateTo, scrollToFocus])
+  useEffect(() => {
+    if (!randomScrollRef.current || focusSid == null) return undefined
+    randomScrollRef.current = false
+    const raf = requestAnimationFrame(scrollToFocus)
+    return () => cancelAnimationFrame(raf)
+  }, [focusSid, scrollToFocus])
+
   const countText = hadithCount(filtered.length, lang)
 
   return (
@@ -822,6 +876,13 @@ function HadithBody({ setPage }) {
 
       <div className="hadith-page ui-section ui-section--tight">
         <div className="ui-container">
+          <div className="hadith-random">
+            <button type="button" className="ui-btn ui-btn--secondary hadith-random__btn" data-testid="hadith-random"
+              aria-label={ru.aria} onClick={showRandom}>
+              <span key={rollKey} className={`hadith-random__die${rollKey ? ' is-rolling' : ''}`} aria-hidden="true"><Icon name="dice" size={20} /></span>
+              <span>{ru.btn}</span>
+            </button>
+          </div>
           <div className="hadith-search">
             <Icon name="search" size={19} className="hadith-search__icon" />
             <input className="ui-input hadith-search__input" type="search" placeholder={t.searchPh}
@@ -874,7 +935,7 @@ function HadithBody({ setPage }) {
               növbə ilə görünür (siyahı keçidi). Axtarış açara daxil deyil:
               hər hərfdə bütün kartlar yenidən oynamasın. */}
           {focus && (
-            <div className="hadith-focus" data-testid="hadith-focus">
+            <div className="hadith-focus" data-testid="hadith-focus" ref={focusRef} tabIndex={-1}>
               <HadithCard hadith={focus} lang={lang} index={0} displayNum={siteIdOf(focus) ?? focus.id} isFav={isFav(focus)} onToggleFav={toggleFav} onShare={shareHadith} onOpenFull={openFull} />
               <a className="ui-link hadith-focus__all" href={pathFor('hadith', lang)} onClick={(e) => { if (isPlainClick(e) && setPage) { e.preventDefault(); setPage('hadith') } }}>
                 {pickUi(FOCUS_ALL, lang)} <Icon name="arrow" size={14} className="ui-link__arrow ui-flip-rtl" />

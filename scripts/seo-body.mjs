@@ -53,6 +53,12 @@ import { PRAYER_NAMES as HOME_PRAYER_NAMES } from '../src/data/prayerTrackerText
 import { BRAND, DEFAULT_PRAYER_LOCATION, brandName, tr as brandTr } from '../src/config/brand.js'
 import { SEERAH_EVENTS, SEERAH_PLACES, periodOf } from '../src/data/seerah.js'
 import { SEERAH_T, yearText } from '../src/components/seerah/seerahText.js'
+import { REV_SURAHS, REVELATION_SEQ, placeCounts } from '../src/components/quran/revelation/revelationOrder.js'
+import { REV_T } from '../src/components/quran/revelation/revelationText.js'
+import { QH_SCENES, QH_CITIES, parseQhSource, bukhariLinks } from '../src/data/quranCompilation.js'
+import { QH_T } from '../src/components/quranhistory/quranHistoryText.js'
+import { getSurahLocal } from '../src/data/surahNamesAz.js'
+import { ayahCountText } from '../src/utils/quranText.js'
 
 // detail.js lüğəti glossarySource.js-dən oxuyur (prerender: meta + statik blok)
 setGlossarySource(GLOSSARY_BY_ID)
@@ -667,6 +673,61 @@ export function seerahItemList(lang, canonical) {
   }
 }
 
+// ═══ Nazil olma sırası (/quran-revelation-order, 2026-11-28) — 114 surə nazil olma sırası ilə ═══
+// Səhifədəki eyni məlumat (data/surahRevelation.js — Quran.com cədvəli); hər surə oxuyucuya link.
+function revelationOrderBody(lang) {
+  const t = REV_T[lang] || REV_T.en
+  const { meccan, medinan } = placeCounts()
+  const item = (n) => {
+    const s = REV_SURAHS[n - 1]
+    const name = lang === 'ar' ? '' : (getSurahLocal(n, lang)?.name || s.latin)
+    return `<li><a href="${pathFor('quran', lang, n)}"><span lang="ar" dir="rtl">${esc(s.ar)}</span>${name ? ` — ${esc(name)}` : ''}</a>` +
+      ` (${n} · ${esc(ayahCountText(s.ayahs, lang))})</li>`
+  }
+  const mk = REVELATION_SEQ.filter(n => !REV_SURAHS[n - 1].medinan)
+  const md = REVELATION_SEQ.filter(n => REV_SURAHS[n - 1].medinan)
+  return shell(lang,
+    crumbs(lang, [{ name: brandName(lang), href: pathFor('home', lang) }, { name: shortName('quran', lang), href: pathFor('quran', lang) }, { name: shortName('revelationorder', lang) }]) +
+    `<header><h1>${esc(t.title)}</h1><p class="seo-static__lead">${esc(t.lead)}</p></header>` +
+    `<p>${esc(t.tlSummary(meccan, medinan))}</p>` +
+    `<section><h2>${esc(t.makkahPeriod)} — ${esc(t.nMeccan(mk.length))}</h2><ol>${mk.map(item).join('')}</ol></section>` +
+    `<section><h2>${esc(t.madinahPeriod)} — ${esc(t.nMedinan(md.length))}</h2><ol start="${mk.length + 1}">${md.map(item).join('')}</ol></section>` +
+    `<p>${esc(t.note)}</p><p><small>${esc(t.source)}</small></p>` +
+    `<p><a href="${pathFor('quran', lang)}">${esc(shortName('quran', lang))}</a> · <a href="${pathFor('mushaf', lang)}">${esc(shortName('mushaf', lang))}</a></p>`,
+  )
+}
+
+// ═══ Quran necə toplandı (/quran-history, 2026-11-28) — 6 mərhələ, sitatlar və mənbələr ═══
+// Səhifədəki eyni mətn (src/data/quranCompilation.js); #step-<id> səhifədəki lövbərlərlə eynidir.
+function quranHistoryBody(lang) {
+  const t = QH_T[lang] || QH_T.en
+  const src = (s) => {
+    const r = parseQhSource(s)
+    const label = esc(localizeSource(s, lang))
+    if (r?.kind === 'quran') return `<a href="${pathFor('quran', lang, r.s)}?a=${r.a}">${label}</a>`
+    if (r?.kind === 'bukhari') return `<a href="${bukhariLinks(r.n).sunnah}" rel="noopener">${label}</a>`
+    return label
+  }
+  const quote = (q) => `<blockquote><p lang="ar" dir="rtl">«${esc(q.ar)}»</p><p><small>${esc(t.bukhari)} ${esc(String(parseQhSource(q.src)?.n || ''))}</small></p></blockquote>`
+  const item = (s, i) => {
+    let h = `<li id="step-${s.id}"><h2>${esc(t.stepOf(i + 1, QH_SCENES.length))}: ${esc(pick(s.title, lang))}</h2>`
+    if (s.when) h += `<p><strong>${esc(pick(s.when, lang))}</strong></p>`
+    h += `<p>${esc(pick(s.text, lang))}</p>`
+    if (s.ayahs) h += `<blockquote><p lang="ar" dir="rtl">${s.ayahs.map(a => `${esc(a.ar)} ﴿${'٠١٢٣٤٥٦٧٨٩'[a.n]}﴾`).join(' ')}</p><p><small>${esc(t.quran)} 96:1–5</small></p></blockquote>`
+    if (s.quotes) h += s.quotes.map(quote).join('')
+    if (s.cities) h += `<p>${esc(t.cities)}: ${s.cities.map(c => esc(pick(QH_CITIES[c].name, lang))).join(', ')}. <small>${esc(t.citiesNote)}</small></p>`
+    if (s.verse) h += `<blockquote><p lang="ar" dir="rtl">${esc(s.verse.ar)}</p>${lang !== 'ar' && s.verse.text[lang] ? `<p>${esc(s.verse.text[lang])}</p>` : ''}<p><small>${esc(t.quran)} ${esc(s.verse.ref)}</small></p></blockquote>`
+    return h + `<p><small>${esc(t.source)}: ${s.src.map(src).join(' · ')}</small></p></li>`
+  }
+  return shell(lang,
+    crumbs(lang, [{ name: brandName(lang), href: pathFor('home', lang) }, { name: shortName('quran', lang), href: pathFor('quran', lang) }, { name: shortName('quranhistory', lang) }]) +
+    `<header><h1>${esc(t.title)}</h1><p class="seo-static__lead">${esc(t.lead)}</p></header>` +
+    `<ol>${QH_SCENES.map(item).join('')}</ol>` +
+    `<p>${esc(t.note)}</p>` +
+    `<p><a href="${pathFor('quran', lang)}">${esc(shortName('quran', lang))}</a> · <a href="${pathFor('mushaf', lang)}">${esc(shortName('mushaf', lang))}</a> · <a href="${pathFor('seerah', lang)}">${esc(shortName('seerah', lang))}</a></p>`,
+  )
+}
+
 // ═══ Hədis siyahısı (/hadith) — hər /hadith/<id> səhifəsinə link (2026-11-24) ═══
 // Əvvəl hədis səhifələrinə yalnız əvvəlki/növbəti zənciri və sitemap aparırdı (krawl dərinliyi ~1100).
 function hadithListBody(lang) {
@@ -821,6 +882,8 @@ export function staticBodyFor(key, lang, param = null) {
   if (key === 'prayer') return param ? prayerCityBody(lang, param) : prayerListBody(lang)
   if (key === 'babynames') return babyNamesBody(lang)
   if (key === 'seerah') return param == null ? seerahBody(lang) : ''
+  if (key === 'revelationorder') return param == null ? revelationOrderBody(lang) : ''
+  if (key === 'quranhistory') return param == null ? quranHistoryBody(lang) : ''
   if (key === 'hadith') return param ? hadithBody(lang, param) : hadithListBody(lang)
   // Hisnul-Müslim: zikr səhifəsi və siyahının statik bloku yalnız ərəbcə (routes.js → DETAILS.hisn.langs)
   if (key === 'hisn') return lang !== 'ar' ? '' : param ? hisnDuaBody(param) : hisnListBody()

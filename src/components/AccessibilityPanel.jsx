@@ -1,5 +1,8 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useLang } from '../contexts/LangContext'
+import { pathFor } from '../seo/routes'
+import { getPrayerCityId } from '../utils/prayerLocation'
 import { DEFAULT_PREFS } from '../utils/a11yPrefs'
 import Icon from './Icon'
 import '../styles/AccessibilityPanel.css'
@@ -61,7 +64,7 @@ const LABELS = {
     smaller:'Kiçik', normal:'Normal', larger:'Böyük', xlarger:'Ən böyük', huge:'Nəhəng',
     spaceN:'Normal', spaceL:'Geniş', spaceXL:'Çox geniş',
     contrastN:'Normal', contrastH:'Yüksək', contrastI:'Tərs',
-    themeA:'Avto', themeL:'İşıqlı', themeD:'Tünd', themeS:'Sepia',
+    themeA:'Avto', themeL:'İşıqlı', themeD:'Tünd', themeS:'Sepia', themeP:'Namaz vaxtına görə', themePSub:'Sübhdə işıqlı, məğribdə tünd', themePHint:'Bunun üçün şəhərinizi seçin —', themePLink:'namaz vaxtları',
     dyslexia:'Disleksiya şrifti', dyslexiaSub:'Daha rahat oxunan şrift',
     underlineLinks:'Keçidlərin altından xətt', underlineLinksSub:'Bütün keçidlər seçilsin',
     highlightHeadings:'Başlıqları vurğula', highlightHeadingsSub:'Başlıqlar fonla seçilir',
@@ -94,7 +97,7 @@ const LABELS = {
     smaller:'Smaller', normal:'Normal', larger:'Larger', xlarger:'Largest', huge:'Huge',
     spaceN:'Normal', spaceL:'Large', spaceXL:'Extra large',
     contrastN:'Normal', contrastH:'High', contrastI:'Inverted',
-    themeA:'Auto', themeL:'Light', themeD:'Dark', themeS:'Sepia',
+    themeA:'Auto', themeL:'Light', themeD:'Dark', themeS:'Sepia', themeP:'By prayer times', themePSub:'Light at Fajr, dark at Maghrib', themePHint:'Choose your city for this —', themePLink:'prayer times',
     dyslexia:'Dyslexia font', dyslexiaSub:'Easier-to-read font',
     underlineLinks:'Underline links', underlineLinksSub:'Highlight all links',
     highlightHeadings:'Highlight headings', highlightHeadingsSub:'Headings get a highlight',
@@ -127,7 +130,7 @@ const LABELS = {
     smaller:'Меньше', normal:'Нормальный', larger:'Больше', xlarger:'Самый большой', huge:'Огромный',
     spaceN:'Нормальный', spaceL:'Большой', spaceXL:'Очень большой',
     contrastN:'Нормальный', contrastH:'Высокий', contrastI:'Инверсия',
-    themeA:'Авто', themeL:'Светлая', themeD:'Тёмная', themeS:'Сепия',
+    themeA:'Авто', themeL:'Светлая', themeD:'Тёмная', themeS:'Сепия', themeP:'По времени намаза', themePSub:'Светлая с фаджра, тёмная с магриба', themePHint:'Для этого выберите свой город —', themePLink:'время намаза',
     dyslexia:'Шрифт для дислексии', dyslexiaSub:'Легко читаемый',
     underlineLinks:'Подчеркнуть ссылки', underlineLinksSub:'Все ссылки выделены',
     highlightHeadings:'Подсветка заголовков', highlightHeadingsSub:'Заголовки выделены фоном',
@@ -160,7 +163,7 @@ const LABELS = {
     smaller:'أصغر', normal:'عادي', larger:'أكبر', xlarger:'الأكبر', huge:'ضخم',
     spaceN:'عادي', spaceL:'كبير', spaceXL:'كبير جداً',
     contrastN:'عادي', contrastH:'عالي', contrastI:'معكوس',
-    themeA:'تلقائي', themeL:'فاتح', themeD:'داكن', themeS:'سيبيا',
+    themeA:'تلقائي', themeL:'فاتح', themeD:'داكن', themeS:'سيبيا', themeP:'حسب أوقات الصلاة', themePSub:'فاتح عند الفجر، داكن عند المغرب', themePHint:'لذلك اختر مدينتك —', themePLink:'أوقات الصلاة',
     dyslexia:'خط ودود لعسر القراءة', dyslexiaSub:'أسهل قراءة',
     underlineLinks:'تسطير الروابط', underlineLinksSub:'إبراز كل الروابط',
     highlightHeadings:'إبراز العناوين', highlightHeadingsSub:'بخلفية صفراء',
@@ -193,7 +196,7 @@ const LABELS = {
     smaller:'Küçük', normal:'Normal', larger:'Büyük', xlarger:'En büyük', huge:'Devasa',
     spaceN:'Normal', spaceL:'Geniş', spaceXL:'Çok geniş',
     contrastN:'Normal', contrastH:'Yüksek', contrastI:'Ters',
-    themeA:'Otomatik', themeL:'Açık', themeD:'Koyu', themeS:'Sepya',
+    themeA:'Otomatik', themeL:'Açık', themeD:'Koyu', themeS:'Sepya', themeP:'Namaz vakitlerine göre', themePSub:'Sabah namazında açık, akşamda koyu', themePHint:'Bunun için şehrinizi seçin —', themePLink:'namaz vakitleri',
     dyslexia:'Disleksi yazı tipi', dyslexiaSub:'Daha kolay okunur',
     underlineLinks:'Bağlantıların altını çiz', underlineLinksSub:'Tüm bağlantılar vurgulansın',
     highlightHeadings:'Başlıkları vurgula', highlightHeadingsSub:'Başlıklar arka planla belirginleşir',
@@ -214,9 +217,15 @@ const LABELS = {
  *   setOpenState: Function, prefs: object, setPrefs: Function, activeCount: number }} props
  */
 export default function AccessibilityPanel({ open, setOpen, controlled, setOpenState, prefs, setPrefs, activeCount }) {
-  const { lang } = useLang()
+  const { lang, siteLang = lang } = useLang()
   const l = pickUi(LABELS, lang)
   const ar = pickUi(AR_UI, lang, 'en')
+  // Şəhər seçilibmi — yalnız mount-dan sonra (yaddaş); "Namaz vaxtına görə" üçün ipucu
+  const [noCity, setNoCity] = useState(false)
+  useEffect(() => {
+    if (!open) return
+    try { setNoCity(!getPrayerCityId()) } catch { setNoCity(false) }
+  }, [open, prefs.theme])
   const closeRef = useRef(null)
   closeRef.current = () => setOpen(false)
   const closeBtnRef = useRef(null)
@@ -433,6 +442,18 @@ export default function AccessibilityPanel({ open, setOpen, controlled, setOpenS
                   <button className={`a11y-btn a11y-btn-icon ${prefs.theme === 'light' ? 'active' : ''}`} onClick={() => update('theme', 'light')}><Icon name="sun" size={18} /><span>{l.themeL}</span></button>
                   <button className={`a11y-btn a11y-btn-icon ${prefs.theme === 'dark' ? 'active' : ''}`} onClick={() => update('theme', 'dark')}><Icon name="moon" size={18} /><span>{l.themeD}</span></button>
                   <button className={`a11y-btn a11y-btn-icon ${prefs.theme === 'sepia' ? 'active' : ''}`} onClick={() => update('theme', 'sepia')}><Icon name="books" size={18} /><span>{l.themeS}</span></button>
+                  {/* Namaz vaxtına görə: sübhdə işıqlı, məğribdə tünd (utils/prayerTheme.js) — bütün sıranı tutur */}
+                  <button type="button" data-testid="a11y-theme-prayer" aria-pressed={prefs.theme === 'prayer'} className={`a11y-btn a11y-btn-wide ${prefs.theme === 'prayer' ? 'active' : ''}`} onClick={() => update('theme', 'prayer')}>
+                    <Icon name="clock" size={18} />
+                    <span className="a11y-btn-wide__text"><span>{l.themeP}</span><small>{l.themePSub}</small></span>
+                  </button>
+                </div>
+                <div aria-live="polite">
+                  {prefs.theme === 'prayer' && noCity && (
+                    <p className="a11y-theme-hint" data-testid="a11y-theme-prayer-hint">
+                      {l.themePHint} <Link to={pathFor('prayer', siteLang)} onClick={() => setOpen(false)}>{l.themePLink}</Link>
+                    </p>
+                  )}
                 </div>
 
                 <div className="a11y-sub-label">{l.saturation} — <strong>{prefs.saturation}%</strong></div>

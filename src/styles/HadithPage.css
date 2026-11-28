@@ -479,3 +479,22 @@
 /* v6.8: /hadith/<id> — seçilmiş hədis siyahının üstündə */
 .hadith-focus { display: grid; gap: 10px; margin-bottom: 22px; padding: 12px; border-radius: 18px; background: var(--brand-soft); box-shadow: inset 0 0 0 1px var(--brand-line); }
 .hadith-focus__all { justify-self: start; font-weight: 600; }
+
+/* Təsadüfi hədis düyməsi — zər fırlanır (bir dəfə, ~0.5 s); hərəkət azaldılıbsa fırlanmır */
+.hadith-random { display: flex; justify-content: flex-start; margin-bottom: var(--space-3); }
+.hadith-random__btn { gap: 8px; }
+.hadith-random__die { display: inline-flex; }
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .hadith-random__die.is-rolling { animation: hadith-die-roll 520ms cubic-bezier(.34, 1.4, .5, 1) both; }
+}
+@keyframes hadith-die-roll {
+  0% { transform: rotate(0) scale(1); }
+  40% { transform: rotate(200deg) scale(.82); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+.hadith-focus:focus { outline: none; }
+.hadith-focus:focus-visible { outline: 2px solid var(--ring); outline-offset: 3px; }
+@media (max-width: 767.98px) {
+  /* telefonda yapışqan süzgəc zolağı da başlığın altındadır (html scroll-padding-top + zolaq) */
+  .hadith-focus { scroll-margin-top: 64px; }
+}

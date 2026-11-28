@@ -89,6 +89,8 @@ export const QURAN_GUIDE = {
   history: {
     eyebrow: { az: 'Tarix', en: 'History', ru: 'История', ar: 'التاريخ', tr: 'Tarih' },
     title: { az: 'Quran necə nazil olub və toplanıb', en: 'How the Quran was revealed and compiled', ru: 'Как Коран ниспосылался и был собран', ar: 'كيف نزل القرآن وجُمع', tr: 'Kur’an nasıl indirildi ve toplandı' },
+    // Ətraflı: /quran-history (scrollytelling, eyni mənbələr)
+    more: { az: 'Ətraflı: Quran necə toplandı', en: 'In depth: how the Quran was compiled', ru: 'Подробнее: как был собран Коран', ar: 'بالتفصيل: كيف جُمع القرآن', tr: 'Ayrıntılı: Kur’an nasıl toplandı' },
     lead: { az: 'Beş əsas mərhələ — hər biri səhih rəvayətə əsaslanır.', en: 'Five key stages — each based on an authentic narration.', ru: 'Пять ключевых этапов — каждый основан на достоверном предании.', ar: 'خمس مراحل رئيسة، كلٌّ منها ثابت بالرواية الصحيحة.', tr: 'Beş temel aşama — her biri sahih bir rivayete dayanır.' },
     items: [
       { when: '610',
@@ -193,12 +195,18 @@ export const QURAN_GUIDE = {
       { key: 'mushaf', icon: 'mushaf',
         title: { az: 'Mushaf görünüşü', en: 'Mushaf view', ru: 'Вид мусхафа', ar: 'عرض المصحف', tr: 'Mushaf görünümü' },
         text: { az: '604 səhifə, təcvid rəngləri', en: '604 pages, tajweed colours', ru: '604 страницы, цвета таджвида', ar: '٦٠٤ صفحات بألوان التجويد', tr: '604 sayfa, tecvit renkleri' } },
+      { key: 'quranhistory', icon: 'quranhistory',
+        title: { az: 'Quran necə toplandı', en: 'How the Quran was compiled', ru: 'Как был собран Коран', ar: 'كيف جُمع القرآن', tr: 'Kur’an nasıl toplandı' },
+        text: { az: 'Hiradan bugünkü mushafa — 6 mərhələ', en: 'From Hira to today’s mushaf — 6 stages', ru: 'От Хиры до мусхафа — 6 этапов', ar: 'من حراء إلى مصحف اليوم في ست مراحل', tr: 'Hira’dan bugünkü mushafa — 6 aşama' } },
       { key: 'hifz', icon: 'hifz',
         title: { az: 'Hifz', en: 'Hifz', ru: 'Хифз', ar: 'الحفظ', tr: 'Hıfz' },
         text: { az: 'Əzbərləmə planı və təkrar', en: 'Memorisation plan and reviews', ru: 'План заучивания и повторения', ar: 'خطة الحفظ والمراجعة', tr: 'Ezber planı ve tekrar' } },
       { key: 'quranroots', icon: 'quranroots',
         title: { az: 'Kök axtarışı', en: 'Root search', ru: 'Поиск по корню', ar: 'البحث بالجذر', tr: 'Kök araması' },
         text: { az: 'Sözlər hansı kökdən gəlir', en: 'Which root a word comes from', ru: 'От какого корня слово', ar: 'جذور كلمات القرآن', tr: 'Kelimeler hangi kökten gelir' } },
+      { key: 'revelationorder', icon: 'revelationorder',
+        title: { az: 'Nazil olma sırası', en: 'Order of revelation', ru: 'Порядок ниспослания', ar: 'ترتيب النزول', tr: 'Nüzul sırası' },
+        text: { az: '114 surə — Məkki və Mədəni', en: '114 surahs — Meccan and Medinan', ru: '114 сур — мекканские и мединские', ar: '١١٤ سورة مكية ومدنية', tr: '114 sure — Mekkî ve Medenî' } },
       { key: 'arabic', icon: 'arabic',
         title: { az: 'Ərəb dili', en: 'Arabic', ru: 'Арабский язык', ar: 'اللغة العربية', tr: 'Arapça' },
         text: { az: 'Əlifbadan başla', en: 'Start with the alphabet', ru: 'Начните с алфавита', ar: 'ابدأ بالحروف', tr: 'Alfabeyle başla' } },

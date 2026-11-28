@@ -1416,6 +1416,9 @@
 .qp-trans-src__meta a { color: var(--accent-text); font-weight: 600; }
 .qp-trans-src__error { display: inline-flex; align-items: center; gap: 6px; color: var(--bad); }
 .qp-trans-src__error svg { flex: none; }
+/* Paralel tərcümə düyməsi (rejimin stilləri — styles/QuranParallel.css, tənbəl) */
+.qp-par-toggle { display: inline-flex; align-items: center; gap: 6px; flex: none; }
+.qp-par-toggle svg { flex: none; }
 
 /* QuranEnc haşiyələri — bağlı açılan, düz mətn */
 .ayah-fn { max-width: 68ch; margin-top: 8px; font-size: var(--step--1); color: var(--text-secondary); }
@@ -1719,3 +1722,8 @@
 /* "Nazil olma sırası" görünüşü: cədvəlin statusu (alimlərin ictihadı) */
 .qp-revnote { display: flex; gap: 8px; align-items: flex-start; margin: 4px 0 12px; padding: 10px 14px; border-radius: 14px; font-size: var(--step--1, .875rem); line-height: 1.5; color: var(--text-secondary); background: color-mix(in srgb, var(--accent, #c79a3a) 9%, var(--surface-1, #fff)); border: 1px solid color-mix(in srgb, var(--accent, #c79a3a) 25%, transparent); }
 .qp-revnote svg { flex: none; margin-top: 3px; color: var(--accent-text, #8a6512); }
+
+/* "Ətraflı: Quran necə toplandı" (/quran-history) — zaman xəttinin altında */
+.qp-history__more { margin: var(--space-4) 0 0; }
+.qp-history__more a { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; font-weight: 600; color: var(--brand); }
+@media (min-width: 1100px) { .qp-history__more { grid-column: 2; } }

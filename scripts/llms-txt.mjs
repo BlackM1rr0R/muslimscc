@@ -17,7 +17,7 @@ import { BRAND } from '../src/config/brand.js'
 
 // Bölmələr — qruplar (key-lər routes.js PAGES-dən). Siyahıda olmayan indekslənən səhifə "Other"-ə düşür.
 const GROUPS = [
-  ['Quran', ['quran', 'mushaf', 'quranroots', 'quranmeaning', 'khatm', 'focus', 'hifz', 'qurangame']],
+  ['Quran', ['quran', 'mushaf', 'quranroots', 'quranmeaning', 'revelationorder', 'quranhistory', 'khatm', 'focus', 'hifz', 'qurangame']],
   ['Prayer', ['prayer', 'qibla', 'onroad', 'simple', 'prayerguide', 'tracker', 'qada', 'jamaat', 'mosques', 'mosquetv', 'widget']],
   ['Hadith', ['hadith', 'nawawi40', 'hadithbooks', 'hadeethenc']],
   ['Dua and dhikr', ['duas', 'hisn', 'dhikr', 'names', 'duajournal']],

@@ -1,0 +1,123 @@
+/* ═══ Paralel tərcümə (components/quran/ParallelTranslations.jsx; kart xanaları — QuranPage.jsx → AyahCard) ═══
+   Sütunlar: kartın .ayah-body-si içində .par-row grid-i. Nömrə və alət sütunlarının eni sabitdir
+   (36px), ona görə .par-row hər kartda eyni endədir — sütunlar JS-siz düzülür.
+   Telefonda (<720px) — alt-alta, hər tərcümənin üstündə tərcüməçi nişanı. */
+
+/* Oxuyucu paralel rejimdə genişlənir (adi enində 4 sütun sığmır) */
+.quran-reader.is-parallel { max-width: calc(var(--container, 1200px) + 2 * var(--page-gutter)); }
+
+/* ── Seçici ── */
+.qpar { display: grid; gap: 8px; margin-top: 4px; }
+.qpar__pick { margin: 0; padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--radius-md, 14px); background: var(--surface-1); display: grid; gap: 10px; min-width: 0; }
+.qpar__legend { padding: 0 6px; font-size: var(--step--1); font-weight: 700; color: var(--text-strong); }
+.qpar__group { display: grid; grid-template-columns: 9.5em minmax(0, 1fr); align-items: start; gap: 8px; }
+.qpar__lang { padding-top: 8px; font-size: var(--step--2, .78rem); font-weight: 700; letter-spacing: .03em; text-transform: uppercase; color: var(--text-tertiary, var(--text-secondary)); }
+.qpar__chips { display: flex; flex-wrap: wrap; gap: 6px; min-width: 0; }
+.qpar__chip {
+  position: relative;
+  display: inline-flex; align-items: center; gap: 6px;
+  min-height: 36px; max-width: 100%;
+  padding: 6px 12px;
+  border: 1px solid var(--line); border-radius: var(--radius-pill, 999px);
+  background: var(--surface-1); color: var(--text-body);
+  font-size: var(--step--1); line-height: 1.3;
+  cursor: pointer;
+  transition: background-color var(--dur-2, .2s) var(--ease-out, ease), border-color var(--dur-2, .2s) var(--ease-out, ease);
+}
+.qpar__chip > span { overflow-wrap: anywhere; }
+.qpar__chip input { width: 16px; height: 16px; margin: 0; flex-shrink: 0; accent-color: var(--brand); }
+.qpar__chip.is-on { border-color: var(--brand-line, var(--brand)); background: var(--brand-soft); color: var(--text-strong); font-weight: 600; }
+.qpar__chip.is-disabled { opacity: .55; cursor: not-allowed; }
+.qpar__chip:has(input:focus-visible) { outline: 2px solid var(--brand); outline-offset: 2px; }
+@media (hover: hover) { .qpar__chip:not(.is-disabled):hover { border-color: var(--brand-line, var(--brand)); } }
+@media (pointer: coarse) { .qpar__chip { min-height: 44px; } }
+.qpar__status, .qpar__src { margin: 0; font-size: var(--step--1); color: var(--text-secondary); }
+.qpar__status:empty { display: none; }
+.qpar__loading { color: var(--text-tertiary, var(--text-secondary)); }
+.qpar__error { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 8px 12px; border-radius: var(--radius-md, 14px); background: var(--accent-soft); color: var(--accent-text); font-size: var(--step--1); }
+.qpar__error p { margin: 0; }
+
+/* ── Sətir: ərəb + N tərcümə ── */
+.par-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) repeat(var(--par-n, 2), minmax(0, 1fr));
+  gap: 0;
+  border-radius: 12px;
+}
+.par-row > * { min-width: 0; margin: 0; padding: 8px 12px; }
+.par-row > * + * { border-inline-start: 1px dashed var(--line); }
+.par-row .ayah-arabic { margin: 0; padding-inline-start: 4px; }
+.par-cell .ayah-trans { max-width: none; margin: 0; padding-top: 0; border-top: 0; font-size: var(--step--1); line-height: 1.65; }
+.par-cell[dir="rtl"] .ayah-trans { font-family: var(--font-arabic); font-size: var(--step-0); line-height: 1.9; }
+.par-cell__empty { color: var(--text-tertiary, var(--text-secondary)); }
+.par-cell__wait { display: block; height: .9em; margin: .45em 0; border-radius: 6px; background: var(--line); opacity: .6; }
+.par-cell__wait + .par-cell__wait { width: 70%; }
+/* Kompüterdə tərcüməçi adı başlıqdadır — xanada yalnız ekran oxuyucusu üçün */
+.par-cell__by {
+  position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
+}
+.par-row { cursor: pointer; }
+.ayah-card.is-par-sel .par-row { background: var(--accent-soft); box-shadow: inset 0 0 0 1px var(--accent-line, var(--accent)); }
+.ayah-card.is-par-sel { border-color: var(--accent-line, var(--accent)); }
+
+/* ── Başlıq: kartın quruluşu (çərçivə + 20px · 36px nömrə · 16px · sətir · 16px · 36px alətlər) ── */
+.par-head {
+  position: sticky;
+  top: calc(var(--header-offset, var(--header-h, 0px)) + var(--qp-toolbar-h, 60px));
+  z-index: 5;
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) 36px;
+  gap: 16px;
+  margin-bottom: 8px;
+  padding: 8px 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md, 14px);
+  background: color-mix(in srgb, var(--surface-1) 92%, transparent);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+.par-head__row { cursor: default; }
+.par-head__cell { display: grid; gap: 1px; font-size: var(--step--1); font-weight: 700; color: var(--text-strong); line-height: 1.3; }
+.par-head__cell small { font-size: .72rem; font-weight: 600; letter-spacing: .03em; text-transform: uppercase; color: var(--text-tertiary, var(--text-secondary)); }
+.par-head__cell small { justify-self: start; }
+/* Ərəb mətni hər dildə sağa düzülür — başlığı da onun üstündə */
+.par-head__cell--ar { text-align: right; }
+/* «Ayəyə keç»: kart yapışqan başlığın da altında dayansın */
+@media (min-width: 720px) {
+  .quran-reader.is-parallel .ayah-card { scroll-margin-top: calc(var(--qp-toolbar-h, 60px) + 96px); }
+}
+
+/* 720–767px: kart artıq "nömrə · alətlər" üstdə, mətn tam endə (QuranPage.css) — başlıq da elə */
+@media (max-width: 767.98px) {
+  .par-head { grid-template-columns: minmax(0, 1fr); padding: 8px 12px 8px 14px; padding-inline: 14px 12px; }
+  .par-head__gap { display: none; }
+}
+
+/* <720px: sütunlar sığmır — alt-alta, hər tərcümə öz nişanı ilə (üfüqi sürüşmə yoxdur) */
+@media (max-width: 719.98px) {
+  .par-head { display: none; }
+  .par-row { grid-template-columns: minmax(0, 1fr); }
+  .par-row > * { padding: 8px 4px; }
+  .par-row > * + * { border-inline-start: 0; border-top: 1px dashed var(--line); }
+  .par-row .ayah-arabic { padding-inline: 4px; }
+  .par-cell { display: grid; gap: 4px; }
+  .par-cell__by {
+    position: static; width: auto; height: auto; overflow: visible; clip: auto; clip-path: none; white-space: normal;
+    justify-self: start;
+    padding: 2px 10px;
+    border-radius: var(--radius-pill, 999px);
+    background: var(--brand-soft);
+    color: var(--brand);
+    font-size: .72rem; font-weight: 700; letter-spacing: .02em;
+  }
+  .qpar__group { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+  .qpar__lang { padding-top: 0; }
+}
+
+[data-theme="dark"] .qpar__chip.is-on { color: var(--text-strong); }
+[data-theme="dark"] .par-cell__by { color: var(--brand-text, var(--brand)); }
+
+@media (prefers-reduced-motion: reduce) {
+  .qpar__chip { transition: none; }
+}
+.par-cell__wait-wrap { display: block; }

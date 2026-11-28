@@ -1,0 +1,220 @@
+/* ══════════════════════════════════════════════════════
+   Quran necə toplandı (/quran-history) — scrollytelling
+   • Əsas (defolt) görünüş STATİKDİR: mərhələlər alt-alta, hər birinin öz şəkli.
+     Scrollytelling (yapışıq səhnə + keçidlər) yalnız hərəkətə icazə olanda qoşulur:
+     @media (prefers-reduced-motion: no-preference) + html:not(.a11y-reduce-motion):not(.a11y-motion-user).
+   • Hərəkət yalnız transform/opacity; sonsuz animasiya yoxdur.
+   • Yalnız semantik tokenlər (açıq/tünd mövzu); məntiqi xassələr (RTL); 360px.
+   • Perqament, mürəkkəb, daş, sümük — "təbii" rənglər mövzudan asılı deyil (şəkildir).
+   ══════════════════════════════════════════════════════ */
+.qh-hero .breadcrumb, .qh-hero .bc-list { justify-content: flex-start; }
+.qh-hero .ui-container { text-align: start; }
+.qh-narrow { max-width: 860px; }
+
+/* ── İrəliləyiş zolağı (mərhələ nöqtələri) ── */
+.qh-progress { position: sticky; top: var(--header-offset, var(--header-h, 64px)); z-index: 5;
+  background: color-mix(in srgb, var(--surface-0) 94%, transparent); border-bottom: 1px solid var(--line); }
+.qh-progress__in { display: flex; align-items: center; gap: var(--space-3); min-height: 52px; padding-block: 6px; }
+.qh-progress__now { flex: 1 1 auto; min-width: 0; margin: 0; display: flex; align-items: baseline; gap: 8px; color: var(--text-secondary); font-size: var(--step--1); }
+.qh-progress__n { flex: none; font-weight: 700; color: var(--brand); }
+.qh-progress__t { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-strong); font-weight: 600; }
+.qh-progress__dots { flex: none; display: flex; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.qh-dot { display: grid; place-items: center; width: 32px; height: 32px; padding: 0; border-radius: 999px; cursor: pointer;
+  border: 1.5px solid var(--line-strong); background: var(--surface-1); color: var(--text-secondary); font: inherit; font-size: 12px; font-weight: 700; }
+.qh-dot.is-done { border-color: var(--brand); color: var(--brand); }
+.qh-dot.is-on { background: var(--brand); border-color: var(--brand); color: var(--surface-1); }
+.qh-dot:hover { border-color: var(--accent); }
+.qh-dot:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.qh-progress__bar { position: absolute; inset-inline: 0; bottom: -1px; height: 3px; overflow: hidden; }
+.qh-progress__fill { display: block; height: 100%; background: var(--accent); transform-origin: left center; }
+[dir="rtl"] .qh-progress__fill { transform-origin: right center; }
+@media (max-width: 420px) {
+  .qh-progress__t { display: none; }
+  .qh-progress__dots { gap: 2px; }
+  .qh-dot { width: 30px; height: 30px; }
+}
+
+/* ── Statik (defolt) düzülüş ── */
+.qh-story { position: relative; }
+.qh-layout { padding-block: var(--space-5); }
+.qh-stage { display: none; }
+.qh-scenes { display: grid; gap: var(--space-6, 32px); margin: 0 auto; padding: 0; list-style: none; max-width: 760px; }
+.qh-scene { scroll-margin-top: calc(var(--header-offset, var(--header-h, 64px)) + 64px); }
+.qh-scene__fig { max-width: 320px; margin: 0 auto var(--space-3); }
+.qh-art { display: block; width: 100%; height: auto; direction: ltr; user-select: none; }
+
+/* ── Kart ── */
+.qh-card { background: var(--surface-1); border: 1px solid var(--line); border-radius: var(--radius-lg, 16px); padding: var(--space-5);
+  box-shadow: var(--shadow-1); }
+.qh-scene.is-active .qh-card { border-color: color-mix(in srgb, var(--accent) 55%, var(--line)); }
+.qh-card__meta { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px; margin: 0 0 var(--space-2); font-size: var(--step--1); color: var(--text-tertiary); }
+.qh-card__n { font-weight: 700; color: var(--brand); }
+.qh-card__when { color: var(--text-secondary); }
+.qh-card__title { margin: 0 0 var(--space-3); font-size: var(--step-2, 1.5rem); line-height: 1.25; color: var(--text-strong); }
+.qh-card__title:focus { outline: none; }
+.qh-card__title:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 4px; }
+.qh-card__text { margin: 0 0 var(--space-3); line-height: 1.7; color: var(--text-secondary); }
+.qh-card .ui-quote { margin: var(--space-3) 0; }
+.qh-quote__ar, .qh-card .ui-quote__ar { font-size: clamp(19px, 1.8vw, 24px); line-height: 1.9; }
+.qh-ayahs__ar { margin: 0; font-family: var(--font-arabic); font-size: clamp(22px, 2.4vw, 30px); line-height: 2.1; color: var(--text-strong); }
+.qh-ayahs__n { color: var(--accent-text, var(--accent)); font-size: .8em; }
+
+.qh-block { margin: var(--space-3) 0; }
+.qh-block__h { margin: 0 0 var(--space-2); font-size: var(--step-0); color: var(--text-strong); }
+.qh-block__note { margin: var(--space-2) 0 0; font-size: var(--step--1); color: var(--text-tertiary); line-height: 1.6; }
+.qh-mat { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.qh-mat li { display: grid; grid-template-columns: minmax(84px, auto) minmax(0, 1fr) auto; align-items: baseline; gap: 10px;
+  padding: 6px 10px; border-radius: 10px; background: var(--surface-2, var(--surface-0)); }
+.qh-mat__ar { font-family: var(--font-arabic); font-size: 20px; color: var(--brand); }
+.qh-mat__name { color: var(--text-strong); }
+.qh-mat__src { font-size: 12px; color: var(--text-tertiary); white-space: nowrap; }
+@media (max-width: 400px) {
+  .qh-mat li { grid-template-columns: minmax(0, 1fr) auto; }
+  .qh-mat__name { grid-column: 1 / -1; grid-row: 2; }
+}
+.qh-keepers { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.qh-keepers li { display: flex; align-items: flex-start; gap: 10px; line-height: 1.5; color: var(--text-secondary); }
+.qh-keepers strong { color: var(--text-strong); }
+.qh-keepers__n { flex: none; display: grid; place-items: center; width: 26px; height: 26px; border-radius: 999px;
+  background: var(--brand); color: var(--surface-1); font-size: 13px; font-weight: 700; }
+.qh-cities { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 0; padding: 0; list-style: none; color: var(--text-strong); font-weight: 600; }
+.qh-cities li { display: inline-flex; align-items: center; gap: 4px; }
+.qh-cities svg { color: var(--accent); }
+.qh-cta { display: flex; flex-wrap: wrap; gap: 10px; margin: var(--space-4) 0 var(--space-3); }
+.qh-links { display: flex; flex-wrap: wrap; gap: 6px; margin: var(--space-3) 0; }
+.qh-links .ui-chip { min-height: 36px; text-decoration: none; }
+.qh-approx { margin: var(--space-2) 0 0; font-size: 12.5px; color: var(--text-tertiary); font-style: italic; }
+html[lang="ar"] .qh-approx { font-style: normal; }
+.qh-src { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin: var(--space-3) 0 0; padding-top: var(--space-2);
+  border-top: 1px dashed var(--line); font-size: var(--step--1); color: var(--text-tertiary); }
+.qh-src svg { color: var(--brand); }
+.qh-src a { color: var(--brand); }
+.qh-src__ext { margin-inline-start: 2px; vertical-align: -1px; }
+.qh-about__h { display: flex; align-items: center; gap: 8px; margin: 0 0 var(--space-2); font-size: var(--step-0); color: var(--text-strong); }
+.qh-about__h svg { color: var(--brand); }
+.qh-about p { margin: 0; color: var(--text-secondary); line-height: 1.6; font-size: var(--step--1); }
+@media (max-width: 400px) {
+  .qh-card { padding: var(--space-4) var(--space-3); }
+  .qh-card__title { font-size: var(--step-1, 1.25rem); }
+}
+
+/* ══ Şəkillər (SVG) ══ */
+.qh-a__sky { fill: color-mix(in srgb, var(--brand) 55%, #08141f); }
+.qh-a__stars circle { fill: #fff; opacity: .85; }
+.qh-a__moon { fill: var(--accent); }
+.qh-a__rays path { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linecap: round; opacity: .45; }
+.qh-a__mount { fill: color-mix(in srgb, var(--brand) 30%, #17110c); }
+.qh-a__mount--far { fill: color-mix(in srgb, var(--brand) 45%, #2a2118); opacity: .8; }
+.qh-a__cave { fill: #050505; opacity: .9; }
+.qh-a__iqra { fill: var(--accent); font-family: var(--font-arabic); font-size: 72px; }
+
+.qh-a__paper { fill: color-mix(in srgb, var(--accent) 12%, var(--surface-1)); }
+.qh-a__ink { fill: none; stroke: #2b2118; stroke-width: 3; stroke-linecap: round; opacity: .72; }
+.qh-a__ink--thin { stroke-width: 2; }
+.qh-a__stalk { fill: #a98a4e; stroke: #6f5527; stroke-width: 1.5; }
+.qh-a__stone { fill: #e6e1d6; stroke: #a59f92; stroke-width: 1.5; }
+.qh-a__bone { fill: #efe4cb; stroke: #b6a47e; stroke-width: 1.5; }
+.qh-a__leather { fill: #c99a66; stroke: #8a5f33; stroke-width: 1.5; }
+.qh-a__pen path { fill: #b08b57; stroke: #6a4f2a; stroke-width: 1.2; }
+.qh-a__pen .qh-a__nib { fill: #2b2118; }
+.qh-a__inkpot { fill: #2b2118; }
+
+.qh-a__bit rect { fill: #efe4cb; stroke: #b6a47e; stroke-width: 1.2; }
+.qh-a__bit { transform-box: fill-box; transform-origin: center; transform: translate(var(--dx), var(--dy)) rotate(var(--r)); }
+.qh-a__sheet { fill: #fbf6ea; stroke: #c9b994; stroke-width: 1.4; }
+.qh-a__cord { fill: none; stroke: var(--brand); stroke-width: 4; opacity: .85; }
+.qh-a__seal { fill: var(--accent); stroke: #fbf6ea; stroke-width: 2; }
+
+.qh-a__path { fill: none; stroke: var(--brand); stroke-width: 2; stroke-dasharray: 5 6; opacity: .7; }
+.qh-a__keeper circle { fill: var(--surface-1); stroke: var(--brand); stroke-width: 2.5; }
+.qh-a__keeper text { fill: var(--brand); font-size: 20px; font-weight: 700; }
+.qh-a__box { fill: #7a5530; stroke: #4e3419; stroke-width: 2; }
+.qh-a__band { fill: none; stroke: var(--accent); stroke-width: 3; }
+.qh-a__lock { fill: var(--accent); stroke: #4e3419; stroke-width: 1.5; }
+
+.qh-a__sea { fill: color-mix(in srgb, var(--brand) 9%, var(--surface-1)); }
+.qh-a__coast { fill: none; stroke: color-mix(in srgb, var(--brand) 55%, transparent); stroke-width: 2.2; stroke-linejoin: round; stroke-linecap: round; }
+.qh-a__route path { fill: none; stroke: var(--accent); stroke-width: 2.6; stroke-dasharray: 7 5; stroke-linecap: round; }
+.qh-a__route { transform-box: view-box; }
+.qh-a__book { transform-box: view-box; }
+.qh-a__book path { fill: var(--brand); }
+.qh-a__book .qh-a__spine { fill: none; stroke: var(--surface-1); stroke-width: 1.2; }
+.qh-a__city text, .qh-a__origin text { fill: var(--text-strong); font-size: 14px; font-weight: 600; paint-order: stroke; stroke: var(--surface-1); stroke-width: 3.5px; stroke-linejoin: round; }
+.qh-a__origin circle { fill: var(--accent); stroke: var(--surface-1); stroke-width: 3; }
+.qh-a__origin text { font-size: 15px; font-weight: 700; }
+
+.qh-a__stand { fill: none; stroke: #7a5530; stroke-width: 10; stroke-linecap: round; }
+.qh-a__page { fill: #fbf6ea; stroke: var(--accent); stroke-width: 1.5; }
+.qh-a__frame { fill: none; stroke: var(--accent); stroke-width: 2; opacity: .8; }
+.qh-a__rosette { fill: var(--accent); }
+.qh-a__glow circle { fill: none; stroke: var(--accent); stroke-width: 2; opacity: 0; }
+
+/* ══ Scrollytelling — yalnız hərəkətə icazə olanda ══ */
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion):not(.a11y-motion-user) .qh-stage { display: block; }
+  html:not(.a11y-reduce-motion):not(.a11y-motion-user) .qh-scene__fig { display: none; }
+  html:not(.a11y-reduce-motion):not(.a11y-motion-user) .qh-progress__fill { transition: transform .45s var(--ease-out, ease-out); }
+  html:not(.a11y-reduce-motion):not(.a11y-motion-user) .qh-scenes { gap: 0; }
+  html:not(.a11y-reduce-motion):not(.a11y-motion-user) .qh-card { transition: opacity .5s ease, transform .5s var(--ease-out, ease-out), border-color .3s ease; }
+  html:not(.a11y-reduce-motion):not(.a11y-motion-user) .qh-scene:not(.is-active) .qh-card { opacity: .6; transform: translateY(10px); }
+
+  /* Səhnə: bütün qatlar üst-üstə, aktiv olan görünür */
+  html:not(.a11y-reduce-motion):not(.a11y-motion-user) .qh-stage .qh-a { opacity: 0; transition: opacity .6s ease; }
+  html:not(.a11y-reduce-motion):not(.a11y-motion-user) .qh-stage .qh-a.is-on { opacity: 1; }
+  html:not(.a11y-reduce-motion):not(.a11y-motion-user) .qh-stage .qh-a__mv { opacity: 0; transform: translateY(16px) scale(.96);
+    transform-box: fill-box; transform-origin: center; transition: opacity .8s ease .15s, transform .9s var(--ease-out, ease-out) .15s; }
+  html:not(.a11y-reduce-motion):not(.a11y-motion-user) .qh-stage .qh-a.is-on .qh-a__mv { opacity: 1; transform: none; }
+  html:not(.a11y-reduce-motion):not(.a11y-motion-user) .qh-stage .qh-a.is-on .qh-a__m2 { transition-delay: .3s; }
+  html:not(.a11y-reduce-motion):not(.a11y-motion-user) .qh-stage .qh-a.is-on .qh-a__m3 { transition-delay: .45s; }
+  html:not(.a11y-reduce-motion):not(.a11y-motion-user) .qh-stage .qh-a.is-on .qh-a__m4 { transition-delay: .6s; }
+  /* Toplanma: parçalar yığına uçur və əriyir */
+  html:not(.a11y-reduce-motion):not(.a11y-motion-user) .qh-stage .qh-a__bit { transition: transform .9s var(--ease-out, ease-out) calc(var(--i) * 90ms), opacity .9s ease calc(var(--i) * 90ms + .3s); }
+  html:not(.a11y-reduce-motion):not(.a11y-motion-user) .qh-stage .qh-a--gather.is-on .qh-a__bit { transform: translate(0, 0) rotate(0); opacity: 0; }
+  /* Saxlayanlar növbə ilə */
+  html:not(.a11y-reduce-motion):not(.a11y-motion-user) .qh-stage .qh-a__keeper { opacity: .25; transition: opacity .5s ease calc(.3s + var(--i) * .35s); }
+  html:not(.a11y-reduce-motion):not(.a11y-motion-user) .qh-stage .qh-a--suhuf.is-on .qh-a__keeper { opacity: 1; }
+  /* Xəritə: yollar Mədinədən uzanır, sonra nüsxələr görünür */
+  html:not(.a11y-reduce-motion):not(.a11y-motion-user) .qh-stage .qh-a__route { transform: scale(0); transition: transform .8s var(--ease-out, ease-out) calc(.2s + var(--i) * .18s); }
+  html:not(.a11y-reduce-motion):not(.a11y-motion-user) .qh-stage .qh-a--map.is-on .qh-a__route { transform: none; }
+  html:not(.a11y-reduce-motion):not(.a11y-motion-user) .qh-stage .qh-a__city { opacity: 0; transition: opacity .5s ease calc(.8s + var(--i) * .18s); }
+  html:not(.a11y-reduce-motion):not(.a11y-motion-user) .qh-stage .qh-a__book { transform: scale(.3); transition: transform .5s var(--ease-out, ease-out) calc(.8s + var(--i) * .18s); }
+  html:not(.a11y-reduce-motion):not(.a11y-motion-user) .qh-stage .qh-a--map.is-on .qh-a__city { opacity: 1; }
+  html:not(.a11y-reduce-motion):not(.a11y-motion-user) .qh-stage .qh-a--map.is-on .qh-a__book { transform: none; }
+  /* Bu gün: rozetdən iki dəfə yumşaq işıq (məhdud təkrar) */
+  html:not(.a11y-reduce-motion):not(.a11y-motion-user) .qh-stage .qh-a--mushaf.is-on .qh-a__glow circle { transform-box: fill-box; transform-origin: center;
+    animation: qh-glow 1.8s var(--ease-out, ease-out) .9s 2; }
+
+  /* Masaüstü: səhnə yanda yapışıq, hər mərhələ ekran hündürlüyündə */
+  @media (min-width: 900px) {
+    html:not(.a11y-reduce-motion):not(.a11y-motion-user) .qh-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--space-6, 32px); align-items: start; padding-block: 0; }
+    html:not(.a11y-reduce-motion):not(.a11y-motion-user) .qh-stage { position: sticky; top: calc(var(--header-offset, var(--header-h, 64px)) + 53px);
+      height: calc(100svh - var(--header-offset, var(--header-h, 64px)) - 53px); display: flex; align-items: center; justify-content: center; }
+    html:not(.a11y-reduce-motion):not(.a11y-motion-user) .qh-stage__svg { width: min(100%, calc(100svh - var(--header-offset, var(--header-h, 64px)) - 110px)); max-width: 560px; }
+    html:not(.a11y-reduce-motion):not(.a11y-motion-user) .qh-scene { min-height: calc(100svh - var(--header-offset, var(--header-h, 64px)) - 53px);
+      display: flex; align-items: center; padding-block: var(--space-6, 32px); }
+    html:not(.a11y-reduce-motion):not(.a11y-motion-user) .qh-card { width: 100%; }
+  }
+  /* Telefon: səhnə yuxarıda yapışıq (ekranın ~üçdə biri), mətn altında */
+  @media (max-width: 899px) {
+    html:not(.a11y-reduce-motion):not(.a11y-motion-user) .qh-layout { padding-top: 0; }
+    html:not(.a11y-reduce-motion):not(.a11y-motion-user) .qh-stage { position: sticky; top: calc(var(--header-offset, var(--header-h, 64px)) + 53px); z-index: 3;
+      height: 34svh; min-height: 170px; margin-inline: calc(-1 * var(--container-pad, 16px)); padding: 8px var(--container-pad, 16px);
+      background: var(--surface-0); border-bottom: 1px solid var(--line); }
+    html:not(.a11y-reduce-motion):not(.a11y-motion-user) .qh-stage__svg { height: 100%; width: auto; max-width: 100%; margin-inline: auto; }
+    html:not(.a11y-reduce-motion):not(.a11y-motion-user) .qh-scene { min-height: 84svh; padding-block: var(--space-5) var(--space-4);
+      scroll-margin-top: calc(var(--header-offset, var(--header-h, 64px)) + 53px + 34svh); }
+  }
+  /* Alçaq ekran (telefon üfüqi): yapışıq səhnə yox — statik düzülüş */
+  @media (max-width: 899px) and (max-height: 520px) {
+    html:not(.a11y-reduce-motion):not(.a11y-motion-user) .qh-stage { display: none; }
+    html:not(.a11y-reduce-motion):not(.a11y-motion-user) .qh-scene__fig { display: block; }
+    html:not(.a11y-reduce-motion):not(.a11y-motion-user) .qh-scene { min-height: 0; }
+    html:not(.a11y-reduce-motion):not(.a11y-motion-user) .qh-scene:not(.is-active) .qh-card { opacity: 1; transform: none; }
+  }
+}
+@keyframes qh-glow { 0% { opacity: .9; transform: scale(.5); } 100% { opacity: 0; transform: scale(2.2); } }
+
+/* Tünd mövzu: gecə səması bir az dərin, xəritə suyu səthdən seçilsin */
+[data-theme="dark"] .qh-a__sky { fill: color-mix(in srgb, var(--brand) 35%, #050c14); }
+[data-theme="dark"] .qh-a__sea { fill: color-mix(in srgb, var(--brand) 16%, var(--surface-1)); }
+[data-theme="dark"] .qh-a__paper { fill: color-mix(in srgb, var(--accent) 10%, var(--surface-2, var(--surface-1))); }

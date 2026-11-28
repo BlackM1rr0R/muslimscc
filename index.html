@@ -7,8 +7,9 @@
     <meta name="theme-color" content="#f7f5ef" />
     <!-- Qaranlıq rejim ilk kadrdan, CSS yüklənməmiş: saxlanmış seçim 'dark'dırsa, ya da
          seçim yoxdur və telefon/sistem qaranlıq rejimdədirsə data-theme="dark" qoyulur
-         (açıq temanın yanıb-sönməsi olmasın). Qayda src/contexts/LangContext.jsx ilə EYNİDİR. -->
-    <script>(function(){var t=null;try{t=localStorage.getItem('muslim_cc_theme')}catch(e){}try{if(t==='dark'||(t!=='light'&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.setAttribute('data-theme','dark');var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content','#0a1016')}}catch(e){}})();try{var d=document.documentElement,q=/splash=1/.test(location.search);if((q||matchMedia('(display-mode: standalone)').matches||navigator.standalone)&&(q||!sessionStorage.qm_splash)&&!matchMedia('(prefers-reduced-motion: reduce)').matches){sessionStorage.qm_splash=1;d.classList.add('qm-splash');setTimeout(function(){d.classList.remove('qm-splash')},1700)}}catch(e){}</script>
+         (açıq temanın yanıb-sönməsi olmasın). Qayda src/contexts/LangContext.jsx ilə EYNİDİR;
+         'muslim_cc_ptheme' — "namaz vaxtına görə" rejimi (src/utils/prayerThemeCore.js). -->
+    <script>(function(){var t=null,p=null;try{t=localStorage.getItem('muslim_cc_theme');p=JSON.parse(localStorage.getItem('muslim_cc_ptheme'))}catch(e){}try{var s=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches,D=864e5,x=0,o=p&&p.f&&p.m>p.f&&p.m-p.f<D;if(o){x=(Date.now()-p.f)%D;if(x<0)x+=D}if(p?(o?x>=p.m-p.f:s):(t==='dark'||(t!=='light'&&s))){document.documentElement.setAttribute('data-theme','dark');var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content','#0a1016')}}catch(e){}})();try{var d=document.documentElement,q=/splash=1/.test(location.search);if((q||matchMedia('(display-mode: standalone)').matches||navigator.standalone)&&(q||!sessionStorage.qm_splash)&&!matchMedia('(prefers-reduced-motion: reduce)').matches){sessionStorage.qm_splash=1;d.classList.add('qm-splash');setTimeout(function(){d.classList.remove('qm-splash')},1700)}}catch(e){}</script>
 
     <!-- ═══════════════════════════════════════════════
          PRIMARY META

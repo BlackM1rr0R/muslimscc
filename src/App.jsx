@@ -134,6 +134,8 @@ const GroupPage = lazy(() => import('./pages/GroupPage'))
 const WidgetPage = lazy(() => import('./pages/WidgetPage'))
 const MosqueTvPage = lazy(() => import('./pages/MosqueTvPage'))
 const QuranRootsPage = lazy(() => import('./pages/QuranRootsPage'))
+const RevelationOrderPage = lazy(() => import('./pages/RevelationOrderPage'))
+const QuranHistoryPage = lazy(() => import('./pages/QuranHistoryPage'))
 // C dəstəsi: Quranda məna ilə axtarış, yeni müsəlmanın yolu, sədəqeyi-cariyə gündəliyi
 const QuranMeaningPage = lazy(() => import('./pages/QuranMeaningPage'))
 const NewMuslimPathPage = lazy(() => import('./pages/NewMuslimPathPage'))
@@ -519,6 +521,8 @@ function AppInner() {
       case 'widget':     return <WidgetPage setPage={navigate} />
       case 'mosquetv':   return <MosqueTvPage setPage={navigate} />
       case 'quranroots': return <QuranRootsPage setPage={navigate} />
+      case 'revelationorder': return <RevelationOrderPage setPage={navigate} />
+      case 'quranhistory':  return <QuranHistoryPage setPage={navigate} />
       case 'quranmeaning': return <QuranMeaningPage setPage={navigate} />
       case 'newmuslim':  return <NewMuslimPathPage setPage={navigate} />
       case 'newborn':    return <NewbornGuidePage setPage={navigate} />

@@ -4,6 +4,7 @@ import { ALL_LANGS, DEFAULT_LANG, parsePath, pathFor, uiLang, dirOf, hasPageInLa
 import { browserLang, canAutoRedirect } from '../utils/browserLang'
 import { applyUiDict } from '../i18n/load'
 import { uiDictLang } from '../utils/uiText'
+import { cachedPrayerDark, THEME_SYNC_EVENT } from '../utils/prayerThemeCore'
 
 const LangCtx = createContext(null)
 
@@ -31,8 +32,15 @@ function darkQuery() {
   try { return window.matchMedia ? window.matchMedia(DARK_QUERY) : null } catch { return null }
 }
 
-/** Saytın effektiv teması: saxlanmış seçim, yoxdursa sistemin rejimi. */
+/**
+ * Saytın effektiv teması: "Namaz vaxtına görə" rejimi açıqdırsa — keşdəki
+ * sübh/məğrib (şəhər yoxdursa sistem; utils/prayerThemeCore), yoxsa saxlanmış
+ * seçim, o da yoxdursa sistemin rejimi.
+ */
 export function resolveSiteDark() {
+  const p = cachedPrayerDark()
+  if (p === true || p === false) return p
+  if (p === 'system') return Boolean(darkQuery()?.matches)
   const stored = readStoredTheme()
   if (stored) return stored === 'dark'
   return Boolean(darkQuery()?.matches)
@@ -163,7 +171,10 @@ export function LangProvider({ children }) {
     const mq = darkQuery()
     if (!mq) return undefined
     const onChange = (e) => {
-      if (userChoseRef.current || readStoredTheme()) return
+      // Namaz rejimi: vaxtlar məlumdursa sistem dəyişikliyi nəzərə alınmır, şəhər yoxdursa — izlənir
+      const p = cachedPrayerDark()
+      if (p === true || p === false) return
+      if (p !== 'system' && (userChoseRef.current || readStoredTheme())) return
       setDark(e.matches)
     }
     if (mq.addEventListener) mq.addEventListener('change', onChange)
@@ -172,6 +183,19 @@ export function LangProvider({ children }) {
       if (mq.removeEventListener) mq.removeEventListener('change', onChange)
       else mq.removeListener?.(onChange)
     }
+  }, [])
+
+  // Tema kənardan tətbiq olunanda (namaz vaxtı keçidi, əlçatanlıq panelində
+  // rejim dəyişəndə — utils/prayerTheme.js, a11yPrefs.js) vəziyyət eyniləşsin:
+  // düymənin ikonu düz olsun və aşağıdakı müşahidəçi köhnə temanı qaytarmasın
+  useEffect(() => {
+    const onSync = (e) => {
+      const d = Boolean(e?.detail?.dark)
+      darkRef.current = d
+      setDark(d)
+    }
+    window.addEventListener(THEME_SYNC_EVENT, onSync)
+    return () => window.removeEventListener(THEME_SYNC_EVENT, onSync)
   }, [])
 
   // Əlçatanlıq panelinin "Avto" teması data-theme-i yalnız saxlanmış seçimə

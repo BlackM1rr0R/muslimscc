@@ -571,6 +571,37 @@ export const META = {
           d: 'ابحث عن كلمات القرآن بجذرها: عدد مرات ورود الجذر، والصيغ المشتقة منه، وجميع الآيات التي وردت فيها مع تمييزها.' },
   },
 
+  // Quran necə toplandı (/quran-history): Hira → Yəmamə → Əbu Bəkrin suhufu → Osmanın nüsxələri → bu gün
+  quranhistory: {
+    az: { t: 'Quran necə toplandı — Hiradan bugünkü mushafa',
+          d: 'Quranın toplanma tarixi altı mərhələdə: Hirada ilk vəhy, 23 il əzbər və yazı, Yəmamədən sonra Əbu Bəkrin dövründə toplanma, Həfsədəki səhifələr və Osmanın nüsxələri — Səhih əl-Buxari 4986, 4987 mənbələri ilə.' },
+    en: { t: 'How the Quran Was Compiled — from Hira to Today’s Mushaf',
+          d: 'The compilation of the Quran in six stages: the first revelation in Hira, 23 years of memorising and writing, the collection under Abu Bakr after al-Yamamah, the sheets kept with Hafsah and the copies of ‘Uthman — with sources from Sahih al-Bukhari 4986 and 4987.' },
+    ru: { t: 'Как был собран Коран — от Хиры до современного мусхафа',
+          d: 'История собирания Корана в шести этапах: первое откровение в Хире, 23 года заучивания и записи, собрание при Абу Бакре после Ямамы, листы у Хафсы и списки Усмана — с источниками из «Сахиха» аль-Бухари 4986 и 4987.' },
+    tr: { t: 'Kur’an Nasıl Toplandı — Hira’dan Bugünkü Mushafa',
+          d: 'Kur’an’ın toplanma tarihi altı aşamada: Hira’da ilk vahiy, 23 yıl ezber ve yazı, Yemâme’den sonra Ebû Bekir döneminde toplanma, Hafsa’daki sayfalar ve Osman’ın nüshaları — Sahîh-i Buhârî 4986 ve 4987 kaynaklarıyla.' },
+    ar: { t: 'كيف جُمع القرآن — من غار حراء إلى مصحف اليوم',
+          d: 'تاريخ جمع القرآن في ست مراحل: بدء الوحي في حراء، وثلاث وعشرون سنة من الحفظ والكتابة، والجمع في عهد أبي بكر بعد اليمامة، والصحف عند حفصة، ومصاحف عثمان — مع مصادرها من صحيح البخاري 4986 و4987.' },
+  },
+
+  // Nazil olma sırası (/quran-revelation-order): 114 surə mushaf ⇄ nazil olma sırası, Məkki/Mədəni
+  revelationorder: {
+    az: { t: 'Nazil olma sırası — 114 surə mushaf və vəhy ardıcıllığı ilə',
+          d: 'Quranın 114 surəsi mushaf sırası ilə və nazil olma sırası ilə: Ələq surəsindən başlayaraq, Məkki və Mədəni surələr, hicrət nöqtəsi zaman xəttində. Mənbə: Quran.com cədvəli.' },
+    en: { t: 'Order of Revelation — the 114 Surahs in Mushaf and Revelation Order',
+          d: 'The 114 surahs of the Quran in mushaf order and in order of revelation: starting with al-Alaq, Meccan and Medinan surahs, and the Hijrah on a timeline. Source: the Quran.com table.' },
+    ru: { t: 'Порядок ниспослания — 114 сур в порядке мусхафа и откровения',
+          // lang-ok[Quran]: mənbənin adı (Quran.com)
+          d: '114 сур Корана в порядке мусхафа и в порядке ниспослания: начиная с суры «аль-Алак», мекканские и мединские суры и хиджра на шкале времени. Источник: таблица Quran.com.' },
+    tr: { t: 'Nüzul Sırası — 114 Sure Mushaf ve İniş Sırasıyla',
+          // lang-ok[Quran]: mənbənin adı (Quran.com)
+          d: 'Kur’an’ın 114 suresi mushaf sırasıyla ve nüzul sırasıyla: Alak suresinden başlayarak Mekkî ve Medenî sureler, hicret noktası zaman çizelgesinde. Kaynak: Quran.com tablosu.' },
+    ar: { t: 'ترتيب النزول — سور القرآن الـ114 بترتيب المصحف وترتيب النزول',
+          // lang-ok[Quran]: mənbənin adı (Quran.com)
+          d: 'سور القرآن الـ114 بترتيب المصحف وبترتيب النزول: بدءًا بسورة العلق، مع السور المكية والمدنية وموضع الهجرة على خط زمني. المصدر: جدول Quran.com.' },
+  },
+
   mosquetv: {
     az: { t: 'Məscid ekranı — azan və iqamə vaxtları televizorda',
           d: 'Məscid televizoru üçün tam ekran: saat, hicri tarix, azan və iqamə vaxtları, növbəti namaza geri sayım, cümə vaxtı və ayələr. Linklə qurulur.' },

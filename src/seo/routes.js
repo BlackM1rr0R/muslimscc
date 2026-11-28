@@ -131,6 +131,10 @@ export const PAGES = [
   // C dəstəsi: Quranda məna ilə axtarış (server/quranMeaning.js — AI yalnız ayə istinadlarını seçir;
   // mətn saytın Quran mənbəyindəndir). Səhifə alət qabığı kimi indekslənir (nəticələr klientdə).
   { key: 'quranmeaning', path: 'quran-meaning', priority: 0.75, changefreq: 'monthly' },
+  // Nazil olma sırası — 114 surə mushaf ⇄ nazil olma sırası (data/surahRevelation.js; statik blok seo-body.mjs-də)
+  { key: 'revelationorder', path: 'quran-revelation-order', priority: 0.75, changefreq: 'monthly' },
+  // Quran necə toplandı — Hiradan bugünkü mushafa 6 mərhələ (data/quranCompilation.js; statik blok seo-body.mjs-də)
+  { key: 'quranhistory', path: 'quran-history', priority: 0.75, changefreq: 'monthly' },
   // Quranla diqqət seansı (Pomodoro + ayə fasiləsi) — alət səhifəsi, şəxsi say yalnız klientdə
   { key: 'focus',        path: 'focus',        priority: 0.65, changefreq: 'monthly' },
   { key: 'prayer',       path: 'prayer',       priority: 0.95, changefreq: 'daily'   },

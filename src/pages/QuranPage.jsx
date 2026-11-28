@@ -40,6 +40,8 @@ import OfflineAudio from '../components/quran/OfflineAudio'
 import DeferRender from '../components/DeferRender'
 import { quranEncOptions, quranEncUrl, readTranslationChoices, translationFor, saveTranslationChoice, fetchQuranEncSura, fetchQuranEncMeta, quranEncEntry } from '../utils/quranEnc'
 import { diffWords } from '../utils/wordDiff'
+// Paralel tərcümə: seçim yaddaşı (kiçik); seçici, yükləyici və stillər — tənbəl komponentdə
+import { readParallel, writeParallel, defaultKeys } from '../utils/quranParallel'
 import '../styles/QuranPage.css'
 import { pickUi } from '../utils/uiText'
 
@@ -81,6 +83,14 @@ const CMP_LABELS = {
   ru: { label: 'Сравнить с', off: '— нет —', hint: 'Слова второго перевода, отличающиеся от первого, выделены цветом.' },
   ar: { label: 'قارن مع', off: '— لا شيء —', hint: 'الكلمات المختلفة في الترجمة الثانية مظلَّلة.' },
   tr: { label: 'Karşılaştır', off: '— yok —', hint: 'İkinci mealde birinciden farklı kelimeler renkle gösterilir.' },
+}
+// Paralel tərcümə rejimi (components/quran/ParallelTranslations — lazy): düymə səhifədədir
+const PAR_LABELS = {
+  az: { toggle: 'Paralel', hint: 'Ərəb mətni və 2–3 tərcümə yan-yana sütunlarda' }, // lang-ok[Paralel]: azərbaycanca da «paralel» (ingiliscə parallel)
+  en: { toggle: 'Parallel', hint: 'Arabic text and 2–3 translations side by side in columns' },
+  ru: { toggle: 'Параллельно', hint: 'Арабский текст и 2–3 перевода рядом, в колонках' },
+  ar: { toggle: 'متوازٍ', hint: 'النص العربي وترجمتان أو ثلاث جنبًا إلى جنب في أعمدة' },
+  tr: { toggle: 'Paralel', hint: 'Arapça metin ve 2–3 meal yan yana sütunlarda' },
 }
 const CMP_KEY = 'quran_compare'
 const readCompare = () => { try { const v = JSON.parse(localStorage.getItem(CMP_KEY)); return v && typeof v === 'object' ? v : {} } catch { return {} } }
@@ -585,6 +595,10 @@ const ATMOS_LABELS = {
 }
 // v6.2: eyni ayə 5 qarinin səsində — söz-söz müqayisə (Quran.com söz vaxtları)
 const ReciterCompare = lazy(() => import('../components/quran/ReciterCompare'))
+// Paralel tərcümə: yalnız rejim açılanda yüklənir (adi oxuma yavaşlamır)
+const loadParallel = () => import('../components/quran/ParallelTranslations')
+const ParallelPanel = lazy(loadParallel)
+const ParallelHead = lazy(() => loadParallel().then(m => ({ default: m.ParallelHead })))
 // v6.3: Surələr şəhəri — 114 bina, nazil olma sırası ilə küçə (three.js)
 const SurahCity3D = lazy(() => import('../components/quran/SurahCity3D'))
 const QuranCity = lazy(() => import('../components/QuranCity'))
@@ -606,7 +620,7 @@ const KARAOKE_LBL = { az: 'Sözbəsöz dinlə', en: 'Word by word', ru: 'Слу�
 
 // Seçib paylaş (components/SelectShare) üçün istinad: «Quran 2:255»
 const CITE_Q = { az: 'Quran', en: 'Quran', ru: 'Коран', tr: 'Kur’an', ar: 'القرآن' }
-const AyahCard = memo(function AyahCard({ verse, surahNum, lang, trLang = lang, showTrans, showTafsir, tafsirLabel, playLabels, active, playing, flash, numLabel, linkLabel, onToggle, onNumber, tafsirOpen, tafsirId, onTafsirToggle, onTafsirChange, saved, shared, onSave, onShare, onKaraoke, xl, note, onWordMenu }) {
+const AyahCard = memo(function AyahCard({ verse, surahNum, lang, trLang = lang, showTrans, showTafsir, tafsirLabel, playLabels, active, playing, flash, numLabel, linkLabel, onToggle, onNumber, tafsirOpen, tafsirId, onTafsirToggle, onTafsirChange, saved, shared, onSave, onShare, onKaraoke, xl, note, onWordMenu, parCols, parSel, onParSel }) {
   const playLabel = playing ? playLabels.pause : playLabels.play
   const saveLabel = saved ? xl.unsave : xl.save
   // Əzbər rejimi: ərəb mətni CSS ilə bulanır; "Göstər" yalnız bu kartı açır.
@@ -619,6 +633,13 @@ const AyahCard = memo(function AyahCard({ verse, surahNum, lang, trLang = lang, 
     btn.setAttribute('aria-pressed', String(open))
     btn.querySelector('.ayah-reveal__label').textContent = open ? xl.hide : xl.reveal
   }
+  // Paralel rejim: sətrə toxunuş → bütün sütunlarda vurğu (düymə/keçid və mətn seçimi istisna)
+  const onParClick = (e) => {
+    if (e.target.closest?.('button, a, input, select, textarea, summary, label')) return
+    const sel = typeof window !== 'undefined' && window.getSelection ? window.getSelection() : null
+    if (sel && !sel.isCollapsed && String(sel).trim()) return
+    onParSel?.(verse.n)
+  }
   return (
     // data-reveal: ilk kartlar yumşaq görünür (motion.css). PERFORMANS: yalnız
     // ilk ekranın kartları — useReveal hər elementi izləməyə götürəndə
@@ -626,7 +647,7 @@ const AyahCard = memo(function AyahCard({ verse, surahNum, lang, trLang = lang, 
     // (telefonda ~750 ms-lik tək tapşırıq, Bəqərə). Qalan kartlar dərhal görünür.
     // id + data-ayah: "Ayəyə keç" hədəfi və oxuma yerinin müşahidəçisi üçün
     <div id={`ayah-${verse.n}`} data-ayah={verse.n} data-sajdah={verse.sj ? '' : undefined} data-note={note?.c || undefined} tabIndex={-1} data-cite={`${CITE_Q[lang] || CITE_Q.en} ${surahNum}:${verse.n}`}
-      className={`ayah-card${active ? ' is-playing' : ''}${flash ? ' is-target' : ''}`} data-reveal={verse.n <= REVEAL_CARDS ? '' : undefined}
+      className={`ayah-card${active ? ' is-playing' : ''}${flash ? ' is-target' : ''}${parSel ? ' is-par-sel' : ''}`} data-par-sel={parSel ? '' : undefined} data-reveal={verse.n <= REVEAL_CARDS ? '' : undefined}
       aria-current={active ? 'true' : undefined}>
       {/* Qızılı halqa solur; key — eyni ayəyə təkrar keçəndə animasiya yenidən başlasın */}
       {flash ? <span key={flash} className="ayah-flash" aria-hidden="true" /> : null}
@@ -634,7 +655,23 @@ const AyahCard = memo(function AyahCard({ verse, surahNum, lang, trLang = lang, 
       <button type="button" className="ayah-num" onClick={() => onNumber(verse.n)}
         aria-label={`${numLabel} — ${linkLabel}`} title={linkLabel}>{verse.n}</button>
       <div className="ayah-body">
-        <p className="ayah-arabic" lang="ar">{verse.ar}</p>
+        {parCols ? (
+          // Paralel: bir grid sətri — ərəb + hər tərcümə öz sütununda (enlər bütün kartlarda eyni)
+          <div className="par-row" style={{ '--par-n': parCols.length }} onClick={onParClick} data-testid="par-row">
+            <p className="ayah-arabic" lang="ar" dir="rtl">{verse.ar}</p>
+            {parCols.map((c, j) => {
+              const text = verse.par?.[j]
+              return (
+                <div key={c.key} className="par-cell" lang={c.lang} dir={c.dir} data-col={c.key}>
+                  <span className="par-cell__by">{c.name}</span>
+                  {text ? <p className="ayah-trans">{text}</p>
+                    : c.status === 'loading' ? <span className="par-cell__wait-wrap" aria-hidden="true"><span className="par-cell__wait" /><span className="par-cell__wait" /></span>
+                    : <p className="ayah-trans par-cell__empty">—</p>}
+                </div>
+              )
+            })}
+          </div>
+        ) : <p className="ayah-arabic" lang="ar">{verse.ar}</p>}
         {note?.t ? (
           <button type="button" className="ayah-note" onClick={(e) => onWordMenu?.(verse.n, e.currentTarget, 'note')}
             aria-label={`${pickUi(NOTE_LBL, lang, 'en')} — ${numLabel}: ${note.t}`}>
@@ -651,21 +688,21 @@ const AyahCard = memo(function AyahCard({ verse, surahNum, lang, trLang = lang, 
         <button type="button" className="ayah-reveal" aria-pressed="false" onClick={toggleReveal}>
           <Icon name="eye" size={16} /><span className="ayah-reveal__label">{xl.reveal}</span>
         </button>
-        {showTrans && verse.tr && !showTafsir && (verse.tr2
+        {!parCols && showTrans && verse.tr && !showTafsir && (verse.tr2
           ? <div className="ayah-cmp" data-testid="ayah-cmp">
               <div className="ayah-cmp__col"><span className="ayah-cmp__by">{verse.by1}</span><p className="ayah-trans" lang={trLang} dir={dirOf(trLang)}>{verse.tr}</p></div>
               <div className="ayah-cmp__col"><span className="ayah-cmp__by">{verse.by2}</span>
                 <p className="ayah-trans ayah-trans--2" lang={trLang} dir={dirOf(trLang)}>{diffWords(verse.tr, verse.tr2).map((x, i) => (x.same ? x.w : <mark key={i} className="ayah-cmp__d">{x.w}</mark>))}</p></div>
             </div>
           : <p className="ayah-trans" lang={trLang} dir={dirOf(trLang)}>{verse.tr}</p>)}
-        {showTafsir && verse.tr && (
+        {!parCols && showTafsir && verse.tr && (
           <div className="ayah-tafsir">
             <span className="ayah-tafsir-label">{tafsirLabel}</span>
             {verse.tr}
           </div>
         )}
         {/* QuranEnc haşiyələri — düz mətn (React özü qaçırır), sətir sonları saxlanılır */}
-        {(showTrans || showTafsir) && verse.fn && (
+        {!parCols && (showTrans || showTafsir) && verse.fn && (
           <details className="ayah-fn">
             <summary>{xl.notes}</summary>
             <p>{verse.fn}</p>
@@ -935,13 +972,36 @@ export default function QuranPage() {
   const cmpKey = cmpRaw && cmpRaw !== (transKey || 'std') && (cmpRaw === 'std' || quranEncEntry(cmpRaw, lang)) ? cmpRaw : ''
   const qe2 = useQuranEnc(cmpKey && cmpKey !== 'std' ? cmpKey : '', surahReady ? selected : 0, surahReady ? surah.verses.length : 0, lang)
   const nameOfTr = (k) => (!k || k === 'std' ? pickUi(DEFAULT_TRANSLATOR, lang, 'en') : (quranEncEntry(k, lang)?.name || k))
+  // ── Paralel tərcümə: { on, keys } — yaddaş montajdan SONRA oxunur (prerender ilə ilk render eyni) ──
+  const [par, setPar] = useState({ on: false, keys: [] })
+  useEffect(() => { setPar(readParallel()) }, [])
+  const parOn = !extra && par.on
+  // Tənbəl paneldən gələn sütunlar: { s: surə, cols: [{ key, name, lang, dir, status, rows }] }
+  const [parData, setParData] = useState(null)
+  const onParCols = useCallback((cols, s) => setParData({ s, cols }), [])
+  const parLive = parOn && parData?.s === selected && parData.cols.length > 0 ? parData.cols : null
+  const parCols = useMemo(() => (parLive ? parLive.map(c => ({ key: c.key, name: c.name, lang: c.lang, dir: c.dir, status: c.status })) : null), [parLive])
+  // Vurğulanan ayə sətri (bütün sütunlarda)
+  const [parSel, setParSel] = useState(0)
+  useEffect(() => { setParSel(0) }, [selected])
+  const onParSel = useCallback((n) => setParSel(x => (x === n ? 0 : n)), [])
+  // Cari dilin standart nəşri — surənin öz sorğusundan (paneldə təkrar yüklənmir)
+  const stdRows = useMemo(() => (surahReady ? surah.verses.map(v => v.tr) : null), [surahReady, surah])
+  const toggleParallel = () => {
+    haptic()
+    const keys = par.keys.length ? par.keys : defaultKeys(lang, { transKey, cmpKey })
+    setPar(writeParallel({ on: !par.on, keys }))
+  }
+  const setParKeys = useCallback((keys) => { haptic(); setPar(writeParallel({ on: true, keys })) }, [])
+  const pl = pickUi(PAR_LABELS, lang, 'en')
   const viewVerses = useMemo(() => {
+    if (shownVerses && parLive) return shownVerses.map((v, i) => ({ ...v, par: parLive.map(c => c.rows?.[i] || '') }))
     if (!shownVerses || !cmpKey) return shownVerses
     const second = cmpKey === 'std' ? surah.verses.map(v => v.tr) : qe2.rows?.length === surah.verses.length ? qe2.rows.map(x => x.tr) : null
     if (!second) return shownVerses
     const by1 = nameOfTr(qeShown ? transKey : 'std'), by2 = nameOfTr(cmpKey)
     return shownVerses.map((v, i) => ({ ...v, tr2: second[i], by1, by2 }))
-  }, [shownVerses, cmpKey, qe2.rows, surah, qeShown, transKey, lang]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [shownVerses, parLive, cmpKey, qe2.rows, surah, qeShown, transKey, lang]) // eslint-disable-line react-hooks/exhaustive-deps
   const cl = pickUi(CMP_LABELS, lang, 'en')
   const setCompare = (k) => { haptic(); const next = { ...readCompare(), [lang]: k }; if (!k) delete next[lang]; try { localStorage.setItem(CMP_KEY, JSON.stringify(next)) } catch { /* */ } setCmpChoices(next) }
   const xlCard = useMemo(() => ({ ...(pickUi(V32_LABELS, lang)), notes: ql.notes }), [lang, ql])
@@ -1120,6 +1180,7 @@ export default function QuranPage() {
   // Ayə nömrəsinə klik: ünvan ?a=N olur (link paylaşmaq üçün), yer yazılır
   const onAyahNumber = useCallback((n) => {
     haptic()
+    setParSel(n)
     currentAyahRef.current = n
     saveBookmark(selectedRef.current, n, { render: false })
     setQuery(selectedRef.current, n)
@@ -1519,7 +1580,7 @@ export default function QuranPage() {
     const showAtmos = hasAtmos && atmosOn && ready
     const al = pickUi(ATMOS_LABELS, lang)
     return (
-      <div className={`quran-reader${showAtmos ? ' has-atmos' : ''}`} ref={readerRef}>
+      <div className={`quran-reader${showAtmos ? ' has-atmos' : ''}${parCols ? ' is-parallel' : ''}`} ref={readerRef}>
         {showAtmos && <Suspense fallback={null}><SurahAtmosphere key={selected} n={selected} /></Suspense>}
         <div className="reader-toolbar" ref={toolbarRef}>
           <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm reader-back" onClick={closeReader}>
@@ -1668,6 +1729,12 @@ export default function QuranPage() {
             )}
             {qeOptions.length > 0 && (
               <div className="qp-trans-src" data-reveal="fade">
+                {/* Paralel tərcümə: ərəb + 2–3 tərcümə sütunlarda (seçici və yükləyici tənbəl komponentdədir) */}
+                <button type="button" className={`ui-btn ui-btn--sm ${parOn ? 'ui-btn--primary' : 'ui-btn--ghost'} qp-par-toggle`}
+                  aria-pressed={parOn} title={pl.hint} onClick={toggleParallel} data-testid="par-toggle">
+                  <Icon name="columns" size={16} />{pl.toggle}<span className="ui-sr-only"> — {pl.hint}</span>
+                </button>
+                {!parOn && <>
                 <label className="qp-trans-src__field">
                   <span className="qp-trans-src__label">{ql.label}</span>
                   <select className="ui-select ui-select--sm qp-trans-src__select" value={transKey}
@@ -1686,9 +1753,10 @@ export default function QuranPage() {
                     {qeOptions.filter(o => o.key !== transKey).map(o => <option key={o.key} value={o.key}>{o.name}</option>)}
                   </select>
                 </label>
-                {cmpKey && <p className="qp-trans-src__meta qp-cmp-hint">{cl.hint}{cmpKey !== 'std' && <> · {ql.source}: <a href={quranEncUrl(cmpKey, selected, lang)} target="_blank" rel="noopener noreferrer">QuranEnc.com</a></>}</p>}
+                </>}
+                {!parOn && cmpKey && <p className="qp-trans-src__meta qp-cmp-hint">{cl.hint}{cmpKey !== 'std' && <> · {ql.source}: <a href={quranEncUrl(cmpKey, selected, lang)} target="_blank" rel="noopener noreferrer">QuranEnc.com</a></>}</p>}
                 <p className="qp-trans-src__meta" aria-live="polite">
-                  {qeShown ? (
+                  {parOn ? null : qeShown ? (
                     <>
                       {ql.source}: <a href={quranEncUrl(transKey, selected, lang)} target="_blank" rel="noopener noreferrer">QuranEnc.com</a>
                       {' · '}<span dir="ltr">{qe.meta?.title}</span>
@@ -1703,6 +1771,12 @@ export default function QuranPage() {
                 </p>
               </div>
             )}
+            {parOn && surahReady && (
+              <Suspense fallback={null}>
+                <ParallelPanel lang={lang} surah={selected} total={surah.verses.length} stdRows={stdRows}
+                  keys={par.keys} onKeys={setParKeys} onCols={onParCols} />
+              </Suspense>
+            )}
             {/* Fatihədə Bəsmələ 1-ci ayənin özüdür, Tövbədə isə oxunmur */}
             {hasSeparateBasmala(surah.number) && (
               <div className="reader-basmalah" data-reveal="fade">
@@ -1714,6 +1788,7 @@ export default function QuranPage() {
               </div>
             )}
             {memorize && <p className="qp-memo-hint" role="status"><Icon name="eye" size={16} />{xl.memorizeHint}</p>}
+            {parCols && <Suspense fallback={null}><ParallelHead cols={parCols} lang={lang} /></Suspense>}
             <div className={`ayahs-list${memorize ? ' is-memorize' : ''}`} ref={listRef} style={{ '--qp-scale': fontSize }}>
               {viewVerses?.map(v => (
                 <AyahCard key={v.n} verse={v} surahNum={surah.number} lang={lang} trLang={qeShown && !forcedQe ? lang : (qe.error && forcedQe ? 'en' : tlang)} tafsirLabel={tafsirLabel} playLabels={playLabels}
@@ -1726,7 +1801,8 @@ export default function QuranPage() {
                   onTafsirToggle={toggleTafsir} onTafsirChange={changeTafsir}
                   saved={savedKeys.has(`${surah.number}:${v.n}`)} shared={sharedN === v.n}
                   onSave={saveAyah} onShare={shareAyah} onKaraoke={openKaraoke} xl={xlCard}
-                  note={notes[`${surah.number}:${v.n}`]} onWordMenu={onWordMenu} />
+                  note={notes[`${surah.number}:${v.n}`]} onWordMenu={onWordMenu}
+                  parCols={parCols} parSel={!!parCols && parSel === v.n} onParSel={onParSel} />
               ))}
             </div>
             {surah.verses?.some(v => v.sj) && (
@@ -2314,6 +2390,12 @@ function QuranGuide({ lang }) {
           <Timeline wide items={g.history.items.map((it, i) => ({
             key: i, when: it.when, title: pk(it.title, lang), text: pk(it.text, lang), highlight: it.highlight,
           }))} />
+          {/* Ətraflı: /quran-history — 6 mərhələli scrollytelling */}
+          <p className="qp-history__more">
+            <a href={pathFor('quranhistory', lang)} onClick={go(pathFor('quranhistory', lang))} data-testid="qp-history-more">
+              <Icon name="quranhistory" size={16} /> {pk(g.history.more, lang)}
+            </a>
+          </p>
         </div>
       </section>
 

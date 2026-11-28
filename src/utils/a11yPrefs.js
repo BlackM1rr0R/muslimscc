@@ -16,6 +16,21 @@
 
 import { resolveSiteDark } from '../contexts/LangContext'
 import { isLiteDevice } from './liteDevice'
+import { readPrayerThemeCache, writePrayerThemeCache, THEME_SYNC_EVENT } from './prayerThemeCore'
+
+// "Namaz vaxtına görə" tema (theme: 'prayer') — idarəçi tənbəl chunk-dır (utils/prayerTheme.js)
+let prayerWanted = false
+let prayerCtl = null
+function setPrayerMode(on) {
+  prayerWanted = on
+  if (on) {
+    if (prayerCtl) { prayerCtl.startPrayerTheme(); return }
+    import('./prayerTheme').then((m) => {
+      prayerCtl = m
+      if (prayerWanted) m.startPrayerTheme()
+    }).catch(() => { /* şəbəkə yoxdur — sistem/saxlanmış tema qalır */ })
+  } else if (prayerCtl) prayerCtl.stopPrayerTheme()
+}
 
 export const A11Y_STORAGE_KEY = 'muslim_cc_a11y_prefs_v2'
 
@@ -30,7 +45,7 @@ export const DEFAULT_PREFS = {
   arSize: 0,           // 0, 1, 2, 3 → 100 / 112 / 125 / 140%
   // Color & contrast
   contrast: 'normal',  // normal | high | inverted
-  theme: 'auto',       // auto | light | dark | sepia
+  theme: 'auto',       // auto | light | dark | sepia | prayer (sübhdə işıqlı, məğribdə tünd)
   saturation: 100,     // 0-150
   grayscale: false,
   // Visual helpers
@@ -105,6 +120,12 @@ export function applyA11yPrefs(prefs) {
   html.classList.toggle('a11y-inverted', prefs.contrast === 'inverted')
 
   // Theme
+  // Namaz rejimi bağlanıbsa — keş silinir (index.html skripti də onu unutsun) və
+  // LangContext-in vəziyyəti aşağıda eyniləşdirilir
+  const prayer = prefs.theme === 'prayer'
+  let prayerChanged = prayer !== prayerWanted
+  if (!prayer && readPrayerThemeCache()) { writePrayerThemeCache(null); prayerChanged = true }
+  if (prayerChanged) setPrayerMode(prayer)
   if (prefs.theme === 'dark') html.setAttribute('data-theme', 'dark')
   else if (prefs.theme === 'light') html.setAttribute('data-theme', 'light')
   else if (prefs.theme === 'sepia') html.setAttribute('data-theme', 'sepia')
@@ -114,9 +135,13 @@ export function applyA11yPrefs(prefs) {
     // dəyişəndə tünd rejim səhifə yenilənənə qədər sönürdü.
     // Saytın tema qərarı (saxlanmış seçim, yoxdursa telefonun sistem rejimi) —
     // yalnız localStorage-a baxanda sistem qaranlıq olan telefonda ayar dəyişəndə sayt işıqlanırdı
+    // "Namaz vaxtına görə" (prayer) da buradadır: resolveSiteDark keşdəki sübh/məğribə baxır
     const siteDark = resolveSiteDark()
     if (siteDark) html.setAttribute('data-theme', 'dark')
     else html.removeAttribute('data-theme')
+    if (prayerChanged) {
+      try { window.dispatchEvent(new CustomEvent(THEME_SYNC_EVENT, { detail: { dark: siteDark } })) } catch { /* */ }
+    }
   }
 
   // Saturation

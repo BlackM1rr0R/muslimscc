@@ -1,0 +1,118 @@
+/* ══════════════════════════════════════════════════════
+   Nazil olma sırası (/quran-revelation-order)
+   Məkki — zümrüd (--brand), Mədəni — qızılı (--accent / --accent-text): yalnız semantik
+   tokenlər, açıq və tünd mövzu avtomatik. Rəngdən əlavə forma: Məkki kartın kənar xətti
+   bütöv, Mədəninin — qoşa (forced-colors və rəng korluğunda da seçilir).
+   Hərəkət: kart uçuşu yalnız transform (JS, FLIP); oynatmada opacity + scale.
+   Məntiqi xassələr (RTL), 360px-də 3 sütun.
+   ══════════════════════════════════════════════════════ */
+.rvo-hero .breadcrumb, .rvo-hero .bc-list { justify-content: flex-start; }
+.rvo-hero .ui-container { text-align: start; }
+
+/* ── Alətlər + zaman xətti ── */
+.rvo-bar { display: grid; gap: var(--space-3, 12px); padding: 10px 0 12px; margin-bottom: var(--space-3, 12px);
+  border-bottom: 1px solid var(--line); background: var(--surface-0); }
+@media (min-width: 720px) and (min-height: 620px) {
+  .rvo-bar { position: sticky; top: var(--header-offset, var(--header-h, 64px)); z-index: 4;
+    background: color-mix(in srgb, var(--surface-0) 94%, transparent); backdrop-filter: blur(6px); }
+}
+.rvo-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.rvo-seg > button { min-height: 44px; }
+.rvo-play { min-height: 44px; }
+.rvo-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 0; padding: 0; list-style: none; font-size: .9rem; color: var(--text-body); }
+.rvo-legend__i { display: inline-flex; align-items: center; gap: 7px; }
+.rvo-sw { display: inline-block; width: 18px; height: 14px; border-radius: 3px; forced-color-adjust: none;
+  background: var(--brand-soft-2); border-inline-start: 5px solid var(--brand); }
+.rvo-legend__i.is-med .rvo-sw { background: var(--accent-soft); border-inline-start: 6px double var(--accent-text); }
+
+/* ── Zaman xətti ── */
+.rvo-tl { margin: 0; }
+.rvo-tl__h { font-size: .82rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 14px; }
+.rvo-tl__bar { position: relative; display: flex; height: 14px; forced-color-adjust: none; }
+.rvo-tl__seg { height: 100%; min-width: 2px; --len: 1;
+  background-image: linear-gradient(to right, transparent calc(100% - 1px), color-mix(in srgb, var(--surface-1) 45%, transparent) 0);
+  background-size: calc(100% / var(--len)) 100%; }
+.rvo-tl__seg.is-mk { background-color: var(--brand); }
+.rvo-tl__seg.is-med { background-color: var(--accent); }
+.rvo-tl__seg:first-child { border-start-start-radius: 7px; border-end-start-radius: 7px; }
+.rvo-tl__seg:nth-last-child(3) { border-start-end-radius: 7px; border-end-end-radius: 7px; }
+.rvo-tl__hijra { position: absolute; top: -6px; bottom: -6px; inset-inline-start: calc(var(--p) * 1%); width: 2px;
+  margin-inline-start: -1px; background: var(--text-strong); border-radius: 1px; }
+.rvo-tl__hijra-l { position: absolute; bottom: calc(100% + 1px); inset-inline-start: 50%; transform: translateX(-50%);
+  font-size: .72rem; font-weight: 700; color: var(--text-strong); white-space: nowrap; line-height: 1; }
+[dir="rtl"] .rvo-tl__hijra-l { transform: translateX(50%); }
+/* İşıqlanan yer: bütün xətt enində qat, yalnız transform ilə sürüşür (% — qatın öz eni) */
+.rvo-tl__hot { --rvo-dir: 1; position: absolute; inset: 0; pointer-events: none; opacity: 0;
+  transform: translateX(calc(var(--p) * 1% * var(--rvo-dir))); }
+[dir="rtl"] .rvo-tl__hot { --rvo-dir: -1; }
+.rvo-tl__hot.is-on { opacity: 1; }
+.rvo-tl__dot { position: absolute; top: 50%; inset-inline-start: 0; width: 18px; height: 18px; margin-block-start: -9px; margin-inline-start: -9px;
+  border-radius: 50%; background: var(--surface-1); border: 3px solid var(--brand); box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 25%, transparent); }
+.rvo-tl__hot.is-med .rvo-tl__dot { border-color: var(--accent-text); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 30%, transparent); }
+.rvo-tl__periods { display: flex; gap: 6px; margin-top: 6px; font-size: .8rem; line-height: 1.3; }
+.rvo-tl__period { min-width: 0; display: flex; flex-wrap: wrap; gap: 0 6px; }
+.rvo-tl__period b { font-weight: 700; }
+.rvo-tl__period.is-mk b { color: var(--brand); }
+.rvo-tl__period.is-med b { color: var(--accent-text); }
+.rvo-tl__period .ui-num { color: var(--text-secondary); }
+.rvo-tl__period.is-med { justify-content: flex-end; text-align: end; }
+.rvo-tl__now { margin: 6px 0 0; min-height: 1.4em; font-size: .85rem; color: var(--text-body);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rvo-tl__now b { color: var(--text-strong); }
+.rvo-tl__now-sep { margin-inline: 6px; color: var(--text-tertiary); }
+.rvo-tl__sum { margin: 4px 0 0; font-size: .82rem; color: var(--text-secondary); }
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion):not(.a11y-motion-user) .rvo-tl__hot { transition: transform 180ms cubic-bezier(.2, .8, .2, 1), opacity 160ms; }
+}
+
+/* ── 114 kart ── */
+.rvo-grid { position: relative; display: grid; grid-template-columns: repeat(auto-fill, minmax(98px, 1fr)); gap: 8px;
+  margin: 0; padding: 0; list-style: none; }
+@media (min-width: 720px) { .rvo-grid { grid-template-columns: repeat(auto-fill, minmax(116px, 1fr)); gap: 10px; } }
+.rvo-tile { position: relative; height: 112px; }
+.rvo-tile__a { display: flex; flex-direction: column; gap: 1px; height: 100%; box-sizing: border-box; overflow: hidden;
+  padding: 7px 8px 8px 10px; padding-inline: 10px 8px; border-radius: 12px; text-decoration: none; color: var(--text-body);
+  border: 1px solid var(--line); border-inline-start: 5px solid var(--brand);
+  background: linear-gradient(var(--brand-soft), var(--brand-soft)) var(--surface-1); -webkit-tap-highlight-color: transparent; }
+.rvo-tile.is-med .rvo-tile__a { border-inline-start: 6px double var(--accent-text);
+  background: linear-gradient(var(--accent-soft), var(--accent-soft)) var(--surface-1); }
+.rvo-tile__a:hover { border-color: var(--brand-line); box-shadow: var(--shadow-1); }
+.rvo-tile.is-mk .rvo-tile__a:hover { border-inline-start-color: var(--brand); }
+.rvo-tile.is-med .rvo-tile__a:hover { border-color: var(--accent-line); border-inline-start-color: var(--accent-text); }
+.rvo-tile__a:focus-visible { outline: var(--ring-width, 2px) solid var(--brand); outline-offset: 2px; }
+.rvo-tile__top { display: flex; align-items: baseline; justify-content: space-between; gap: 4px; }
+.rvo-tile__n { font-size: 1.05rem; font-weight: 700; color: var(--brand); line-height: 1.1; }
+.rvo-tile.is-med .rvo-tile__n { color: var(--accent-text); }
+.rvo-tile__rev { font-size: .72rem; color: var(--text-secondary); }
+.rvo-tile__ar { font-family: var(--font-arabic); font-size: 1.15rem; line-height: 1.45; color: var(--text-strong);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: start; }
+.rvo-tile__name { font-size: .84rem; font-weight: 600; color: var(--text-strong); line-height: 1.25;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rvo-tile__ay { margin-top: auto; font-size: .74rem; color: var(--text-secondary); }
+/* Nazil olma rejimində sıra nömrəsi önə çıxır */
+.rvo-grid[data-mode="revelation"] .rvo-tile__rev { color: var(--text-strong); font-weight: 700; }
+
+/* Oynatma: kart sırası (--i) çatanda açılır — yalnız opacity və scale (transform FLIP-indir) */
+.rvo-grid.is-playing .rvo-tile { opacity: clamp(.12, calc(var(--lit, 0) - var(--i)), 1);
+  scale: clamp(.9, calc(.9 + (var(--lit, 0) - var(--i)) * .1), 1); }
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion):not(.a11y-motion-user) .rvo-grid.is-playing .rvo-tile { transition: opacity 260ms ease-out, scale 320ms cubic-bezier(.2, .8, .2, 1.3); }
+}
+
+/* ── Qeyd və mənbə ── */
+.rvo-about { margin-top: var(--space-5, 24px); }
+.rvo-about__h { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; font-size: 1.05rem; }
+.rvo-about p { margin: 0 0 8px; }
+.rvo-src { font-size: .85rem; color: var(--text-secondary); }
+
+/* Yüksək kontrast və məcburi rənglər */
+html.a11y-high-contrast .rvo-tile__a { border-color: var(--text-strong); }
+html.a11y-high-contrast .rvo-tile__rev, html.a11y-high-contrast .rvo-tile__ay { color: var(--text-strong); }
+@media (forced-colors: active) {
+  .rvo-tile__a { border-color: CanvasText; }
+  .rvo-tile.is-med .rvo-tile__a { border-inline-start-color: CanvasText; }
+  .rvo-tl__seg.is-mk { background-color: CanvasText; }
+  .rvo-tl__seg.is-med { background-color: Highlight; }
+  .rvo-sw { background: Canvas; border-inline-start-color: CanvasText; }
+  .rvo-legend__i.is-med .rvo-sw { border-inline-start-color: Highlight; }
+}

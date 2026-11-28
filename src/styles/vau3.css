@@ -357,6 +357,12 @@ html.qm-theme-vt::view-transition-new(root) {
   from { clip-path: circle(0 at var(--theme-x, 90%) var(--theme-y, 0)); }
   to   { clip-path: circle(var(--theme-r, 150vmax) at var(--theme-x, 90%) var(--theme-y, 0)); }
 }
+/* §15b "Namaz vaxtına görə" tema (utils/prayerTheme.js): sübhdə/məğribdə açıq səhifədə
+   yumşaq solma. View Transitions yoxdursa — fon və mətn rəngi üçün qısa keçid.
+   Hərəkət azaldılıbsa JS sinfi heç qoymur (ani keçid). */
+html.qm-theme-fade::view-transition-old(root) { animation: wow-vt-out 900ms ease both; }
+html.qm-theme-fade::view-transition-new(root) { animation: wow-vt-in 900ms ease both; }
+html.qm-theme-soft, html.qm-theme-soft body { transition: background-color 600ms ease, color 600ms ease; }
 
 /* ══════════════════════════════════════════════════════════
    §16  TƏTBİQ AÇILIŞI (v5.6) — ana ekrandan açılanda (display-mode:
