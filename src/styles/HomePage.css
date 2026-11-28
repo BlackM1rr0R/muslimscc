@@ -899,7 +899,9 @@ html[lang="ar"] .hp-twtab-ar { font-size: 17px; }
   .hp-hero-visual { order: 4; margin-top: 20px; max-width: none; }
   .hp-hero-btns { order: 5; margin-top: 20px; }
   .hp-hero-trust { order: 6; margin-top: 16px; }
-  .hp-hero-btns > .ui-btn { flex: 1 1 0; padding-inline: 12px; }
+  /* min-width: .ui-btn overflow:hidden-dir → flex min-width 0 olur; uzun dildə (ta, ml) ilk düymə
+     sıxılıb mətni kəsilirdi. İndi sığmayanda düymələr iki sətrə düşür, sığanda bərabər qalır */
+  .hp-hero-btns > .ui-btn { flex: 1 1 0; min-width: fit-content; white-space: normal; text-align: center; padding-inline: 12px; }
 
   .hp-pc { padding: 16px; border-radius: var(--radius-lg); gap: 14px; }
   .hp-pc-ttl { font-size: 19px; }
@@ -1110,7 +1112,8 @@ html.a11y-reduce-motion .hp-kalima::after { animation: none !important; }
 /* ── H1: şəxsi ana səhifə — sıra sarğıları qutu yaratmır (bölmələrin aralıqları dəyişmir) ── */
 [data-testid="home-sections"], .hp-slot { display: contents; }
 .hp-custom { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px 8px; padding-block: 6px 0; }
-.hp-custom__btn { min-height: 40px; }
+/* max-width + sarma: uzun tərcümə (ta) 360px-də ekrandan çıxıb hər iki kənardan kəsilirdi */
+.hp-custom__btn { min-height: 40px; max-width: 100%; white-space: normal; text-align: center; }
 
 /* ── "İndi sizin üçün" (components/home/NowForYou) ──
    Hündürlük sabitdir (başlıq 34px + sıra 88px) — yer tutucu, 1, 2 və ya 3 təklif eyni yeri

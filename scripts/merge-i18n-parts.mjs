@@ -18,6 +18,8 @@ const JOB = process.argv[2]
 if (!JOB) { console.error('qovluq lazımdır'); process.exit(1) }
 
 const ph = (s) => (s.match(/\{\d+\}/g) || []).sort().join(',')
+// İlk ərəb sözü — çoxsözlü ifadədə (ذَا ٱلْكِفْلِ) birləşdirilmiş sətir boşluq üzündən heç vaxt tapılmırdı
+const firstArabic = (s) => (s.match(/[؀-ۿﭐ-﷿ﹰ-﻿]+/) || [''])[0]
 const arabic = (s) => (s.match(/[؀-ۿﭐ-﷿ﹰ-﻿]+/g) || []).join('')
 
 let total = 0
@@ -37,7 +39,7 @@ for (const f of fs.readdirSync(path.join(JOB, 'in'))) {
       if (typeof v !== 'string' || !v.trim()) { bad.push(`boş: ${k.slice(0, 50)}`); continue }
       if (ph(k) !== ph(v)) { bad.push(`yer tutucu: ${k.slice(0, 50)}`); continue }
       if (k.includes('ﷺ') && !v.includes('ﷺ')) { bad.push(`ﷺ itib: ${k.slice(0, 50)}`); continue }
-      if (arabic(k) && !v.includes(arabic(k).slice(0, 4))) { bad.push(`ərəb mətni itib: ${k.slice(0, 50)}`); continue }
+      if (arabic(k) && !v.includes(firstArabic(k).slice(0, 4))) { bad.push(`ərəb mətni itib: ${k.slice(0, 50)}`); continue }
       got[k] = v
     }
   }

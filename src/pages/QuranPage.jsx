@@ -1,4 +1,4 @@
-import { useState, useEffect, useLayoutEffect, useMemo, useRef, useCallback, memo, startTransition, lazy, Suspense } from 'react'
+import { useState, useEffect, useLayoutEffect, useMemo, useRef, useCallback, useDeferredValue, memo, startTransition, lazy, Suspense } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import AmbientSound from '../components/AmbientSound'
 import HeroOrnament from '../components/HeroOrnament'
@@ -1519,7 +1519,15 @@ export default function QuranPage() {
     requestAnimationFrame(() => window.scrollTo(0, y))
   }, [selected, flushSave])
 
+  // INP: süzgəc / sıralama / axtarış dəyişəndə 114 kartlıq şəbəkə yenidən düzülür (FLIP + düzülüş,
+  // CPU ×4-də 0.7–1.8 s). Çip, seçici və sahə dərhal yenilənir; siyahı gecikdirilmiş dəyərlərlə
+  // (useDeferredValue) növbəti, kəsilə bilən render-də qurulur — toxunuşun cavabı gözləmir.
+  const dSearch = useDeferredValue(search)
+  const dFilter = useDeferredValue(filter)
+  const dJuz = useDeferredValue(juz)
+  const dSort = useDeferredValue(sort)
   const filtered = useMemo(() => {
+    const search = dSearch, filter = dFilter, juz = dJuz, sort = dSort
     const q = search.toLowerCase()
     const list = surahs.filter(s => {
       // Bütün yazılışlarda axtar (az/ru/tr adları, ingiliscə, ərəbcə, nömrə)
@@ -1538,7 +1546,7 @@ export default function QuranPage() {
     if (sort === 'long') return [...list].sort((a, b) => b.numberOfAyahs - a.numberOfAyahs || a.number - b.number)
     if (sort === 'rev') return [...list].sort((a, b) => (REVELATION_ORDER[a.number - 1] || 0) - (REVELATION_ORDER[b.number - 1] || 0))
     return list
-  }, [surahs, search, filter, juz, sort])
+  }, [surahs, dSearch, dFilter, dJuz, dSort])
   // Batch Q: kartlar ekranda canlanır, süzgəc/sıralama dəyişəndə yeni yerinə sürüşür (FLIP)
   const gridRef = useRef(null)
   const gridSig = selected || searchMode !== 'surah' || view !== 'surahs' ? '' : filtered.map(s => s.number).join(',')
@@ -2111,7 +2119,7 @@ export default function QuranPage() {
                   </button>
                 }>{rl.listMsg}</QEmpty>
               )}
-              {sort === 'rev' && !listLoading && !listError && (
+              {dSort === 'rev' && !listLoading && !listError && (
                 <p className="qp-revnote" data-testid="rev-note"><Icon name="info" size={15} /> <span>{pickUi(REV_SORT, lang, 'en').note}</span></p>
               )}
               {/* Kart şəbəkəsi (telefonda qruplaşdırılmış siyahı) */}
@@ -2121,7 +2129,7 @@ export default function QuranPage() {
                   const displayName = surahTitle(s, lang)
                   // ərəbcədə ingiliscə məna yox, "7 آيات · مكية"
                   // "Nazil olma sırası" görünüşündə: "Revealed #1 · Meccan · 19 verses" (mushaf nömrəsi rozetdə qalır)
-                  const displayMeta = sort === 'rev'
+                  const displayMeta = dSort === 'rev'
                     ? [pickUi(REV_SORT, lang, 'en').revN(REVELATION_ORDER[s.number - 1]), revelationLabel(s.revelationType, lang), ayahCountText(s.numberOfAyahs, lang)].join(' · ')
                     : isAr
                     ? `${ayahCountText(s.numberOfAyahs, lang)} · ${revelationLabel(s.revelationType, lang)}`

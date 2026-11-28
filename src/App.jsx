@@ -101,6 +101,7 @@ const HadithPage = lazy(() => import('./pages/HadithPage'))
 const PrayerPage = lazy(() => import('./pages/PrayerPage'))
 const RamadanPage = lazy(() => import('./pages/RamadanPage'))
 const DuasPage = lazy(() => import('./pages/DuasPage'))
+const RabbanaPage = lazy(() => import('./pages/RabbanaPage'))
 const DhikrPage = lazy(() => import('./pages/DhikrPage'))
 const NamesPage = lazy(() => import('./pages/NamesPage'))
 const ZakatPage = lazy(() => import('./pages/ZakatPage'))
@@ -136,6 +137,7 @@ const MosqueTvPage = lazy(() => import('./pages/MosqueTvPage'))
 const QuranRootsPage = lazy(() => import('./pages/QuranRootsPage'))
 const RevelationOrderPage = lazy(() => import('./pages/RevelationOrderPage'))
 const QuranHistoryPage = lazy(() => import('./pages/QuranHistoryPage'))
+const QuranProphetsPage = lazy(() => import('./pages/QuranProphetsPage'))
 // C dəstəsi: Quranda məna ilə axtarış, yeni müsəlmanın yolu, sədəqeyi-cariyə gündəliyi
 const QuranMeaningPage = lazy(() => import('./pages/QuranMeaningPage'))
 const NewMuslimPathPage = lazy(() => import('./pages/NewMuslimPathPage'))
@@ -488,6 +490,7 @@ function AppInner() {
       case 'prayer':   return <PrayerPage   setPage={navigate} />
       case 'ramadan':  return <RamadanPage  setPage={navigate} />
       case 'duas':     return <DuasPage     setPage={navigate} />
+      case 'rabbana':  return <RabbanaPage  setPage={navigate} />
       case 'dhikr':    return <DhikrPage    setPage={navigate} />
       case 'names':    return <NamesPage    setPage={navigate} />
       case 'zakat':    return <ZakatPage    setPage={navigate} />
@@ -523,6 +526,7 @@ function AppInner() {
       case 'quranroots': return <QuranRootsPage setPage={navigate} />
       case 'revelationorder': return <RevelationOrderPage setPage={navigate} />
       case 'quranhistory':  return <QuranHistoryPage setPage={navigate} />
+      case 'quranprophets': return <QuranProphetsPage setPage={navigate} />
       case 'quranmeaning': return <QuranMeaningPage setPage={navigate} />
       case 'newmuslim':  return <NewMuslimPathPage setPage={navigate} />
       case 'newborn':    return <NewbornGuidePage setPage={navigate} />

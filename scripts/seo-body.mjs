@@ -57,8 +57,14 @@ import { REV_SURAHS, REVELATION_SEQ, placeCounts } from '../src/components/quran
 import { REV_T } from '../src/components/quran/revelation/revelationText.js'
 import { QH_SCENES, QH_CITIES, parseQhSource, bukhariLinks } from '../src/data/quranCompilation.js'
 import { QH_T } from '../src/components/quranhistory/quranHistoryText.js'
+import { QURAN_PROPHETS } from '../src/data/quranProphets.js'
+import { QP_T } from '../src/components/quranprophets/quranProphetsText.js'
+import { decodeLocations } from '../src/utils/quranRoots.js'
 import { getSurahLocal } from '../src/data/surahNamesAz.js'
 import { ayahCountText } from '../src/utils/quranText.js'
+import { RABBANA_ITEMS } from '../src/data/rabbanaSpans.gen.js'
+import { RB_T, RB_WHO } from '../src/components/rabbana/rabbanaText.js'
+import { refLabel as rabbanaRef } from '../src/components/rabbana/rabbanaJar.js'
 
 // detail.js lüğəti glossarySource.js-dən oxuyur (prerender: meta + statik blok)
 setGlossarySource(GLOSSARY_BY_ID)
@@ -728,6 +734,60 @@ function quranHistoryBody(lang) {
   )
 }
 
+// ═══ Quranda peyğəmbərlər (/quran-prophets, 2026-11-28) — 25 ad, say və ayə linkləri ═══
+// Səhifədəki eyni məlumat (data/quranProphets.js — generator, Quranic Arabic Corpus); #<id> səhifədə seçimi açır.
+function quranProphetsBody(lang) {
+  const t = QP_T[lang] || QP_T.en
+  const refs = (enc) => {
+    const seen = new Set()
+    return decodeLocations(enc).filter(([s, a]) => !seen.has(`${s}:${a}`) && seen.add(`${s}:${a}`))
+      .map(([s, a]) => `<a href="${pathFor('quran', lang, s)}?a=${a}">${s}:${a}</a>`).join(' ')
+  }
+  const total = QURAN_PROPHETS.reduce((n, p) => n + p.count, 0)
+  const item = (p) => {
+    let h = `<li id="${p.id}"><h2><span lang="ar" dir="rtl">${esc(p.ar)}</span> — <a href="${pathFor('quranprophets', lang)}#${p.id}">${esc(pick(p.name, lang))}</a>: ${esc(t.mentioned(p.count))}</h2>`
+    if (t.notes[p.id]) h += `<p><small>${esc(t.notes[p.id])}</small></p>`
+    h += `<p>${refs(p.locs)}</p>`
+    for (const v of p.variants || []) h += `<p><span lang="ar" dir="rtl">${esc(v.ar)}</span> — ${esc(t.names[v.id])}: ${esc(t.mentioned(v.count))}. ${refs(v.locs)}</p>`
+    return h + '</li>'
+  }
+  return shell(lang,
+    crumbs(lang, [{ name: brandName(lang), href: pathFor('home', lang) }, { name: shortName('quran', lang), href: pathFor('quran', lang) }, { name: shortName('quranprophets', lang) }]) +
+    `<header><h1>${esc(t.title)}</h1><p class="seo-static__lead">${esc(t.lead)}</p></header>` +
+    `<p>${esc(t.total(total))}</p>` +
+    `<ol>${[...QURAN_PROPHETS].sort((a, b) => a.num - b.num).map(item).join('')}</ol>` +
+    `<p><small>${esc(t.source)}</small></p><p><small>${esc(t.rule)}</small></p><p>${esc(t.note)}</p>` +
+    `<p><a href="${pathFor('quran', lang)}">${esc(shortName('quran', lang))}</a> · <a href="${pathFor('quranroots', lang)}">${esc(shortName('quranroots', lang))}</a> · <a href="${pathFor('history', lang)}">${esc(shortName('history', lang))}</a></p>`,
+  )
+}
+
+// ═══ Rabbanā duaları (/rabbana-duas, 2026-11-28) — səhifədəki eyni dualar ═══
+// Ərəbcə hissə ayənin öz mətnindən (rabbanaSpans.gen.js), tərcümə — səhifədəki nəşr (bütün ayə);
+// ərəbcədə tərcümə yoxdur. Hər dua Quran oxuyucusunda həmin ayəyə link; #d-<s>-<a> səhifədəki lövbərdir.
+function rabbanaBody(lang) {
+  const t = RB_T[lang] || RB_T.en
+  const ed = lang !== 'ar' && EDITION[lang] ? edition(EDITION[lang]) : null
+  const item = (it) => {
+    const href = `${pathFor('quran', lang, it.s)}?a=${it.a}`
+    const who = it.who && RB_WHO[it.who] ? (RB_WHO[it.who][lang] || RB_WHO[it.who].en) : ''
+    const tr = ed ? trAyah(ed.ayahs[it.s - 1][it.a - 1], lang) : ''
+    return `<li id="d-${it.s}-${it.a}"><p lang="ar" dir="rtl">${esc(it.ayah.slice(it.start, it.end))}</p>` +
+      (who ? `<p><strong>${esc(t.who)}:</strong> ${esc(who)}</p>` : '') +
+      (tr ? `<p>${esc(tr)}</p>` : '') +
+      `<p><a href="${href}">${esc(rabbanaRef(it, lang))}</a></p></li>`
+  }
+  const by = ed ? (ed.edition?.name || ed.edition?.englishName || '') : ''
+  return shell(lang,
+    crumbs(lang, [{ name: brandName(lang), href: pathFor('home', lang) }, { name: shortName('duas', lang), href: pathFor('duas', lang) }, { name: shortName('rabbana', lang) }]) +
+    `<header><h1>${esc(t.title)}</h1><p class="seo-static__lead">${esc(t.lead)}</p></header>` +
+    `<section><h2>${esc(t.listTitle)} — ${esc(t.nDuas(RABBANA_ITEMS.length))}</h2>` +
+    (by ? `<p><small>${esc(t.trOf(by))}</small></p>` : '') +
+    `<ol>${RABBANA_ITEMS.map(item).join('')}</ol></section>` +
+    `<p>${esc(t.note)}</p><p><small>${esc(t.source)}</small></p>` +
+    `<p><a href="${pathFor('duas', lang)}">${esc(shortName('duas', lang))}</a> · <a href="${pathFor('hisn', lang)}">${esc(shortName('hisn', lang))}</a> · <a href="${pathFor('quran', lang)}">${esc(shortName('quran', lang))}</a></p>`,
+  )
+}
+
 // ═══ Hədis siyahısı (/hadith) — hər /hadith/<id> səhifəsinə link (2026-11-24) ═══
 // Əvvəl hədis səhifələrinə yalnız əvvəlki/növbəti zənciri və sitemap aparırdı (krawl dərinliyi ~1100).
 function hadithListBody(lang) {
@@ -884,6 +944,8 @@ export function staticBodyFor(key, lang, param = null) {
   if (key === 'seerah') return param == null ? seerahBody(lang) : ''
   if (key === 'revelationorder') return param == null ? revelationOrderBody(lang) : ''
   if (key === 'quranhistory') return param == null ? quranHistoryBody(lang) : ''
+  if (key === 'quranprophets') return param == null ? quranProphetsBody(lang) : ''
+  if (key === 'rabbana') return param == null ? rabbanaBody(lang) : ''
   if (key === 'hadith') return param ? hadithBody(lang, param) : hadithListBody(lang)
   // Hisnul-Müslim: zikr səhifəsi və siyahının statik bloku yalnız ərəbcə (routes.js → DETAILS.hisn.langs)
   if (key === 'hisn') return lang !== 'ar' ? '' : param ? hisnDuaBody(param) : hisnListBody()

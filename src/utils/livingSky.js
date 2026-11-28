@@ -94,6 +94,11 @@ export function initLivingSky() {
       s = { phase: forced, x: demo[forced][0], y: demo[forced][1] }
     }
     const [c1, c2] = COLORS[s.phase]
+    // INP: <html>-in irsi dəyişənləri dəyişəndə BÜTÜN sənədin üslubu yenidən hesablanır —
+    // dəyər eyni qalıbsa heç nə yazılmır (dəqiqəlik taymer, şəhər seçimi)
+    const sig = `${s.phase}|${s.x}|${s.y}`
+    if (sig === lastSig) return
+    lastSig = sig
     root.setAttribute('data-sky', s.phase)
     root.style.setProperty('--sky-x', `${s.x}%`)
     root.style.setProperty('--sky-xr', `${100 - s.x}%`)
@@ -101,8 +106,14 @@ export function initLivingSky() {
     root.style.setProperty('--sky-c', c1)
     root.style.setProperty('--sky-c2', c2)
   }
+  let lastSig = ''
   apply()
   timer = setInterval(apply, 60 * 1000)
-  try { subscribePrayerLocation(apply) } catch { /* */ }
+  // Şəhər seçimi toxunuşla olur — səma (bütün sənədin üslubu) toxunuşun ilk kadrından SONRA yenilənsin
+  const applyLater = () => {
+    if (typeof requestAnimationFrame !== 'function') { apply(); return }
+    requestAnimationFrame(() => setTimeout(apply, 0))
+  }
+  try { subscribePrayerLocation(applyLater) } catch { /* */ }
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') apply() })
 }

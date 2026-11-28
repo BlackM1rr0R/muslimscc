@@ -39,6 +39,8 @@
 .ptr__others-t { margin: 0; font-size: .82rem; color: var(--text-muted); }
 .ptr__others { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
 .ptr__note { display: flex; gap: 6px; align-items: flex-start; margin: 0; font-size: .8rem; color: var(--text-muted); }
+.ptr__more { margin: 10px 0 0; font-size: .9rem; }
+.ptr__more a { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; }
 /* Telefonda ağac oxunaqlı ölçüdə qalır — yana sürüşdürülür */
 .ptr__scroll { overflow-x: auto; overscroll-behavior-x: contain; -webkit-overflow-scrolling: touch; }
 @media (max-width: 760px) {

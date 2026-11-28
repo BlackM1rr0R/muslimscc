@@ -343,7 +343,12 @@ export default function DhikrPage({ setPage }) {
   useEffect(() => {
     const strip = selRef.current
     if (!strip || strip.scrollWidth <= strip.clientWidth + 1) return
-    strip.querySelector('.dhikr-sel-btn.active')?.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' })
+    const btn = strip.querySelector('.dhikr-sel-btn.active')
+    if (!btn) return
+    // Yalnız zolağın özü üfüqi sürüşür: scrollIntoView zolaq ekrandan aşağıda olanda
+    // bütün SƏHİFƏNİ də aşağı çəkirdi (telefonda /dhikr açılan kimi ~530px atlayırdı)
+    const s = strip.getBoundingClientRect(), b = btn.getBoundingClientRect()
+    strip.scrollBy({ left: (b.left - s.left) - (s.width - b.width) / 2, behavior: 'smooth' })
   }, [selIdx])
   const progress = Math.min((count / dhikr.target) * 100, 100)
   const complete = count >= dhikr.target

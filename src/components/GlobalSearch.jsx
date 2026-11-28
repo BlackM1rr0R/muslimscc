@@ -5,7 +5,7 @@ import { META, shortName, descFor } from '../seo/meta'
 import { NAV_GROUPS, navLabel } from '../data/navigation'
 import { SURAH_AZ } from '../data/surahNamesAz'
 import {
-  GROUP_ORDER, prepareQuery, normalize, buildIndex, buildSources, buildEntries,
+  GROUP_ORDER, prepareQuery, normalize, buildIndexAsync, buildSources,
   buildQuranEditionItems, searchIndex, searchEntries, groupOrder,
   highlightSegments, snippetSegments, hasArabic,
 } from '../utils/search'
@@ -259,17 +259,29 @@ function buildPages(lang) {
   return pages
 }
 
-/** Dil üzrə indeks — məlumat gələnə qədər yalnız səhifələr axtarılır. */
-function getIndex(lang, data) {
-  const key = data ? lang : lang + ':pages'
-  let idx = indexCache.get(key)
-  if (!idx) {
-    idx = data
-      ? buildIndex(buildSources(data, lang, buildPages(lang)))
-      : { page: buildEntries(buildSources({}, lang, buildPages(lang)).page) }
-    indexCache.set(key, idx)
+/**
+ * Dil üzrə indeks — məlumat gələnə qədər yalnız səhifələr axtarılır.
+ * INP: indeks hissə-hissə qurulur (buildIndexAsync — əsas axına yol verir); əvvəl render-in içində
+ * sinxron qurulurdu və pəncərənin açılışı / ilk hərf CPU ×4-də +0.3–0.4 s gözləyirdi.
+ * Hazır olanda indexCache-ə düşür (nəticə buildIndex ilə eynidir).
+ */
+const indexJobs = new Map()
+const indexKey = (lang, data) => (data ? lang : lang + ':pages')
+function ensureIndex(lang, data) {
+  const key = indexKey(lang, data)
+  if (indexCache.has(key)) return Promise.resolve(indexCache.get(key))
+  let job = indexJobs.get(key)
+  if (!job) {
+    const sources = data
+      ? buildSources(data, lang, buildPages(lang))
+      : { page: buildSources({}, lang, buildPages(lang)).page }
+    job = buildIndexAsync(sources).then(
+      (idx) => { indexCache.set(key, idx); indexJobs.delete(key); return idx },
+      (err) => { indexJobs.delete(key); throw err },
+    )
+    indexJobs.set(key, job)
   }
-  return idx
+  return job
 }
 
 /** Quranın tam nəşrini yüklə (bir dəfə; brauzer də 24 saat keşləyir). */
@@ -283,8 +295,10 @@ function loadEdition(ed) {
       if (!r.ok) throw new Error('HTTP ' + r.status)
       return r.json()
     })
-    .then(json => {
-      const entries = buildEntries(buildQuranEditionItems(json))
+    // INP: 6236 ayənin indeksi (~2 MB JSON) CPU ×4-də ~0.6 s-lik tək tapşırıq idi — yazarkən
+    // növbəti hərf onu gözləyirdi. İndi hissə-hissə qurulur (nəticə buildEntries ilə eynidir).
+    .then(json => buildIndexAsync({ quran: buildQuranEditionItems(json) }))
+    .then(({ quran: entries }) => {
       if (!entries.length) throw new Error('empty edition')
       rec.entries = entries
       rec.status = 'ready'
@@ -480,7 +494,11 @@ function SearchDialog({ onClose, setPage, initialQuery }) {
   // dəyişsə, yeni dilin hədisləri gələnə qədər yalnız səhifələr axtarılır
   const hl = hadithLangOf(lang)
   const [loaded, setLoaded] = useState(() => dataCache.get(hl) || null)
-  const data = loaded && loaded.lang === hl ? loaded : null
+  const raw = loaded && loaded.lang === hl ? loaded : null
+  // İndeks hissə-hissə qurulur — hazır olanda yenidən render (bax: ensureIndex)
+  const [, setIndexTick] = useState(0)
+  // "Məlumat hazırdır" = tam indeks də hazırdır; o vaxta qədər — əvvəlki kimi yalnız səhifələr
+  const data = raw && indexCache.has(indexKey(lang, raw)) ? raw : null
   const [dataErr, setDataErr] = useState(false)
   const [dataTry, setDataTry] = useState(0)
   const [active, setActive] = useState(0)
@@ -510,7 +528,10 @@ function SearchDialog({ onClose, setPage, initialQuery }) {
     const prevFocus = document.activeElement
     const root = document.documentElement
     const scrollbar = window.innerWidth - root.clientWidth
-    root.style.setProperty('--gs-sbw', `${scrollbar > 0 ? scrollbar : 0}px`)
+    // INP: <html>-də xüsusi xassəni dəyişmək BÜTÜN sənədin üslubunu yenidən hesablatdırır
+    // (irsi dəyişən — ~2400 element, CPU ×4-də açılış/bağlanışa +0.5–1 s). Telefonda scrollbar
+    // eni 0-dır və CSS-in öz ehtiyatı var (var(--gs-sbw, 0px)) — yalnız lazım olanda yazılır.
+    if (scrollbar > 0) root.style.setProperty('--gs-sbw', `${scrollbar}px`)
     root.classList.add('gs-open')
     const input = inputRef.current
     if (input) {
@@ -519,7 +540,7 @@ function SearchDialog({ onClose, setPage, initialQuery }) {
     }
     return () => {
       root.classList.remove('gs-open')
-      root.style.removeProperty('--gs-sbw')
+      if (scrollbar > 0) root.style.removeProperty('--gs-sbw')
       lastQuery = queryRef.current
       clearTimeout(copyTimer.current)
       abortEditionDownloads()
@@ -531,20 +552,27 @@ function SearchDialog({ onClose, setPage, initialQuery }) {
 
   // Yerli məlumat (hədis, dua, ...) — dialoq açılan kimi
   useEffect(() => {
-    if (data) return undefined
+    let alive = true
+    const bump = () => { if (alive) setIndexTick(t => t + 1) }
+    ensureIndex(lang, null).then(bump, () => {})
+    if (raw) ensureIndex(lang, raw).then(bump, () => { if (alive) setDataErr(true) })
+    return () => { alive = false }
+  }, [lang, raw])
+  useEffect(() => {
+    if (raw) return undefined
     let alive = true
     loadData(hl).then(
       d => { if (alive) { setLoaded(d); setDataErr(false) } },
       () => { if (alive) setDataErr(true) },
     )
     return () => { alive = false }
-  }, [data, dataTry, hl])
+  }, [raw, dataTry, hl])
 
   // ── Axtarış ──
   const deferredQuery = useDeferredValue(query)
   const q = useMemo(() => prepareQuery(deferredQuery), [deferredQuery])
-  const index = useMemo(() => getIndex(lang, data), [lang, data])
-  const local = useMemo(() => (q.valid ? searchIndex(index, q) : null), [index, q])
+  const index = (data && indexCache.get(indexKey(lang, data))) || indexCache.get(indexKey(lang, null)) || null
+  const local = useMemo(() => (q.valid && index ? searchIndex(index, q) : null), [index, q])
 
   const edKey = q.valid ? ((q.arabic || lang === 'ar') ? ARABIC_EDITION : (pickUi(EDITION_MAP, lang, 'en'))) : null
   const wantEd = Boolean(edKey) && q.norm.replace(/ /g, '').length >= 3

@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { lazy, memo, Suspense, useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import HeroOrnament from '../components/HeroOrnament'
 import { useLang } from '../contexts/LangContext'
@@ -258,6 +258,45 @@ export default function HisnPage({ setPage }) {
   return <HisnList setPage={setPage} />
 }
 
+// Fəsil kartlarının şəbəkəsi — memo: çip/axtarış sahəsinin təcili render-i onu keçir (bax: HisnList → dq/dCat/dFavs)
+const HisnGrid = memo(function HisnGrid({ gridKey, filtered, favSet, cardV, morphOn, isAr, toggleFav, onOpen, tFavAdd, tFavRemove, tItems, tRead }) {
+  // Kontekst birbaşa oxunur: əlavə dilin lüğəti gələndə (pickUi) kartların etiketləri də yenilənsin
+  const { lang } = useLang()
+  return (
+    <Stagger as="ol" className="hs-grid" key={gridKey} step={0.04}>
+      {filtered.map(c => {
+        const k = CAT_BY_ID.get(CAT_OF.get(c.id) || 'virtue')
+        const first = c.items[0]
+        const fav = favSet.has(c.id)
+        return (
+          <m.li variants={cardV} layoutId={morphOn ? morphId(`hs-${c.id}`) : undefined} transition={SPRING.soft} data-wow-off=""
+            key={c.id} id={`hs-${c.id}`} className={`ui-card hs-card${fav ? ' is-fav' : ''}`}>
+            <div className="hs-card__top">
+              <span className="hs-card__n ui-num" aria-hidden="true">{c.id}</span>
+              {k && <span className="ui-badge hs-card__cat"><Icon name={k.icon} size={12} /> {pickUi(k.t, lang, 'en')}</span>}
+              <button type="button" className={`hs-card__fav${fav ? ' is-on' : ''}`} aria-pressed={fav}
+                onClick={() => toggleFav(c.id)} aria-label={`${fav ? tFavRemove : tFavAdd}: ${c.title}`} title={fav ? tFavRemove : tFavAdd}>
+                <Icon name="star" size={17} />
+              </button>
+            </div>
+            <h2 className="hs-card__title">
+              <button type="button" className="hs-card__open" onClick={() => onOpen(c.id)}>
+                <span className="ui-sr-only">{c.id}. </span>{c.title}
+              </button>
+            </h2>
+            {!isAr && <p className="hs-card__ar ui-arabic" lang="ar" dir="rtl">{c.titleAr}</p>}
+            {first && <p className={`hs-card__preview${isAr ? ' ui-arabic' : ''}`} dir={isAr ? 'rtl' : undefined}>{isAr ? first.ar : (first.text || first.ar)}</p>}
+            <div className="hs-card__foot">
+              <span className="hs-card__meta ui-num">{c.items.length} {tItems}</span>
+              <span className="hs-card__read" aria-hidden="true">{tRead} <Icon name="chevron" size={14} className="ui-flip-rtl" /></span>
+            </div>
+          </m.li>
+        )
+      })}
+    </Stagger>
+  )
+})
+
 function HisnList({ setPage }) {
   const { lang } = useLang()
   const L = pickUi(LABELS, lang, 'en')
@@ -303,14 +342,20 @@ function HisnList({ setPage }) {
     return m
   }, [chapters])
 
+  // INP: süzgəc/axtarış dəyişəndə ~130 kartlıq şəbəkə (motion komponentləri) yenidən qurulur —
+  // CPU ×4-də ~1–2 s. Çip/sahə dərhal yenilənir, siyahı isə gecikdirilmiş dəyərlə (useDeferredValue)
+  // arxa planda, kəsilə bilən render-də qurulur (HisnGrid memo — təcili render onu keçir).
+  const dq = useDeferredValue(q)
+  const dCat = useDeferredValue(cat)
+  const dFavs = useDeferredValue(onlyFavs)
   const filtered = useMemo(() => {
-    const s = norm(q.trim(), lang)
+    const s = norm(dq.trim(), lang)
     let out
-    if (!s) out = cat === 'all' ? chapters : chapters.filter(c => (CAT_OF.get(c.id) || 'virtue') === cat)
+    if (!s) out = dCat === 'all' ? chapters : chapters.filter(c => (CAT_OF.get(c.id) || 'virtue') === dCat)
     else out = chapters.filter(c => norm(c.title, lang).includes(s) || norm(c.titleAr, lang).includes(s)
       || c.items.some(it => norm(it.text, lang).includes(s) || norm(it.ar, lang).includes(s)))
-    return onlyFavs ? out.filter(c => favSet.has(c.id)) : out
-  }, [q, chapters, lang, cat, onlyFavs, favSet])
+    return dFavs ? out.filter(c => favSet.has(c.id)) : out
+  }, [dq, chapters, lang, dCat, dFavs, favSet])
 
   // Nömrələmə həmişə kitabdakı ardıcıllıqla (filtrdən asılı olmasın)
   const startNum = useMemo(() => {
@@ -373,6 +418,7 @@ function HisnList({ setPage }) {
     requestAnimationFrame(() => readerRef.current?.scrollIntoView({ block: 'start' }))
   }
   const openChapter = (id) => setCur(id)
+  const openFromCard = useCallback((id) => { setFrom(id); setCur(id) }, [])
   const flash = (k) => { setCopied(k); setTimeout(() => setCopied(c => (c === k ? '' : c)), 1800) }
   const nav = cur != null && filtered.some(c => c.id === cur) ? filtered : chapters
   const navIdx = nav.findIndex(c => c.id === cur)
@@ -553,37 +599,9 @@ function HisnList({ setPage }) {
                 </div>
               )}
               {/* Fəsillər kart grid-də; kart klikdə oxu pəncərəsi açılır */}
-              <Stagger as="ol" className="hs-grid" key={`${cat}|${onlyFavs}`} step={0.04}>
-                {filtered.map(c => {
-                  const k = CAT_BY_ID.get(CAT_OF.get(c.id) || 'virtue')
-                  const first = c.items[0]
-                  const fav = favSet.has(c.id)
-                  return (
-                    <m.li variants={cardV} layoutId={morphOn ? morphId(`hs-${c.id}`) : undefined} transition={SPRING.soft} data-wow-off=""
-                      key={c.id} id={`hs-${c.id}`} className={`ui-card hs-card${fav ? ' is-fav' : ''}`}>
-                      <div className="hs-card__top">
-                        <span className="hs-card__n ui-num" aria-hidden="true">{c.id}</span>
-                        {k && <span className="ui-badge hs-card__cat"><Icon name={k.icon} size={12} /> {pickUi(k.t, lang, 'en')}</span>}
-                        <button type="button" className={`hs-card__fav${fav ? ' is-on' : ''}`} aria-pressed={fav}
-                          onClick={() => toggleFav(c.id)} aria-label={`${fav ? X.favRemove : X.favAdd}: ${c.title}`} title={fav ? X.favRemove : X.favAdd}>
-                          <Icon name="star" size={17} />
-                        </button>
-                      </div>
-                      <h2 className="hs-card__title">
-                        <button type="button" className="hs-card__open" onClick={() => { setFrom(c.id); setCur(c.id) }}>
-                          <span className="ui-sr-only">{c.id}. </span>{c.title}
-                        </button>
-                      </h2>
-                      {!isAr && <p className="hs-card__ar ui-arabic" lang="ar" dir="rtl">{c.titleAr}</p>}
-                      {first && <p className={`hs-card__preview${isAr ? ' ui-arabic' : ''}`} dir={isAr ? 'rtl' : undefined}>{isAr ? first.ar : (first.text || first.ar)}</p>}
-                      <div className="hs-card__foot">
-                        <span className="hs-card__meta ui-num">{c.items.length} {X.items}</span>
-                        <span className="hs-card__read" aria-hidden="true">{X.read} <Icon name="chevron" size={14} className="ui-flip-rtl" /></span>
-                      </div>
-                    </m.li>
-                  )
-                })}
-              </Stagger>
+              <HisnGrid gridKey={`${dCat}|${dFavs}`} filtered={filtered} favSet={favSet} cardV={cardV} morphOn={morphOn}
+                isAr={isAr} toggleFav={toggleFav} onOpen={openFromCard}
+                tFavAdd={X.favAdd} tFavRemove={X.favRemove} tItems={X.items} tRead={X.read} />
             </>
           )}
         </div>

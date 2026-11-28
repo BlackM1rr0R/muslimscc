@@ -17,10 +17,10 @@ import { BRAND } from '../src/config/brand.js'
 
 // Bölmələr — qruplar (key-lər routes.js PAGES-dən). Siyahıda olmayan indekslənən səhifə "Other"-ə düşür.
 const GROUPS = [
-  ['Quran', ['quran', 'mushaf', 'quranroots', 'quranmeaning', 'revelationorder', 'quranhistory', 'khatm', 'focus', 'hifz', 'qurangame']],
+  ['Quran', ['quran', 'mushaf', 'quranroots', 'quranmeaning', 'revelationorder', 'quranhistory', 'quranprophets', 'khatm', 'focus', 'hifz', 'qurangame']],
   ['Prayer', ['prayer', 'qibla', 'onroad', 'simple', 'prayerguide', 'tracker', 'qada', 'jamaat', 'mosques', 'mosquetv', 'widget']],
   ['Hadith', ['hadith', 'nawawi40', 'hadithbooks', 'hadeethenc']],
-  ['Dua and dhikr', ['duas', 'hisn', 'dhikr', 'names', 'duajournal']],
+  ['Dua and dhikr', ['duas', 'rabbana', 'hisn', 'dhikr', 'names', 'duajournal']],
   ['Calendar, fasting and Hajj', ['calendar', 'hijri', 'ramadan', 'ramadanprep', 'lastten', 'hajjguide', 'holyplaces']],
   ['Learning', ['learn', 'newmuslim', 'arabic', 'glossary', 'fatwa', 'history', 'seerah', 'sahaba', 'scholars', 'kids', 'quiz', 'books', 'videos']],
   ['Life guides and daily routines', ['bedtime', 'waking', 'newborn', 'nikahprep', 'sickvisit', 'bereavement', 'travelkit']],

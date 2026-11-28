@@ -135,6 +135,8 @@ export const PAGES = [
   { key: 'revelationorder', path: 'quran-revelation-order', priority: 0.75, changefreq: 'monthly' },
   // Quran necə toplandı — Hiradan bugünkü mushafa 6 mərhələ (data/quranCompilation.js; statik blok seo-body.mjs-də)
   { key: 'quranhistory', path: 'quran-history', priority: 0.75, changefreq: 'monthly' },
+  // Quranda peyğəmbərlər — 25 adın keçmə sayı və ayələri (data/quranProphets.js, generator; statik blok seo-body.mjs-də)
+  { key: 'quranprophets', path: 'quran-prophets', priority: 0.75, changefreq: 'monthly' },
   // Quranla diqqət seansı (Pomodoro + ayə fasiləsi) — alət səhifəsi, şəxsi say yalnız klientdə
   { key: 'focus',        path: 'focus',        priority: 0.65, changefreq: 'monthly' },
   { key: 'prayer',       path: 'prayer',       priority: 0.95, changefreq: 'daily'   },
@@ -149,6 +151,8 @@ export const PAGES = [
   { key: 'fatwa',        path: 'fatwa',        priority: 0.80, changefreq: 'monthly' },
   { key: 'duas',         path: 'duas',         priority: 0.90, changefreq: 'weekly'  },
   { key: 'hisn',         path: 'hisnul-muslim', priority: 0.90, changefreq: 'monthly' },
+  // Rabbanā duaları — Quranda «رَبَّنَا» ilə başlayan dualar (data/rabbanaSpans.gen.js; statik blok seo-body.mjs-də)
+  { key: 'rabbana',      path: 'rabbana-duas', priority: 0.80, changefreq: 'monthly' },
   { key: 'dhikr',        path: 'dhikr',        priority: 0.85, changefreq: 'monthly' },
   { key: 'names',        path: 'names',        priority: 0.85, changefreq: 'monthly' },
   { key: 'zakat',        path: 'zakat',        priority: 0.85, changefreq: 'monthly' },

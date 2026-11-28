@@ -22,7 +22,7 @@
 //   onSelect(loc) — seçimdən sonra (loc = getPrayerLocation())
 // ═══════════════════════════════════════════════════════
 
-import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { startTransition, useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useLang } from '../contexts/LangContext'
 import {
@@ -202,8 +202,11 @@ export default function CityPicker({ variant = 'field', label, className = '', r
     onSelect?.(getPrayerLocation())
   }, [closePicker, onSelect])
 
-  const chooseCity = useCallback((id) => { setPrayerCity(id); finish() }, [finish])
-  const choosePlace = useCallback((p) => { setPrayerCity(p); finish() }, [finish])
+  // INP: yeni şəhər bütün namaz vaxtlarını, başlıq halqasını, təqvimi yenidən hesablatdırır
+  // (CPU ×4-də ~1.4 s). Seçim yaddaşa dərhal yazılır, amma React yenilənmələri keçid
+  // (transition) kimi gedir — panel bağlanması ilk kadrda görünür, vaxtlar ardınca gəlir.
+  const chooseCity = useCallback((id) => { startTransition(() => setPrayerCity(id)); finish() }, [finish])
+  const choosePlace = useCallback((p) => { startTransition(() => setPrayerCity(p)); finish() }, [finish])
 
   const chooseWorld = useCallback(async (item) => {
     if (busyKey) return

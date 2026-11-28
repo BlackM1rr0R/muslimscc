@@ -21,11 +21,11 @@ import { pathFor } from '../seo/routes'
 import '../styles/ProphetTree.css'
 
 const T2 = {
-  az: { swipe: 'Bütün ağacı görmək üçün yana sürüşdürün' },
-  en: { swipe: 'Swipe sideways to see the whole tree' },
-  ru: { swipe: 'Проведите в сторону, чтобы увидеть всё древо' },
-  ar: { swipe: 'اسحب جانبًا لرؤية الشجرة كاملة' },
-  tr: { swipe: 'Ağacın tamamını görmek için yana kaydırın' },
+  az: { swipe: 'Bütün ağacı görmək üçün yana sürüşdürün', more: 'Hər peyğəmbərin adı Quranda neçə dəfə keçir' },
+  en: { swipe: 'Swipe sideways to see the whole tree', more: 'How often each prophet’s name occurs in the Quran' },
+  ru: { swipe: 'Проведите в сторону, чтобы увидеть всё древо', more: 'Сколько раз имя каждого пророка встречается в Коране' },
+  ar: { swipe: 'اسحب جانبًا لرؤية الشجرة كاملة', more: 'كم مرة ورد اسم كل نبي في القرآن' },
+  tr: { swipe: 'Ağacın tamamını görmek için yana kaydırın', more: 'Her peygamberin adı Kur’an’da kaç kez geçer' },
 }
 // Kökün (İbrahim) x mövqeyi — telefonda açılanda ortaya gətirilir
 const ROOT = 'ibrahim'
@@ -168,6 +168,8 @@ export default function ProphetTree({ lang = 'az', prophets = [] }) {
         {others.map(p => <li key={p.num}><span className="ui-chip">{pickUi(p.name, lang)}</span></li>)}
       </ul>
       <p className="ptr__note"><Icon name="info" size={14} /> {t.note}</p>
+      {/* /quran-prophets — adların Quranda keçmə sayı (eyni 25 peyğəmbər) */}
+      <p className="ptr__more"><a className="ui-link" href={pathFor('quranprophets', lang)} data-testid="ptr-prophets-link"><Icon name="quranprophets" size={16} /> {t2.more} <Icon name="arrow" size={13} className="ui-flip-rtl" /></a></p>
     </section>
   )
 }

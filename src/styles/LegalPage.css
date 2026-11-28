@@ -284,7 +284,9 @@
 }
 .lg-credit__head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 12px; }
 .lg-credit__name { font-weight: 600; color: var(--text-strong); }
-.lg-section .lg-credit__lic a { color: inherit; text-decoration: none; }
+.lg-section .lg-credit__lic a { position: relative; color: inherit; text-decoration: none; }
+/* Lisenziya linki nişanın içində cəmi ~12px hündürdür — toxunma sahəsi bütün nişan boyda (≥ 24px, WCAG 2.5.8) */
+.lg-section .lg-credit__lic a::after { content: ''; position: absolute; inset: -6px -8px; }
 .lg-section .lg-credit__by,
 .lg-section .lg-credit__note { margin: 4px 0 0; font-size: var(--step--1); color: var(--text-secondary); }
 

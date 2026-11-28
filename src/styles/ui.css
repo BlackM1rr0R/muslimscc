@@ -1301,7 +1301,9 @@ button.ui-card:active,
   overflow-x: auto;
 }
 .ui-segmented > button {
-  flex: 1 0 auto;
+  /* shrink 1: sığmayanda düymə ən uzun söz qədər daralır və sətir sarılır — əvvəl uzun dildə
+     (ru, de, ta) son seçim 360px-də görünmədən kəsilirdi (overflow-x). Sığanda dəyişiklik yoxdur */
+  flex: 1 1 auto;
   min-height: 34px;
   padding: 0 14px;
   border: 0;

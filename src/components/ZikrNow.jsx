@@ -68,10 +68,18 @@ export default function ZikrNow() {
     // Hərəkət azaldılıbsa — yalnız dəyişəndə (sürükləmə, ölçü) çəkilir; əks halda ~30 kadr/s,
     // ekrandan kənarda və gizli vərəqdə heç çəkilmir (əsas axın boş qalsın)
     let lastDrawn = -1e9, lastKey = ''
+    // INP: bir kadrın çəkilişi (d3 proyeksiyası + quru xəritəsi) CPU ×4-də ~40 ms-dir və 30 kadr/s
+    // əsas axını demək olar tam tutur — səhifədəki toxunuşlar (təsbeh sayğacı) 0.5–0.9 s gözləyirdi.
+    // İstifadəçi qlobusdan kənarda toxunanda / klaviaturada yazanda fırlanma 1 s dayanır,
+    // toxunuşun cavabı dərhal çəkilir; sonra qaldığı yerdən davam edir.
+    let quietUntil = 0
+    const onInput = (e) => { if (!drag.current && !c.contains(e.target)) quietUntil = performance.now() + 1000 }
+    document.addEventListener('pointerdown', onInput, { capture: true, passive: true })
+    document.addEventListener('keydown', onInput, { capture: true, passive: true })
     const draw = (now) => {
       const dt = Math.min(64, now - last); last = now
       const key = `${rot.current[0].toFixed(2)},${rot.current[1].toFixed(2)},${c.clientWidth}`
-      const due = reduced ? key !== lastKey : (now - lastDrawn > 33 || drag.current)
+      const due = (reduced ? key !== lastKey : (now - lastDrawn > 33 || drag.current)) && (now >= quietUntil || drag.current)
       if (due && visible.current && document.visibilityState === 'visible') {
         lastDrawn = now
         if (!reduced && !drag.current) rot.current = [rot.current[0] + Math.max(dt, 33) * 0.006, rot.current[1]]
@@ -105,7 +113,11 @@ export default function ZikrNow() {
       raf = requestAnimationFrame(draw)
     }
     raf = requestAnimationFrame(draw)
-    return () => cancelAnimationFrame(raf)
+    return () => {
+      cancelAnimationFrame(raf)
+      document.removeEventListener('pointerdown', onInput, { capture: true })
+      document.removeEventListener('keydown', onInput, { capture: true })
+    }
   }, [cells, land, reduced])
 
   const onDown = (e) => { drag.current = { x: e.clientX, y: e.clientY, r: rot.current }; e.currentTarget.setPointerCapture?.(e.pointerId) }

@@ -13,7 +13,7 @@
 //   həmişə öndə: qlobus günəşlə birlikdə fırlanır; barmaqla/siçanla çevirmək olur.
 // • Canlı rejimdə hər 30 saniyədə yenilənir. Stillər: src/styles/AdhanWave.css
 // ═══════════════════════════════════════════════════════
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { memo, useEffect, useMemo, useRef, useState } from 'react'
 import { geoEqualEarth, geoOrthographic, geoPath, geoCircle, geoGraticule10, geoDistance } from 'd3-geo'
 import { feature } from 'topojson-client'
 import landUrl from 'world-atlas/land-110m.json?url'
@@ -22,6 +22,7 @@ import { worldPoints } from '../../data/worldCities'
 import { antisolar, subsolar, adhanAt } from '../../utils/solar'
 import '../../styles/AdhanWave.css'
 import { pickUi } from '../../utils/uiText'
+import { useLang } from '../../contexts/LangContext'
 
 const W = 960, H = 470
 const T = {
@@ -36,7 +37,11 @@ let landCache = null
 const loadLand = () => (landCache ||= fetch(landUrl).then(r => r.json()).then(t => feature(t, t.objects.land)))
 const reduced = () => typeof window !== 'undefined' && (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches || document.documentElement.classList.contains('a11y-reduce-motion'))
 
-export default function AdhanWave({ lang = 'az' }) {
+// INP: memo — xəritənin render-i (d3 quru yolu + bütün şəhərlərin azan hesabı) CPU ×4-də ~0.4–0.5 s-dir;
+// /prayer-də şəhər seçimi və ya pəncərə açılışı valideyni yenidən çəkəndə bu iş təkrarlanırdı.
+// Kontekst birbaşa oxunur ki, əlavə dilin lüğəti gələndə (pickUi) mətnlər yenə yenilənsin.
+export default memo(function AdhanWave({ lang = 'az' }) {
+  useLang()
   const t = pickUi(T, lang)
   const [land, setLand] = useState(null)
   const [now, setNow] = useState(() => Date.now())
@@ -163,4 +168,4 @@ export default function AdhanWave({ lang = 'az' }) {
       </ul>
     </figure>
   )
-}
+})

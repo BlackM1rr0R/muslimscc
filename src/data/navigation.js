@@ -70,6 +70,8 @@ export const NAV_GROUPS = [
         label: { az: 'Nazil olma sırası', en: 'Order of revelation', ru: 'Порядок ниспослания', ar: 'ترتيب النزول', tr: 'Nüzul sırası' } },
       { key: 'quranhistory', icon: '📜',
         label: { az: 'Quran necə toplandı', en: 'How the Quran was compiled', ru: 'Как был собран Коран', ar: 'كيف جُمع القرآن', tr: 'Kur’an nasıl toplandı' } },
+      { key: 'quranprophets', icon: '🫧',
+        label: { az: 'Quranda peyğəmbərlər', en: 'Prophets in the Quran', ru: 'Пророки в Коране', ar: 'الأنبياء في القرآن', tr: 'Kur’an’da peygamberler' } },
       { key: 'focus', icon: '⏳',
         label: { az: 'Quranla diqqət seansı', en: 'Focus session with the Quran', ru: 'Сосредоточение с Кораном', ar: 'جلسة تركيز مع القرآن', tr: 'Kur’an ile odak oturumu' } },
       { key: 'hifz', icon: '📝',
@@ -181,6 +183,8 @@ export const NAV_GROUPS = [
         label: { az: 'Dualar', en: "Du'as", ru: 'Дуа', ar: 'الأدعية', tr: 'Dualar' } },
       { key: 'hisn', icon: '🛡️',
         label: { az: 'Hisnul-Müslim', en: 'Hisn al-Muslim', ru: 'Хиснуль-муслим', ar: 'حصن المسلم', tr: 'Hısnu’l-Müslim' } },
+      { key: 'rabbana', icon: '🫙',
+        label: { az: 'Rabbanā duaları', en: 'Rabbanā duas', ru: 'Дуа «Раббана»', ar: 'أدعية «ربنا»', tr: 'Rabbenâ duaları' } },
       { key: 'dhikr', icon: '📿',
         label: { az: 'Zikr', en: 'Dhikr', ru: 'Зикр', ar: 'الذكر', tr: 'Zikir' } },
       // R1: yatma və oyanış ardıcıllıqları

@@ -303,5 +303,7 @@
 }
 
 /* "Məlumatlarım" düyməsi (ehtiyat nüsxə dialoqu) — hüquqi linklər kimi görünür */
-.ft-backup { display: inline-flex; align-items: center; gap: 5px; padding: 0; border: 0; background: none; color: inherit; font: inherit; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: transparent; }
-@media (hover: hover) { .ft-backup:hover { text-decoration-color: currentColor; } }
+/* (əvvəl font/rəng nav-dan miras alırdı → linklərdən iri və tünd görünürdü) */
+.ft-backup { display: inline-flex; align-items: center; gap: 5px; min-height: 32px; padding: 0 6px; border: 0; border-radius: var(--radius-xs, 6px); background: none; color: var(--text-tertiary); font: inherit; font-size: 12.5px; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: transparent; transition: color var(--dur-1, 150ms) ease; }
+@media (hover: hover) { .ft-backup:hover { color: var(--text-strong); text-decoration-color: currentColor; } }
+@media (pointer: coarse) { .ft-backup { min-height: 40px; } }

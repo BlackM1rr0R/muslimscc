@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef, useCallback, memo, lazy, Suspense } from 'react'
+import { useState, useMemo, useEffect, useRef, useCallback, useDeferredValue, memo, lazy, Suspense } from 'react'
 import ReportErrorButton from '../components/ReportErrorButton'
 import HadithFullDialog from '../components/HadithFullDialog'
 import ShareCardButton from '../components/ShareCardButton'
@@ -756,19 +756,25 @@ function HadithBody({ setPage }) {
 
   // Sevimlilər filtri yalnız açıq olanda favSet-dən asılıdır — əks halda
   // ürəyə basmaq bütün siyahını yenidən süzdürməsin
-  const favFilter = showFavs ? favSet : null
   const safeCat = catIdx > 0 && catIdx < cats.length ? catIdx : 0
-  const filtered = useMemo(() => {
+  // INP: çip / dərəcə / "Sevimlilər" dəyişəndə siyahı (açar dəyişir → bütün kartlar yenidən qurulur,
+  // CPU ×4-də ~0.4–1 s) gecikdirilmiş dəyərlə ayrıca, kəsilə bilən render-də qurulur — çipin özü dərhal
+  const dCat = useDeferredValue(safeCat)
+  const dShowFavs = useDeferredValue(showFavs)
+  const dGradeF = useDeferredValue(gradeF)
+  const favFilter = dShowFavs ? favSet : null
+  const filterBy = useCallback((cat, favs, grade) => {
     const q = fold(query.trim())
     const qa = foldAr(query.trim())
-    const enCat = safeCat > 0 ? CATS_EN[safeCat].toLowerCase() : null
+    const enCat = cat > 0 ? CATS_EN[cat].toLowerCase() : null
     return list.filter((h, i) => {
-      if (favFilter && !idsOf(h).some(id => favFilter.has(id))) return false
+      if (favs && !idsOf(h).some(id => favs.has(id))) return false
       if (enCat && String(h.cat || '').toLowerCase() !== enCat) return false
-      if (gradeF !== 'all' && gradeGroup(h.g) !== gradeF) return false
+      if (grade !== 'all' && gradeGroup(h.g) !== grade) return false
       return !q || index[i].hay.includes(q) || (qa && index[i].ar.includes(qa))
     })
-  }, [list, index, safeCat, query, favFilter, gradeF])
+  }, [list, index, query])
+  const filtered = useMemo(() => filterBy(dCat, favFilter, dGradeF), [filterBy, dCat, favFilter, dGradeF])
 
   // Sevimlilər çipindəki say — yalnız siyahıda həqiqətən olan hədislər
   const favCount = useMemo(() => list.filter(isFav).length, [list, isFav])
@@ -782,7 +788,7 @@ function HadithBody({ setPage }) {
   const inf = useInfiniteList({
     total: filtered.length,
     batch: BATCH,
-    resetKey: `${lang}|${safeCat}|${showFavs ? 1 : 0}|${gradeF}|${query.trim()}`,
+    resetKey: `${lang}|${dCat}|${dShowFavs ? 1 : 0}|${dGradeF}|${query.trim()}`,
     storageKey: 'hadith',
     onReset: () => {
       const el = countRef.current
@@ -844,7 +850,10 @@ function HadithBody({ setPage }) {
     el.focus({ preventScroll: true })
   }, [])
   const showRandom = useCallback(() => {
-    const pool = randomHadithPool(filtered, list, { allowWeak: gradeF === 'weak', idOf: pageIdOf, groupOf: gradeGroup })
+    // Siyahı hələ köhnə (gecikdirilmiş) süzgəclə qurulubsa — cari süzgəclə hesabla
+    const fresh = dCat === safeCat && dShowFavs === showFavs && dGradeF === gradeF
+      ? filtered : filterBy(safeCat, showFavs ? favSet : null, gradeF)
+    const pool = randomHadithPool(fresh, list, { allowWeak: gradeF === 'weak', idOf: pageIdOf, groupOf: gradeGroup })
     const id = pickRandomId(pool, lastRandomRef.current ?? focusSid)
     if (id == null) return
     haptic(6)
@@ -853,7 +862,7 @@ function HadithBody({ setPage }) {
     if (String(id) === String(focusSid)) { requestAnimationFrame(scrollToFocus); return }
     randomScrollRef.current = true
     navigateTo(pathFor('hadith', lang, id))
-  }, [filtered, list, gradeF, focusSid, lang, navigateTo, scrollToFocus])
+  }, [filtered, filterBy, dCat, safeCat, dShowFavs, showFavs, dGradeF, gradeF, favSet, list, focusSid, lang, navigateTo, scrollToFocus])
   useEffect(() => {
     if (!randomScrollRef.current || focusSid == null) return undefined
     randomScrollRef.current = false
@@ -951,16 +960,16 @@ function HadithBody({ setPage }) {
             </div>
           )}
           <HadithMemorize open={memOpen} onClose={() => setMemOpen(false)} items={favItems} lang={lang} />
-          <div className="hadiths-list" key={`${safeCat}|${showFavs}|${gradeF}`}>
+          <div className="hadiths-list" key={`${dCat}|${dShowFavs}|${dGradeF}`}>
             {visible.length === 0
               ? (
                 <div className="ui-card ui-card--sunken hadith-empty" data-reveal="scale">
                   <span className="ui-icon-tile ui-icon-tile--lg ui-icon-tile--neutral">
-                    {showFavs ? <HeartIcon /> : <Icon name="hadith" />}
+                    {dShowFavs ? <HeartIcon /> : <Icon name="hadith" />}
                   </span>
                   <p className="hadith-empty__title">{t.noResult}</p>
-                  {showFavs && !search && <p className="hadith-empty__text">{u.favEmpty}</p>}
-                  {showFavs && !search && (
+                  {dShowFavs && !search && <p className="hadith-empty__text">{u.favEmpty}</p>}
+                  {dShowFavs && !search && (
                     <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm" onClick={() => setShowFavs(false)}>
                       <Icon name="hadith" className="ui-btn__icon" /> {u.all}
                     </button>

@@ -292,6 +292,11 @@
      rejimdə tünd ehtiyat rəngə düşürdü (məs. 99 ad mandalası görünmürdü) */
   --text-primary:   var(--text-strong);
   --focus:          var(--ring);
+  /* Eyni hal fonda: --card-bg / --bg-primary bir neçə komponentdə (ömürlük Quran mozaikası,
+     Quranda heyvanlar/bitkilər, hərf tutma, xəritə yazılarının halo-su) işlənir, təyin olunmamışdı
+     → qaranlıq rejimdə ağ (#fff) ehtiyata düşür, açıq mətn ağ kartda oxunmurdu */
+  --card-bg:        var(--surface-1);
+  --bg-primary:     var(--surface-1);
 
   --on-primary:     var(--on-brand);
 

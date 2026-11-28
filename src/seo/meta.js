@@ -440,6 +440,20 @@ export const META = {
           d: 'دروس مختصرة في العقيدة والطهارة والصلاة والصيام والأضاحي والأسرة والأخلاق والعلم، من القرآن والسنة الصحيحة وكلام علماء السلف، مع ذكر المصادر.' },
   },
 
+  // Rabbanā duaları (/rabbana-duas): Quranda «رَبَّنَا» ilə başlayan 38 dua + dua küpü
+  rabbana: {
+    az: { t: 'Rabbanā duaları — Quranda «Rəbbimiz» ilə başlayan dualar',
+          d: 'Quranda «Rəbbimiz» (رَبَّنَا) ilə başlayan 38 dua: İbrahim və İsmailin, İsanın, möminlərin duaları — ərəbcə ayə mətni, ayənin tərcüməsi, qiraət və Quranda ayəyə keçid. Dua küpündən təsadüfi dua çıxarın.' },
+    en: { t: 'Rabbanā Duas — Supplications in the Quran Beginning with “Our Lord”',
+          d: '38 supplications in the Quran that begin with “Our Lord” (رَبَّنَا): the duas of Ibrahim and Ismail, of Isa and of the believers — Arabic text of the ayah, its translation, recitation and a link to the ayah. Draw a random dua from the dua jar.' },
+    ru: { t: 'Дуа «Раббана» — мольбы из Корана со словами «Господь наш»',
+          d: '38 мольб из Корана, начинающихся словами «Господь наш» (رَبَّنَا): дуа Ибрахима и Исмаила, Исы и верующих — арабский текст аята, перевод, чтение и ссылка на аят. Достаньте случайную дуа из кувшина.' },
+    tr: { t: 'Rabbenâ Duaları — Kur’an’da «Rabbimiz» ile Başlayan Dualar',
+          d: 'Kur’an’da «Rabbimiz» (رَبَّنَا) diye başlayan 38 dua: İbrâhim ile İsmâil’in, İsa’nın ve müminlerin duaları — âyetin Arapça metni, meali, tilaveti ve âyete bağlantı. Dua küpünden rastgele bir dua çekin.' },
+    ar: { t: 'أدعية «ربنا» في القرآن الكريم',
+          d: 'ثمانية وثلاثون دعاءً قرآنيًا تبدأ بـ«رَبَّنَا»: دعاء إبراهيم وإسماعيل وعيسى والمؤمنين — نص الآية والتلاوة ورابط الآية في المصحف، مع جرّة الدعاء لاختيار دعاء عشوائي.' },
+  },
+
   hisn: {
     az: { t: 'Hisnul-Müslim — Kitab və Sünnədən zikrlər tam şəkildə',
           d: 'Səid əl-Qəhtaninin "Hisnul-Müslim" kitabı tam: səhər-axşam zikrləri, yuxu, səfər, xəstəlik və digər hallar üçün dualar — ərəbcə, tərcümə və mənbə ilə.' },
@@ -583,6 +597,23 @@ export const META = {
           d: 'Kur’an’ın toplanma tarihi altı aşamada: Hira’da ilk vahiy, 23 yıl ezber ve yazı, Yemâme’den sonra Ebû Bekir döneminde toplanma, Hafsa’daki sayfalar ve Osman’ın nüshaları — Sahîh-i Buhârî 4986 ve 4987 kaynaklarıyla.' },
     ar: { t: 'كيف جُمع القرآن — من غار حراء إلى مصحف اليوم',
           d: 'تاريخ جمع القرآن في ست مراحل: بدء الوحي في حراء، وثلاث وعشرون سنة من الحفظ والكتابة، والجمع في عهد أبي بكر بعد اليمامة، والصحف عند حفصة، ومصاحف عثمان — مع مصادرها من صحيح البخاري 4986 و4987.' },
+  },
+
+  // Quranda peyğəmbərlər (/quran-prophets): 25 adın keçmə sayı (Quranic Arabic Corpus, generator) və ayələri
+  quranprophets: {
+    az: { t: 'Quranda peyğəmbərlər — 25 adın neçə dəfə keçdiyi və ayələri',
+          d: 'Quranda adı çəkilən 25 peyğəmbər: hər adın neçə dəfə keçdiyi, hansı surələrdə və ayələrdə olduğu. Saylar Quranın söz-söz morfoloji təhlilindən (Quranic Arabic Corpus) hesablanıb.' },
+    en: { t: 'Prophets in the Quran — How Often Each of the 25 Names Occurs',
+          d: 'The 25 prophets named in the Quran: how many times each name occurs and in which surahs and ayahs. The counts are computed from the word-by-word morphology of the Quran (Quranic Arabic Corpus).' },
+    ru: { t: 'Пророки в Коране — сколько раз встречается каждое из 25 имён',
+          // lang-ok[Quranic,Arabic,Corpus]: mənbənin adı
+          d: '25 пророков, названных в Коране: сколько раз встречается каждое имя, в каких сурах и аятах. Числа вычислены по пословной морфологии Корана (Quranic Arabic Corpus).' },
+    tr: { t: 'Kur’an’da Peygamberler — 25 Adın Kaç Kez Geçtiği ve Âyetleri',
+          // lang-ok[Quranic]: mənbənin adı
+          d: 'Kur’an’da adı geçen 25 peygamber: her adın kaç kez geçtiği, hangi surelerde ve âyetlerde olduğu. Sayılar Kur’an’ın kelime kelime morfolojisinden (Quranic Arabic Corpus) hesaplandı.' },
+    ar: { t: 'الأنبياء في القرآن — كم مرة ورد كل اسم من الأسماء الخمسة والعشرين',
+          // lang-ok[Quranic,Arabic,Corpus]: اسم المصدر
+          d: 'الأنبياء الخمسة والعشرون المذكورون في القرآن: عدد مرات ورود كل اسم، وفي أي السور والآيات. الأعداد محسوبة من التحليل الصرفي للقرآن كلمةً كلمة (Quranic Arabic Corpus).' },
   },
 
   // Nazil olma sırası (/quran-revelation-order): 114 surə mushaf ⇄ nazil olma sırası, Məkki/Mədəni

@@ -195,6 +195,35 @@ export function buildIndex(sources) {
   return index
 }
 
+/** Əsas axına növbəti tapşırığa qədər yol ver (scheduler.yield varsa — o, yoxsa setTimeout 0). */
+export function yieldToMain() {
+  const s = typeof globalThis !== 'undefined' ? globalThis.scheduler : undefined
+  if (s && typeof s.yield === 'function') return s.yield()
+  return new Promise(r => setTimeout(r, 0))
+}
+
+/**
+ * buildIndex ilə EYNİ nəticə, amma hissə-hissə: hər ~sliceMs-dən bir əsas axına yol verir.
+ * NİYƏ: tam indeks (hədis, dua, ayə, lüğət — minlərlə element) CPU ×4 telefonda ~0.3–0.4 s-lik
+ * tək uzun tapşırıq idi; axtarış pəncərəsi açılanda / ilk hərfdə toxunuş və yazı onu gözləyirdi (INP).
+ */
+export async function buildIndexAsync(sources, { sliceMs = 8, yieldFn = yieldToMain } = {}) {
+  const now = () => (typeof performance !== 'undefined' ? performance.now() : Date.now())
+  const index = {}
+  let t0 = now()
+  for (const type of Object.keys(sources)) {
+    const items = sources[type] || []
+    const out = []
+    for (let i = 0; i < items.length; i += 64) {
+      // buildEntries-in "order" sahəsi elementin qrupdakı yeridir — hissələr ardıcıl birləşir
+      for (const e of buildEntries(items.slice(i, i + 64))) { e.order += i; out.push(e) }
+      if (now() - t0 > sliceMs) { await yieldFn(); t0 = now() }
+    }
+    index[type] = out
+  }
+  return index
+}
+
 // ── Uyğunluq və xal ───────────────────────────────────
 
 /**

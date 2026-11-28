@@ -79,7 +79,11 @@ const P = {
   quranmeaning: <><path d="M11 6.6C9.5 5.3 7 4.6 3.5 4.6v12.5c3.5 0 6 .7 7.5 2" /><path d="M11 6.6c1.2-1 3-1.6 5.5-1.9V8" /><circle cx="16.5" cy="14" r="3.5" /><path d="m19 16.5 2.5 2.5" /></>,
   // Nazil olma sırası: iki kart yerini dəyişir (mushaf ⇄ nazil olma)
   // Quran necə toplandı: bükülmüş tumar (suhuf) üzərində yazı sətirləri
+  // Rabbanā duaları: şüşə küp (tıxac + içində qatlanmış kağız)
+  rabbana: <><path d="M9 4.5h6M9.5 4.5v2.3c0 .6-.4 1-1 1.4C6.6 9.4 5.5 11.2 5.5 14v3.5a3 3 0 0 0 3 3h7a3 3 0 0 0 3-3V14c0-2.8-1.1-4.6-3-5.8-.6-.4-1-.8-1-1.4V4.5" /><path d="m9.5 13.2 4.6-1.2.9 3.4-4.6 1.2z" /><path d="m9.95 14.9 4.6-1.2" /></>,
   quranhistory: <><path d="M7 3.5h11.5a2 2 0 0 1 2 2v1.5h-4" /><path d="M16.5 5.5v13a2 2 0 0 1-2 2H5.5a2 2 0 0 1-2-2V17h11" /><path d="M7 3.5a2 2 0 0 0-2 2V17" /><path d="M8.5 8.5h5M8.5 11.5h5M8.5 14.5h3" /></>,
+  // Quranda peyğəmbərlər — müxtəlif ölçülü dairələr (sahə = say)
+  quranprophets: <><circle cx="9" cy="10" r="5.5" /><circle cx="17" cy="15.5" r="3.5" /><circle cx="16.5" cy="6" r="2.5" /><circle cx="8" cy="19" r="2" /></>,
   revelationorder: <><rect x="3.5" y="4" width="6" height="6" rx="1.2" /><rect x="14.5" y="14" width="6" height="6" rx="1.2" /><path d="M9.5 7H14a3 3 0 0 1 3 3v1.5" /><path d="m15 9.8 2 2 2-2" /><path d="M14.5 17H10a3 3 0 0 1-3-3v-1.5" /><path d="m9 14.2-2-2-2 2" /></>,
   newmuslim: <><path d="M4.5 20.5c0-3.8 3.5-4.6 6.5-5.8s6-3 6-7.2" /><circle cx="17" cy="5" r="2" /><path d="M3 20.5h3.5" /><path d="M9 12.2h.01M14 17.2h.01" strokeWidth="2.4" /></>,
   // Yolda rejimi (sükan), Quranla diqqət seansı (açıq kitab üstündə halqa-taymer)
